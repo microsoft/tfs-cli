@@ -1,0 +1,34 @@
+{
+  "name": "tfs-cli",
+  "version": "0.0.1",
+  "description": "TFS Cross Platform Command Line",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/tfx-cli"
+  },  
+  "main": "./tfs-cli.js",
+  "preferGlobal": true,
+  "bin": {
+    "tfx": "./tfx-cli.js"
+  },
+  "scripts": {
+    "start": "./tfs-cli.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },  
+  "dependencies": {
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "del": "^1.2.0",
+    "gulp": "^3.9.0",
+    "gulp-mocha": "2.0.0",
+    "gulp-tsc": "^0.10.1",
+    "minimatch": "^2.0.8",
+    "mocha": "^2.2.5"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "author": "",
+  "license": "MIT"
+}
