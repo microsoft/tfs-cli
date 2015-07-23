@@ -22,7 +22,7 @@ gulp.task('copy', ['clean'], function () {
 });
 
 gulp.task('compileApp', ['clean'], function () {
-	return gulp.src(['app/*.ts'])
+	return gulp.src(['app/**/*.ts'])
 		.pipe(typescript({ declaration: false }))
 		.pipe(gulp.dest(appDest));
 });

@@ -1,0 +1,31 @@
+import cmdm = require('../lib/tfcommand');
+import cm = require('../lib/common');
+
+export function describe(): string {
+	return 'upload a build task';
+}
+
+export function getCommand(): cmdm.TfCommand {
+	// this just offers description for help and to offer sub commands
+	return new BuildTaskUpload();
+}
+
+export class BuildTaskUpload implements cmdm.TfCommand {
+	public exec(args: string[], options: cm.IOptions): any {
+		var taskPath = args[0];
+		if (!taskPath) {
+			throw new Error('task path not supplied.');
+		}
+
+		var result: any = {};
+		result.task = { name: 'Sample Task'};
+		result.source = taskPath;
+
+		return result;
+	}
+
+	public output(data: any): void {
+		console.log('source: ' + data.source);
+		console.log(data.task.name + ' uploaded successfully!')
+	}
+}

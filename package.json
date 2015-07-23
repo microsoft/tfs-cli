@@ -5,17 +5,17 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/tfx-cli"
-  },  
+  },
   "main": "./tfs-cli.js",
   "preferGlobal": true,
   "bin": {
     "tfx": "./tfx-cli.js"
   },
   "scripts": {
-    "start": "./tfs-cli.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },  
+    "test": "gulp test"
+  },
   "dependencies": {
+    "minimist": "^1.1.2",
     "q": "^1.4.1"
   },
   "devDependencies": {
@@ -25,9 +25,6 @@
     "gulp-tsc": "^0.10.1",
     "minimatch": "^2.0.8",
     "mocha": "^2.2.5"
-  },
-  "scripts": {
-    "test": "gulp test"
   },
   "author": "",
   "license": "MIT"
