@@ -10,6 +10,12 @@ export function getCommand(): cmdm.TfCommand {
     return new BuildTaskUpload();
 }
 
+// requires auth, connect etc...
+export var isServerOperation: boolean = true;
+
+// unless you have a good reason, should not hide
+export var hideBanner: boolean = false;
+
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var taskPath = args[0];

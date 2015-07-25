@@ -8,13 +8,19 @@ export function describe(): string {
 }
 
 export function argsFormat(): string {
-    return '<collectionUrl>  [--authtype <type>]';
+    return '--collection <collectionUrl>  [--authtype pat | basic]';
 }
 
 export function getCommand(): cmdm.TfCommand {
     // this just offers description for help and to offer sub commands
     return new Login();
 }
+
+// requires auth, connect etc...
+export var isServerOperation: boolean = true;
+
+// unless you have a good reason, should not hide
+export var hideBanner: boolean = false;
 
 export class Login extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): Q.Promise<am.ICredentials> {
@@ -31,7 +37,6 @@ export class Login extends cmdm.TfCommand {
             defer.reject('Credentials not supplied');
         }
         else {
-            console.log(JSON.stringify(cred, null, 2));
             defer.resolve(cred);    
         }
         

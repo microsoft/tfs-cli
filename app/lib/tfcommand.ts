@@ -3,9 +3,8 @@ import cm = require('./common');
 import cnm = require('./connection');
 
 export class TfCommand {
-
     public connection: cnm.TfsConnection;
-    
+
     //
     // should return a JSON data object which will be
     // - printed in json if --json, or

@@ -91,7 +91,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
 
                 var args = mod.argsFormat ? mod.argsFormat() : '';
                 args = args.length > 0 ? ' ' + args : args;
-                var description = mod.describe ? ' : ' + mod.describe() : '';
+                var description = mod.describe ? mod.describe() : '';
                 var optionsLabel = hasImplementation ? ' [options]' : '';
                 console.log('   ' + cmdLabel);
                 console.log('\t' + description);

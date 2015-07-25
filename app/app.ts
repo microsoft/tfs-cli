@@ -29,7 +29,8 @@ if (!loaded) {
 
 var cmdm = loaded.module;
 
-if (!options.json) {
+if (!options.json && !cmdm.hideBanner) {
+    console.log('Copyright Microsoft Corporation');
     console.log();
 }
 
@@ -49,37 +50,46 @@ csegs.forEach((seg) => {
     args.splice(args.indexOf(seg), 1);
 });
 
-var connection: cnm.TfsConnection;
-var collectionUrl: string;
-
-cnm.getCollectionUrl()
-.then((url: string) => {
-    console.log('url: ' + url);
-    collectionUrl = url;
-    
-    return am.getCredentials(url, options.authtype);
-})
-.then((creds: am.ICredentials) => {
-    connection = new cnm.TfsConnection(collectionUrl, creds);
-    cmd.connection = connection;
-    return cmd.exec(args, options);
-})
-.then((result: any) => {
-    if (!result) {
-        console.error('Error: did not return results');
+if (!cmdm.isServerOperation) {
+    cmd.exec(args, options)
+    .fail((err) => {
+        console.error('Error: ' + err.message);
         process.exit(1);
-    }
+    })    
+}
+else {
+    var connection: cnm.TfsConnection;
+    var collectionUrl: string;
 
-    if (options.json && result) {
-        console.log(JSON.stringify(result, null, 2));
-    }
-    else {
-        cmd.output(result);
-        console.log();
-    }   
-})
-.fail(function(err) {
-    console.error('Error: ' + err.message);
-    process.exit(1);
-})
+    cnm.getCollectionUrl()
+    .then((url: string) => {
+        collectionUrl = url;
+        
+        return am.getCredentials(url, options.authtype);
+    })
+    .then((creds: am.ICredentials) => {
+        connection = new cnm.TfsConnection(collectionUrl, creds);
+        cmd.connection = connection;
+        return cmd.exec(args, options);
+    })
+    .then((result: any) => {
+        if (!result) {
+            console.error('Error: did not return results');
+            process.exit(1);
+        }
+
+        if (options.json && result) {
+            console.log(JSON.stringify(result, null, 2));
+        }
+        else {
+            cmd.output(result);
+            console.log();
+        }   
+    })
+    .fail((err) => {
+        console.error('Error: ' + err.message);
+        process.exit(1);
+    })    
+}
+
 
