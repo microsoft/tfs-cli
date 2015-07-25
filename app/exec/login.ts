@@ -39,6 +39,6 @@ export class Login extends cmdm.TfCommand {
 	}
 
 	public output(creds: am.ICredentials): void {
-		console.log(creds.username + ' logged in successfully');
+		console.log('logged in successfully');
 	}
 }

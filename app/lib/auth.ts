@@ -2,68 +2,98 @@ import inputs = require('./inputs');
 import Q = require('q');
 
 export interface ICredentials {
-    username: string;
-    password: string;
     type: string;
+    populated: boolean;
+    fromString(creds: string): ICredentials;
+    toString(): string;
+    promptCredentials(): Q.Promise<ICredentials>;
 }
 
-var result: ICredentials;
+export class BasicCredentials implements ICredentials {
+	constructor() {
+		this.type = 'basic';
+	}
+
+	public populated: boolean;
+	public type: string;
+    public username: string;
+    public password: string;
+
+    public fromString(creds: string): ICredentials {
+    	var p = creds.split(':');
+    	this.username = p[0];
+    	this.password = p[1];
+    	this.populated = true;
+    	return this;
+    }
+
+    public toString(): string {
+    	return this.username + ':' + this.password;
+    }
+
+	public promptCredentials(): Q.Promise<ICredentials> {
+	    var defer = Q.defer<ICredentials>();
+	    var promise = <Q.Promise<ICredentials>>defer.promise;
+
+	    var credInputs = [
+	        {
+	            name: 'username', description: 'username', arg: 'username', type: 'string', req: true
+	        },
+	        {
+	            name: 'password', description: 'password', arg: 'password', type: 'password', req: true
+	        }
+	    ];
+
+	    inputs.get(credInputs, (err, result) => {
+	        if (err) {
+	            defer.reject(err);
+	            return;
+	        }
+
+	        this.username = result['username'];
+	        this.password = result['password'];
+	        defer.resolve(this);
+	    });
+
+	    return promise;
+	}    
+}
+
 
 export function getCredentials(url: string): Q.Promise<ICredentials> {
     var defer = Q.defer<ICredentials>();
 
+    // TODO: support other credential types
+    var authtype = 'basic';
 
-    // TODO: check is valid url
-    result = null;
+    var creds: ICredentials = null;
+    switch(authtype) {
+    	case 'basic': 
+    		creds = new BasicCredentials();
+    		break;
+
+    	default:
+    		throw new Error('Unsupported auth type: ' + authtype);
+    }
 
     return this.getCachedCredentials(url)
+    .then((cachedData: string) => {
+    	return cachedData ? creds.fromString(cachedData) : creds;
+    })
     .then((creds: ICredentials) => {
-    	result = creds;
-    	return promptCredentials();
+    	return creds.populated ? creds : creds.promptCredentials();
     })
 
     return <Q.Promise<ICredentials>>defer.promise;
 }
 
-export function getCachedCredentials(url: string): Q.Promise<ICredentials> {
-    var defer = Q.defer<ICredentials>();
+export function getCachedCredentials(url: string): Q.Promise<string> {
+    var defer = Q.defer<string>();
 
-    var cred: ICredentials = null;
+    var cached = '';
     // TODO: implement cache
-    defer.resolve(cred);
+
+    defer.resolve(cached);
     
-    return <Q.Promise<ICredentials>>defer.promise;
-}
-
-export function promptCredentials(): Q.Promise<ICredentials> {
-    var defer = Q.defer<ICredentials>();
-    var promise = <Q.Promise<ICredentials>>defer.promise;
-
-    if (result) {
-    	defer.resolve(result);
-    	return promise;
-    }
-
-    var credInputs = [
-        {
-            name: 'username', description: 'username', arg: 'username', type: 'string', req: true
-        },
-        {
-            name: 'password', description: 'password', arg: 'password', type: 'password', req: true
-        }
-    ];
-
-    inputs.get(credInputs, (err, result) => {
-        if (err) {
-            defer.reject(err);
-            return;
-        }
-
-        var cred: ICredentials = <ICredentials>{};
-        cred.username = result['username'];
-        cred.password = result['password'];
-        defer.resolve(cred);
-    });
-
-    return promise;
+    return <Q.Promise<string>>defer.promise;
 }
