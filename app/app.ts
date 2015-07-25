@@ -4,6 +4,8 @@ import fs = require('fs');
 import path = require('path');
 import loader = require('./lib/loader');
 import cm = require('./lib/common');
+import am = require('./lib/auth');
+import cnm = require('./lib/connection');
 
 var minimist = require('minimist');
 
@@ -29,7 +31,6 @@ var cmdm = loaded.module;
 
 if (!options.json) {
 	console.log();
-	console.log('running ' + loaded.name + ' : ' + cmdm.describe());	
 }
 
 var cmd = cmdm.getCommand();
@@ -48,16 +49,37 @@ csegs.forEach((seg) => {
 	args.splice(args.indexOf(seg), 1);
 });
 
-var result = cmd.exec(args, options);
-if (!result) {
-	console.error('Error: did not return results');
-	process.exit(1);
-}
+var connection: cnm.TfsConnection;
+var collectionUrl: string;
 
-if (options.json && result) {
-	console.log(JSON.stringify(result, null, 2));
-}
-else {
-	cmd.output(result);
-	console.log();
-}
+cnm.getCollectionUrl()
+.then((url: string) => {
+	console.log('url: ' + url);
+	collectionUrl = url;
+	
+	return am.getCredentials(url);
+})
+.then((creds: am.ICredentials) => {
+	connection = new cnm.TfsConnection(collectionUrl, creds);
+	cmd.connection = connection;
+	return cmd.exec(args, options);
+})
+.then((result: any) => {
+	if (!result) {
+		console.error('Error: did not return results');
+		process.exit(1);
+	}
+
+	if (options.json && result) {
+		console.log(JSON.stringify(result, null, 2));
+	}
+	else {
+		cmd.output(result);
+		console.log();
+	}	
+})
+.fail(function(err) {
+    console.error('Error: ' + err.message);
+    process.exit(1);
+})
+

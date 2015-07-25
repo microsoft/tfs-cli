@@ -10,7 +10,7 @@ export function getCommand(): cmdm.TfCommand {
 	return new BuildTaskUpload();
 }
 
-export class BuildTaskUpload implements cmdm.TfCommand {
+export class BuildTaskUpload extends cmdm.TfCommand {
 	public exec(args: string[], options: cm.IOptions): any {
 		var taskPath = args[0];
 		if (!taskPath) {

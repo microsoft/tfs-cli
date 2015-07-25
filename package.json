@@ -15,8 +15,11 @@
     "test": "gulp test"
   },
   "dependencies": {
+    "async": "^1.4.0",
     "minimist": "^1.1.2",
-    "q": "^1.4.1"
+    "q": "^1.4.1",
+    "read": "^1.0.6",
+    "vso-node-api": "^0.2.1"
   },
   "devDependencies": {
     "del": "^1.2.0",

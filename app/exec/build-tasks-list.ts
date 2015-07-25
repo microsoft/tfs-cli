@@ -10,7 +10,7 @@ export function getCommand(): cmdm.TfCommand {
 	return new BuildTaskList;
 }
 
-export class BuildTaskList implements cmdm.TfCommand {
+export class BuildTaskList extends cmdm.TfCommand {
 	public exec(args: string[], options: cm.IOptions): any {
 		return [
 			{

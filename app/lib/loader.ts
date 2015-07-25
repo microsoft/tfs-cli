@@ -93,7 +93,11 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 args = args.length > 0 ? ' ' + args : args;
                 var description = mod.describe ? ' : ' + mod.describe() : '';
                 var optionsLabel = hasImplementation ? ' [options]' : '';
-                console.log('   ' + cmdLabel + args + optionsLabel + description);
+                console.log('   ' + cmdLabel);
+                console.log('\t' + description);
+                if (hasImplementation) 
+                    console.log('\t' + cmdLabel + args + optionsLabel);
+
                 console.log();
             }
         }
