@@ -3,54 +3,54 @@ import fs = require('fs');
 import path = require('path');
 import cm = require('./common');
 
-export function load(execPath: string, cmds: string[], defaultCmd: string): any {	
-	var module = null;
+export function load(execPath: string, cmds: string[], defaultCmd: string): any {   
+    var module = null;
 
-	var execCmds: string[] = null;
-	try {
-		execCmds = fs.readdirSync(execPath);
-	}
-	catch(err) {
-		return module;
-	}
+    var execCmds: string[] = null;
+    try {
+        execCmds = fs.readdirSync(execPath);
+    }
+    catch(err) {
+        return module;
+    }
 
-	var match = this.match(execCmds, cmds) || defaultCmd;
-	if (match) {
-		module = require(path.join(execPath, match));
-	}
-	
-	return { name: path.basename(match, '.js'), module: module };	
+    var match = this.match(execCmds, cmds) || defaultCmd;
+    if (match) {
+        module = require(path.join(execPath, match));
+    }
+    
+    return { name: path.basename(match, '.js'), module: module };   
 }
 
 export function match(cmdList: string[], cmds: string[]): string {
-	var candidates = [];
+    var candidates = [];
 
-	for (var i = 0; i < cmds.length; i++) {
-		var candidate = '';
-		for (var j = 0; j <= i; j++) {
-			if (j > 0) {
-				candidate += '-';
-			}
+    for (var i = 0; i < cmds.length; i++) {
+        var candidate = '';
+        for (var j = 0; j <= i; j++) {
+            if (j > 0) {
+                candidate += '-';
+            }
 
-			candidate += cmds[j];
-		}
-		candidates.push(candidate);
-	}
+            candidate += cmds[j];
+        }
+        candidates.push(candidate);
+    }
 
-	// let's find the most specific command
-	candidates = candidates.reverse();
+    // let's find the most specific command
+    candidates = candidates.reverse();
 
-	var match = null;
-	candidates.some((candidate) => {
-		var file = candidate + '.js';
-		var i = cmdList.indexOf(file);
-		if (i >= 0) {
-			match = file;
-			return true;
-		}
-	})
+    var match = null;
+    candidates.some((candidate) => {
+        var file = candidate + '.js';
+        var i = cmdList.indexOf(file);
+        if (i >= 0) {
+            match = file;
+            return true;
+        }
+    })
 
-	return match;
+    return match;
 }
 
 export function getHelp(execPath: string, scope: string, all: boolean) {

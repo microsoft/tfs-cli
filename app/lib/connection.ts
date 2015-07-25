@@ -33,7 +33,7 @@ export function getCollectionUrl(): Q.Promise<string> {
 
     return this.getCachedUrl()
     .then((url: string) => {
-    	result = url;
+        result = url;
         return promptForUrl();
     })
 
@@ -55,8 +55,8 @@ export function promptForUrl(): Q.Promise<string> {
     var promise = <Q.Promise<string>>defer.promise;
 
     if (result) {
-    	defer.resolve(result);
-    	return promise;
+        defer.resolve(result);
+        return promise;
     }
 
     var credInputs = [

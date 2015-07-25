@@ -10,53 +10,53 @@ export interface ICredentials {
 }
 
 export class BasicCredentials implements ICredentials {
-	constructor() {
-		this.type = 'basic';
-	}
+    constructor() {
+        this.type = 'basic';
+    }
 
-	public populated: boolean;
-	public type: string;
+    public populated: boolean;
+    public type: string;
     public username: string;
     public password: string;
 
     public fromString(creds: string): ICredentials {
-    	var p = creds.split(':');
-    	this.username = p[0];
-    	this.password = p[1];
-    	this.populated = true;
-    	return this;
+        var p = creds.split(':');
+        this.username = p[0];
+        this.password = p[1];
+        this.populated = true;
+        return this;
     }
 
     public toString(): string {
-    	return this.username + ':' + this.password;
+        return this.username + ':' + this.password;
     }
 
-	public promptCredentials(): Q.Promise<ICredentials> {
-	    var defer = Q.defer<ICredentials>();
-	    var promise = <Q.Promise<ICredentials>>defer.promise;
+    public promptCredentials(): Q.Promise<ICredentials> {
+        var defer = Q.defer<ICredentials>();
+        var promise = <Q.Promise<ICredentials>>defer.promise;
 
-	    var credInputs = [
-	        {
-	            name: 'username', description: 'username', arg: 'username', type: 'string', req: true
-	        },
-	        {
-	            name: 'password', description: 'password', arg: 'password', type: 'password', req: true
-	        }
-	    ];
+        var credInputs = [
+            {
+                name: 'username', description: 'username', arg: 'username', type: 'string', req: true
+            },
+            {
+                name: 'password', description: 'password', arg: 'password', type: 'password', req: true
+            }
+        ];
 
-	    inputs.get(credInputs, (err, result) => {
-	        if (err) {
-	            defer.reject(err);
-	            return;
-	        }
+        inputs.get(credInputs, (err, result) => {
+            if (err) {
+                defer.reject(err);
+                return;
+            }
 
-	        this.username = result['username'];
-	        this.password = result['password'];
-	        defer.resolve(this);
-	    });
+            this.username = result['username'];
+            this.password = result['password'];
+            defer.resolve(this);
+        });
 
-	    return promise;
-	}    
+        return promise;
+    }    
 }
 
 
@@ -68,20 +68,20 @@ export function getCredentials(url: string): Q.Promise<ICredentials> {
 
     var creds: ICredentials = null;
     switch(authtype) {
-    	case 'basic': 
-    		creds = new BasicCredentials();
-    		break;
+        case 'basic': 
+            creds = new BasicCredentials();
+            break;
 
-    	default:
-    		throw new Error('Unsupported auth type: ' + authtype);
+        default:
+            throw new Error('Unsupported auth type: ' + authtype);
     }
 
     return this.getCachedCredentials(url)
     .then((cachedData: string) => {
-    	return cachedData ? creds.fromString(cachedData) : creds;
+        return cachedData ? creds.fromString(cachedData) : creds;
     })
     .then((creds: ICredentials) => {
-    	return creds.populated ? creds : creds.promptCredentials();
+        return creds.populated ? creds : creds.promptCredentials();
     })
 
     return <Q.Promise<ICredentials>>defer.promise;

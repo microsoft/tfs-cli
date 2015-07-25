@@ -30,23 +30,23 @@ if (!loaded) {
 var cmdm = loaded.module;
 
 if (!options.json) {
-	console.log();
+    console.log();
 }
 
 var cmd = cmdm.getCommand();
 
 if (!cmd) {
-	// implementation, list show help
-	var scope = loaded.name == 'help' ? '' : loaded.name;
-	console.log('showing help for scope: ' + scope);
-	loader.getHelp(execPath, scope, options.all || false);
-	process.exit(0);
+    // implementation, list show help
+    var scope = loaded.name == 'help' ? '' : loaded.name;
+    console.log('showing help for scope: ' + scope);
+    loader.getHelp(execPath, scope, options.all || false);
+    process.exit(0);
 }
 
 // remove the args for the cmd - pass everything else to cmd
 var csegs = loaded.name.split('-');
 csegs.forEach((seg) => {
-	args.splice(args.indexOf(seg), 1);
+    args.splice(args.indexOf(seg), 1);
 });
 
 var connection: cnm.TfsConnection;
@@ -54,29 +54,29 @@ var collectionUrl: string;
 
 cnm.getCollectionUrl()
 .then((url: string) => {
-	console.log('url: ' + url);
-	collectionUrl = url;
-	
-	return am.getCredentials(url);
+    console.log('url: ' + url);
+    collectionUrl = url;
+    
+    return am.getCredentials(url);
 })
 .then((creds: am.ICredentials) => {
-	connection = new cnm.TfsConnection(collectionUrl, creds);
-	cmd.connection = connection;
-	return cmd.exec(args, options);
+    connection = new cnm.TfsConnection(collectionUrl, creds);
+    cmd.connection = connection;
+    return cmd.exec(args, options);
 })
 .then((result: any) => {
-	if (!result) {
-		console.error('Error: did not return results');
-		process.exit(1);
-	}
+    if (!result) {
+        console.error('Error: did not return results');
+        process.exit(1);
+    }
 
-	if (options.json && result) {
-		console.log(JSON.stringify(result, null, 2));
-	}
-	else {
-		cmd.output(result);
-		console.log();
-	}	
+    if (options.json && result) {
+        console.log(JSON.stringify(result, null, 2));
+    }
+    else {
+        cmd.output(result);
+        console.log();
+    }   
 })
 .fail(function(err) {
     console.error('Error: ' + err.message);
