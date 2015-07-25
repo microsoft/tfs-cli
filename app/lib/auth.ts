@@ -35,7 +35,7 @@ export class PatCredentials implements ICredentials {
 
         var credInputs = [
             {
-                name: 'token', description: 'personal access token', arg: 'token', type: 'string', req: true
+                name: 'token', description: 'personal access token', arg: 'token', type: 'password', req: true
             }
         ];
 
