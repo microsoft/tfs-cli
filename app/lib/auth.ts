@@ -9,6 +9,50 @@ export interface ICredentials {
     promptCredentials(): Q.Promise<ICredentials>;
 }
 
+export class PatCredentials implements ICredentials {
+    constructor() {
+        this.type = 'pat';
+    }
+
+    public populated: boolean;
+    public type: string;
+    public token: string;
+
+    public fromString(creds: string): ICredentials {
+        // TODO: validate - it has a specific format
+        this.token = creds;
+        this.populated = true;
+        return this;
+    }
+
+    public toString(): string {
+        return this.token;
+    }
+
+    public promptCredentials(): Q.Promise<ICredentials> {
+        var defer = Q.defer<ICredentials>();
+        var promise = <Q.Promise<ICredentials>>defer.promise;
+
+        var credInputs = [
+            {
+                name: 'token', description: 'personal access token', arg: 'token', type: 'string', req: true
+            }
+        ];
+
+        inputs.get(credInputs, (err, result) => {
+            if (err) {
+                defer.reject(err);
+                return;
+            }
+
+            this.token = result['token'];
+            defer.resolve(this);
+        });
+
+        return promise;
+    }    
+}
+
 export class BasicCredentials implements ICredentials {
     constructor() {
         this.type = 'basic';
@@ -60,16 +104,19 @@ export class BasicCredentials implements ICredentials {
 }
 
 
-export function getCredentials(url: string): Q.Promise<ICredentials> {
+export function getCredentials(url: string, authtype): Q.Promise<ICredentials> {
     var defer = Q.defer<ICredentials>();
 
     // TODO: support other credential types
-    var authtype = 'basic';
 
     var creds: ICredentials = null;
     switch(authtype) {
         case 'basic': 
             creds = new BasicCredentials();
+            break;
+
+        case 'pat': 
+            creds = new PatCredentials();
             break;
 
         default:

@@ -4,11 +4,11 @@ import am = require('../lib/auth');
 import Q = require('q');
 
 export function describe(): string {
-    return 'login and cache credentials';
+    return 'login and cache credentials. types: pat (default), basic';
 }
 
 export function argsFormat(): string {
-    return '<url> --username <username> --password <password>';
+    return '<collectionUrl>  [--authtype <type>]';
 }
 
 export function getCommand(): cmdm.TfCommand {

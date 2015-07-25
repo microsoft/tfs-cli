@@ -11,7 +11,7 @@ var minimist = require('minimist');
 
 var mopts = {
   boolean: 'help',
-  default: { help: false, username: '', password: '' }
+  default: { help: false, username: '', password: '', authtype: 'pat' }
 };
 
 var options = minimist(process.argv.slice(2), mopts);
@@ -57,7 +57,7 @@ cnm.getCollectionUrl()
     console.log('url: ' + url);
     collectionUrl = url;
     
-    return am.getCredentials(url);
+    return am.getCredentials(url, options.authtype);
 })
 .then((creds: am.ICredentials) => {
     connection = new cnm.TfsConnection(collectionUrl, creds);
