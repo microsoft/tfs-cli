@@ -39,13 +39,14 @@ var cmd = cmdm.getCommand();
 if (!cmd) {
     // implementation, list show help
     var scope = loaded.name == 'help' ? '' : loaded.name;
-    console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help]');
+    console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help] [--json]');
     loader.getHelp(execPath, scope, options.all || false);
     console.log('Options:');
-    console.log('   help: get help on a command');
-    console.log('   json: output in json format.  useful for scripting');
+    console.log('   --version : output the version');
+    console.log('   --help    : get help on a command');
+    console.log('   --json    : output in json format.  useful for scripting');
     console.log();
-    process.exit(0);
+    process.exit(1);
 }
 
 // remove the args for the cmd - pass everything else to cmd
