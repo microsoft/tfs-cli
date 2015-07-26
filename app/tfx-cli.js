@@ -4,7 +4,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 //
-// usage: tfx [--version] [--help] <command> [<subcommand>] [<args>]
+// usage: tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help]
 //
 
 require('./app'); 

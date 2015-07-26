@@ -39,8 +39,12 @@ var cmd = cmdm.getCommand();
 if (!cmd) {
     // implementation, list show help
     var scope = loaded.name == 'help' ? '' : loaded.name;
-    console.log('showing help for scope: ' + scope);
+    console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help]');
     loader.getHelp(execPath, scope, options.all || false);
+    console.log('Options:');
+    console.log('   help: get help on a command');
+    console.log('   json: output in json format.  useful for scripting');
+    console.log();
     process.exit(0);
 }
 
