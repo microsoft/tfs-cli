@@ -6,6 +6,9 @@ import am = require('./auth');
 import url = require('url');
 import apim = require('vso-node-api/WebApi');
 import apibasem = require('vso-node-api/interfaces/common/VsoBaseInterfaces');
+import cm = require('./diskcache');
+
+var cache = new cm.DiskCache('tfx');
 
 export class TfsConnection {
     constructor(collectionUrl: string, credentials: am.ICredentials) {
@@ -42,13 +45,9 @@ var result: string;
 export function getCollectionUrl(): Q.Promise<string> {
     var defer = Q.defer<string>();
 
-    // TODO: check is valid url
-    result = null;
-
     return this.getCachedUrl()
     .then((url: string) => {
-        result = url;
-        return promptForUrl();
+        return url ? url : promptForUrl();
     })
 
     return <Q.Promise<string>>defer.promise;
@@ -57,10 +56,18 @@ export function getCollectionUrl(): Q.Promise<string> {
 export function getCachedUrl(): Q.Promise<string> {
     var defer = Q.defer<string>();
 
-    var url: string  = null;
-    // TODO: implement cache
-    defer.resolve(url);
-    
+    if (process.env['TFS_BYPASS_CACHE']) {
+        defer.resolve('');
+    }
+
+    cache.getItem('cache', 'connection')
+    .then(function(url) {
+        defer.resolve(url);
+    })
+    .fail((err) => {
+        defer.resolve('');
+    });
+
     return <Q.Promise<string>>defer.promise;
 }
 

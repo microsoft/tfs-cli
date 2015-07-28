@@ -1,5 +1,6 @@
 import inputs = require('./inputs');
 import Q = require('q');
+import csm = require('./credstore');
 
 export interface ICredentials {
     type: string;
@@ -137,10 +138,18 @@ export function getCredentials(url: string, authtype): Q.Promise<ICredentials> {
 export function getCachedCredentials(url: string): Q.Promise<string> {
     var defer = Q.defer<string>();
 
-    var cached = '';
-    // TODO: implement cache
+    if (process.env['TFS_BYPASS_CACHE']) {
+        defer.resolve('');
+    }
 
-    defer.resolve(cached);
+    var cs: csm.ICredentialStore = csm.getCredentialStore('tfx');
+    cs.getCredential(url, 'allusers')
+    .then((cred: string) => {
+        defer.resolve(cred);
+    })
+    .fail((err) => {
+        defer.resolve('');
+    })
     
     return <Q.Promise<string>>defer.promise;
 }

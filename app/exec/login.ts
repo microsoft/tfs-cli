@@ -2,6 +2,8 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import am = require('../lib/auth');
 import Q = require('q');
+import csm = require('../lib/credstore');
+import cam = require('../lib/diskcache');
 
 export function describe(): string {
     return 'login and cache credentials. types: pat (default), basic';
@@ -27,18 +29,21 @@ export class Login extends cmdm.TfCommand {
         var defer = Q.defer();
 
         // TODO: validate valid url
+        // TODO: do connect call
 
-        // TODO: cache credentials here
-
-        // TODO: connect - store current url in home dir
-
-        var cred: am.ICredentials = this.connection.credentials;
-        if (!cred) {
-            defer.reject('Credentials not supplied');
-        }
-        else {
-            defer.resolve(cred);    
-        }
+        var con = this.connection;
+        var cache: cam.DiskCache = new cam.DiskCache('tfx');
+        var cs: csm.ICredentialStore = csm.getCredentialStore('tfx');
+        cs.storeCredential(con.collectionUrl, 'allusers', con.credentials.toString())
+        .then(() => {
+            return cache.setItem('cache', 'connection', con.collectionUrl);
+        })
+        .then(() => {
+            defer.resolve(con.credentials);
+        })
+        .fail((err) => {
+            defer.reject('Login Failed: ' + err.message);
+        })
         
         return <Q.Promise<am.ICredentials>>defer.promise;
     }
