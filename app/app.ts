@@ -78,6 +78,7 @@ else {
         return cmd.exec(args, options);
     })
     .then((result: any) => {
+        console.log("foobar");
         if (!result) {
             console.error('Error: did not return results');
             process.exit(1);
