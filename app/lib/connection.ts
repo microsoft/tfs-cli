@@ -1,13 +1,25 @@
+/// <reference path="../../definitions/vso-node-api/vso-node-api.d.ts"/>
+
 import inputs = require('./inputs');
 import Q = require('q');
 import am = require('./auth');
 import url = require('url');
-import apim = require('vso-node-api');
+import apim = require('vso-node-api/WebApi');
+import apibasem = require('vso-node-api/interfaces/common/VsoBaseInterfaces');
 
 export class TfsConnection {
     constructor(collectionUrl: string, credentials: am.ICredentials) {
         this.collectionUrl = collectionUrl;
         this.credentials = credentials;
+        var webapi: apim.WebApi = new apim.WebApi("", null);
+        if(credentials.type === "basic") {
+            var basicCreds: am.BasicCredentials = <am.BasicCredentials>credentials;
+            this.authHandler = webapi.getBasicHandler(basicCreds.username, basicCreds.password);
+        }
+        if(credentials.type === "pat") {
+            var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
+            this.authHandler = webapi.getBearerHandler(patCreds.token);
+        }
 
         // TODO: validate url
         var purl = url.parse(collectionUrl);
@@ -22,6 +34,7 @@ export class TfsConnection {
     public collectionUrl: string;
     public accountUrl: string;
     public credentials: am.ICredentials;
+    public authHandler: apibasem.IRequestHandler;
 }
 
 var result: string;
