@@ -15,6 +15,7 @@ var mopts = {
 };
 
 var options = minimist(process.argv.slice(2), mopts);
+options.authtype = 'basic'
 var args: string[] = options['_'];
 delete options['_'];
 
@@ -78,7 +79,6 @@ else {
         return cmd.exec(args, options);
     })
     .then((result: any) => {
-        console.log("foobar");
         if (!result) {
             console.error('Error: did not return results');
             process.exit(1);

@@ -18,8 +18,7 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
-        var agentapi = this.getWebApi().getQTaskAgentApi('https://tedward.tfsbuildhost8.tfsallin.net/');
-        console.log("get tasks");
+        var agentapi = this.getWebApi().getQTaskAgentApi(this.connection.accountUrl);
         return agentapi.getTaskDefinitions(['Build']);
     }
 
