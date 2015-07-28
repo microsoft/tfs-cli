@@ -1,4 +1,4 @@
-/// <reference path="../../definitions/node.d.ts"/>
+/// <reference path="../../definitions/node/node.d.ts"/>
 import fs = require('fs');
 import path = require('path');
 import cm = require('./common');

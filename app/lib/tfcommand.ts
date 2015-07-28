@@ -1,9 +1,18 @@
+/// <reference path="../../definitions/vso-node-api/WebApi.d.ts"/>
 
 import cm = require('./common');
 import cnm = require('./connection');
+import apim = require('vso-node-api');
 
 export class TfCommand {
     public connection: cnm.TfsConnection;
+    
+    // setConnection
+
+    // getWebApi() 
+    public getWebApi(): apim.WebApi {
+        return new apim.WebApi(this.connection.collectionUrl, null);
+    }
 
     //
     // should return a JSON data object which will be

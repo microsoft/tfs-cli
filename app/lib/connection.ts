@@ -2,6 +2,7 @@ import inputs = require('./inputs');
 import Q = require('q');
 import am = require('./auth');
 import url = require('url');
+import apim = require('vso-node-api');
 
 export class TfsConnection {
     constructor(collectionUrl: string, credentials: am.ICredentials) {
