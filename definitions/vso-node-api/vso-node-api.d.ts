@@ -6912,7 +6912,7 @@ declare module 'vso-node-api/TaskAgentApi' {
 	    getTaskContent(taskId: string, versionString: string, onResult: (err: any, statusCode: number, tasks: TaskAgentInterfaces.TaskDefinition[]) => void): void;
 	    getTaskContentZip(taskId: string, versionString: string, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
 	    getTaskDefinitions(visibility: string[], onResult: (err: any, statusCode: number, tasks: TaskAgentInterfaces.TaskDefinition[]) => void): void;
-	    uploadTaskDefinition(taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number) => void): void;
+	    uploadTaskDefinition(contentStream: NodeJS.ReadableStream, customHeaders: any, content: string, taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	    updateUserCapabilities(userCapabilities: {
 	        [key: string]: string;
 	    }, poolId: number, agentId: number, onResult: (err: any, statusCode: number, usercapabilitie: TaskAgentInterfaces.TaskAgent) => void): void;
@@ -7147,11 +7147,12 @@ declare module 'vso-node-api/TaskAgentApi' {
 	     */
 	    getTaskDefinitions(visibility: string[], onResult: (err: any, statusCode: number, tasks: TaskAgentInterfaces.TaskDefinition[]) => void): void;
 	    /**
+	     * @param {string} content
 	     * @param {string} taskId
 	     * @param {boolean} overwrite
 	     * @param onResult callback function
 	     */
-	    uploadTaskDefinition(taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number) => void): void;
+	    uploadTaskDefinition(contentStream: NodeJS.ReadableStream, customHeaders: any, content: string, taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	    /**
 	     * @param {{ [key: string] : string; }} userCapabilities
 	     * @param {number} poolId

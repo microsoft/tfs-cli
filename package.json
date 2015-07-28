@@ -15,6 +15,7 @@
     "test": "gulp test"
   },
   "dependencies": {
+    "archiver": "0.14.4",
     "async": "^1.4.0",
     "minimist": "^1.1.2",
     "q": "^1.4.1",
