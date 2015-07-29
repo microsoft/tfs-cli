@@ -22,11 +22,11 @@ export class BuildGetSingle extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
-        var buildId: number = +args[0] || +options['id'];
-        this.checkRequiredParameter(buildId, 'id', 'buildId');
-
-        var project: string = args[1] || options['project'];
+        var project: string = args[0] || options['project'];
         this.checkRequiredParameter(project, 'project', 'projectName');
+
+        var buildId: number = +args[1] || +options['id'];
+        this.checkRequiredParameter(buildId, 'id', 'buildId');
 
         return buildapi.getBuild(buildId, project);
     }
