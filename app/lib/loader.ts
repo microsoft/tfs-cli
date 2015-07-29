@@ -63,7 +63,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
     console.log();
     console.log(colors.magenta('                        fTfs         '));   
     console.log(colors.magenta('                      fSSSSSSSs      '));
-    console.log(colors.magenta('                     fSSSSSSSSSS     '));
+    console.log(colors.magenta('                    fSSSSSSSSSS     '));
     console.log(colors.magenta('     TSSf         fSSSSSSSSSSSS      '));
     console.log(colors.magenta('     SSSSSF     fSSSSSSST SSSSS      '));
     console.log(colors.magenta('     SSfSSSSSsfSSSSSSSt   SSSSS      '));
