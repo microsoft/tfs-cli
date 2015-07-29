@@ -1,5 +1,9 @@
+/// <reference path="../../definitions/q/Q.d.ts"/>
+
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
+import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
+import Q = require('q');
 var archiver = require('archiver');
 
 export function describe(): string {
@@ -32,25 +36,28 @@ export class BuildTaskUpload extends cmdm.TfCommand {
         result.task = { name: name };
         var archive = archiver('zip');
         archive.directory(taskPath, false);
-        console.log("zipped");
-        
         //result.source = taskPath;
 
+        var deferred = Q.defer<agentifm.TaskDefinition>();
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
         agentapi.uploadTaskDefinition(archive, null, "", name, true, (err, statusCode, task) => {
-            console.log(taskPath);
-            return {
-                source: taskPath, 
-                task: {
-                    name: name
-                }
+            if(err) {
+                err.statusCode = statusCode;
+                deferred.reject(err);
+            }
+            else {
+                deferred.resolve(<agentifm.TaskDefinition>{
+                    name: name,
+                    sourceLocation: taskPath
+                })
             }
         });
+        return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
     }
 
     public output(data: any): void {
-        console.log('source: ' + data.source);
-        console.log(data.task.name + ' uploaded successfully!')
+        console.log('source: ' + data.sourceLocation);
+        console.log(data.name + ' uploaded successfully!')
     }
 }

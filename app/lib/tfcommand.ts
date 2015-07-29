@@ -29,4 +29,11 @@ export class TfCommand {
         // should override and output to console results
         // in readable text based on data from exec call
     }
+
+    public checkRequiredParameter(parameterValue: any, parameterName: string, friendlyName?: string) {
+        var finalFriendlyName = friendlyName || parameterName;
+        if(!parameterValue) {
+            throw new Error('Required parameter ' + parameterName + ' not supplied. Try adding a switch to the end of your command: --' + parameterName + ' <' + finalFriendlyName + '>');
+        }
+    }
 }
