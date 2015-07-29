@@ -4,7 +4,7 @@ import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
 
 export function describe(): string {
-    return 'queue a build. args: definitionId projectName';
+    return 'queue a build.\n\targs: <project> [definitionId] [--definitionName <definitionName>]\n\tone of definitionId and definitionName is required.';
 }
 
 export function getCommand(): cmdm.TfCommand {
