@@ -58,6 +58,21 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
     var execCmds = execCmds = fs.readdirSync(execPath);
 
     console.log();
+    console.log('                        fTfs         ');   
+    console.log('                      fSSSSSSSs      ');
+    console.log('                     fSSSSSSSSSS      ');
+    console.log('     TSSf         fSSSSSSSSSSSS      ');
+    console.log('     SSSSSF     fSSSSSSST SSSSS      ');
+    console.log('     SSfSSSSSsfSSSSSSSt   SSSSS      ');
+    console.log('     SS  tSSSSSSSSSs      SSSSS      ');
+    console.log('     SS   fSSSSSSST       SSSSS      ');
+    console.log('     SS fSSSSSFSSSSSSf    SSSSS      ');
+    console.log('     SSSSSST    FSSSSSSFt SSSSS      ');
+    console.log('     SSSSt        FSSSSSSSSSSSS      ');
+    console.log('                    FSSSSSSSSSS      ');
+    console.log('                       FSSSSSSs       ');
+    console.log('                        FSFs    (TM) ');
+    console.log();
     console.log('commands:');
 
     execCmds.forEach((cmd) => {
