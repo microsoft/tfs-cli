@@ -18,8 +18,10 @@
     "archiver": "0.14.4",
     "async": "^1.4.0",
     "minimist": "^1.1.2",
+    "os-homedir": "^1.0.1",
     "q": "^1.4.1",
     "read": "^1.0.6",
+    "shelljs": "^0.5.1",
     "vso-node-api": "^0.2.1"
   },
   "devDependencies": {

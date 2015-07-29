@@ -50,6 +50,10 @@ if (!cmd) {
     process.exit(1);
 }
 
+if (loaded.name == 'login') {
+    process.env['TFS_BYPASS_CACHE'] = 1;
+}
+
 // remove the args for the cmd - pass everything else to cmd
 var csegs = loaded.name.split('-');
 csegs.forEach((seg) => {
@@ -98,4 +102,8 @@ else {
     })    
 }
 
+process.on('uncaughtException', (err) => {
+    console.error('unhandled:');
+    console.error(err.stack);
+});
 
