@@ -1,7 +1,10 @@
 /// <reference path="../../definitions/node/node.d.ts"/>
+/// <reference path="../../definitions/colors/colors.d.ts"/>
+
 import fs = require('fs');
 import path = require('path');
 import cm = require('./common');
+import colors = require('colors');
 
 export function load(execPath: string, cmds: string[], defaultCmd: string): any {   
     var module = null;
@@ -58,22 +61,22 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
     var execCmds = execCmds = fs.readdirSync(execPath);
 
     console.log();
-    console.log('                        fTfs         ');   
-    console.log('                      fSSSSSSSs      ');
-    console.log('                     fSSSSSSSSSS      ');
-    console.log('     TSSf         fSSSSSSSSSSSS      ');
-    console.log('     SSSSSF     fSSSSSSST SSSSS      ');
-    console.log('     SSfSSSSSsfSSSSSSSt   SSSSS      ');
-    console.log('     SS  tSSSSSSSSSs      SSSSS      ');
-    console.log('     SS   fSSSSSSST       SSSSS      ');
-    console.log('     SS fSSSSSFSSSSSSf    SSSSS      ');
-    console.log('     SSSSSST    FSSSSSSFt SSSSS      ');
-    console.log('     SSSSt        FSSSSSSSSSSSS      ');
-    console.log('                    FSSSSSSSSSS      ');
-    console.log('                       FSSSSSSs       ');
-    console.log('                        FSFs    (TM) ');
+    console.log(colors.magenta('                        fTfs         '));   
+    console.log(colors.magenta('                      fSSSSSSSs      '));
+    console.log(colors.magenta('                     fSSSSSSSSSS     '));
+    console.log(colors.magenta('     TSSf         fSSSSSSSSSSSS      '));
+    console.log(colors.magenta('     SSSSSF     fSSSSSSST SSSSS      '));
+    console.log(colors.magenta('     SSfSSSSSsfSSSSSSSt   SSSSS      '));
+    console.log(colors.magenta('     SS  tSSSSSSSSSs      SSSSS      '));
+    console.log(colors.magenta('     SS   fSSSSSSST       SSSSS      '));
+    console.log(colors.magenta('     SS fSSSSSFSSSSSSf    SSSSS      '));
+    console.log(colors.magenta('     SSSSSST    FSSSSSSFt SSSSS      '));
+    console.log(colors.magenta('     SSSSt        FSSSSSSSSSSSS      '));
+    console.log(colors.magenta('                    FSSSSSSSSSS      '));
+    console.log(colors.magenta('                       FSSSSSSs      '));
+    console.log(colors.magenta('                        FSFs    (TM) '));
     console.log();
-    console.log('commands:');
+    console.log(colors.cyan('commands:'));
 
     execCmds.forEach((cmd) => {
         cmd = path.basename(cmd, '.js');
@@ -108,8 +111,8 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 args = args.length > 0 ? ' ' + args : args;
                 var description = mod.describe ? mod.describe() : '';
                 var optionsLabel = hasImplementation ? ' [options]' : '';
-                console.log('   ' + cmdLabel);
-                console.log('\t' + description);
+                console.log(colors.yellow('   ' + cmdLabel));
+                console.log(colors.white('\t' + description));
                 if (hasImplementation) 
                     console.log('\t' + cmdLabel + args + optionsLabel);
 

@@ -17,6 +17,7 @@
   "dependencies": {
     "archiver": "0.14.4",
     "async": "^1.4.0",
+    "colors": "^1.1.2",
     "minimist": "^1.1.2",
     "os-homedir": "^1.0.1",
     "q": "^1.4.1",
