@@ -35,6 +35,7 @@ export class BuildTaskList extends cmdm.TfCommand {
             console.log();
             console.log('id   : ' + task.id);
             console.log('name : ' + task.name);
+            console.log('description: ' + task.description);
         });
     }   
 }
