@@ -65,7 +65,9 @@ export class BuildTaskUpload extends cmdm.TfCommand {
                     deferred.reject(err);
                 }
                 else {
-                    deferred.resolve(task);
+                    deferred.resolve(<agentifm.TaskDefinition>{
+                        sourceLocation: taskPath
+                    });
                 }
             });
             archive.finalize();
@@ -74,6 +76,6 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     }
 
     public output(data: any): void {
-        console.log('source: ' + data.sourceLocation + ' uploaded successfully!');
+        console.log('task at: ' + data.sourceLocation + ' uploaded successfully!');
     }
 }
