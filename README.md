@@ -13,6 +13,8 @@ This is a cross platform command line which works on Windows, OSX and Linux.  It
     * list: list builds and filter
     * queue: queue a build
     * tasks: manage build tasks (list, upload, delete)
+* Workitem Tracking
+    * comming soon
 * Scripting
     * json: write output in json format
     * parse: pipe json output to tfx parse for extracting data in scripts (without scraping)
