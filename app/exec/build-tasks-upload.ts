@@ -5,6 +5,8 @@ import cm = require('../lib/common');
 import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import Q = require('q');
 import fs = require('fs');
+import path = require('path');
+var check = require('validator');
 var archiver = require('archiver');
 
 export function describe(): string {
@@ -12,7 +14,6 @@ export function describe(): string {
 }
 
 export function getCommand(): cmdm.TfCommand {
-    // this just offers description for help and to offer sub commands
     return new BuildTaskUpload();
 }
 
@@ -26,26 +27,49 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var taskPath = args[0] || options['taskPath'];
         this.checkRequiredParameter(taskPath, 'taskPath', 'path to the task folder');
-        console.log(taskPath);
-
-        var archive = archiver('zip');
-        archive.directory(taskPath, false);
-
         var deferred = Q.defer<agentifm.TaskDefinition>();
-        var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-
-        agentapi.uploadTaskDefinition(archive, null, "", "AC4EE482-65DA-4485-A532-7B085873E533", true, (err, statusCode, task) => {
+        fs.readFile(path.join(taskPath, 'task.json'), 'utf8', (err, data) => {
             if(err) {
-                err.statusCode = statusCode;
-                deferred.reject(err);
+                return console.log(err);
             }
-            else {
-                deferred.resolve(<agentifm.TaskDefinition>{
-                    sourceLocation: taskPath
-                })
+
+            var taskJson = JSON.parse(data);
+
+            var vn = (taskJson.name  || taskPath);
+
+            if (!taskJson.id || !check.isUUID(taskJson.id)) {
+                return console.log(vn + ': id is a required guid');
             }
+
+            if (!taskJson.name || !check.isAlphanumeric(taskJson.name)) {
+                return console.log(vn + ': name is a required alphanumeric string');
+            }
+
+            if (!taskJson.friendlyName || !check.isLength(taskJson.friendlyName, 1, 40)) {
+                return console.log(vn + ': friendlyName is a required string <= 40 chars');
+            }
+
+            if (!taskJson.instanceNameFormat) {
+                return console.log(vn + ': instanceNameFormat is required');    
+            }
+
+            var archive = archiver('zip');
+            archive.directory(taskPath, false);
+
+            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+
+            agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, true, (err, statusCode, task) => {
+
+                if(err) {
+                    err.statusCode = statusCode;
+                    deferred.reject(err);
+                }
+                else {
+                    deferred.resolve(task);
+                }
+            });
+            archive.finalize();
         });
-        archive.finalize();
         return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
     }
 
