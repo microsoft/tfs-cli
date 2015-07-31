@@ -4,7 +4,7 @@ import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
 
 export function describe(): string {
-    return 'get build. args: buildId projectName';
+    return 'get a build.\n\targs: <project> <id>';
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -38,7 +38,6 @@ export class BuildGetSingle extends cmdm.TfCommand {
 
         var build: buildifm.Build = <buildifm.Build>data;
         console.log();
-        console.log('Queued new build:')
         console.log('id   : ' + build.id);
         console.log('definition name: ' + build.definition.name)
         console.log('requested by : ' + build.requestedBy.displayName);

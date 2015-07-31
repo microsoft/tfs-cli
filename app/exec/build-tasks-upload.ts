@@ -7,7 +7,7 @@ import Q = require('q');
 var archiver = require('archiver');
 
 export function describe(): string {
-    return 'upload a build task. args: name taskPath';
+    return 'upload a build task.\nargs: <taskPath>';
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -23,14 +23,8 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
-        var name = args[0];
-        var taskPath = args[1];
-        if(!name) {
-            throw new Error('name and task path not supplied.');
-        }
-        if (!taskPath) {
-            throw new Error('task path not supplied.');
-        }
+        var taskPath = args[0] || options['taskPath'];
+        this.checkRequiredParameter(taskPath, 'taskPath', 'path to the task folder');
 
         var result: any = {};
         result.task = { name: name };

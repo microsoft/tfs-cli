@@ -1,10 +1,10 @@
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
-import buildm = require('vso-node-api/BuildApi')
+import buildm = require('vso-node-api/BuildApi');
 
 export function describe(): string {
-    return 'get build. args: buildId projectName';
+    return 'get a list of builds.\n\targs: <project> [--definitionId <definitionId>] [--definitionName <definitionName>] [--status <buildStatus>] [--top <top>]';
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -58,7 +58,6 @@ export class BuildGetList extends cmdm.TfCommand {
 
         data.forEach((build) => {
             console.log();
-            console.log('Queued new build:')
             console.log('id   : ' + build.id);
             console.log('definition name: ' + build.definition.name)
             console.log('requested by : ' + build.requestedBy.displayName);
