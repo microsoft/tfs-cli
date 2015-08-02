@@ -1,12 +1,13 @@
 /// <reference path="../../definitions/q/Q.d.ts"/>
+/// <reference path="../../definitions/node/node.d.ts"/>
 
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
+import validatem = require('../lib/jsonvalidate')
 import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import Q = require('q');
 import fs = require('fs');
 import path = require('path');
-var check = require('validator');
 var archiver = require('archiver');
 
 export function describe(): string {
@@ -25,51 +26,45 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        var deferred = Q.defer<agentifm.TaskDefinition>();
         var taskPath = args[0] || options['taskPath'];
         this.checkRequiredParameter(taskPath, 'taskPath', 'path to the task folder');
-        var deferred = Q.defer<agentifm.TaskDefinition>();
-        fs.readFile(path.join(taskPath, 'task.json'), 'utf8', (err, data) => {
+        if(!fs.existsSync(taskPath)) {
+            deferred.reject(new validatem.InvalidDirectoryException('specified directory does not exist.'));
+        }
+        var taskJsonPath = path.join(taskPath, 'task.json');
+        if(!fs.existsSync(taskJsonPath)) {
+            deferred.reject(new validatem.InvalidDirectoryException('no task.json in specified directory'));
+        }
+
+        var taskJson;
+        try {
+            taskJson = JSON.parse(fs.readFileSync(taskJsonPath, 'utf8'));
+            var validator: validatem.JsonValidate = new validatem.JsonValidate();
+            validator.validateTask(taskJson, taskPath);
+        }
+        catch (readError) {
+            deferred.reject(readError)
+        }
+
+
+        var archive = archiver('zip');
+        archive.directory(taskPath, false);
+
+        var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+
+        agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, true, (err, statusCode, task) => {
             if(err) {
-                return console.log(err);
+                err.statusCode = statusCode;
+                deferred.reject(err);
             }
-
-            var taskJson = JSON.parse(data);
-
-            var vn = (taskJson.name  || taskPath);
-
-            if (!taskJson.id || !check.isUUID(taskJson.id)) {
-                return console.log(vn + ': id is a required guid');
+            else {
+                deferred.resolve(<agentifm.TaskDefinition>{
+                    sourceLocation: taskPath
+                });
             }
-
-            if (!taskJson.name || !check.isAlphanumeric(taskJson.name)) {
-                return console.log(vn + ': name is a required alphanumeric string');
-            }
-
-            if (!taskJson.friendlyName || !check.isLength(taskJson.friendlyName, 1, 40)) {
-                return console.log(vn + ': friendlyName is a required string <= 40 chars');
-            }
-
-            if (!taskJson.instanceNameFormat) {
-                return console.log(vn + ': instanceNameFormat is required');    
-            }
-
-            var archive = archiver('zip');
-            archive.directory(taskPath, false);
-
-            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-
-            agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, true, (err, statusCode, task) => {
-
-                if(err) {
-                    err.statusCode = statusCode;
-                    deferred.reject(err);
-                }
-                else {
-                    deferred.resolve(task);
-                }
-            });
-            archive.finalize();
         });
+        archive.finalize();
         return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
     }
 

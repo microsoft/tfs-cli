@@ -28,7 +28,6 @@ export class BuildTaskDelete extends cmdm.TfCommand {
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
         agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
-
             if(err) {
                 err.statusCode = statusCode;
                 deferred.reject(err);
