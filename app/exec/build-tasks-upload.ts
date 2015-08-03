@@ -69,6 +69,6 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     }
 
     public output(data: any): void {
-        console.log('source: ' + data.sourceLocation + ' uploaded successfully!');
+        console.log('task at: ' + data.sourceLocation + ' uploaded successfully!');
     }
 }
