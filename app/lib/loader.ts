@@ -107,14 +107,12 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                     }
                 }
 
-                var args = mod.argsFormat ? mod.argsFormat() : '';
-                args = args.length > 0 ? ' ' + args : args;
                 var description = mod.describe ? mod.describe() : '';
-                var optionsLabel = hasImplementation ? ' [options]' : '';
+                var listedArguments = hasImplementation ? mod.getArguments() : '';
                 console.log(colors.yellow('   ' + cmdLabel));
                 console.log(colors.white('\t' + description));
                 if (hasImplementation) 
-                    console.log('\t' + cmdLabel + args + optionsLabel);
+                    console.log('\t' + cmdLabel + listedArguments);
 
                 console.log();
             }

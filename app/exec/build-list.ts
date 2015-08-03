@@ -2,9 +2,17 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
+import parameternames = require('../lib/parameternames');
 
 export function describe(): string {
-    return 'get a list of builds.\n\targs: <project> [--definitionId <definitionId>] [--definitionName <definitionName>] [--status <buildStatus>] [--top <top>]';
+    return 'get a list of builds.';
+}
+
+export function getArguments(): string {
+    return cmdm.formatArgumentsHint(
+        [parameternames.PROJECT_NAME], 
+        [parameternames.DEFINITION_ID, parameternames.DEFINITION_NAME, parameternames.STATUS, parameternames.TOP]
+    );
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -22,20 +30,21 @@ export class BuildGetList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
-        var project: string = args[0] || options['project'];
-        this.checkRequiredParameter(project, 'project', 'projectName');
+        var project: string = args[0] || options[parameternames.PROJECT_NAME];
+        this.checkRequiredParameter(project, parameternames.PROJECT_NAME, parameternames.PROJECT_FRIENDLY_NAME);
 
-        var status = options['status'];
+        var status = options[parameternames.STATUS];
 
         var top = null;
-        if(options['top'])
-            top = +options['top'];
+        if(options[parameternames.TOP]) {
+            top = +options[parameternames.TOP];
+        }
 
         var definitions: number[] = null;
-        var definitionId: number = +options['definitionId'];
-        var definitionName: string = options['definitionName'];
+        var definitionId: number = +options[parameternames.DEFINITION_ID];
+        var definitionName: string = options[parameternames.DEFINITION_NAME];
         if (definitionId) {
-            definitions = [+options['definitionId']];
+            definitions = [+options[parameternames.DEFINITION_ID]];
         }
         else if(definitionName) {
             return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
