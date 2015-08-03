@@ -2,7 +2,7 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
-import parameternames = require('../lib/parameternames');
+import params = require('../lib/parameternames');
 
 export function describe(): string {
     return 'queue a build.';
@@ -10,9 +10,9 @@ export function describe(): string {
 
 export function getArguments(): string {
     return cmdm.formatArgumentsHint(
-        [parameternames.PROJECT_NAME], 
-        [parameternames.DEFINITION_ID, parameternames.DEFINITION_NAME]
-    ) + '\n\tone of ' + parameternames.DEFINITION_ID + ' and ' + parameternames.DEFINITION_NAME + ' is required.';
+        [params.PROJECT_NAME], 
+        [params.DEFINITION_ID, params.DEFINITION_NAME]
+    ) + '\n\tone of ' + params.DEFINITION_ID + ' and ' + params.DEFINITION_NAME + ' is required.';
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -30,18 +30,18 @@ export class BuildQueue extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
-        var project: string = args[0] || options[parameternames.PROJECT_NAME];
-        this.checkRequiredParameter(project, parameternames.PROJECT_NAME, parameternames.PROJECT_FRIENDLY_NAME);
+        var project: string = args[0] || options[params.PROJECT_NAME];
+        this.checkRequiredParameter(project, params.PROJECT_NAME, params.PROJECT_FRIENDLY_NAME);
 
-        var definitionId: number = +args[1] || +options[parameternames.DEFINITION_ID];
+        var definitionId: number = +args[1] || +options[params.DEFINITION_ID];
         if(definitionId) {
             return buildapi.getDefinition(definitionId, project).then((definition: buildifm.DefinitionReference) => {
                 return this._queueBuild(buildapi, definition, project);
             });
         }
         else {
-            var definitionName = options[parameternames.DEFINITION_NAME];
-            this.checkRequiredParameter(definitionName, parameternames.DEFINITION_NAME);
+            var definitionName = options[params.DEFINITION_NAME];
+            this.checkRequiredParameter(definitionName, params.DEFINITION_NAME);
 
             return buildapi.getDefinitions(project, definitionName).then((definitions: buildifm.DefinitionReference[]) => {
                 var definition = definitions[0];

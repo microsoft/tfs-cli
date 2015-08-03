@@ -2,14 +2,14 @@ import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import Q = require('q');
-import parameternames = require('../lib/parameternames');
+import params = require('../lib/parameternames');
 
 export function describe(): string {
     return 'get a list of build tasks.';
 }
 
 export function getArguments(): string {
-    return cmdm.formatArgumentsHint([], [], [parameternames.ALL]);
+    return cmdm.formatArgumentsHint([], [], [params.ALL]);
 }
 
 export function getCommand(): cmdm.TfCommand {

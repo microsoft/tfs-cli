@@ -3,12 +3,12 @@
 
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
-import validatem = require('../lib/jsonvalidate')
+import vm = require('../lib/jsonvalidate')
 import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import Q = require('q');
 import fs = require('fs');
 import path = require('path');
-import parameternames = require('../lib/parameternames');
+import params = require('../lib/parameternames');
 var archiver = require('archiver');
 
 export function describe(): string {
@@ -16,7 +16,7 @@ export function describe(): string {
 }
 
 export function getArguments(): string {
-    return cmdm.formatArgumentsHint([parameternames.TASK_PATH], []);
+    return cmdm.formatArgumentsHint([params.TASK_PATH], []);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -34,25 +34,17 @@ var c_taskJsonFile: string = 'task.json';
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var deferred = Q.defer<agentifm.TaskDefinition>();
-        var taskPath = args[0] || options[parameternames.TASK_PATH];
-        this.checkRequiredParameter(taskPath, parameternames.TASK_PATH, 'path to the task folder');
+        var taskPath = args[0] || options[params.TASK_PATH];
+        this.checkRequiredParameter(taskPath, params.TASK_PATH, 'path to the task folder');
 
-        var validator: validatem.JsonValidate = new validatem.JsonValidate();
         try {
-            validator.exists(taskPath, 'specified directory does not exist.');
+            vm.exists(taskPath, 'specified directory does not exist.');
         }
         catch (directoryError) {
             deferred.reject(directoryError);
         }
         //directory is good, check json
-        var taskJson: any;
-        try {
-            taskJson = validator.validateJson(path.join(taskPath, c_taskJsonFile), validator.validateTask, 'no ' + c_taskJsonFile + ' in specified directory');
-        }
-        catch (jsonError) {
-            deferred.reject(jsonError);
-        }
-        if(taskJson) {
+        vm.validate(path.join(taskPath, c_taskJsonFile), 'no ' + c_taskJsonFile + ' in specified directory').then((taskJson) => {
             var archive = archiver('zip');
             archive.on('error', function(error) {
                 error.message = "Archiving error: " + error.message;
@@ -74,7 +66,11 @@ export class BuildTaskUpload extends cmdm.TfCommand {
                 }
             });
             archive.finalize();
-        }
+        })
+        .fail((error) => {
+            deferred.reject(error);
+        });
+
         return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
     }
 
