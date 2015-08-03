@@ -8,10 +8,15 @@ import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import Q = require('q');
 import fs = require('fs');
 import path = require('path');
+import parameternames = require('../lib/parameternames');
 var archiver = require('archiver');
 
 export function describe(): string {
-    return 'upload a build task.\nargs: <taskPath>';
+    return 'upload a build task.';
+}
+
+export function getArguments(): string {
+    return cmdm.formatArgumentsHint([parameternames.TASK_PATH], []);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -24,47 +29,52 @@ export var isServerOperation: boolean = true;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
+var c_taskJsonFile: string = 'task.json';
+
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         var deferred = Q.defer<agentifm.TaskDefinition>();
-        var taskPath = args[0] || options['taskPath'];
-        this.checkRequiredParameter(taskPath, 'taskPath', 'path to the task folder');
-        if(!fs.existsSync(taskPath)) {
-            deferred.reject(new validatem.InvalidDirectoryException('specified directory does not exist.'));
-        }
-        var taskJsonPath = path.join(taskPath, 'task.json');
-        if(!fs.existsSync(taskJsonPath)) {
-            deferred.reject(new validatem.InvalidDirectoryException('no task.json in specified directory'));
-        }
+        var taskPath = args[0] || options[parameternames.TASK_PATH];
+        this.checkRequiredParameter(taskPath, parameternames.TASK_PATH, 'path to the task folder');
 
-        var taskJson;
+        var validator: validatem.JsonValidate = new validatem.JsonValidate();
         try {
-            taskJson = JSON.parse(fs.readFileSync(taskJsonPath, 'utf8'));
-            var validator: validatem.JsonValidate = new validatem.JsonValidate();
-            validator.validateTask(taskJson, taskPath);
+            validator.exists(taskPath, 'specified directory does not exist.');
         }
-        catch (readError) {
-            deferred.reject(readError)
+        catch (directoryError) {
+            deferred.reject(directoryError);
         }
+        //directory is good, check json
+        var taskJson: any;
+        try {
+            taskJson = validator.validateJson(path.join(taskPath, c_taskJsonFile), validator.validateTask, 'no ' + c_taskJsonFile + ' in specified directory');
+        }
+        catch (jsonError) {
+            deferred.reject(jsonError);
+        }
+        if(taskJson) {
+            var archive = archiver('zip');
+            archive.on('error', function(error) {
+                error.message = "Archiving error: " + error.message;
+                deferred.reject(error);
+            })
+            archive.directory(taskPath, false);
 
+            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
-        var archive = archiver('zip');
-        archive.directory(taskPath, false);
-
-        var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-
-        agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, true, (err, statusCode, task) => {
-            if(err) {
-                err.statusCode = statusCode;
-                deferred.reject(err);
-            }
-            else {
-                deferred.resolve(<agentifm.TaskDefinition>{
-                    sourceLocation: taskPath
-                });
-            }
-        });
-        archive.finalize();
+            agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, false, (err, statusCode, task) => {
+                if(err) {
+                    err.statusCode = statusCode;
+                    deferred.reject(err);
+                }
+                else {
+                    deferred.resolve(<agentifm.TaskDefinition>{
+                        sourceLocation: taskPath
+                    });
+                }
+            });
+            archive.finalize();
+        }
         return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
     }
 
