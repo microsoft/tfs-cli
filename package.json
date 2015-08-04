@@ -31,7 +31,8 @@
     "gulp-mocha": "2.0.0",
     "gulp-tsc": "^0.10.1",
     "minimatch": "^2.0.8",
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "validator": "^3.33.0"
   },
   "author": "",
   "license": "MIT"
