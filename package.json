@@ -23,7 +23,8 @@
     "q": "^1.4.1",
     "read": "^1.0.6",
     "shelljs": "^0.5.1",
-    "vso-node-api": "^0.2.1"
+    "vso-node-api": "^0.2.1",
+    "validator": "^3.33.0"
   },
   "devDependencies": {
     "del": "^1.2.0",
@@ -31,8 +32,7 @@
     "gulp-mocha": "2.0.0",
     "gulp-tsc": "^0.10.1",
     "minimatch": "^2.0.8",
-    "mocha": "^2.2.5",
-    "validator": "^3.33.0"
+    "mocha": "^2.2.5"
   },
   "author": "",
   "license": "MIT"
