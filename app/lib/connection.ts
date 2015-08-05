@@ -14,13 +14,15 @@ export class TfsConnection {
     constructor(collectionUrl: string, credentials: am.ICredentials) {
         this.collectionUrl = collectionUrl;
         this.credentials = credentials;
-        if(credentials.type === "basic") {
-            var basicCreds: am.BasicCredentials = <am.BasicCredentials>credentials;
-            this.authHandler = apim.getBasicHandler(basicCreds.username, basicCreds.password);
-        }
-        if(credentials.type === "pat") {
-            var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
-            this.authHandler = apim.getBasicHandler("OAuth", patCreds.token);
+        switch(credentials.type) {
+            case "basic":
+                var basicCreds: am.BasicCredentials = <am.BasicCredentials>credentials;
+                this.authHandler = apim.getBasicHandler(basicCreds.username, basicCreds.password);
+                break;
+            case "pat":
+                var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
+                this.authHandler = apim.getBasicHandler("OAuth", patCreds.token);
+                break;
         }
 
         // TODO: validate url

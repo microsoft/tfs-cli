@@ -21,13 +21,13 @@ export class PatCredentials implements ICredentials {
 
     public fromString(creds: string): ICredentials {
         // TODO: validate - it has a specific format
-        this.token = creds;
+        this.token = creds.split(':')[1];
         this.populated = true;
         return this;
     }
 
     public toString(): string {
-        return this.token;
+        return this.type + ':' + this.token;
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
@@ -66,14 +66,14 @@ export class BasicCredentials implements ICredentials {
 
     public fromString(creds: string): ICredentials {
         var p = creds.split(':');
-        this.username = p[0];
-        this.password = p[1];
+        this.username = p[1];
+        this.password = p[2];
         this.populated = true;
         return this;
     }
 
     public toString(): string {
-        return this.username + ':' + this.password;
+        return this.type + ':' + this.username + ':' + this.password;
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
@@ -105,32 +105,32 @@ export class BasicCredentials implements ICredentials {
 }
 
 
-export function getCredentials(url: string, authtype): Q.Promise<ICredentials> {
+export function getCredentials(url: string, authType: string): Q.Promise<ICredentials> {
     var defer = Q.defer<ICredentials>();
 
     // TODO: support other credential types
 
     var creds: ICredentials = null;
-    switch(authtype) {
-        case 'basic': 
-            creds = new BasicCredentials();
-            break;
-
-        case 'pat': 
-            creds = new PatCredentials();
-            break;
-
-        default:
-            throw new Error('Unsupported auth type: ' + authtype);
-    }
-
     return this.getCachedCredentials(url)
     .then((cachedData: string) => {
+        var type = cachedData.split(':')[0] || authType;
+        switch (type) {
+            case 'basic':
+                creds = new BasicCredentials();
+                break;
+
+            case 'pat':
+                creds = new PatCredentials();
+                break;
+
+            default:
+                throw new Error('Unsupported auth type: ' + type);
+        }
         return cachedData ? creds.fromString(cachedData) : creds;
     })
     .then((creds: ICredentials) => {
         return creds.populated ? creds : creds.promptCredentials();
-    })
+    });
 
     return <Q.Promise<ICredentials>>defer.promise;
 }
