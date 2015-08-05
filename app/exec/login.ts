@@ -49,8 +49,8 @@ export class Login extends cmdm.TfCommand {
         .then(() => {
             var agentapi: agentm.ITaskAgentApi = this.getWebApi().getTaskAgentApi();
             agentapi.connect((err, statusCode, obj) => {
-                if (err) {
-                    defer.reject(new Error('Login Failed: ' + err.message));
+                if (statusCode && statusCode == 401) {
+                    defer.reject(new Error('invalid credentials'));
                 }
                 defer.resolve(con.credentials);
             });
