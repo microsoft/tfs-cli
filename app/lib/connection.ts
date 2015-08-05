@@ -20,7 +20,7 @@ export class TfsConnection {
         }
         if(credentials.type === "pat") {
             var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
-            this.authHandler = apim.getBearerHandler(patCreds.token);
+            this.authHandler = apim.getBasicHandler("OAuth", patCreds.token);
         }
 
         // TODO: validate url
