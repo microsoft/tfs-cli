@@ -2,6 +2,7 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import am = require('../lib/auth');
 import Q = require('q');
+import params = require('../lib/parameternames');
 
 // export ID=tfx build get 5 | tfx parse .id
 // export ID=tfx build query --top 1 | tfx parse [0].id
@@ -10,8 +11,10 @@ export function describe(): string {
     return 'parse json by piping json result from another tfx command';
 }
 
-export function argsFormat(): string {
-    return '<jsonFilter>';
+export function getArguments(): string {
+    return cmdm.formatArgumentsHint(
+        ['jsonFilter'], []
+    );
 }
 
 export function getCommand(): cmdm.TfCommand {

@@ -7,7 +7,7 @@ import params = require('../lib/parameternames')
 import Q = require('q');
 
 export function describe(): string {
-    return 'delete a build task.';
+    return 'delete a build task';
 }
 
 export function getArguments(): string {

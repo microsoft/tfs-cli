@@ -108,7 +108,11 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 }
 
                 var description = mod.describe ? mod.describe() : '';
-                var listedArguments = hasImplementation ? mod.getArguments() : '';
+                var listedArguments = '';
+                if (hasImplementation && mod.getArguments) {
+                    listedArguments = mod.getArguments();
+                }
+
                 console.log(colors.yellow('   ' + cmdLabel));
                 console.log(colors.white('\t' + description));
                 if (hasImplementation) 

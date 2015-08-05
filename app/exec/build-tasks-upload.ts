@@ -12,7 +12,7 @@ import params = require('../lib/parameternames');
 var archiver = require('archiver');
 
 export function describe(): string {
-    return 'upload a build task.';
+    return 'upload a build task';
 }
 
 export function getArguments(): string {

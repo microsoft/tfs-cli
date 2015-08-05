@@ -5,7 +5,7 @@ import Q = require('q');
 import params = require('../lib/parameternames');
 
 export function describe(): string {
-    return 'get a list of build tasks.';
+    return 'get a list of build tasks';
 }
 
 export function getArguments(): string {

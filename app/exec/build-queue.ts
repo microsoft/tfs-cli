@@ -5,7 +5,7 @@ import buildm = require('vso-node-api/BuildApi');
 import params = require('../lib/parameternames');
 
 export function describe(): string {
-    return 'queue a build.';
+    return 'queue a build';
 }
 
 export function getArguments(): string {

@@ -5,7 +5,7 @@ import buildm = require('vso-node-api/BuildApi');
 import params = require('../lib/parameternames')
 
 export function describe(): string {
-    return 'get a build.';
+    return 'get a build';
 }
 
 export function getArguments(): string {

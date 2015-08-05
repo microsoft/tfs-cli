@@ -4,13 +4,17 @@ import am = require('../lib/auth');
 import Q = require('q');
 import csm = require('../lib/credstore');
 import cam = require('../lib/diskcache');
+import params = require('../lib/parameternames');
 
 export function describe(): string {
     return 'login and cache credentials. types: pat (default), basic';
 }
 
-export function argsFormat(): string {
-    return '--collection <collectionUrl>  [--authtype pat | basic]';
+export function getArguments(): string {
+    return cmdm.formatArgumentsHint(
+        [params.COLLECTION_URL], 
+        [params.AUTH_TYPE]
+    );
 }
 
 export function getCommand(): cmdm.TfCommand {
