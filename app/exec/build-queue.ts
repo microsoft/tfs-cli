@@ -3,6 +3,7 @@ import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
 import params = require('../lib/parameternames');
+import os = require('os');
 
 export function describe(): string {
     return 'queue a build';
@@ -12,7 +13,7 @@ export function getArguments(): string {
     return cmdm.formatArgumentsHint(
         [params.PROJECT_NAME], 
         [params.DEFINITION_ID, params.DEFINITION_NAME]
-    ) + '\n\tone of ' + params.DEFINITION_ID + ' and ' + params.DEFINITION_NAME + ' is required.';
+    ) + os.EOL + '\tmust supply ' + params.DEFINITION_ID + ' or ' + params.DEFINITION_NAME;
 }
 
 export function getCommand(): cmdm.TfCommand {
