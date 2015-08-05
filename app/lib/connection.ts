@@ -14,14 +14,13 @@ export class TfsConnection {
     constructor(collectionUrl: string, credentials: am.ICredentials) {
         this.collectionUrl = collectionUrl;
         this.credentials = credentials;
-        var webapi: apim.WebApi = new apim.WebApi("", null);
         if(credentials.type === "basic") {
             var basicCreds: am.BasicCredentials = <am.BasicCredentials>credentials;
-            this.authHandler = webapi.getBasicHandler(basicCreds.username, basicCreds.password);
+            this.authHandler = apim.getBasicHandler(basicCreds.username, basicCreds.password);
         }
         if(credentials.type === "pat") {
             var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
-            this.authHandler = webapi.getBearerHandler(patCreds.token);
+            this.authHandler = apim.getBearerHandler(patCreds.token);
         }
 
         // TODO: validate url

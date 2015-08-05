@@ -12130,16 +12130,16 @@ declare module 'vso-node-api/WebApi' {
 	import apivm = require('vso-node-api/handlers/apiversion');
 	import basicm = require('vso-node-api/handlers/basiccreds');
 	import bearm = require('vso-node-api/handlers/bearertoken');
+	/**
+	 * Methods to return handler objects (see handlers folder)
+	 */
+	export function getVersionHandler(apiVersion: string): apivm.ApiVersionHandler;
+	export function getBasicHandler(username: string, password: string): basicm.BasicCredentialHandler;
+	export function getBearerHandler(token: any): bearm.BearerCredentialHandler;
 	export class WebApi {
 	    serverUrl: string;
 	    authHandler: VsoBaseInterfaces.IRequestHandler;
 	    constructor(serverUrl: string, authHandler: VsoBaseInterfaces.IRequestHandler);
-	    /**
-	     * Methods to return handler objects (see handlers folder)
-	     */
-	    getVersionHandler(apiVersion: string): apivm.ApiVersionHandler;
-	    getBasicHandler(username: string, password: string): basicm.BasicCredentialHandler;
-	    getBearerHandler(token: any): bearm.BearerCredentialHandler;
 	    /**
 	     * Each factory method can take a serverUrl and a list of handlers
 	     * if these aren't provided, the default url and auth handler given to the constructor for this class will be used

@@ -5,6 +5,8 @@ import Q = require('q');
 import csm = require('../lib/credstore');
 import cam = require('../lib/diskcache');
 import params = require('../lib/parameternames');
+import apim = require('vso-node-api/WebApi');
+import agentm = require('vso-node-api/TaskAgentApi');
 var trace = require('../lib/trace');
 
 export function describe(): string {
@@ -45,7 +47,13 @@ export class Login extends cmdm.TfCommand {
             return cache.setItem('cache', 'connection', con.collectionUrl);
         })
         .then(() => {
-            defer.resolve(con.credentials);
+            var agentapi: agentm.ITaskAgentApi = this.getWebApi().getTaskAgentApi();
+            agentapi.connect((err, statusCode, obj) => {
+                if (err) {
+                    defer.reject(new Error('Login Failed: ' + err.message));
+                }
+                defer.resolve(con.credentials);
+            });
         })
         .fail((err) => {
             defer.reject('Login Failed: ' + err.message);

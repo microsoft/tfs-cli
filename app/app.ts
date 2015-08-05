@@ -15,7 +15,6 @@ var mopts = {
 };
 
 var options = minimist(process.argv.slice(2), mopts);
-options.authtype = 'basic'
 var args: string[] = options['_'];
 delete options['_'];
 
