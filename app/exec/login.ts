@@ -5,6 +5,7 @@ import Q = require('q');
 import csm = require('../lib/credstore');
 import cam = require('../lib/diskcache');
 import params = require('../lib/parameternames');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'login and cache credentials. types: pat (default), basic';
@@ -30,6 +31,7 @@ export var hideBanner: boolean = false;
 
 export class Login extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): Q.Promise<am.ICredentials> {
+        trace('Login.exec');
         var defer = Q.defer();
 
         // TODO: validate valid url

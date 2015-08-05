@@ -5,8 +5,10 @@ import fs = require('fs');
 import path = require('path');
 import cm = require('./common');
 import colors = require('colors');
+var trace = require('../lib/trace');
 
-export function load(execPath: string, cmds: string[], defaultCmd: string): any {   
+export function load(execPath: string, cmds: string[], defaultCmd: string): any {
+    trace('loader.load');   
     var module = null;
 
     var execCmds: string[] = null;
@@ -17,15 +19,22 @@ export function load(execPath: string, cmds: string[], defaultCmd: string): any 
         return module;
     }
 
+    trace(execCmds);
+
     var match = this.match(execCmds, cmds) || defaultCmd;
     if (match) {
-        module = require(path.join(execPath, match));
+        var mp = path.join(execPath, match);
+        module = require(mp);
+        if (module) {
+            trace('loaded ' + mp);    
+        }
     }
     
     return { name: path.basename(match, '.js'), module: module };   
 }
 
 export function match(cmdList: string[], cmds: string[]): string {
+    trace('loader.match');
     var candidates = [];
 
     for (var i = 0; i < cmds.length; i++) {
@@ -57,8 +66,10 @@ export function match(cmdList: string[], cmds: string[]): string {
 }
 
 export function getHelp(execPath: string, scope: string, all: boolean) {
+    trace('loader.getHelp');
     var ssc = scope == '' ? 0 : scope.split('-').length;
     var execCmds = execCmds = fs.readdirSync(execPath);
+    trace(execCmds);
 
     console.log();
     console.log(colors.magenta('                        fTfs         '));   
@@ -79,6 +90,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
     console.log(colors.cyan('commands:'));
 
     execCmds.forEach((cmd) => {
+        trace('cmd: ' + cmd);
         cmd = path.basename(cmd, '.js');
         //console.log('\n' + cmd);
 
@@ -87,6 +99,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
         var csc = cs.length;
         //console.log(scope, ssc, csc, all);
         var show = cmd.indexOf(scope) == 0 && (ssc + 1 == csc || all);
+        trace('show? ' + show);
 
         //console.log('show: ' + show);
         if (show) {
@@ -96,6 +109,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
             // If not, we want to list the 'top level' no impl cmds
             var mod = require(p);
             var hasImplementation = mod.getCommand();
+            trace('hasImplementation? ' + hasImplementation);
             if (!all || hasImplementation) {
                 var cmdLabel = '';
                 for (var i = 0; i < cs.length; ++i) {
@@ -108,10 +122,12 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 }
 
                 var description = mod.describe ? mod.describe() : '';
+                trace('description: ' + description);
                 var listedArguments = '';
                 if (hasImplementation && mod.getArguments) {
                     listedArguments = mod.getArguments();
                 }
+                trace(listedArguments);
 
                 console.log(colors.yellow('   ' + cmdLabel));
                 console.log(colors.white('\t' + description));
