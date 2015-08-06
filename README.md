@@ -1,6 +1,6 @@
 # TFS Extensions Command Line Utility
 
-[![NPM version](https://badge.fury.io/js/tfs-cli.png)](http://badge.fury.io/js/tfs-cli)
+[![NPM version](https://badge.fury.io/js/tfx-cli.png)](http://badge.fury.io/js/tfx-cli)
 
 This is a utility to manage extensions for TFS.  It is cross platform and supported on Windows, OSX and Linux.
 
