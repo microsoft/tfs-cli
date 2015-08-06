@@ -37,7 +37,6 @@ export class Login extends cmdm.TfCommand {
         var defer = Q.defer();
 
         // TODO: validate valid url
-        // TODO: do connect call
 
         var con = this.connection;
         var cache: cam.DiskCache = new cam.DiskCache('tfx');

@@ -101,7 +101,6 @@ export class BuildTaskList extends cmdm.TfCommand {
             return version1.minor - version2.minor;
         }
         if(version1.patch != version2.patch) {
-            console.log(version1.patch - version2.patch);
             return version1.patch - version2.patch;
         }
         return 0;
