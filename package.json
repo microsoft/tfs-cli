@@ -1,7 +1,7 @@
 {
-  "name": "tfs-cli",
+  "name": "tfx-cli",
   "version": "0.1.2",
-  "description": "TFS Cross Platform Command Line",
+  "description": "TFS Extensions Command Line Utility",
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/tfs-cli"

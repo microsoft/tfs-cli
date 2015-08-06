@@ -1,19 +1,19 @@
-# TFS Cross Platform Command Line
+# TFS Extensions Command Line Utility
 
 [![NPM version](https://badge.fury.io/js/tfs-cli.png)](http://badge.fury.io/js/tfs-cli)
 
-This is a cross platform command line which works on Windows, OSX and Linux.  It can be used to access and manage workitems, builds and source control.  It can also be used in scripting scenarios including support for outputting raw data in json and even piping it for parsing and extracting data in your scripts.
+This is a utility to manage extensions for TFS.  It is cross platform and supported on Windows, OSX and Linux.
 
-*Very early alpha/prototype state.*
+*Pre-release but supported*
 
 ![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
 
 ## Features:
 * Build
+    * task extensions: manage build tasks (list, upload, delete)
     * list: list builds and filter
     * queue: queue a build
-    * tasks: manage build tasks (list, upload, delete)
-* Workitem Tracking
+* App Extensions
     * comming soon
 * Scripting
     * json: write output in json format
@@ -21,11 +21,9 @@ This is a cross platform command line which works on Windows, OSX and Linux.  It
 
 ## Install
 ```bash
-npm install -g tfs-cli
+npm install -g tfx-cli
 ```
 
 ## Contributing
-
-Yes please!
 
 *Section Coming soon*

@@ -1,7 +1,7 @@
 import cmdm = require('../lib/tfcommand');
 
 export function describe(): string {
-    return 'manage builds, build definitions and build tasks';
+    return 'manage task extensions and builds';
 }
 
 export function getCommand(): cmdm.TfCommand {
