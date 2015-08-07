@@ -35,8 +35,9 @@ logged in successfully
 You can alternatively use basic auth by passing `--authType basic`.  NTLM will come soon.
 
 ## Command Documentation
-[Build Tasks](docs/buildtasks.md)
-[App Extensions](docs/appext.md) 
+[Build Tasks](docs/buildtasks.md): create, list, upload and delete your build tasks
+
+[App Extensions](docs/appext.md): manage your app extensions
 
 ## Troubleshooting
 To see detailed tracing output, you can set a value for the TFX_TRACE environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
