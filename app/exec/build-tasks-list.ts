@@ -26,7 +26,7 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
-        trace("User requested to list build tasks.");
+        trace("build-tasks-list.exec");
         var deferred = Q.defer<agentifm.TaskDefinition[]>();
         var all = options['all'] || false;
         trace("Initializing agent API...");
@@ -35,7 +35,7 @@ export class BuildTaskList extends cmdm.TfCommand {
         trace("Searching for build tasks...");
         agentapi.getTaskDefinitions(['build'], (err, statusCode, tasks) => {
             if(err) {
-                trace("Call to TaskAgentApi.getTaskDefinitions failed. Message: " + err.message);
+                trace("Call to TaskAgentApi.getTaskDefinitions failed with code " + statusCode + ". Message: " + err.message);
                 err.statusCode = statusCode;
                 deferred.reject(err);
             }

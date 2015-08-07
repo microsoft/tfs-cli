@@ -27,7 +27,7 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskDelete extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
-        trace("User requested to delete a build task.");
+        trace("build-tasks-delete.exec");
         var deferred = Q.defer<agentifm.TaskDefinition>();
         var taskId = args[0] || options[params.GENERIC_ID];
         this.checkRequiredParameter(taskId, params.GENERIC_ID, params.TASK_ID);
@@ -42,12 +42,12 @@ export class BuildTaskDelete extends cmdm.TfCommand {
                 trace("Deleting task(s)...");
                 agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
                     if (err) {
-                        trace("Call to TaskAgentApi.deleteTaskDefinition failed. Message: " + err.message);
+                        trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
                         err.statusCode = statusCode;
                         deferred.reject(err);
                     }
                     else {
-                        trace("Successfully deleted task(s).")
+                        trace("Success.")
                         deferred.resolve(<agentifm.TaskDefinition>{
                             id: taskId
                         });
@@ -55,7 +55,7 @@ export class BuildTaskDelete extends cmdm.TfCommand {
                 });
             }
             else {
-                trace("No task found with provided id: " + taskId);
+                trace("No task.");
                 deferred.reject(new Error("No task found with provided ID: " + taskId));
             }
         });

@@ -15,7 +15,7 @@ export class DiskCache {
     private getFilePath(store: string, name: string): string {
         var storeFolder = path.join(osHomedir(), '.' + this.appName, store);
         shell.mkdir('-p', storeFolder);
-
+        console.log(path.join(storeFolder, '.' + name));
         return path.join(storeFolder, '.' + name);
     }
 

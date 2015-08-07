@@ -41,20 +41,24 @@ export class Login extends cmdm.TfCommand {
         var con = this.connection;
         var cache: cam.DiskCache = new cam.DiskCache('tfx');
         var cs: csm.ICredentialStore = csm.getCredentialStore('tfx');
+        trace('Caching credentials...');
         cs.storeCredential(con.collectionUrl, 'allusers', con.credentials.toString())
         .then(() => {
             return cache.setItem('cache', 'connection', con.collectionUrl);
         })
         .then(() => {
+            trace('Connecting to agent API to test credentials...');
             var agentapi: agentm.ITaskAgentApi = this.getWebApi().getTaskAgentApi();
             agentapi.connect((err, statusCode, obj) => {
                 if (statusCode && statusCode == 401) {
-                    defer.reject(new Error('invalid credentials'));
+                    trace('Connection failed. Invalid credentials');
+                    defer.reject(new Error('Invalid credentials'));
                 }
                 defer.resolve(con.credentials);
             });
         })
         .fail((err) => {
+            trace('Login Failed: ' + err.message);
             defer.reject('Login Failed: ' + err.message);
         })
         

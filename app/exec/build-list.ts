@@ -3,6 +3,7 @@ import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
 import params = require('../lib/parameternames');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a list of builds';
@@ -28,6 +29,7 @@ export var hideBanner: boolean = false;
 
 export class BuildGetList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        trace('build-list.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
         var project: string = args[0] || options[params.PROJECT_NAME];
@@ -47,9 +49,16 @@ export class BuildGetList extends cmdm.TfCommand {
             definitions = [+options[params.DEFINITION_ID]];
         }
         else if(definitionName) {
+            trace('No definition Id provided, checking for definitions with name ' + definitionName);
             return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
-                definitions = [defs[0].id];
-                return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);
+                if(defs.length > 0) {
+                    definitions = [defs[0].id];
+                    return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
+                }
+                else {
+                    trace('No definition found with name ' + definitionName);
+                    throw new Error('No definition found with name ' + definitionName);
+                }
             });
         }
 
