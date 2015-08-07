@@ -61,7 +61,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
 
             var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
-            agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, false, (err, statusCode, task) => {
+            agentapi.uploadTaskDefinition(null, archive, taskJson.id, false, (err, statusCode, task) => {
                 if(err) {
                     err.statusCode = statusCode;
                     deferred.reject(err);
