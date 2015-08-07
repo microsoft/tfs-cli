@@ -9,7 +9,8 @@ import Q = require('q');
 var readline = require("readline")
   , read = require('read')
   , async = require('async')
-  , argparser = require('minimist');
+  , argparser = require('minimist')
+  , trace = require('./trace');
 
 var args = argparser(process.argv.slice(2));
 
@@ -48,6 +49,7 @@ export function Qget(inputs: any): Q.Promise<cm.IStringDictionary> {
 
 // done(err, result)
 export function get(inputs, done: (err: Error, result: cm.IStringDictionary) => void): void {
+    trace('inputs.get');
     var result: cm.IStringDictionary = <cm.IStringDictionary>{};
     
     result['_'] = args['_'];
@@ -71,11 +73,13 @@ export function get(inputs, done: (err: Error, result: cm.IStringDictionary) => 
         read({ prompt: msg, silent: silent }, function(err, answer) {
             var useVal = answer === "" ? input.def : answer;
             result[input.name] = getValueFromString(useVal, input.type, input.default);
+            trace('read: ' + result[input.name]);
             inputDone(null, null);
         });
     }, function(err) {
         
         if (err) {
+            trace('Input reading failed with message: ' + err.message);
             done(err, null);
             return;
         }
@@ -84,6 +88,7 @@ export function get(inputs, done: (err: Error, result: cm.IStringDictionary) => 
         inputs.forEach(function(input) {
 
             if (input.req && !result[input.name]) {
+                trace(input.description + ' is required.');
                 done(new Error(input.description + ' is required.'), null);
                 return;
             }
