@@ -10,6 +10,7 @@ import fs = require('fs');
 import path = require('path');
 import params = require('../lib/parameternames');
 var archiver = require('archiver');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'upload a build task';
@@ -33,6 +34,7 @@ var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskUpload extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        trace('build-task-upload.exec');
         var deferred = Q.defer<agentifm.TaskDefinition>();
         var taskPath = args[0] || options[params.TASK_PATH];
         this.checkRequiredParameter(taskPath, params.TASK_PATH, 'path to the task folder');
@@ -44,7 +46,12 @@ export class BuildTaskUpload extends cmdm.TfCommand {
             deferred.reject(directoryError);
         }
         //directory is good, check json
-        vm.validate(path.join(taskPath, c_taskJsonFile), 'no ' + c_taskJsonFile + ' in specified directory').then((taskJson) => {
+
+        var tp = path.resolve(process.cwd(), path.join(taskPath, c_taskJsonFile));
+        trace('path: ' + tp);
+
+        vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory')
+        .then((taskJson) => {
             var archive = archiver('zip');
             archive.on('error', function(error) {
                 error.message = "Archiving error: " + error.message;

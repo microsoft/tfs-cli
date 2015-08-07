@@ -6,6 +6,7 @@ import loader = require('./lib/loader');
 import cm = require('./lib/common');
 import am = require('./lib/auth');
 import cnm = require('./lib/connection');
+var trace = require('./lib/trace');
 
 var minimist = require('minimist');
 
@@ -72,11 +73,12 @@ else {
 
     cnm.getCollectionUrl()
     .then((url: string) => {
+        trace('url: ' + url);
         collectionUrl = url;
-        
         return am.getCredentials(url, options.authtype);
     })
     .then((creds: am.ICredentials) => {
+        trace(creds);
         connection = new cnm.TfsConnection(collectionUrl, creds);
         cmd.connection = connection;
         return cmd.exec(args, options);

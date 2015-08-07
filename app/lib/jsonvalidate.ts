@@ -4,6 +4,7 @@ import Q = require('q');
 var fs = require('fs');
 var shell = require('shelljs');
 var check = require('validator');
+var trace = require('./trace');
 
 /*
  * Checks a json file for correct formatting against some validation function
@@ -19,10 +20,10 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
 
     var taskJson;
     try {
-        taskJson = JSON.parse(fs.readFileSync(jsonFilePath, 'utf8'));
+        taskJson = require(jsonFilePath);
     }
     catch (jsonError) {
-        deferred.reject(new Error("Invalid task json: " + jsonError));
+        throw new Error("Invalid task json: " + jsonError);
     }
     
     var issues: string[] = this.validateTask(jsonFilePath, taskJson);

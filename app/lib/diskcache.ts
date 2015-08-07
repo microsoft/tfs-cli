@@ -3,6 +3,7 @@ import fs = require('fs');
 var osHomedir = require('os-homedir');
 var path = require('path');
 var shell = require('shelljs');
+var trace = require('./trace');
 
 export class DiskCache {
     constructor(appName: string) {
@@ -30,14 +31,18 @@ export class DiskCache {
 
     public getItem(store: string, name: string): Q.Promise<string> {
         var defer = Q.defer<string>();
-
-        fs.readFile(this.getFilePath(store, name), (err: Error, contents: Buffer) => {
+        var fp = this.getFilePath(store, name);
+        trace('read: ' + store + ':' + name);
+        trace(fp);
+        fs.readFile(fp, (err: Error, contents: Buffer) => {
             if (err) {
                 defer.reject(err);
                 return;
             }
 
-            defer.resolve(contents.toString());
+            var str = contents.toString();
+            trace(str);
+            defer.resolve(str);
         });
 
         return <Q.Promise<string>>defer.promise;
@@ -45,12 +50,15 @@ export class DiskCache {
 
     public setItem(store: string, name: string, data:string): Q.Promise<void> {
         var defer = Q.defer<void>();
-        fs.writeFile(this.getFilePath(store, name), data, {flag: 'w'}, (err: Error) => {
+        var fp = this.getFilePath(store, name);
+        trace('write: ' + store + ':' + name + ':' + data);
+        trace(fp);
+        fs.writeFile(fp, data, {flag: 'w'}, (err: Error) => {
             if (err) {
                 defer.reject(err);
                 return;
             }
-
+            trace('written');
             defer.resolve(null);
         });
 
