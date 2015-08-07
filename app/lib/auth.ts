@@ -1,6 +1,7 @@
 import inputs = require('./inputs');
 import Q = require('q');
 import csm = require('./credstore');
+var trace = require('./trace');
 
 export interface ICredentials {
     type: string;
@@ -31,6 +32,7 @@ export class PatCredentials implements ICredentials {
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
+        trace('PatCredentials.promptCredentials');
         var defer = Q.defer<ICredentials>();
         var promise = <Q.Promise<ICredentials>>defer.promise;
 
@@ -42,6 +44,7 @@ export class PatCredentials implements ICredentials {
 
         inputs.get(credInputs, (err, result) => {
             if (err) {
+                trace('Failed to process input for PAT token. Message: ' + err.message);
                 defer.reject(err);
                 return;
             }
@@ -77,6 +80,7 @@ export class BasicCredentials implements ICredentials {
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
+        trace('BasicCredentials.promptCredentials');
         var defer = Q.defer<ICredentials>();
         var promise = <Q.Promise<ICredentials>>defer.promise;
 
@@ -91,6 +95,7 @@ export class BasicCredentials implements ICredentials {
 
         inputs.get(credInputs, (err, result) => {
             if (err) {
+                trace('Failed to process input for basic creds. Message: ' + err.message)
                 defer.reject(err);
                 return;
             }
@@ -106,6 +111,7 @@ export class BasicCredentials implements ICredentials {
 
 
 export function getCredentials(url: string, authType: string): Q.Promise<ICredentials> {
+    trace('auth.getCredentials');
     var defer = Q.defer<ICredentials>();
 
     // TODO: support other credential types
@@ -125,7 +131,7 @@ export function getCredentials(url: string, authType: string): Q.Promise<ICreden
 
             default:
                 throw new Error('Unsupported auth type: ' + type);
-        }
+        }            
         return cachedData ? creds.fromString(cachedData) : creds;
     })
     .then((creds: ICredentials) => {
@@ -136,20 +142,24 @@ export function getCredentials(url: string, authType: string): Q.Promise<ICreden
 }
 
 export function getCachedCredentials(url: string): Q.Promise<string> {
+    trace('auth.getCachedCredentials');
     var defer = Q.defer<string>();
 
     if (process.env['TFS_BYPASS_CACHE']) {
+         trace('Skipping checking cache for credentials');
         defer.resolve('');
     }
 
     var cs: csm.ICredentialStore = csm.getCredentialStore('tfx');
     cs.getCredential(url, 'allusers')
     .then((cred: string) => {
+        trace('Retrieved credentials from cache');
         defer.resolve(cred);
     })
     .fail((err) => {
+        trace('No credentials found in cache');
         defer.resolve('');
-    })
+    });
     
     return <Q.Promise<string>>defer.promise;
 }

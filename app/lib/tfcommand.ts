@@ -3,6 +3,7 @@
 import cm = require('./common');
 import cnm = require('./connection');
 import apim = require('vso-node-api/WebApi');
+var trace = require('./trace');
 
 /*
  * formats lists of optional and required arguments for a command into a standard output for the command help
@@ -40,6 +41,7 @@ export class TfCommand {
     //
     public exec(args: string[], options: cm.IOptions): Q.Promise<any> {
         var defer = Q.defer();
+        trace('Unimplemented command');
         defer.reject(new Error('Not implemented.  Must override'));
         return <Q.Promise<any>>defer.promise;
     }
@@ -55,6 +57,7 @@ export class TfCommand {
     public checkRequiredParameter(parameterValue: any, parameterName: string, friendlyName?: string) {
         var finalFriendlyName = friendlyName || parameterName;
         if(!parameterValue) {
+            trace('Missing required parameter ' + parameterName);
             throw new Error('Required parameter ' + parameterName + ' not supplied. Try adding a switch to the end of your command: --' + parameterName + ' <' + finalFriendlyName + '>');
         }
     }

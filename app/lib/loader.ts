@@ -57,11 +57,13 @@ export function match(cmdList: string[], cmds: string[]): string {
         var file = candidate + '.js';
         var i = cmdList.indexOf(file);
         if (i >= 0) {
+            trace('Command matched');
             match = file;
             return true;
         }
-    })
-
+    });
+    
+    trace('No command matched');
     return match;
 }
 
