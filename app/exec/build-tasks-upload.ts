@@ -39,8 +39,9 @@ export class BuildTaskUpload extends cmdm.TfCommand {
         var taskPath = args[0] || options[params.TASK_PATH];
         this.checkRequiredParameter(taskPath, params.TASK_PATH, 'path to the task folder');
 
+        trace('taskPath: ' + taskPath);
         try {
-            vm.exists(taskPath, 'specified directory does not exist.');
+            vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
         }
         catch (directoryError) {
             deferred.reject(directoryError);
@@ -48,25 +49,29 @@ export class BuildTaskUpload extends cmdm.TfCommand {
         //directory is good, check json
 
         var tp = path.resolve(process.cwd(), path.join(taskPath, c_taskJsonFile));
-        trace('path: ' + tp);
+        trace('task.json path: ' + tp);
 
         vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory')
         .then((taskJson) => {
             var archive = archiver('zip');
             archive.on('error', function(error) {
-                error.message = "Archiving error: " + error.message;
+                trace('Archiving error: ' + error.message);
+                error.message = 'Archiving error: ' + error.message;
                 deferred.reject(error);
             })
             archive.directory(taskPath, false);
 
+            trace("Initializing agent API...");
             var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
             agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, false, (err, statusCode, task) => {
                 if(err) {
+                    trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
                     err.statusCode = statusCode;
                     deferred.reject(err);
                 }
                 else {
+                    trace('Success');
                     deferred.resolve(<agentifm.TaskDefinition>{
                         sourceLocation: taskPath
                     });
@@ -75,6 +80,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
             archive.finalize();
         })
         .fail((error) => {
+            trace('Task json validation failed.');
             deferred.reject(error);
         });
 

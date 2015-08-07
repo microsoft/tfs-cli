@@ -2,7 +2,8 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
-import params = require('../lib/parameternames')
+import params = require('../lib/parameternames');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a build';
@@ -14,7 +15,7 @@ export function getArguments(): string {
 
 export function getCommand(): cmdm.TfCommand {
     // this just offers description for help and to offer sub commands
-    return new BuildGetSingle;
+    return new BuildShow;
 }
 
 // requires auth, connect etc...
@@ -23,8 +24,9 @@ export var isServerOperation: boolean = true;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
-export class BuildGetSingle extends cmdm.TfCommand {
+export class BuildShow extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        trace('build-show.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
         var project: string = args[0] || options[params.PROJECT_NAME];
