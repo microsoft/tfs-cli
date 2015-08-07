@@ -5,6 +5,7 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import params = require('../lib/parameternames')
 import Q = require('q');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'delete a build task';
@@ -26,20 +27,27 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskDelete extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        trace("User requested to delete a build task.");
+        var deferred = Q.defer<agentifm.TaskDefinition>();
         var taskId = args[0] || options[params.GENERIC_ID];
         this.checkRequiredParameter(taskId, params.GENERIC_ID, params.TASK_ID);
-        var deferred = Q.defer<agentifm.TaskDefinition>();
 
+        trace("Initializing agent API...");
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
+        trace("Searching for tasks with id: " + taskId);
         agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
+            trace("Found " + tasks.length + " tasks with provided id.")
             if (tasks.length > 0) {
+                trace("Deleting task(s)...");
                 agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
                     if (err) {
+                        trace("Call to TaskAgentApi.deleteTaskDefinition failed. Message: " + err.message);
                         err.statusCode = statusCode;
                         deferred.reject(err);
                     }
                     else {
+                        trace("Successfully deleted task(s).")
                         deferred.resolve(<agentifm.TaskDefinition>{
                             id: taskId
                         });
@@ -47,6 +55,7 @@ export class BuildTaskDelete extends cmdm.TfCommand {
                 });
             }
             else {
+                trace("No task found with provided id: " + taskId);
                 deferred.reject(new Error("No task found with provided ID: " + taskId));
             }
         });

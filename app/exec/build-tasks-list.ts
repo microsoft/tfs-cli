@@ -3,6 +3,7 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import Q = require('q');
 import params = require('../lib/parameternames');
+var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a list of build tasks';
@@ -25,19 +26,27 @@ export var hideBanner: boolean = false;
 
 export class BuildTaskList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
+        trace("User requested to list build tasks.");
         var deferred = Q.defer<agentifm.TaskDefinition[]>();
         var all = options['all'] || false;
+        trace("Initializing agent API...");
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+        
+        trace("Searching for build tasks...");
         agentapi.getTaskDefinitions(['build'], (err, statusCode, tasks) => {
             if(err) {
+                trace("Call to TaskAgentApi.getTaskDefinitions failed. Message: " + err.message);
                 err.statusCode = statusCode;
                 deferred.reject(err);
             }
             else {
+                trace("Retrieved " + tasks.length + " build tasks from server.");
                 if(all) {
+                    trace("Listing all build tasks.");
                     deferred.resolve(tasks);
                 }
                 else {
+                    trace("Filtering build tasks to give only the latest versions.");
                     deferred.resolve(this._getNewestTasks(tasks));
                 }
             }
@@ -61,7 +70,7 @@ export class BuildTaskList extends cmdm.TfCommand {
             console.log('friendly name : ' + task.friendlyName);
             console.log('visibility: ' + task.visibility);
             console.log('description: ' + task.description);
-            console.log('version: ' + task.version.major + '.' + task.version.minor + '.' + task.version.patch);
+            console.log('version: ' + new TaskVersion(task.version).toString());
         });
     }   
 
@@ -75,11 +84,16 @@ export class BuildTaskList extends cmdm.TfCommand {
             var currTask: agentifm.TaskDefinition = allTasks[i];
             if(taskDictionary[currTask.id])
             {
-                if (this._compareTaskVersion(<TaskVersion>currTask.version, <TaskVersion>taskDictionary[currTask.id].version) > 0) {
+                var newVersion: TaskVersion = new TaskVersion(currTask.version);
+                var knownVersion: TaskVersion = new TaskVersion(taskDictionary[currTask.id].version);
+                trace("Found additional version of " + currTask.name + " and comparing to the previously encountered version.");
+                if (this._compareTaskVersion(newVersion, knownVersion) > 0) {
+                    trace("Found newer version of " + currTask.name + ".  Previous: " + knownVersion.toString() + "; New: " + newVersion.toString());
                     taskDictionary[currTask.id] = currTask;
                 }
             }
             else {
+                trace("Found task " + currTask.name);
                 taskDictionary[currTask.id] = currTask;
             }
         }
@@ -111,4 +125,14 @@ class TaskVersion {
     major: number;
     minor: number;
     patch: number;
+    
+    constructor(versionData: any) {
+        this.major = versionData.major || 0;
+        this.minor = versionData.minor || 0;
+        this.patch = versionData.patch || 0;    
+    }
+    
+    public toString(): string {
+        return this.major + "." + this.minor + "." + this.patch;
+    }
 }
