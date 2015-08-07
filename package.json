@@ -24,7 +24,7 @@
     "read": "^1.0.6",
     "shelljs": "^0.5.1",
     "validator": "^3.33.0",
-    "vso-node-api": "^0.3.6"
+    "vso-node-api": "^0.3.0"
   },
   "devDependencies": {
     "del": "^1.2.0",
