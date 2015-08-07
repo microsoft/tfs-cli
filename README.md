@@ -6,24 +6,51 @@ This is a utility to manage extensions for TFS.  It is cross platform and suppor
 
 *Pre-release but supported*
 
-![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
-
-## Features:
-* Build
-    * task extensions: manage build tasks (list, upload, delete)
-    * list: list builds and filter
-    * queue: queue a build
-* App Extensions
-    * comming soon
-* Scripting
-    * json: write output in json format
-    * parse: pipe json output to tfx parse for extracting data in scripts (without scraping)
-
 ## Install
 ```bash
-npm install -g tfx-cli
+sudo npm install -g tfx-cli
+```
+<sub>Note: windows does not need sudo</sub>
+
+## Help
+Just type tfx.  It will list the commands and sub commands available
+```bash
+tfx
+```
+![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
+
+## Login
+To avoid providing credentials in every command, you can login once.
+Currently supported credential types are Personal Access Tokens and basic auth.
+[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command
+```bash
+~$ tfx login
+Copyright Microsoft Corporation
+
+Enter collection url > https://youraccount.visualstudio.com
+Enter personal access token > 
+logged in successfully
+```
+
+You can alternatively use basic auth by passing `--authType basic`.  NTLM will come soon.
+
+## Command Documentation
+[Build Tasks](docs/buildtasks.md)
+[App Extensions](docs/appext.md) 
+
+## Troubleshooting
+To see detailed tracing output, you can set a value for the TFX_TRACE environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
+
+<sub>Linux/OSX</sub>
+```bash
+export TFX_TRACE=1
+```
+
+<sub>Windows</sub>
+```bash
+set TFX_TRACE=1
 ```
 
 ## Contributing
 
-*Section Coming soon*
+We take contributions and fixes.  Read here for the details.
