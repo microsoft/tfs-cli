@@ -64,7 +64,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
             trace("Initializing agent API...");
             var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
 
-            agentapi.uploadTaskDefinition(archive, null, "", taskJson.id, false, (err, statusCode, task) => {
+            agentapi.uploadTaskDefinition(null, archive, taskJson.id, false, (err, statusCode, task) => {
                 if(err) {
                     trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
                     err.statusCode = statusCode;
