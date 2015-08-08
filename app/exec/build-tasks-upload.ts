@@ -8,16 +8,12 @@ import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import Q = require('q');
 import fs = require('fs');
 import path = require('path');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 var archiver = require('archiver');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'upload a build task';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint([params.TASK_PATH], []);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -33,11 +29,13 @@ export var hideBanner: boolean = false;
 var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskUpload extends cmdm.TfCommand {
+    requiredArguments = [argm.TASK_PATH];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-task-upload.exec');
         var deferred = Q.defer<agentifm.TaskDefinition>();
-        var taskPath = args[0] || options[params.TASK_PATH];
-        this.checkRequiredParameter(taskPath, params.TASK_PATH, 'path to the task folder');
+        var allArguments = this.checkArguments(args, options);
+        var taskPath: string = allArguments[argm.TASK_PATH.name];
 
         trace('taskPath: ' + taskPath);
         try {

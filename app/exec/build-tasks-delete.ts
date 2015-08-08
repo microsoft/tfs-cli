@@ -3,16 +3,12 @@
 import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
-import params = require('../lib/parameternames')
+import argm = require('../lib/arguments')
 import Q = require('q');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'delete a build task';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint([params.GENERIC_ID], []);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -26,11 +22,13 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class BuildTaskDelete extends cmdm.TfCommand {
+    requiredArguments = [argm.GENERIC_ID];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-tasks-delete.exec");
         var deferred = Q.defer<agentifm.TaskDefinition>();
-        var taskId = args[0] || options[params.GENERIC_ID];
-        this.checkRequiredParameter(taskId, params.GENERIC_ID, params.TASK_ID);
+        var allArguments = this.checkArguments(args, options);
+        var taskId: string = allArguments[argm.TASK_ID.name];
 
         trace("Initializing agent API...");
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);

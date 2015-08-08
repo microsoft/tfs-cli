@@ -4,20 +4,13 @@ import am = require('../lib/auth');
 import Q = require('q');
 import csm = require('../lib/credstore');
 import cam = require('../lib/diskcache');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 import apim = require('vso-node-api/WebApi');
 import agentm = require('vso-node-api/TaskAgentApi');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'login and cache credentials. types: pat (default), basic';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint(
-        [params.COLLECTION_URL], 
-        [params.AUTH_TYPE]
-    );
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -32,6 +25,9 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class Login extends cmdm.TfCommand {
+    public requiredArguments = [argm.COLLECTION_URL];
+    public optionalArguments = [argm.AUTH_TYPE];
+    
     public exec(args: string[], options: cm.IOptions): Q.Promise<am.ICredentials> {
         trace('Login.exec');
         var defer = Q.defer();

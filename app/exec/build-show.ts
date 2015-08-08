@@ -2,15 +2,11 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a build';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint([params.PROJECT_NAME, params.GENERIC_ID], []);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -25,17 +21,13 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class BuildShow extends cmdm.TfCommand {
+    requiredArguments = [argm.PROJECT_NAME, argm.GENERIC_ID];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-show.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
-
-        var project: string = args[0] || options[params.PROJECT_NAME];
-        this.checkRequiredParameter(project, params.PROJECT_NAME, params.PROJECT_FRIENDLY_NAME);
-
-        var buildId: number = +args[1] || +options[params.GENERIC_ID];
-        this.checkRequiredParameter(buildId, params.GENERIC_ID, params.BUILD_ID);
-
-        return buildapi.getBuild(buildId, project);
+        var allArguments = this.checkArguments(args, options);
+        return buildapi.getBuild(allArguments[argm.BUILD_ID.name], allArguments[argm.PROJECT_NAME.name]);
     }
 
     public output(data: any): void {

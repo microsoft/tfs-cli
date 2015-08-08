@@ -2,15 +2,11 @@ import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import Q = require('q');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a list of build tasks';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint([], [], [params.ALL]);
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -25,10 +21,13 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class BuildTaskList extends cmdm.TfCommand {
+    flags = [argm.ALL];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-tasks-list.exec");
         var deferred = Q.defer<agentifm.TaskDefinition[]>();
-        var all = options['all'] || false;
+        var allArguments = this.checkArguments(args, options);
+        
         trace("Initializing agent API...");
         var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
         
@@ -41,7 +40,7 @@ export class BuildTaskList extends cmdm.TfCommand {
             }
             else {
                 trace("Retrieved " + tasks.length + " build tasks from server.");
-                if(all) {
+                if(allArguments[argm.ALL.name]) {
                     trace("Listing all build tasks.");
                     deferred.resolve(tasks);
                 }
