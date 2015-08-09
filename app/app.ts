@@ -62,6 +62,12 @@ csegs.forEach((seg) => {
 
 if (!cmdm.isServerOperation) {
     cmd.exec(args, options)
+    .then((result: any) => {
+        if (result && cmd.output) {
+            cmd.output(result);
+            console.log();
+        }
+    })
     .fail((err) => {
         console.error('Error: ' + err.message);
         process.exit(1);
