@@ -2,9 +2,7 @@
 
 You can create, list, upload and delete build tasks with tfx.
 
-<iframe width="640" height="480"
-src="http://youtu.be/Tp7QRFzKvus">
-</iframe>
+<iframe width="560" height="315" src="http://youtu.be/Tp7QRFzKvus" frameborder="0" allowfullscreen="allowfullscreen"></iframe>
 
 ## Permissions
 You need to be in the top level Agent Pool Administrators group to manipulate tasks
