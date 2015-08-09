@@ -5,10 +5,10 @@ We accept contributions.  Supply a pull request.
 ## Pre-reqs
 
 Typescript (>=1.5):
-`sudo npm install tsc -g'
+`sudo npm install tsc -g`
 
 Install Dev Dependencies from root of repo:
-`npm install'
+`npm install`
 
 ## Build
 
