@@ -9,7 +9,7 @@ We build the product using gulp.  Just type `gulp` in the root of the repo.
 This builds the product in the _build/app directory
 
 ```bash
-~/Projects/tfs-cli$ `gulp`
+~/Projects/tfs-cli$ gulp
 [16:26:47] Using gulpfile ~/Projects/tfs-cli/gulpfile.js
 [16:26:47] Starting 'clean'...
 [16:26:47] Finished 'clean' after 16 ms
@@ -36,7 +36,7 @@ To install the product globally without pushing the npm (you cannot, we do that)
 After building, from the _build directory ...
 
 ```bash
-~/Projects/tfs-cli/_build$ `sudo npm install ./app -g`
+~/Projects/tfs-cli/_build$ sudo npm install ./app -g
 Password:
 /usr/local/bin/tfx -> /usr/local/lib/node_modules/tfx-cli/tfx-cli.js
 tfx-cli@0.1.8 /usr/local/lib/node_modules/tfx-cli
