@@ -12,7 +12,26 @@ Account admins can add users to that group
 
 ## Create
 
-A cmd is coming soon.  For now, you can copy json from another task and change id, name, and other data.  This command will create a boiler plate task to start editing.
+Creates a templated task ready for you to start editing
+
+```bash
+~$ tfx build tasks create
+Copyright Microsoft Corporation
+
+Enter short name > sample
+Enter friendly name > Sample Task
+Enter description > Sample Task for Docs
+Enter author > Me
+
+created task @ /Users/bryanmac/sample
+id   : 305898e0-3eba-11e5-af7a-1181c3c6c966
+name: sample
+
+A temporary task icon was created.  Replace with a 32x32 png with transparencies
+
+~$ ls ./sample
+icon.png    sample.js   sample.ps1  task.json
+```
 
 ## Upload
 
