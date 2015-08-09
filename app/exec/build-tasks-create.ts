@@ -10,6 +10,7 @@ import Q = require('q');
 var shell = require('shelljs');
 var trace = require('../lib/trace');
 var uuid = require('node-uuid');
+var check = require('validator');
 
 export function describe(): string {
     return 'create files for new build task';
@@ -30,60 +31,6 @@ export var isServerOperation: boolean = false;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
-/*
-{
-    "id": "7D831C3C-3C68-459A-A5C9-BDE6E659596C",
-    "name": "CMake",
-    "friendlyName": "CMake",
-    "description": "Build with the CMake cross-platform build system",
-    "helpMarkDown": "[More Information](http://go.microsoft.com/fwlink/?LinkID=613719)",
-    "category": "Build",
-    "visibility": [
-                "Build"
-                  ],    
-    "author": "Microsoft Corporation",
-    "demands" : [
-        "cmake"
-    ],
-    "version": {
-        "Major": 1,
-        "Minor": 0,
-        "Patch": 9
-    },
-    "minimumAgentVersion": "1.83.0",
-    "instanceNameFormat": "CMake $(cmakeArgs)",
-    "inputs": [
-        { 
-            "name": "cwd", 
-            "type": "filePath", 
-            "label": "Working Directory", 
-            "defaultValue":"build", 
-            "required":false,
-            "helpMarkDown": "Current working directory when cmake is run."  
-        },
-        { 
-            "name": "cmakeArgs", 
-            "type": "string", 
-            "label": "Arguments", 
-            "defaultValue":"", 
-            "required":false,
-            "helpMarkDown": "Arguments passed to cmake" 
-        }
-    ],
-    "execution": {
-        "Node": {
-            "target": "cmake2.js",
-            "argumentFormat": ""
-        },        
-        "PowerShell": {
-            "target": "$(currentDirectory)\\CMake.ps1",
-            "argumentFormat": "",
-            "workingDirectory": "$(currentDirectory)"
-        }
-    }
-}
-*/
-
 export class BuildCreate extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-create.exec');
@@ -98,17 +45,40 @@ export class BuildCreate extends cmdm.TfCommand {
             },
             {
                 name: 'description', description: 'description', arg: 'description', type: 'string', req: true
-            }
+            },
+            {
+                name: 'author', description: 'author', arg: 'author', type: 'string', req: true
+            } 
         ];
 
         inputs.Qget(taskInputs)
         .then((result) => {
             
-            // TODO: validate inputs
+            // validate inputs
+            var tname = result['name'];
+            var tdisplay = result['displayName'];
+            var tdescription = result['description'];
+            var tauthor = result['author'];
+
+            if (!tname || !check.isAlphanumeric(tname)) {
+                throw new Error('name is a required alphanumeric string with no spaces');
+            }
+
+            if (!tdisplay || !check.isLength(tdisplay, 1, 25)) {
+                throw new Error('friendlyName is a required string <= 40 chars');
+            }
+
+            if (!tdescription || !check.isLength(tdescription, 1, 80)) {
+                throw new Error('friendlyName is a required string <= 80 chars');
+            }
+
+            if (!tauthor || !check.isLength(tauthor, 1, 40)) {
+                throw new Error('author is a required string <= 40 chars');
+            }
 
             var ret: any = {};
-            var tname = result['name'];
-
+            
+            // create definition
             trace('creating folder for task');
             var tp = path.join(process.cwd(), tname);
             trace(tp);
@@ -126,6 +96,48 @@ export class BuildCreate extends cmdm.TfCommand {
             trace('displayName: ' + def.displayName);
             def.description = result['description'];
             trace('description: ' + def.description);
+            def.author = result['author'];
+            trace('author: ' + def.author);
+
+            def.helpMarkDown = 'Replace with markdown to show in help';
+            def.category = 'Utility';
+            def.visibility = ['Build', 'Release'];
+            def.demands = [];
+            def.version = { Major: '0', Minor: '1', Patch: '0'};
+            def.minimumAgentVersion = '1.83.0';
+            def.instanceNameFormat = tname + ' $(message)';
+
+            var cwdInput = {
+                name: "cwd", 
+                type: "filePath", 
+                label: "Working Directory", 
+                defaultValue: "", 
+                required: false,
+                helpMarkDown: "Current working directory when " + tname + " is run."   
+            }
+
+            var msgInput = {
+                name: "msg", 
+                type: "string", 
+                label: "Message", 
+                defaultValue: "Hello World", 
+                required: true,
+                helpMarkDown: "Message to echo out"   
+            }
+
+            def.inputs = [cwdInput, msgInput];
+
+            def.execution = {
+                Node: {
+                    target: "sample.js",
+                    argumentFormat: ""
+                },        
+                PowerShell: {
+                    target: "$(currentDirectory)\\sample.ps1",
+                    argumentFormat: "",
+                    workingDirectory: "$(currentDirectory)"
+                }
+            }
 
             ret.definition = def;
 
@@ -142,13 +154,19 @@ export class BuildCreate extends cmdm.TfCommand {
             }
             trace('created definition file.');
 
+            var copyResource = function(fileName) {
+                var src = path.join(__dirname, 'resources', fileName);
+                trace('src: ' + src);
+                var dest = path.join(tp, fileName);
+                trace('dest: ' + dest);
+                shell.cp(src, dest);
+                trace(fileName + ' copied');
+            }
+
             trace('creating temporary icon');
-            var iconSrc = path.join(__dirname, 'resources', 'icon.png');
-            trace('src: ' + iconSrc);
-            var iconDest = path.join(tp, 'icon.png');
-            trace('dest: ' + iconDest);
-            shell.cp(iconSrc, iconDest);
-            trace('icon copied');
+            copyResource('icon.png');
+            copyResource('sample.js');
+            copyResource('sample.ps1');
 
             defer.resolve(ret);
         })
