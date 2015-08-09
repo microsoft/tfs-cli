@@ -54,4 +54,4 @@ set TFX_TRACE=1
 
 ## Contributing
 
-We take contributions and fixes.  Read here for the details.
+We take contributions and fixes.  [Read here](docs/contributions.md) for the details.
