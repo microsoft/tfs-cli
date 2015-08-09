@@ -41,7 +41,7 @@ export class BuildCreate extends cmdm.TfCommand {
                 name: 'name', description: 'short name', arg: 'name', type: 'string', req: true
             },
             {
-                name: 'displayName', description: 'display name', arg: 'displayName', type: 'string', req: true               
+                name: 'friendlyName', description: 'friendly name', arg: 'friendlyName', type: 'string', req: true               
             },
             {
                 name: 'description', description: 'description', arg: 'description', type: 'string', req: true
@@ -56,7 +56,7 @@ export class BuildCreate extends cmdm.TfCommand {
             
             // validate inputs
             var tname = result['name'];
-            var tdisplay = result['displayName'];
+            var tfriendly = result['friendlyName'];
             var tdescription = result['description'];
             var tauthor = result['author'];
 
@@ -64,12 +64,12 @@ export class BuildCreate extends cmdm.TfCommand {
                 throw new Error('name is a required alphanumeric string with no spaces');
             }
 
-            if (!tdisplay || !check.isLength(tdisplay, 1, 25)) {
+            if (!tfriendly || !check.isLength(tfriendly, 1, 25)) {
                 throw new Error('friendlyName is a required string <= 40 chars');
             }
 
             if (!tdescription || !check.isLength(tdescription, 1, 80)) {
-                throw new Error('friendlyName is a required string <= 80 chars');
+                throw new Error('description is a required string <= 80 chars');
             }
 
             if (!tauthor || !check.isLength(tauthor, 1, 40)) {
@@ -92,8 +92,8 @@ export class BuildCreate extends cmdm.TfCommand {
             trace('id: ' + def.id);
             def.name = tname;
             trace('name: ' + def.name);
-            def.displayName = result['displayName'];
-            trace('displayName: ' + def.displayName);
+            def.friendlyName = result['friendlyName'];
+            trace('friendlyName: ' + def.friendlyName);
             def.description = result['description'];
             trace('description: ' + def.description);
             def.author = result['author'];

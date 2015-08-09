@@ -18,7 +18,7 @@ var appDest = path.join(buildRoot, 'app');
 var resDest = path.join(appDest, 'exec', 'resources');
 var testDest = path.join(buildRoot, 'test');
 
-gulp.task('resources', function () {
+gulp.task('resources', ['clean'], function () {
     shell.mkdir('-p', resDest);
     return gulp.src(['app/exec/resources/*'])
         .pipe(gulp.dest(resDest));
