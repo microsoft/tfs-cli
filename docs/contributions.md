@@ -2,6 +2,14 @@
 
 We accept contributions.  Supply a pull request.
 
+## Pre-reqs
+
+Typescript (>=1.5):
+`sudo npm install tsc -g'
+
+Install Dev Dependencies from root of repo:
+`npm install'
+
 ## Build
 
 We build the product using gulp.  Just type `gulp` in the root of the repo.
