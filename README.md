@@ -15,7 +15,7 @@ sudo npm install -g tfx-cli
 ## Help
 Just type tfx.  It will list the commands and sub commands available
 ```bash
-tfx
+~$ tfx
 ```
 ![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
 

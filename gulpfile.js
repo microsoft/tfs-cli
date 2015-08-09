@@ -5,6 +5,7 @@ var del = require('del');
 var mocha = require('gulp-mocha');
 var typescript = require('gulp-tsc');
 var minimist = require('minimist');
+var shell = require('shelljs');
 
 gulp.task('compile', function(){
   gulp.src(['src/**/*.ts'])
@@ -14,9 +15,16 @@ gulp.task('compile', function(){
 
 var buildRoot = path.join(__dirname, '_build');
 var appDest = path.join(buildRoot, 'app');
+var resDest = path.join(appDest, 'exec', 'resources');
 var testDest = path.join(buildRoot, 'test');
 
-gulp.task('copy', ['clean'], function () {
+gulp.task('resources', function () {
+    shell.mkdir('-p', resDest);
+    return gulp.src(['app/exec/resources/*'])
+        .pipe(gulp.dest(resDest));
+});
+
+gulp.task('copy', ['clean', 'resources'], function () {
 	return gulp.src(['package.json', './README.md', './app/tfx-cli.js'])
 		.pipe(gulp.dest(appDest));
 });
