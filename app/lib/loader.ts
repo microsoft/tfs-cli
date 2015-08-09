@@ -93,6 +93,10 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
 
     execCmds.forEach((cmd) => {
         trace('cmd: ' + cmd);
+        if (!cm.endsWith(cmd, '.js')) {
+            return;
+        }
+
         cmd = path.basename(cmd, '.js');
         //console.log('\n' + cmd);
 
