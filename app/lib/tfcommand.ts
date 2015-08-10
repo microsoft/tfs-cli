@@ -4,6 +4,7 @@ import cm = require('./common');
 import cnm = require('./connection');
 import apim = require('vso-node-api/WebApi');
 import argm = require('./arguments');
+import os = require('os');
 var trace = require('./trace');
 
 /*
@@ -84,7 +85,7 @@ export class TfCommand {
     private _checkRequiredArgument(parameterValue: any, argument: argm.Argument): void {
         if(!parameterValue) {
             trace('Missing required parameter ' + argument.name);
-            throw new Error('Required parameter ' + argument.name + ' not supplied. Try adding a switch to the end of your command: --' + argument.name + ' <' + argument.friendlyName + '>');
+            throw new Error('Required parameter ' + argument.name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + argument.name + ' <' + argument.friendlyName + '>');
         }
     }
 }
