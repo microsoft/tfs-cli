@@ -1,6 +1,7 @@
 import inputs = require('./inputs');
 import Q = require('q');
 import csm = require('./credstore');
+import argm = require('./arguments');
 var trace = require('./trace');
 
 export interface ICredentials {
@@ -33,27 +34,12 @@ export class PatCredentials implements ICredentials {
 
     public promptCredentials(): Q.Promise<ICredentials> {
         trace('PatCredentials.promptCredentials');
-        var defer = Q.defer<ICredentials>();
-        var promise = <Q.Promise<ICredentials>>defer.promise;
+        var credInputs = [ argm.PAT ];
 
-        var credInputs = [
-            {
-                name: 'token', description: 'personal access token', arg: 'token', type: 'password', req: true
-            }
-        ];
-
-        inputs.get(credInputs, (err, result) => {
-            if (err) {
-                trace('Failed to process input for PAT token. Message: ' + err.message);
-                defer.reject(err);
-                return;
-            }
-
+        return inputs.Qprompt(credInputs, []).then((result) => {
             this.token = result['token'];
-            defer.resolve(this);
+            return this;
         });
-
-        return promise;
     }    
 }
 
@@ -81,31 +67,13 @@ export class BasicCredentials implements ICredentials {
 
     public promptCredentials(): Q.Promise<ICredentials> {
         trace('BasicCredentials.promptCredentials');
-        var defer = Q.defer<ICredentials>();
-        var promise = <Q.Promise<ICredentials>>defer.promise;
+        var credInputs = [ argm.USERNAME, argm.PASSWORD ];
 
-        var credInputs = [
-            {
-                name: 'username', description: 'username', arg: 'username', type: 'string', req: true
-            },
-            {
-                name: 'password', description: 'password', arg: 'password', type: 'password', req: true
-            }
-        ];
-
-        inputs.get(credInputs, (err, result) => {
-            if (err) {
-                trace('Failed to process input for basic creds. Message: ' + err.message)
-                defer.reject(err);
-                return;
-            }
-
+        return inputs.Qprompt(credInputs, []).then((result) => {
             this.username = result['username'];
             this.password = result['password'];
-            defer.resolve(this);
+            return this;
         });
-
-        return promise;
     }    
 }
 

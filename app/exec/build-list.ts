@@ -2,18 +2,11 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 var trace = require('../lib/trace');
 
 export function describe(): string {
     return 'get a list of builds';
-}
-
-export function getArguments(): string {
-    return cmdm.formatArgumentsHint(
-        [params.PROJECT_NAME], 
-        [params.DEFINITION_ID, params.DEFINITION_NAME, params.STATUS, params.TOP]
-    );
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -28,41 +21,39 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class BuildGetList extends cmdm.TfCommand {
+    public requiredArguments = [argm.PROJECT_NAME];
+    public optionalArguments = [argm.DEFINITION_ID, argm.DEFINITION_NAME, argm.STATUS, argm.TOP];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-list.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
-
-        var project: string = args[0] || options[params.PROJECT_NAME];
-        this.checkRequiredParameter(project, params.PROJECT_NAME, params.PROJECT_FRIENDLY_NAME);
-
-        var status = options[params.STATUS];
-
-        var top = null;
-        if(options[params.TOP]) {
-            top = +options[params.TOP];
-        }
-
-        var definitions: number[] = null;
-        var definitionId: number = +options[params.DEFINITION_ID];
-        var definitionName: string = options[params.DEFINITION_NAME];
-        if (definitionId) {
-            definitions = [+options[params.DEFINITION_ID]];
-        }
-        else if(definitionName) {
-            trace('No definition Id provided, checking for definitions with name ' + definitionName);
-            return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
-                if(defs.length > 0) {
-                    definitions = [defs[0].id];
-                    return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
-                }
-                else {
-                    trace('No definition found with name ' + definitionName);
-                    throw new Error('No definition found with name ' + definitionName);
-                }
-            });
-        }
-
-        return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);
+        
+		return this.checkArguments(args, options).then( (allArguments) => {
+            var project: string = allArguments[argm.PROJECT_NAME.name];
+            var definitionName: string = allArguments[argm.DEFINITION_NAME.name];
+            var top: number = allArguments[argm.TOP.name];
+            var definitionId: number = allArguments[argm.DEFINITION_ID.name];
+            var status: string = allArguments[argm.STATUS.name];
+    
+            var definitions: number[] = null;
+            if (definitionId) {
+                definitions = [definitionId];
+            }
+            else if(definitionName) {
+                trace('No definition Id provided, checking for definitions with name ' + definitionName);
+                return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
+                    if(defs.length > 0) {
+                        definitions = [defs[0].id];
+                        return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
+                    }
+                    else {
+                        trace('No definition found with name ' + definitionName);
+                        throw new Error('No definition found with name ' + definitionName);
+                    }
+                });
+            }
+            return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);
+        });
     }
 
     public output(data: any): void {
