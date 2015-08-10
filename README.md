@@ -52,6 +52,8 @@ export TFX_TRACE=1
 set TFX_TRACE=1
 ```
 
+setting `TFX_TRACE_CREDS=1` or `TFX_TRACE_CACHE=1` will trace out cred storage.  Typically those should not be set (to avoid leaking creds when sending traces).  Only set if you are troubleshooting credentials.
+
 ## Contributing
 
 We take contributions and fixes.  [Read here](docs/contributions.md) for the details.

@@ -5,8 +5,14 @@ var _write = function(msg) {
     console.log(colors.cyan(new Date().toISOString() + ' : ') + colors.grey(msg));
 }
 
-module.exports = function trace (msg) {
-    if (enabled) {
+module.exports = function trace (msg: any, area?:string) {
+    var traceMsg = enabled;
+
+    if (area) {
+        traceMsg = process.env['TFX_TRACE_' + area.toUpperCase()];
+    }
+
+    if (traceMsg) {
         var t = typeof(msg);
         if (t === 'string') {
             _write(msg);

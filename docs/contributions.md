@@ -60,11 +60,11 @@ tfx-cli@0.1.8 /usr/local/lib/node_modules/tfx-cli
 ├── read@1.0.6 (mute-stream@0.0.5)
 └── archiver@0.14.4 (buffer-crc32@0.2.5, lazystream@0.1.0, async@0.9.2, readable-stream@1.0.33, tar-stream@1.1.5, lodash@3.2.0, zip-stream@0.5.2, glob@4.3.5)
 ```
-The product is now installed globally
+The product with your local changes is now installed globally.  You can now validate your changes as customers would run after installing from npm globally
 
 ## Tracing
 
-Ensure your changes include ample tracing.  After installing your changes globally (above), set TFX_TRACE=1 (export on *nix) and run the tool with your changes.  trace output should validate it's doing what you, for the reason you intended and provide tracing for others down the road
+Ensure your changes include ample tracing.  After installing your changes globally (above), set TFX_TRACE=1 (export on *nix) and run the tool with your changes.  Trace output should validate it's doing what you intended, for the reason you intended and provide tracing for others down the road.
 
 ## Unit Test
 

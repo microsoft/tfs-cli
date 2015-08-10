@@ -84,7 +84,7 @@ else {
         return am.getCredentials(url, options.authtype);
     })
     .then((creds: am.ICredentials) => {
-        trace(creds);
+        trace(creds, 'CREDS');
         connection = new cnm.TfsConnection(collectionUrl, creds);
         cmd.connection = connection;
         return cmd.exec(args, options);
