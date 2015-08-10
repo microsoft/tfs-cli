@@ -28,32 +28,32 @@ export class BuildGetList extends cmdm.TfCommand {
         trace('build-list.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
         
-        var allArguments = this.checkArguments(args, options);
-        var project: string = allArguments[argm.PROJECT_NAME.name];
-        var definitionName: string = allArguments[argm.DEFINITION_NAME.name];
-        var top: number = allArguments[argm.TOP.name];
-        var definitionId: number = allArguments[argm.DEFINITION_ID.name];
-        var status: string = allArguments[argm.STATUS.name];
-
-        var definitions: number[] = null;
-        if (definitionId) {
-            definitions = [definitionId];
-        }
-        else if(definitionName) {
-            trace('No definition Id provided, checking for definitions with name ' + definitionName);
-            return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
-                if(defs.length > 0) {
-                    definitions = [defs[0].id];
-                    return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
-                }
-                else {
-                    trace('No definition found with name ' + definitionName);
-                    throw new Error('No definition found with name ' + definitionName);
-                }
-            });
-        }
-
-        return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);
+		return this.checkArguments(args, options).then( (allArguments) => {
+            var project: string = allArguments[argm.PROJECT_NAME.name];
+            var definitionName: string = allArguments[argm.DEFINITION_NAME.name];
+            var top: number = allArguments[argm.TOP.name];
+            var definitionId: number = allArguments[argm.DEFINITION_ID.name];
+            var status: string = allArguments[argm.STATUS.name];
+    
+            var definitions: number[] = null;
+            if (definitionId) {
+                definitions = [definitionId];
+            }
+            else if(definitionName) {
+                trace('No definition Id provided, checking for definitions with name ' + definitionName);
+                return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
+                    if(defs.length > 0) {
+                        definitions = [defs[0].id];
+                        return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
+                    }
+                    else {
+                        trace('No definition found with name ' + definitionName);
+                        throw new Error('No definition found with name ' + definitionName);
+                    }
+                });
+            }
+            return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);
+        });
     }
 
     public output(data: any): void {

@@ -25,8 +25,9 @@ export class BuildDefinitionsList extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-definitions-list.exec");
         var buildapi = this.getWebApi().getQBuildApi();
-		var allArguments = this.checkArguments(args, options);
-        return buildapi.getDefinitions(allArguments[argm.PROJECT_NAME.name]);
+        return this.checkArguments(args, options).then( (allArguments) => {
+            return buildapi.getDefinitions(allArguments[argm.PROJECT_NAME.name]);  
+        });
     }
 
     public output(data: any): void {

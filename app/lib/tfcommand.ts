@@ -4,6 +4,7 @@ import cm = require('./common');
 import cnm = require('./connection');
 import apim = require('vso-node-api/WebApi');
 import argm = require('./arguments');
+import inputm = require('./inputs');
 import os = require('os');
 var trace = require('./trace');
 
@@ -64,28 +65,13 @@ export class TfCommand {
         // in readable text based on data from exec call
     }
     
-    public checkArguments(args: string[], options: cm.IOptions): { [name: string]: any } {
-        var allArguments: { [name: string]: any } = {};
-        for(var i = 0; i < this.requiredArguments.length; i++) {
-            var name: string = this.requiredArguments[i].name;
-            allArguments[name] = args[i] || options[name] || this.requiredArguments[i].defaultValue;
-            this._checkRequiredArgument(allArguments[name], this.requiredArguments[i]);
-        }
-        var rest: argm.Argument[] = this.optionalArguments.concat(this.flags);
-        for(var i = 0; i < rest.length; i++) {
-            var name: string = rest[i].name;
-            allArguments[name] = options[name] || rest[i].defaultValue;
-        }
-        return allArguments;
+    public promptArguments(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+        trace('tfcommand.promptArguments');
+        return inputm.Qprompt(requiredInputs, optionalInputs);
     }
-
-    /*
-     * throws an error if a required argument was not provided with a command 
-     */
-    private _checkRequiredArgument(parameterValue: any, argument: argm.Argument): void {
-        if(!parameterValue) {
-            trace('Missing required parameter ' + argument.name);
-            throw new Error('Required parameter ' + argument.name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + argument.name + ' <' + argument.friendlyName + '>');
-        }
+    
+    public checkArguments(args: string[], options: cm.IOptions): Q.Promise<cm.IStringIndexer> {
+        trace('tfcommand.checkArguments');
+        return inputm.Qcheck(args, options, this.requiredArguments, this.optionalArguments.concat(this.flags));
     }
 }

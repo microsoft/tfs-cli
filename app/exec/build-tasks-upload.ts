@@ -33,56 +33,61 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-task-upload.exec');
-        var deferred = Q.defer<agentifm.TaskDefinition>();
-        var allArguments = this.checkArguments(args, options);
-        var taskPath: string = allArguments[argm.TASK_PATH.name];
-
-        trace('taskPath: ' + taskPath);
-        try {
-            vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
-        }
-        catch (directoryError) {
-            deferred.reject(directoryError);
-        }
-        //directory is good, check json
-
-        var tp = path.resolve(process.cwd(), path.join(taskPath, c_taskJsonFile));
-        trace('task.json path: ' + tp);
-
-        vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory')
-        .then((taskJson) => {
-            var archive = archiver('zip');
-            archive.on('error', function(error) {
-                trace('Archiving error: ' + error.message);
-                error.message = 'Archiving error: ' + error.message;
-                deferred.reject(error);
+        var defer = Q.defer<agentifm.TaskDefinition>();
+		this.checkArguments(args, options).then( (allArguments) => {
+            var taskPath: string = allArguments[argm.TASK_PATH.name];
+    
+            trace('taskPath: ' + taskPath);
+            try {
+                vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
+            }
+            catch (directoryError) {
+                defer.reject(directoryError);
+            }
+            //directory is good, check json
+    
+            var tp = path.resolve(process.cwd(), path.join(taskPath, c_taskJsonFile));
+            trace('task.json path: ' + tp);
+    
+            vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory')
+            .then((taskJson) => {
+                var archive = archiver('zip');
+                archive.on('error', function(error) {
+                    trace('Archiving error: ' + error.message);
+                    error.message = 'Archiving error: ' + error.message;
+                    defer.reject(error);
+                })
+                archive.directory(taskPath, false);
+    
+                trace("Initializing agent API...");
+                var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+    
+                agentapi.uploadTaskDefinition(null, archive, taskJson.id, false, (err, statusCode, task) => {
+                    if(err) {
+                        trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
+                        err.statusCode = statusCode;
+                        defer.reject(err);
+                    }
+                    else {
+                        trace('Success');
+                        defer.resolve(<agentifm.TaskDefinition>{
+                            sourceLocation: taskPath
+                        });
+                    }
+                });
+                archive.finalize();
             })
-            archive.directory(taskPath, false);
-
-            trace("Initializing agent API...");
-            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-
-            agentapi.uploadTaskDefinition(null, archive, taskJson.id, false, (err, statusCode, task) => {
-                if(err) {
-                    trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
-                    err.statusCode = statusCode;
-                    deferred.reject(err);
-                }
-                else {
-                    trace('Success');
-                    deferred.resolve(<agentifm.TaskDefinition>{
-                        sourceLocation: taskPath
-                    });
-                }
+            .fail((error) => {
+                trace('Task json validation failed.');
+                defer.reject(error);
             });
-            archive.finalize();
         })
-        .fail((error) => {
-            trace('Task json validation failed.');
-            deferred.reject(error);
+        .fail((err) => {
+            trace('Failed to gather inputs. Message: ' + err.message);
+            defer.reject(err);
         });
 
-        return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
+        return <Q.Promise<agentifm.TaskDefinition>>defer.promise;
     }
 
     public output(data: any): void {

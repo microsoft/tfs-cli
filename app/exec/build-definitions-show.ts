@@ -5,7 +5,7 @@ import argm = require('../lib/arguments');
 var trace = require('../lib/trace');
 
 export function describe(): string {
-    return 'get a single build definitions';
+    return 'get a single build definition';
 }
 
 export function getCommand(): cmdm.TfCommand {
@@ -25,8 +25,9 @@ export class BuildDefinitionsShow extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-definitions-show.exec");
         var buildapi = this.getWebApi().getQBuildApi();
-		var allArguments = this.checkArguments(args, options);
-		return buildapi.getDefinition(allArguments[argm.DEFINITION_ID.name], allArguments[argm.PROJECT_NAME.name]);
+        return this.checkArguments(args, options).then( (allArguments) => {
+            return buildapi.getDefinition(allArguments[argm.DEFINITION_ID.name], allArguments[argm.PROJECT_NAME.name]);
+        });
     }
 
     public output(data: any): void {

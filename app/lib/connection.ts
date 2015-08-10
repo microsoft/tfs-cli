@@ -7,6 +7,7 @@ import url = require('url');
 import apim = require('vso-node-api/WebApi');
 import apibasem = require('vso-node-api/interfaces/common/VsoBaseInterfaces');
 import cm = require('./diskcache');
+import argm = require('./arguments');
 var trace = require('./trace');
 
 var cache = new cm.DiskCache('tfx');
@@ -92,21 +93,9 @@ export function promptForUrl(): Q.Promise<string> {
         return promise;
     }
 
-    var credInputs = [
-        {
-            name: 'collection', description: 'collection url', arg: 'collection', type: 'string', req: true
-        }
-    ];
+    var credInputs = [ argm.COLLECTION_URL ];
 
-    inputs.get(credInputs, (err, result) => {
-        if (err) {
-            trace('Url prompt failed: ' + err.message);
-            defer.reject(err);
-            return;
-        }
-
-        defer.resolve(result['collection']);
+    return inputs.Qprompt(credInputs, []).then((result) => {
+        return result[argm.COLLECTION_URL.name];
     });
-
-    return promise;
 }

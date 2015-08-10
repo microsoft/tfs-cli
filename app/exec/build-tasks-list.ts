@@ -25,32 +25,22 @@ export class BuildTaskList extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-tasks-list.exec");
-        var deferred = Q.defer<agentifm.TaskDefinition[]>();
-        var allArguments = this.checkArguments(args, options);
-        
         trace("Initializing agent API...");
-        var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-        
-        trace("Searching for build tasks...");
-        agentapi.getTaskDefinitions(['build'], (err, statusCode, tasks) => {
-            if(err) {
-                trace("Call to TaskAgentApi.getTaskDefinitions failed with code " + statusCode + ". Message: " + err.message);
-                err.statusCode = statusCode;
-                deferred.reject(err);
-            }
-            else {
+        var agentapi = this.getWebApi().getQTaskAgentApi(this.connection.accountUrl);
+		return this.checkArguments(args, options).then( (allArguments) => {
+            trace("Searching for build tasks...");
+            return agentapi.getTaskDefinitions(['build']).then((tasks) => {
                 trace("Retrieved " + tasks.length + " build tasks from server.");
                 if(allArguments[argm.ALL.name]) {
                     trace("Listing all build tasks.");
-                    deferred.resolve(tasks);
+                    return tasks;
                 }
                 else {
                     trace("Filtering build tasks to give only the latest versions.");
-                    deferred.resolve(this._getNewestTasks(tasks));
-                }
-            }
+                    return this._getNewestTasks(tasks);
+                }           
+            });
         });
-        return <Q.Promise<agentifm.TaskDefinition[]>>deferred.promise;
     }
 
     public output(data: any): void {

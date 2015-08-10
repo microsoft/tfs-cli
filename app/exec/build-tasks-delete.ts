@@ -22,42 +22,47 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class BuildTaskDelete extends cmdm.TfCommand {
-    requiredArguments = [argm.GENERIC_ID];
+    requiredArguments = [argm.TASK_ID];
     
     public exec(args: string[], options: cm.IOptions): any {
         trace("build-tasks-delete.exec");
-        var deferred = Q.defer<agentifm.TaskDefinition>();
-        var allArguments = this.checkArguments(args, options);
-        var taskId: string = allArguments[argm.TASK_ID.name];
-
-        trace("Initializing agent API...");
-        var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
-
-        trace("Searching for tasks with id: " + taskId);
-        agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
-            trace("Found " + tasks.length + " tasks with provided id.")
-            if (tasks.length > 0) {
-                trace("Deleting task(s)...");
-                agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
-                    if (err) {
-                        trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
-                        err.statusCode = statusCode;
-                        deferred.reject(err);
-                    }
-                    else {
-                        trace("Success.")
-                        deferred.resolve(<agentifm.TaskDefinition>{
-                            id: taskId
-                        });
-                    }
-                });
-            }
-            else {
-                trace("No task.");
-                deferred.reject(new Error("No task found with provided ID: " + taskId));
-            }
+        var defer = Q.defer<agentifm.TaskDefinition>();
+		this.checkArguments(args, options).then( (allArguments) => {
+            var taskId: string = allArguments[argm.TASK_ID.name];
+    
+            trace("Initializing agent API...");
+            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+    
+            trace("Searching for tasks with id: " + taskId);
+            agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
+                trace("Found " + tasks.length + " tasks with provided id.")
+                if (tasks.length > 0) {
+                    trace("Deleting task(s)...");
+                    agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
+                        if (err) {
+                            trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
+                            err.statusCode = statusCode;
+                            defer.reject(err);
+                        }
+                        else {
+                            trace("Success.")
+                            defer.resolve(<agentifm.TaskDefinition>{
+                                id: taskId
+                            });
+                        }
+                    });
+                }
+                else {
+                    trace("No task.");
+                    defer.reject(new Error("No task found with provided ID: " + taskId));
+                }
+            });
+        })
+        .fail((err) => {
+            trace('Failed to gather inputs. Message: ' + err.message);
+            defer.reject(err);
         });
-        return <Q.Promise<agentifm.TaskDefinition>>deferred.promise;
+        return <Q.Promise<agentifm.TaskDefinition>>defer.promise;
     }
 
     public output(data: any): void {

@@ -35,34 +35,35 @@ export class BuildQueue extends cmdm.TfCommand {
         trace('Initializing Build API...');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
-        var allArguments = this.checkArguments(args, options);
-        var project: string = allArguments[argm.PROJECT_NAME.name];
-        var definitionName: string = allArguments[argm.DEFINITION_NAME.name];
-        var definitionId: number = allArguments[argm.DEFINITION_ID.name];
-
-        if(definitionId) {
-            trace('Searching for definitions with id ' + definitionId);
-            return buildapi.getDefinition(definitionId, project).then((definition: buildifm.DefinitionReference) => {
-                return this._queueBuild(buildapi, definition, project);
-            });
-        }
-        else if (definitionName) {
-            trace('No definition id provided, Searching for definitions with name: ' + definitionName);
-            return buildapi.getDefinitions(project, definitionName).then((definitions: buildifm.DefinitionReference[]) => {
-                if(definitions.length > 0) {
-                    var definition = definitions[0];
+		return this.checkArguments(args, options).then( (allArguments) => {
+            var project: string = allArguments[argm.PROJECT_NAME.name];
+            var definitionName: string = allArguments[argm.DEFINITION_NAME.name];
+            var definitionId: number = allArguments[argm.DEFINITION_ID.name];
+    
+            if(definitionId) {
+                trace('Searching for definitions with id ' + definitionId);
+                return buildapi.getDefinition(definitionId, project).then((definition: buildifm.DefinitionReference) => {
                     return this._queueBuild(buildapi, definition, project);
-                }
-                else {
-                    trace('No definition found with name ' + definitionName);
-                    throw new Error('No definition found with name ' + definitionName);
-                }
-            });
-        }
-        else {
-            trace('neither definitionId nor definitionName provided.')
-            throw new Error('definitionId or definitionName required. Try adding a switch to the end of your command --definitionId <definitionId>')
-        }
+                });
+            }
+            else if (definitionName) {
+                trace('No definition id provided, Searching for definitions with name: ' + definitionName);
+                return buildapi.getDefinitions(project, definitionName).then((definitions: buildifm.DefinitionReference[]) => {
+                    if(definitions.length > 0) {
+                        var definition = definitions[0];
+                        return this._queueBuild(buildapi, definition, project);
+                    }
+                    else {
+                        trace('No definition found with name ' + definitionName);
+                        throw new Error('No definition found with name ' + definitionName);
+                    }
+                });
+            }
+            else {
+                trace('neither definitionId nor definitionName provided.')
+                throw new Error('definitionId or definitionName required. Try adding a switch to the end of your command --definitionId <definitionId>')
+            }
+        });
     }
 
     public output(data: any): void {
