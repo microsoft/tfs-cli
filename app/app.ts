@@ -21,8 +21,10 @@ var options = minimist(process.argv.slice(2), mopts);
 var args: string[] = options['_'];
 delete options['_'];
 for(var key in options) {
-    options[key.toLowerCase()] = options[key];
+    //convert all options flags to lowercase
+    var temp = options[key];
     delete options[key];
+    options[key.toLowerCase()] = temp;
 }
 
 var execPath = path.join(__dirname, 'exec');

@@ -54,7 +54,7 @@ export var OVERWRITE: BooleanArgument = new BooleanArgument('overwrite');
 export var PROJECT_NAME: StringArgument = new StringArgument('project', 'projectName');
 
 ///CORE
-export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authType', 'pat');
+export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authtype', 'pat');
 export var COLLECTION_URL: StringArgument = new StringArgument('collectionurl', 'collection url');
 export var PASSWORD: SilentStringArgument = new SilentStringArgument('password');
 export var PAT: SilentStringArgument = new SilentStringArgument('token', 'personal access token');
