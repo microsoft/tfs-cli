@@ -32,7 +32,7 @@ export var isServerOperation: boolean = false;
 export var hideBanner: boolean = false;
 
 export class BuildCreate extends cmdm.TfCommand {
-    requiredArguments = [argm.TASK_NAME, argm.TASK_FRIENDLY_NAME, argm.DESCRIPTION, argm.AUTHOR];
+    requiredArguments = [argm.TASK_NAME, argm.FRIENDLY_NAME, argm.DESCRIPTION, argm.AUTHOR];
     
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-create.exec');
@@ -41,7 +41,7 @@ export class BuildCreate extends cmdm.TfCommand {
 		this.promptArguments(this.requiredArguments, this.optionalArguments).then( (allArguments) => {
    
             var tname = allArguments[argm.TASK_NAME.name];
-            var tfriendly = allArguments[argm.TASK_FRIENDLY_NAME.name];
+            var tfriendly = allArguments[argm.FRIENDLY_NAME.name];
             var tdescription = allArguments[argm.DESCRIPTION.name];
             var tauthor = allArguments[argm.AUTHOR.name];
     

@@ -46,24 +46,30 @@ export function identity<T>(arg: T): T {
 	return arg;
 }
 
-export var ALL: BooleanArgument = new BooleanArgument('all');
-export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authType', 'pat');
+///GENERAL
 export var AUTHOR: StringArgument = new StringArgument('author');
-export var BUILD_ID: IntArgument = new IntArgument('id', 'buildid');
-export var COLLECTION_URL: StringArgument = new StringArgument('collectionurl', 'collection url');
-export var DEFINITION_ID: IntArgument = new IntArgument('definitionid');
-export var DEFINITION_NAME: StringArgument = new StringArgument('definitionname');
 export var DESCRIPTION: StringArgument = new StringArgument('description');
-export var JSON_FILTER: StringArgument = new StringArgument('jsonfilter');
+export var FRIENDLY_NAME: StringArgument = new StringArgument('friendlyname', 'friendly name');
 export var OVERWRITE: BooleanArgument = new BooleanArgument('overwrite');
+export var PROJECT_NAME: StringArgument = new StringArgument('project', 'projectName');
+
+///CORE
+export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authType', 'pat');
+export var COLLECTION_URL: StringArgument = new StringArgument('collectionurl', 'collection url');
 export var PASSWORD: SilentStringArgument = new SilentStringArgument('password');
 export var PAT: SilentStringArgument = new SilentStringArgument('token', 'personal access token');
-export var PROJECT_NAME: StringArgument = new StringArgument('project', 'projectName');
-export var REPOSITORY_ID: StringArgument = new StringArgument('id', 'repositoryId');
-export var STATUS: StringArgument = new StringArgument('status');
-export var TASK_FRIENDLY_NAME: StringArgument = new StringArgument('friendlyName', 'friendly name');
-export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
-export var TASK_NAME: StringArgument = new StringArgument('name', 'short name');
-export var TASK_PATH: StringArgument = new StringArgument('taskpath');
-export var TOP: IntArgument = new IntArgument('top');
 export var USERNAME: StringArgument = new StringArgument('username');
+
+///BUILD
+export var BUILD_ID: IntArgument = new IntArgument('id', 'buildId');
+export var DEFINITION_ID: IntArgument = new IntArgument('definitionid');
+export var DEFINITION_NAME: StringArgument = new StringArgument('definitionname');
+export var STATUS: StringArgument = new StringArgument('status');
+export var TOP: IntArgument = new IntArgument('top');
+
+///TASKS
+export var ALL: BooleanArgument = new BooleanArgument('all');
+export var JSON_FILTER: StringArgument = new StringArgument('jsonfilter');
+export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
+export var TASK_NAME: StringArgument = new StringArgument('name', 'short task name');
+export var TASK_PATH: StringArgument = new StringArgument('taskpath');
