@@ -50,6 +50,10 @@ export class Login extends cmdm.TfCommand {
                     trace('Connection failed. Invalid credentials');
                     defer.reject(new Error('Invalid credentials'));
                 }
+                else if (err) {
+                    trace('Connection failed.')
+                    defer.reject(new Error('Connection failed. Check your internet connection & collection URL.'));
+                }
                 defer.resolve(con.credentials);
             });
         })
