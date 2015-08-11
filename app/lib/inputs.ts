@@ -32,16 +32,18 @@ export function check(args: string[], options: cm.IOptions, requiredArguments: a
     trace('inputs.check');
     var allArguments: cm.IStringIndexer = {};
     for(var i = 0; i < requiredArguments.length; i++) {
-        var name: string = requiredArguments[i].name;
-        allArguments[name] = args[i] || options[name] || requiredArguments[i].defaultValue;
+        var arg: argm.Argument = requiredArguments[i];
+        var name: string = arg.name;
+        allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue);
         if(!allArguments[name]) {
             trace('Required parameter ' + name + ' not supplied.');
-            done(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + requiredArguments[i].friendlyName + '>'), null);
+            done(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + arg.friendlyName + '>'), null);
         }
     }
     for(var i = 0; i < optionalArguments.length; i++) {
-        var name: string = optionalArguments[i].name;
-        allArguments[name] = options[name] || optionalArguments[i].defaultValue;
+        var arg: argm.Argument = optionalArguments[i];
+        var name: string = arg.name;
+        allArguments[name] = options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue;
     }
     done(null, allArguments);
 }
@@ -87,7 +89,7 @@ export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Arg
 
         read({ prompt: msg, silent: input.silent }, function(err, answer) {
             var useVal = answer === "" ? input.defaultValue : answer;
-            result[input.name] = input.getValueFromString(useVal);
+            result[input.name] = input.getValueFromString(useVal.toString());
             trace('read: ' + result[input.name]);
             inputDone(null, null);
         });

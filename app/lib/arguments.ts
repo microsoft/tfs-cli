@@ -3,7 +3,6 @@ export class Argument {
 	public name: string;
 	public defaultValue: any;
 	public friendlyName: string;
-	public fromStringConversion: (value: string, ...variableArgs: any[]) => any = identity;
 	public silent: boolean = false;
 	
 	constructor(name: string, 
@@ -16,16 +15,23 @@ export class Argument {
 	}
 	
 	public getValueFromString(stringRepresentation: string): any {
-		return this.fromStringConversion(stringRepresentation);
+		return stringRepresentation;
 	}
 }
 
 export class BooleanArgument extends Argument {
 	public defaultValue = false;
+	
+	public getValueFromString(stringRepresentation: string): boolean {
+		return ((stringRepresentation.toLowerCase() === "true") || (stringRepresentation === "1"));
+	}
 }
 
 export class IntArgument extends Argument {
-	public fromStringConversion = parseInt;
+	
+	public getValueFromString(stringRepresentation: string): any {
+		return parseInt(stringRepresentation) || stringRepresentation;
+	}
 }
 
 export class SilentStringArgument extends Argument {
@@ -49,13 +55,14 @@ export var DEFINITION_ID: IntArgument = new IntArgument('definitionId');
 export var DEFINITION_NAME: StringArgument = new StringArgument('definitionName');
 export var DESCRIPTION: StringArgument = new StringArgument('description');
 export var JSON_FILTER: StringArgument = new StringArgument('jsonFilter');
+export var OVERWRITE: BooleanArgument = new BooleanArgument('overwrite');
 export var PASSWORD: SilentStringArgument = new SilentStringArgument('password');
 export var PAT: SilentStringArgument = new SilentStringArgument('token', 'personal access token');
 export var PROJECT_NAME: StringArgument = new StringArgument('project', 'projectName');
 export var REPOSITORY_ID: StringArgument = new StringArgument('id', 'repositoryId');
 export var STATUS: StringArgument = new StringArgument('status');
 export var TASK_FRIENDLY_NAME: StringArgument = new StringArgument('friendlyName', 'friendly name');
-export var TASK_ID: IntArgument = new IntArgument('id', 'taskId');
+export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
 export var TASK_NAME: StringArgument = new StringArgument('name', 'short name');
 export var TASK_PATH: StringArgument = new StringArgument('taskPath');
 export var TOP: IntArgument = new IntArgument('top');

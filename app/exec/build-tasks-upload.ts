@@ -30,12 +30,14 @@ var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskUpload extends cmdm.TfCommand {
     requiredArguments = [argm.TASK_PATH];
+    optionalArguments = [argm.OVERWRITE];
     
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-task-upload.exec');
         var defer = Q.defer<agentifm.TaskDefinition>();
 		this.checkArguments(args, options).then( (allArguments) => {
             var taskPath: string = allArguments[argm.TASK_PATH.name];
+            var overwrite: boolean = allArguments[argm.OVERWRITE.name];
     
             trace('taskPath: ' + taskPath);
             try {
@@ -62,7 +64,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
                 trace("Initializing agent API...");
                 var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
     
-                agentapi.uploadTaskDefinition(null, archive, taskJson.id, false, (err, statusCode, task) => {
+                agentapi.uploadTaskDefinition(null, archive, taskJson.id, overwrite, (err, statusCode, task) => {
                     if(err) {
                         trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
                         err.statusCode = statusCode;
