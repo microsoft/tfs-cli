@@ -1,4 +1,4 @@
-/// <reference path="../definitions/mocha.d.ts"/>
+/// <reference path="../definitions/mocha/mocha.d.ts"/>
 /// <reference path="../definitions/q/Q.d.ts"/>
 /// <reference path="../definitions/node/node.d.ts"/>
 import Q = require('q');

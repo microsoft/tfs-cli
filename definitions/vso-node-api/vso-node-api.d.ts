@@ -1,3 +1,8 @@
+// Type definitions for vso-node-api v0.3.2
+// Project: https://github.com/Microsoft/vso-node-api
+// Definitions by: Teddy Ward <https://github.com/teddyward>
+// Definitions: https://github.com/borisyankov/DefinitelyTyped
+
 /// <reference path="../node/node.d.ts" />
 /// <reference path="../q/Q.d.ts" />
 declare module 'vso-node-api/Serialization' {
@@ -55,7 +60,7 @@ declare module 'vso-node-api/Serialization' {
 	     * @param contractMetadata The type info/metadata for the contract type being serialized
 	     * @param preserveOriginal If true, don't modify the original object. False modifies the original object (the return value points to the data argument).
 	     */
-	    function serialize(data: any, contractMetadata: ContractMetadata, preserveOriginal?: boolean): any;
+		function serialize(data: any, contractMetadata: ContractMetadata, preserveOriginal?: boolean): any;
 	    /**
 	     * Process a pure JSON object (e.g. that came from a REST call) and transform it into a JS object
 	     * where date strings are converted to Date objects and enum values are converted from strings into
@@ -117,7 +122,7 @@ declare module 'vso-node-api/interfaces/common/VsoBaseInterfaces' {
 	    prepareRequest(options: any): void;
 	}
 	export interface IHttpResponse {
-	    statusCode: number;
+	    statusCode?: number;
 	    headers: any;
 	}
 	export interface IQCoreApi {
@@ -3880,6 +3885,759 @@ declare module 'vso-node-api/FileContainerApi' {
 	    * @param {boolean} includeDownloadTickets
 	    */
 	    getItems(containerId: number, scope?: string, itemPath?: string, metadata?: boolean, format?: string, downloadFileName?: string, includeDownloadTickets?: boolean): Q.Promise<FileContainerInterfaces.FileContainerItem[]>;
+	}
+
+}
+declare module 'vso-node-api/interfaces/GalleryInterfaces' {
+	export interface ExtensionAccount {
+	    accountId: string;
+	    accountName: string;
+	}
+	export interface ExtensionFile {
+	    assetType: string;
+	    contentType: string;
+	    fileId: number;
+	    shortDescription: string;
+	    version: string;
+	}
+	/**
+	 * The FilterResult is the set of extensions that matched a particular query filter.
+	 */
+	export interface ExtensionFilterResult {
+	    /**
+	     * This is the set of appplications that matched the query filter supplied.
+	     */
+	    extensions: PublishedExtension[];
+	    /**
+	     * The PagingToken is returned from a request when more records exist that match the result than were requested or could be returned. A follow-up query with this paging token can be used to retrieve more results.
+	     */
+	    pagingToken: string;
+	}
+	/**
+	 * Package that will be used to create or update a published extension
+	 */
+	export interface ExtensionPackage {
+	    /**
+	     * Base 64 encoded extension package
+	     */
+	    extensionManifest: string;
+	}
+	/**
+	 * An ExtensionQuery is used to search the gallery for a set of extensions that match one of many filter values.
+	 */
+	export interface ExtensionQuery {
+	    /**
+	     * Each filter is a unique query and will have matching set of extensions returned from the request. Each result will have the same index in the resulting array that the filter had in the incoming query.
+	     */
+	    filters: QueryFilter[];
+	    /**
+	     * The Flags are used to deterine which set of information the caller would like returned for the matched extensions.
+	     */
+	    flags: ExtensionQueryFlags;
+	}
+	export enum ExtensionQueryFilterType {
+	    /**
+	     * The values are used as tags. All tags are treated as "OR" conditions with each other. There may be some value put on the number of matched tags from the query.
+	     */
+	    Tag = 1,
+	    /**
+	     * The Values are an ExtensionName or fragment that is used to match other extension names.
+	     */
+	    DisplayName = 2,
+	    /**
+	     * The Filter is one or more tokens that define what scope to return private extensions for.
+	     */
+	    Private = 3,
+	    /**
+	     * Retrieve a set of extensions based on their id's. The values should be the extension id's encoded as strings.
+	     */
+	    Id = 4,
+	    /**
+	     * The catgeory is unlike other filters. It is AND'd with the other filters instead of being a seperate query.
+	     */
+	    Category = 5,
+	    /**
+	     * Certain contribution types may be indexed to allow for query by type. User defined types can't be indexed at the moment.
+	     */
+	    ContributionType = 6,
+	}
+	export enum ExtensionQueryFlags {
+	    /**
+	     * None is used to retrieve only the basic extension details.
+	     */
+	    None = 0,
+	    /**
+	     * IncludeVersions will return version information for extensions returned
+	     */
+	    IncludeVersions = 1,
+	    /**
+	     * IncludeFiles will return information about which files were found within the extension that were stored independant of the manifest. When asking for files, versions will be included as well since files are returned as a property of the versions.  These files can be retrieved using the path to the file without requiring the entire manifest be downloaded.
+	     */
+	    IncludeFiles = 2,
+	    /**
+	     * Include the Categories and Tags that were added to the extension definition.
+	     */
+	    IncludeCategoryAndTags = 4,
+	    /**
+	     * Include the details about which accounts the extension has been shared with if the extesion is a private extension.
+	     */
+	    IncludeSharedAccounts = 8,
+	    /**
+	     * Include properties associated with versions of the extension
+	     */
+	    IncludeVersionProperties = 16,
+	    /**
+	     * Excluding non-validated extensions will remove any extension versions that either are in the process of being validated or have failed validation.
+	     */
+	    ExcludeNonValidated = 32,
+	    /**
+	     * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.
+	     */
+	    AllAttributes = 31,
+	}
+	/**
+	 * This is the set of extensions that matched a supplied query through the filters given.
+	 */
+	export interface ExtensionQueryResult {
+	    /**
+	     * For each filter supplied in the query, a filter result will be returned in the query result.
+	     */
+	    results: ExtensionFilterResult[];
+	}
+	export interface ExtensionVersion {
+	    files: ExtensionFile[];
+	    flags: ExtensionVersionFlags;
+	    lastUpdated: Date;
+	    properties: {
+	        key: string;
+	        value: string;
+	    }[];
+	    validationResultMessage: string;
+	    version: string;
+	    versionDescription: string;
+	}
+	export enum ExtensionVersionFlags {
+	    /**
+	     * No flags exist for this version.
+	     */
+	    None = 0,
+	    /**
+	     * The Validated flag for a version means the extension version has passed validation and can be used..
+	     */
+	    Validated = 1,
+	}
+	/**
+	 * One condition in a QueryFilter.
+	 */
+	export interface FilterCriteria {
+	    filterType: number;
+	    /**
+	     * The value used in the match based on the filter type.
+	     */
+	    value: string;
+	}
+	export enum PagingDirection {
+	    /**
+	     * Backward will return results from earlier in the resultset.
+	     */
+	    Backward = 1,
+	    /**
+	     * Forward will return results from later in the resultset.
+	     */
+	    Forward = 2,
+	}
+	export interface PublishedExtension {
+	    allowedAccounts: ExtensionAccount[];
+	    categories: string[];
+	    displayName: string;
+	    extensionId: string;
+	    extensionName: string;
+	    flags: PublishedExtensionFlags;
+	    lastUpdated: Date;
+	    longDescription: string;
+	    publisher: PublisherFacts;
+	    shortDescription: string;
+	    tags: string[];
+	    versions: ExtensionVersion[];
+	}
+	export enum PublishedExtensionFlags {
+	    /**
+	     * This should never be returned, it is used to represent a extension who's flags havent changed during update calls.
+	     */
+	    UnChanged = 1073741824,
+	    /**
+	     * No flags exist for this extension.
+	     */
+	    None = 0,
+	    /**
+	     * The Disabled flag for an extension means the extension can't be changed and won't be used by consumers. The disabled flag is managed by the service and can't be supplied by the Extension Developers.
+	     */
+	    Disabled = 1,
+	    /**
+	     * BuiltIn Extension are available to all Tenants. An explicit registration is not required. This attribute is reserved and can't be supplied by Extension Developers.  BuiltIn extensions are by definition Public. There is no need to set the public flag for extensions marked BuiltIn.
+	     */
+	    BuiltIn = 2,
+	    /**
+	     * This extension has been validated by the service. The extension meets the requirements specified. This attribute is reserved and can't be supplied by the Extension Developers. Validation is a process that ensures that all contributions are well formed. They meet the requirements defined by the contribution type they are extending. Note this attribute will be updated asynchronously as the extension is validated by the developer of the contribution type. There will be restricted access to the extension while this process is performed.
+	     */
+	    Validated = 4,
+	    /**
+	     * This extension registration is public, making its visibilty open to the public. This means all tenants have the ability to install this extension. Without this flag the extension will be private and will need to be shared with the tenants that can install it.
+	     */
+	    Public = 256,
+	    /**
+	     * This extension has multiple versions active at one time and version discovery should be done usig the defined "Version Discovery" protocol to determine the version available to a specific user or tenant.  @TODO: Link to Version Discovery Protocol.
+	     */
+	    MultiVersion = 512,
+	    /**
+	     * The system flag is reserved, and cant be used by publishers.
+	     */
+	    System = 1024,
+	    /**
+	     * This is the set of flags that can't be supplied by the developer and is managed by the service itself.
+	     */
+	    ServiceFlags = 1029,
+	}
+	export interface Publisher {
+	    displayName: string;
+	    extensions: PublishedExtension[];
+	    flags: PublisherFlags;
+	    lastUpdated: Date;
+	    longDescription: string;
+	    publisherId: string;
+	    publisherName: string;
+	    shortDescription: string;
+	}
+	/**
+	 * High-level information about the publisher, like id's and names
+	 */
+	export interface PublisherFacts {
+	    displayName: string;
+	    publisherId: string;
+	    publisherName: string;
+	}
+	/**
+	 * The FilterResult is the set of publishers that matched a particular query filter.
+	 */
+	export interface PublisherFilterResult {
+	    /**
+	     * This is the set of appplications that matched the query filter supplied.
+	     */
+	    publishers: Publisher[];
+	}
+	export enum PublisherFlags {
+	    /**
+	     * This should never be returned, it is used to represent a publisher who's flags havent changed during update calls.
+	     */
+	    UnChanged = 1073741824,
+	    /**
+	     * No flags exist for this publisher.
+	     */
+	    None = 0,
+	    /**
+	     * The Disabled flag for a publisher means the publisher can't be changed and won't be used by consumers, this extends to extensions owned by the publisher as well. The disabled flag is managed by the service and can't be supplied by the Extension Developers.
+	     */
+	    Disabled = 1,
+	    /**
+	     * This is the set of flags that can't be supplied by the developer and is managed by the service itself.
+	     */
+	    ServiceFlags = 1,
+	}
+	export enum PublisherPermissions {
+	    /**
+	     * This gives the bearer the rights to read Publishers and Extensions.
+	     */
+	    Read = 1,
+	    /**
+	     * This gives the bearer the rights to update Publishers and Extensions (but not the ability to Create them).
+	     */
+	    Write = 2,
+	    /**
+	     * This gives the bearer the rights to create new Publishers at the root of the namespace.
+	     */
+	    Create = 4,
+	    /**
+	     * This gives the bearer the rights to create new Extensions within a publisher.
+	     */
+	    Publish = 8,
+	    /**
+	     * Admin gives the bearer the rights to manage restricted attributes of Publishers and Extensions.
+	     */
+	    Admin = 16,
+	    /**
+	     * TrustedPartner gives the bearer the rights to publish a extensions with restricted capabilities.
+	     */
+	    TrustedPartner = 32,
+	    /**
+	     * PrivateRead is another form of read designed to allow higher privilege accessors the ability to read private extensions.
+	     */
+	    PrivateRead = 64,
+	}
+	/**
+	 * An PublisherQuery is used to search the gallery for a set of publishers that match one of many filter values.
+	 */
+	export interface PublisherQuery {
+	    /**
+	     * Each filter is a unique query and will have matching set of publishers returned from the request. Each result will have the same index in the resulting array that the filter had in the incoming query.
+	     */
+	    filters: QueryFilter[];
+	    /**
+	     * The Flags are used to deterine which set of information the caller would like returned for the matched publishers.
+	     */
+	    flags: PublisherQueryFlags;
+	}
+	export enum PublisherQueryFilterType {
+	    /**
+	     * The values are used as tags. All tags are treated as "OR" conditions with each other. There may be some value put on the number of matched tags from the query.
+	     */
+	    Tag = 1,
+	    /**
+	     * The Values are an PublisherName or fragment that is used to match other extension names.
+	     */
+	    DisplayName = 2,
+	    /**
+	     * The My Query filter is used to retrieve the set of publishers that I have access to publish extesions into. All Values are ignored and the calling user is used as the filter in this case.
+	     */
+	    My = 3,
+	}
+	export enum PublisherQueryFlags {
+	    /**
+	     * None is used to retrieve only the basic publisher details.
+	     */
+	    None = 0,
+	    /**
+	     * Is used to include a list of basic extension details for all extensions published by the requested publisher.
+	     */
+	    IncludeExtensions = 1,
+	}
+	/**
+	 * This is the set of publishers that matched a supplied query through the filters given.
+	 */
+	export interface PublisherQueryResult {
+	    /**
+	     * For each filter supplied in the query, a filter result will be returned in the query result.
+	     */
+	    results: PublisherFilterResult[];
+	}
+	/**
+	 * A filter used to define a set of extensions to return during a query.
+	 */
+	export interface QueryFilter {
+	    /**
+	     * The filter values define the set of values in this query. They are applied based on the QueryFilterType.
+	     */
+	    criteria: FilterCriteria[];
+	    /**
+	     * The PagingDirection is applied to a paging token if one exists. If not the direction is ignored, and Forward from the start of the resultset is used. Direction should be left out of the request unless a paging token is used to help prevent future issues.
+	     */
+	    direction: PagingDirection;
+	    /**
+	     * The page size defines the number of results the caller wants for this filter. The count can't exceed the overall query size limits.
+	     */
+	    pageSize: number;
+	    /**
+	     * The paging token is a distinct type of filter and the other filter fields are ignored. The paging token represents the continuation of a previously executed query. The information about where in the result and what fields are being filtered are embeded in the token.
+	     */
+	    pagingToken: string;
+	}
+	export enum SigningKeyPermissions {
+	    Read = 1,
+	    Write = 2,
+	}
+	export var TypeInfo: {
+	    ExtensionAccount: {
+	        fields: any;
+	    };
+	    ExtensionFile: {
+	        fields: any;
+	    };
+	    ExtensionFilterResult: {
+	        fields: any;
+	    };
+	    ExtensionPackage: {
+	        fields: any;
+	    };
+	    ExtensionQuery: {
+	        fields: any;
+	    };
+	    ExtensionQueryFilterType: {
+	        enumValues: {
+	            "tag": number;
+	            "displayName": number;
+	            "private": number;
+	            "id": number;
+	            "category": number;
+	            "contributionType": number;
+	        };
+	    };
+	    ExtensionQueryFlags: {
+	        enumValues: {
+	            "none": number;
+	            "includeVersions": number;
+	            "includeFiles": number;
+	            "includeCategoryAndTags": number;
+	            "includeSharedAccounts": number;
+	            "includeVersionProperties": number;
+	            "excludeNonValidated": number;
+	            "allAttributes": number;
+	        };
+	    };
+	    ExtensionQueryResult: {
+	        fields: any;
+	    };
+	    ExtensionVersion: {
+	        fields: any;
+	    };
+	    ExtensionVersionFlags: {
+	        enumValues: {
+	            "none": number;
+	            "validated": number;
+	        };
+	    };
+	    FilterCriteria: {
+	        fields: any;
+	    };
+	    PagingDirection: {
+	        enumValues: {
+	            "backward": number;
+	            "forward": number;
+	        };
+	    };
+	    PublishedExtension: {
+	        fields: any;
+	    };
+	    PublishedExtensionFlags: {
+	        enumValues: {
+	            "unChanged": number;
+	            "none": number;
+	            "disabled": number;
+	            "builtIn": number;
+	            "validated": number;
+	            "public": number;
+	            "multiVersion": number;
+	            "system": number;
+	            "serviceFlags": number;
+	        };
+	    };
+	    Publisher: {
+	        fields: any;
+	    };
+	    PublisherFacts: {
+	        fields: any;
+	    };
+	    PublisherFilterResult: {
+	        fields: any;
+	    };
+	    PublisherFlags: {
+	        enumValues: {
+	            "unChanged": number;
+	            "none": number;
+	            "disabled": number;
+	            "serviceFlags": number;
+	        };
+	    };
+	    PublisherPermissions: {
+	        enumValues: {
+	            "read": number;
+	            "write": number;
+	            "create": number;
+	            "publish": number;
+	            "admin": number;
+	            "trustedPartner": number;
+	            "privateRead": number;
+	        };
+	    };
+	    PublisherQuery: {
+	        fields: any;
+	    };
+	    PublisherQueryFilterType: {
+	        enumValues: {
+	            "tag": number;
+	            "displayName": number;
+	            "my": number;
+	        };
+	    };
+	    PublisherQueryFlags: {
+	        enumValues: {
+	            "none": number;
+	            "includeExtensions": number;
+	        };
+	    };
+	    PublisherQueryResult: {
+	        fields: any;
+	    };
+	    QueryFilter: {
+	        fields: any;
+	    };
+	    SigningKeyPermissions: {
+	        enumValues: {
+	            "read": number;
+	            "write": number;
+	        };
+	    };
+	};
+
+}
+declare module 'vso-node-api/GalleryApi' {
+	/// <reference path="../node/node.d.ts" />
+	/// <reference path="../q/Q.d.ts" />
+	import Q = require('q');
+	import basem = require('vso-node-api/ClientApiBases');
+	import VsoBaseInterfaces = require('vso-node-api/interfaces/common/VsoBaseInterfaces');
+	import GalleryInterfaces = require('vso-node-api/interfaces/GalleryInterfaces');
+	export interface IGalleryApi extends basem.ClientApiBase {
+	    shareExtensionById(extensionId: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    unshareExtensionById(extensionId: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    shareExtension(publisherName: string, extensionName: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    unshareExtension(publisherName: string, extensionName: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    getAsset(extensionId: string, version: string, assetType: string, accountToken: string, acceptDefault: boolean, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
+	    getCategories(languages: string, onResult: (err: any, statusCode: number, categories: string[]) => void): void;
+	    getCertificate(publisherName: string, extensionName: string, version: string, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
+	    queryExtensions(extensionQuery: GalleryInterfaces.ExtensionQuery, accountToken: string, onResult: (err: any, statusCode: number, extensionquery: GalleryInterfaces.ExtensionQueryResult) => void): void;
+	    createExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    deleteExtensionById(extensionId: string, version: string, onResult: (err: any, statusCode: number) => void): void;
+	    getExtensionById(extensionId: string, version: string, flags: GalleryInterfaces.ExtensionQueryFlags, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    updateExtensionById(extensionPackage: GalleryInterfaces.ExtensionPackage, extensionId: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    createExtensionWithPublisher(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    deleteExtension(publisherName: string, extensionName: string, version: string, onResult: (err: any, statusCode: number) => void): void;
+	    getExtension(publisherName: string, extensionName: string, version: string, flags: GalleryInterfaces.ExtensionQueryFlags, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    updateExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, extensionName: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    queryPublishers(publisherQuery: GalleryInterfaces.PublisherQuery, onResult: (err: any, statusCode: number, publisherquery: GalleryInterfaces.PublisherQueryResult) => void): void;
+	    createPublisher(publisher: GalleryInterfaces.Publisher, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    deletePublisher(publisherName: string, onResult: (err: any, statusCode: number) => void): void;
+	    getPublisher(publisherName: string, flags: number, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    updatePublisher(publisher: GalleryInterfaces.Publisher, publisherName: string, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    generateKey(keyType: string, expireCurrentSeconds: number, onResult: (err: any, statusCode: number) => void): void;
+	    getSigningKey(keyType: string, onResult: (err: any, statusCode: number, signingkey: string) => void): void;
+	}
+	export interface IQGalleryApi extends basem.QClientApiBase {
+	    getCategories(languages?: string): Q.Promise<string[]>;
+	    queryExtensions(extensionQuery: GalleryInterfaces.ExtensionQuery, accountToken?: string): Q.Promise<GalleryInterfaces.ExtensionQueryResult>;
+	    createExtension(extensionPackage: GalleryInterfaces.ExtensionPackage): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    getExtensionById(extensionId: string, version?: string, flags?: GalleryInterfaces.ExtensionQueryFlags): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    updateExtensionById(extensionPackage: GalleryInterfaces.ExtensionPackage, extensionId: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    createExtensionWithPublisher(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    getExtension(publisherName: string, extensionName: string, version?: string, flags?: GalleryInterfaces.ExtensionQueryFlags): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    updateExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, extensionName: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    queryPublishers(publisherQuery: GalleryInterfaces.PublisherQuery): Q.Promise<GalleryInterfaces.PublisherQueryResult>;
+	    createPublisher(publisher: GalleryInterfaces.Publisher): Q.Promise<GalleryInterfaces.Publisher>;
+	    getPublisher(publisherName: string, flags?: number): Q.Promise<GalleryInterfaces.Publisher>;
+	    updatePublisher(publisher: GalleryInterfaces.Publisher, publisherName: string): Q.Promise<GalleryInterfaces.Publisher>;
+	    getSigningKey(keyType: string): Q.Promise<string>;
+	}
+	export class GalleryApi extends basem.ClientApiBase implements IGalleryApi {
+	    constructor(baseUrl: string, handlers: VsoBaseInterfaces.IRequestHandler[]);
+	    /**
+	     * @param {string} extensionId
+	     * @param {string} accountName
+	     * @param onResult callback function
+	     */
+	    shareExtensionById(extensionId: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} extensionId
+	     * @param {string} accountName
+	     * @param onResult callback function
+	     */
+	    unshareExtensionById(extensionId: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param {string} accountName
+	     * @param onResult callback function
+	     */
+	    shareExtension(publisherName: string, extensionName: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param {string} accountName
+	     * @param onResult callback function
+	     */
+	    unshareExtension(publisherName: string, extensionName: string, accountName: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} extensionId
+	     * @param {string} version
+	     * @param {string} assetType
+	     * @param {string} accountToken
+	     * @param {boolean} acceptDefault
+	     * @param onResult callback function with the resulting ArrayBuffer
+	     */
+	    getAsset(extensionId: string, version: string, assetType: string, accountToken: string, acceptDefault: boolean, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
+	    /**
+	     * @param {string} languages
+	     * @param onResult callback function with the resulting string[]
+	     */
+	    getCategories(languages: string, onResult: (err: any, statusCode: number, categories: string[]) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param {string} version
+	     * @param onResult callback function with the resulting ArrayBuffer
+	     */
+	    getCertificate(publisherName: string, extensionName: string, version: string, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.ExtensionQuery} extensionQuery
+	     * @param {string} accountToken
+	     * @param onResult callback function with the resulting GalleryInterfaces.ExtensionQueryResult
+	     */
+	    queryExtensions(extensionQuery: GalleryInterfaces.ExtensionQuery, accountToken: string, onResult: (err: any, statusCode: number, extensionquery: GalleryInterfaces.ExtensionQueryResult) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    createExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {string} extensionId
+	     * @param {string} version
+	     * @param onResult callback function
+	     */
+	    deleteExtensionById(extensionId: string, version: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} extensionId
+	     * @param {string} version
+	     * @param {GalleryInterfaces.ExtensionQueryFlags} flags
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    getExtensionById(extensionId: string, version: string, flags: GalleryInterfaces.ExtensionQueryFlags, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	     * @param {string} extensionId
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    updateExtensionById(extensionPackage: GalleryInterfaces.ExtensionPackage, extensionId: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	     * @param {string} publisherName
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    createExtensionWithPublisher(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param {string} version
+	     * @param onResult callback function
+	     */
+	    deleteExtension(publisherName: string, extensionName: string, version: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param {string} version
+	     * @param {GalleryInterfaces.ExtensionQueryFlags} flags
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    getExtension(publisherName: string, extensionName: string, version: string, flags: GalleryInterfaces.ExtensionQueryFlags, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	     * @param {string} publisherName
+	     * @param {string} extensionName
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublishedExtension
+	     */
+	    updateExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, extensionName: string, onResult: (err: any, statusCode: number, extension: GalleryInterfaces.PublishedExtension) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.PublisherQuery} publisherQuery
+	     * @param onResult callback function with the resulting GalleryInterfaces.PublisherQueryResult
+	     */
+	    queryPublishers(publisherQuery: GalleryInterfaces.PublisherQuery, onResult: (err: any, statusCode: number, publisherquery: GalleryInterfaces.PublisherQueryResult) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.Publisher} publisher
+	     * @param onResult callback function with the resulting GalleryInterfaces.Publisher
+	     */
+	    createPublisher(publisher: GalleryInterfaces.Publisher, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param onResult callback function
+	     */
+	    deletePublisher(publisherName: string, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} publisherName
+	     * @param {number} flags
+	     * @param onResult callback function with the resulting GalleryInterfaces.Publisher
+	     */
+	    getPublisher(publisherName: string, flags: number, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    /**
+	     * @param {GalleryInterfaces.Publisher} publisher
+	     * @param {string} publisherName
+	     * @param onResult callback function with the resulting GalleryInterfaces.Publisher
+	     */
+	    updatePublisher(publisher: GalleryInterfaces.Publisher, publisherName: string, onResult: (err: any, statusCode: number, publisher: GalleryInterfaces.Publisher) => void): void;
+	    /**
+	     * @param {string} keyType
+	     * @param {number} expireCurrentSeconds
+	     * @param onResult callback function
+	     */
+	    generateKey(keyType: string, expireCurrentSeconds: number, onResult: (err: any, statusCode: number) => void): void;
+	    /**
+	     * @param {string} keyType
+	     * @param onResult callback function with the resulting string
+	     */
+	    getSigningKey(keyType: string, onResult: (err: any, statusCode: number, signingkey: string) => void): void;
+	}
+	export class QGalleryApi extends basem.QClientApiBase implements IQGalleryApi {
+	    api: GalleryApi;
+	    constructor(baseUrl: string, handlers: VsoBaseInterfaces.IRequestHandler[]);
+	    /**
+	    * @param {string} languages
+	    */
+	    getCategories(languages?: string): Q.Promise<string[]>;
+	    /**
+	    * @param {GalleryInterfaces.ExtensionQuery} extensionQuery
+	    * @param {string} accountToken
+	    */
+	    queryExtensions(extensionQuery: GalleryInterfaces.ExtensionQuery, accountToken?: string): Q.Promise<GalleryInterfaces.ExtensionQueryResult>;
+	    /**
+	    * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	    */
+	    createExtension(extensionPackage: GalleryInterfaces.ExtensionPackage): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {string} extensionId
+	    * @param {string} version
+	    * @param {GalleryInterfaces.ExtensionQueryFlags} flags
+	    */
+	    getExtensionById(extensionId: string, version?: string, flags?: GalleryInterfaces.ExtensionQueryFlags): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	    * @param {string} extensionId
+	    */
+	    updateExtensionById(extensionPackage: GalleryInterfaces.ExtensionPackage, extensionId: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	    * @param {string} publisherName
+	    */
+	    createExtensionWithPublisher(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {string} publisherName
+	    * @param {string} extensionName
+	    * @param {string} version
+	    * @param {GalleryInterfaces.ExtensionQueryFlags} flags
+	    */
+	    getExtension(publisherName: string, extensionName: string, version?: string, flags?: GalleryInterfaces.ExtensionQueryFlags): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {GalleryInterfaces.ExtensionPackage} extensionPackage
+	    * @param {string} publisherName
+	    * @param {string} extensionName
+	    */
+	    updateExtension(extensionPackage: GalleryInterfaces.ExtensionPackage, publisherName: string, extensionName: string): Q.Promise<GalleryInterfaces.PublishedExtension>;
+	    /**
+	    * @param {GalleryInterfaces.PublisherQuery} publisherQuery
+	    */
+	    queryPublishers(publisherQuery: GalleryInterfaces.PublisherQuery): Q.Promise<GalleryInterfaces.PublisherQueryResult>;
+	    /**
+	    * @param {GalleryInterfaces.Publisher} publisher
+	    */
+	    createPublisher(publisher: GalleryInterfaces.Publisher): Q.Promise<GalleryInterfaces.Publisher>;
+	    /**
+	    * @param {string} publisherName
+	    * @param {number} flags
+	    */
+	    getPublisher(publisherName: string, flags?: number): Q.Promise<GalleryInterfaces.Publisher>;
+	    /**
+	    * @param {GalleryInterfaces.Publisher} publisher
+	    * @param {string} publisherName
+	    */
+	    updatePublisher(publisher: GalleryInterfaces.Publisher, publisherName: string): Q.Promise<GalleryInterfaces.Publisher>;
+	    /**
+	    * @param {string} keyType
+	    */
+	    getSigningKey(keyType: string): Q.Promise<string>;
 	}
 
 }
@@ -12626,6 +13384,7 @@ declare module 'vso-node-api/WebApi' {
 	import buildm = require('vso-node-api/BuildApi');
 	import corem = require('vso-node-api/CoreApi');
 	import filecontainerm = require('vso-node-api/FileContainerApi');
+	import gallerym = require('vso-node-api/GalleryApi');
 	import gitm = require('vso-node-api/GitApi');
 	import taskagentm = require('vso-node-api/TaskAgentApi');
 	import taskm = require('vso-node-api/TaskApi');
@@ -12658,6 +13417,8 @@ declare module 'vso-node-api/WebApi' {
 	    getQCoreApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): corem.IQCoreApi;
 	    getFileContainerApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): filecontainerm.IFileContainerApi;
 	    getQFileContainerApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): filecontainerm.IQFileContainerApi;
+	    getGalleryApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): gallerym.IGalleryApi;
+	    getQGalleryApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): gallerym.IQGalleryApi;
 	    getGitApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): gitm.IGitApi;
 	    getQGitApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): gitm.IQGitApi;
 	    getTaskApi(serverUrl?: string, handlers?: VsoBaseInterfaces.IRequestHandler[]): taskm.ITaskApi;

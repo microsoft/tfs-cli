@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.1.10",
+  "version": "0.1.9",
   "description": "TFS Extensions Command Line Utility",
   "repository": {
     "type": "git",
@@ -15,17 +15,27 @@
     "test": "gulp test"
   },
   "dependencies": {
+    "app-root-path": "1.0.0",
     "archiver": "0.14.4",
     "async": "^1.4.0",
     "colors": "^1.1.2",
+    "glob": "5.0.10",
+    "inquirer": "0.8.5",
+    "jszip": "2.5.0",
+    "lodash": "3.9.3",
     "minimist": "^1.1.2",
     "node-uuid": "^1.4.3",
     "os-homedir": "^1.0.1",
     "q": "^1.4.1",
     "read": "^1.0.6",
+    "request": "2.58.0",
     "shelljs": "^0.5.1",
+    "tmp": "0.0.26",
+    "tracer": "0.7.4",
     "validator": "^3.43.0",
-    "vso-node-api": "^0.3.0"
+    "vso-node-api": "^0.3.0",
+    "winreg": "0.0.12",
+    "xml2js": "0.4.9"
   },
   "devDependencies": {
     "del": "^1.2.0",
