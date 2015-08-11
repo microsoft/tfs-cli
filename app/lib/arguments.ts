@@ -47,14 +47,14 @@ export function identity<T>(arg: T): T {
 }
 
 export var ALL: BooleanArgument = new BooleanArgument('all');
-export var AUTH_TYPE: StringArgument = new StringArgument('authType', 'authType', 'pat');
+export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authType', 'pat');
 export var AUTHOR: StringArgument = new StringArgument('author');
-export var BUILD_ID: IntArgument = new IntArgument('id', 'buildId');
-export var COLLECTION_URL: StringArgument = new StringArgument('collectionUrl', 'collection url');
-export var DEFINITION_ID: IntArgument = new IntArgument('definitionId');
-export var DEFINITION_NAME: StringArgument = new StringArgument('definitionName');
+export var BUILD_ID: IntArgument = new IntArgument('id', 'buildid');
+export var COLLECTION_URL: StringArgument = new StringArgument('collectionurl', 'collection url');
+export var DEFINITION_ID: IntArgument = new IntArgument('definitionid');
+export var DEFINITION_NAME: StringArgument = new StringArgument('definitionname');
 export var DESCRIPTION: StringArgument = new StringArgument('description');
-export var JSON_FILTER: StringArgument = new StringArgument('jsonFilter');
+export var JSON_FILTER: StringArgument = new StringArgument('jsonfilter');
 export var OVERWRITE: BooleanArgument = new BooleanArgument('overwrite');
 export var PASSWORD: SilentStringArgument = new SilentStringArgument('password');
 export var PAT: SilentStringArgument = new SilentStringArgument('token', 'personal access token');
@@ -64,6 +64,6 @@ export var STATUS: StringArgument = new StringArgument('status');
 export var TASK_FRIENDLY_NAME: StringArgument = new StringArgument('friendlyName', 'friendly name');
 export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
 export var TASK_NAME: StringArgument = new StringArgument('name', 'short name');
-export var TASK_PATH: StringArgument = new StringArgument('taskPath');
+export var TASK_PATH: StringArgument = new StringArgument('taskpath');
 export var TOP: IntArgument = new IntArgument('top');
 export var USERNAME: StringArgument = new StringArgument('username');
