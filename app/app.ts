@@ -22,6 +22,7 @@ var args: string[] = options['_'];
 delete options['_'];
 for(var key in options) {
     options[key.toLowerCase()] = options[key];
+    delete options[key];
 }
 
 var execPath = path.join(__dirname, 'exec');
