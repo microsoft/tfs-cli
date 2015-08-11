@@ -5,19 +5,25 @@ import path = require('path');
 import loader = require('./lib/loader');
 import cm = require('./lib/common');
 import am = require('./lib/auth');
+import argm = require('./lib/arguments');
 import cnm = require('./lib/connection');
+import inputm = require('./lib/inputs');
 var trace = require('./lib/trace');
 
 var minimist = require('minimist');
 
 var mopts = {
   boolean: 'help',
-  default: { help: false, username: '', password: '', authtype: 'pat' }
+  default: { help: false }
 };
 
 var options = minimist(process.argv.slice(2), mopts);
 var args: string[] = options['_'];
 delete options['_'];
+for(var key in options) {
+    options[key.toLowerCase()] = options[key];
+    delete options[key];
+}
 
 var execPath = path.join(__dirname, 'exec');
 
@@ -81,7 +87,9 @@ else {
     .then((url: string) => {
         trace('url: ' + url);
         collectionUrl = url;
-        return am.getCredentials(url, options.authtype);
+        return inputm.Qcheck(args, options, [argm.AUTH_TYPE], []).then((allArguments) => {
+            return am.getCredentials(url, allArguments[argm.AUTH_TYPE.name]);
+        });
     })
     .then((creds: am.ICredentials) => {
         trace(creds, 'CREDS');

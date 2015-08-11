@@ -3,6 +3,9 @@
 import cm = require('./common');
 import cnm = require('./connection');
 import apim = require('vso-node-api/WebApi');
+import argm = require('./arguments');
+import inputm = require('./inputs');
+import os = require('os');
 var trace = require('./trace');
 
 /*
@@ -12,13 +15,17 @@ var trace = require('./trace');
  * @param requiredArguments an array of the names of all arguments that can be optionally provided
  * @param flags boolean flags (optional because less frequently used) eg "--all"
  */
-export function formatArgumentsHint(requiredArguments: string[], optionalArguments: string[], flags?: string[]) {
+export function formatArgumentsHint(requiredArguments: argm.Argument[], 
+    optionalArguments: argm.Argument[], 
+    flags?: argm.Argument[]
+    ): string {
+        
     var argumentsHint: string = "";
     for (var i = 0; i < requiredArguments.length; i++) {
-        argumentsHint += ' <' + requiredArguments[i] + '>';
+        argumentsHint += ' <' + requiredArguments[i].friendlyName + '>';
     }
     for (var i = 0; i < optionalArguments.length; i++) {
-        argumentsHint += ' [--' + optionalArguments[i] + ' <' + optionalArguments[i] + '>]';
+        argumentsHint += ' [--' + optionalArguments[i].name + ' <' + optionalArguments[i].friendlyName + '>]';
     }
     argumentsHint += ' [options]'
     return argumentsHint;
@@ -26,12 +33,19 @@ export function formatArgumentsHint(requiredArguments: string[], optionalArgumen
 
 export class TfCommand {
     public connection: cnm.TfsConnection;
+    public requiredArguments: argm.Argument[] = [];
+    public optionalArguments: argm.Argument[] = [];
+    public flags: argm.Argument[] = [];
     
     // setConnection
 
     // getWebApi() 
     public getWebApi(): apim.WebApi {
         return new apim.WebApi(this.connection.collectionUrl, this.connection.authHandler);
+    }
+    
+    public getArguments(): string {
+        return formatArgumentsHint(this.requiredArguments, this.optionalArguments, this.flags);
     }
 
     //
@@ -50,15 +64,14 @@ export class TfCommand {
         // should override and output to console results
         // in readable text based on data from exec call
     }
-
-    /*
-     * throws an error if a required argument was not provided with a command 
-     */
-    public checkRequiredParameter(parameterValue: any, parameterName: string, friendlyName?: string) {
-        var finalFriendlyName = friendlyName || parameterName;
-        if(!parameterValue) {
-            trace('Missing required parameter ' + parameterName);
-            throw new Error('Required parameter ' + parameterName + ' not supplied. Try adding a switch to the end of your command: --' + parameterName + ' <' + finalFriendlyName + '>');
-        }
+    
+    public promptArguments(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+        trace('tfcommand.promptArguments');
+        return inputm.Qprompt(requiredInputs, optionalInputs);
+    }
+    
+    public checkArguments(args: string[], options: cm.IOptions): Q.Promise<cm.IStringIndexer> {
+        trace('tfcommand.checkArguments');
+        return inputm.Qcheck(args, options, this.requiredArguments, this.optionalArguments.concat(this.flags));
     }
 }

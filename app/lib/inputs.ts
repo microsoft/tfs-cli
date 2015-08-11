@@ -4,7 +4,9 @@
 /// <reference path="../../definitions/q/Q.d.ts" />
 
 import cm = require('./common');
+import os = require('os');
 import Q = require('q');
+import argm = require('./arguments');
 
 var readline = require("readline")
   , read = require('read')
@@ -14,31 +16,45 @@ var readline = require("readline")
 
 var args = argparser(process.argv.slice(2));
 
-var getValueFromString = function (val, valtype, fallback) {
-    var retVal = val;
-
-    switch (valtype) {
-        case "number":
-            retVal = Number(val);
-            if (isNaN(retVal))
-                retVal = fallback;
-            break;
-        case "boolean":
-            retVal = ((val.toLowerCase() === "true") || (val === "1"));
-            break;
-    }
-
-    return retVal;
-};
-
-// Q wrapper
-export function Qget(inputs: any): Q.Promise<cm.IStringDictionary> {
+export function Qcheck(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
     var defer = Q.defer<cm.IStringDictionary>();
-
-    this.get(inputs, (err, result: cm.IStringDictionary) => {
+    this.check(args, options, requiredArguments, optionalArguments, (err, result: cm.IStringDictionary) => {
         if (err) {
             defer.reject(err);
-            return;
+        }
+
+        defer.resolve(result);
+    });
+    return defer.promise;
+}
+
+export function check(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[], done: (err:Error, result: cm.IStringIndexer) => void): void {
+    trace('inputs.check');
+    var allArguments: cm.IStringIndexer = {};
+    for(var i = 0; i < requiredArguments.length; i++) {
+        var arg: argm.Argument = requiredArguments[i];
+        var name: string = arg.name;
+        allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue);
+        if(!allArguments[name]) {
+            trace('Required parameter ' + name + ' not supplied.');
+            done(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + arg.friendlyName + '>'), null);
+        }
+    }
+    for(var i = 0; i < optionalArguments.length; i++) {
+        var arg: argm.Argument = optionalArguments[i];
+        var name: string = arg.name;
+        allArguments[name] = options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue;
+    }
+    done(null, allArguments);
+}
+
+// Q wrapper
+export function Qprompt( requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringDictionary> {
+    var defer = Q.defer<cm.IStringDictionary>();
+
+    this.prompt(requiredInputs, optionalInputs, (err, result: cm.IStringDictionary) => {
+        if (err) {
+            defer.reject(err);
         }
 
         defer.resolve(result);
@@ -48,31 +64,32 @@ export function Qget(inputs: any): Q.Promise<cm.IStringDictionary> {
 }
 
 // done(err, result)
-export function get(inputs, done: (err: Error, result: cm.IStringDictionary) => void): void {
-    trace('inputs.get');
-    var result: cm.IStringDictionary = <cm.IStringDictionary>{};
+export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[], done: (err: Error, result: cm.IStringIndexer) => void): void {
+    trace('inputs.prompt');
+    var result: cm.IStringIndexer = <cm.IStringIndexer>{};
     
     result['_'] = args['_'];
+    
+    var inputs = requiredInputs.concat(optionalInputs);
 
     // TODO: get rid of async and code just with Q
 
-    async.forEachSeries(inputs, function (input, inputDone) {
-        if (args[input.arg]) {
-            result[input.name] = args[input.arg];
+    async.forEachSeries(inputs, function (input: argm.Argument, inputDone) {
+        if (args[input.name]) {
+            result[input.name] = args[input.name];
             inputDone(null, null);
             return;
         }
 
-        var msg = 'Enter ' + input.description;
-        if (input.def) {
-            msg += ' (enter sets ' + input.def + ') ';
-        } 
+        var msg = 'Enter ' + input.friendlyName;
+        if (input.defaultValue) {
+            msg += ' (enter sets ' + input.defaultValue + ') ';
+        }
         msg += ' > ';
 
-        var silent = input.type === 'password';
-        read({ prompt: msg, silent: silent }, function(err, answer) {
-            var useVal = answer === "" ? input.def : answer;
-            result[input.name] = getValueFromString(useVal, input.type, input.default);
+        read({ prompt: msg, silent: input.silent }, function(err, answer) {
+            var useVal = answer === "" ? input.defaultValue : answer;
+            result[input.name] = input.getValueFromString(useVal.toString());
             trace('read: ' + result[input.name]);
             inputDone(null, null);
         });
@@ -85,11 +102,11 @@ export function get(inputs, done: (err: Error, result: cm.IStringDictionary) => 
         }
 
         // final validation
-        inputs.forEach(function(input) {
+        requiredInputs.forEach(function(input) {
 
-            if (input.req && !result[input.name]) {
-                trace(input.description + ' is required.');
-                done(new Error(input.description + ' is required.'), null);
+            if (!result[input.name]) {
+                trace(input.name + ' is required.');
+                done(new Error(input.name + ' is required.'), null);
                 return;
             }
         });

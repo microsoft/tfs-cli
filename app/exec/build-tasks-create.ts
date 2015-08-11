@@ -2,7 +2,7 @@ import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import buildifm = require('vso-node-api/interfaces/BuildInterfaces');
 import buildm = require('vso-node-api/BuildApi');
-import params = require('../lib/parameternames');
+import argm = require('../lib/arguments');
 import inputs = require('../lib/inputs');
 import path = require('path');
 import fs = require('fs');
@@ -32,50 +32,35 @@ export var isServerOperation: boolean = false;
 export var hideBanner: boolean = false;
 
 export class BuildCreate extends cmdm.TfCommand {
+    requiredArguments = [argm.TASK_NAME, argm.FRIENDLY_NAME, argm.DESCRIPTION, argm.AUTHOR];
+    
     public exec(args: string[], options: cm.IOptions): any {
         trace('build-create.exec');
         var defer = Q.defer<any>();
-
-        var taskInputs = [
-            {
-                name: 'name', description: 'short name', arg: 'name', type: 'string', req: true
-            },
-            {
-                name: 'friendlyName', description: 'friendly name', arg: 'friendlyName', type: 'string', req: true               
-            },
-            {
-                name: 'description', description: 'description', arg: 'description', type: 'string', req: true
-            },
-            {
-                name: 'author', description: 'author', arg: 'author', type: 'string', req: true
-            } 
-        ];
-
-        inputs.Qget(taskInputs)
-        .then((result) => {
-            
-            // validate inputs
-            var tname = result['name'];
-            var tfriendly = result['friendlyName'];
-            var tdescription = result['description'];
-            var tauthor = result['author'];
-
+        
+		this.promptArguments(this.requiredArguments, this.optionalArguments).then( (allArguments) => {
+   
+            var tname = allArguments[argm.TASK_NAME.name];
+            var tfriendly = allArguments[argm.FRIENDLY_NAME.name];
+            var tdescription = allArguments[argm.DESCRIPTION.name];
+            var tauthor = allArguments[argm.AUTHOR.name];
+    
             if (!tname || !check.isAlphanumeric(tname)) {
                 throw new Error('name is a required alphanumeric string with no spaces');
             }
-
+    
             if (!tfriendly || !check.isLength(tfriendly, 1, 25)) {
                 throw new Error('friendlyName is a required string <= 40 chars');
             }
-
+    
             if (!tdescription || !check.isLength(tdescription, 1, 80)) {
                 throw new Error('description is a required string <= 80 chars');
             }
-
+    
             if (!tauthor || !check.isLength(tauthor, 1, 40)) {
                 throw new Error('author is a required string <= 40 chars');
             }
-
+    
             var ret: any = {};
             
             // create definition
@@ -85,20 +70,20 @@ export class BuildCreate extends cmdm.TfCommand {
             shell.mkdir('-p', tp);
             trace('created folder');
             ret.taskPath = tp;
-
+    
             trace('creating definition');
             var def: any = {};
             def.id = uuid.v1();
             trace('id: ' + def.id);
             def.name = tname;
             trace('name: ' + def.name);
-            def.friendlyName = result['friendlyName'];
+            def.friendlyName = tfriendly;
             trace('friendlyName: ' + def.friendlyName);
-            def.description = result['description'];
+            def.description = tdescription;
             trace('description: ' + def.description);
-            def.author = result['author'];
+            def.author = tauthor;
             trace('author: ' + def.author);
-
+    
             def.helpMarkDown = 'Replace with markdown to show in help';
             def.category = 'Utility';
             def.visibility = ['Build', 'Release'];
@@ -106,7 +91,7 @@ export class BuildCreate extends cmdm.TfCommand {
             def.version = { Major: '0', Minor: '1', Patch: '0'};
             def.minimumAgentVersion = '1.83.0';
             def.instanceNameFormat = tname + ' $(message)';
-
+    
             var cwdInput = {
                 name: "cwd", 
                 type: "filePath", 
@@ -115,7 +100,7 @@ export class BuildCreate extends cmdm.TfCommand {
                 required: false,
                 helpMarkDown: "Current working directory when " + tname + " is run."   
             }
-
+    
             var msgInput = {
                 name: "msg", 
                 type: "string", 
@@ -124,9 +109,9 @@ export class BuildCreate extends cmdm.TfCommand {
                 required: true,
                 helpMarkDown: "Message to echo out"   
             }
-
+    
             def.inputs = [cwdInput, msgInput];
-
+    
             def.execution = {
                 Node: {
                     target: "sample.js",
@@ -138,9 +123,9 @@ export class BuildCreate extends cmdm.TfCommand {
                     workingDirectory: "$(currentDirectory)"
                 }
             }
-
+    
             ret.definition = def;
-
+    
             trace('writing definition file');
             var defPath = path.join(tp, 'task.json');
             trace(defPath);
@@ -153,7 +138,7 @@ export class BuildCreate extends cmdm.TfCommand {
                 throw new Error('Failed creating task: ' + err.message);
             }
             trace('created definition file.');
-
+    
             var copyResource = function(fileName) {
                 var src = path.join(__dirname, 'resources', fileName);
                 trace('src: ' + src);
@@ -162,19 +147,18 @@ export class BuildCreate extends cmdm.TfCommand {
                 shell.cp(src, dest);
                 trace(fileName + ' copied');
             }
-
+    
             trace('creating temporary icon');
             copyResource('icon.png');
             copyResource('sample.js');
             copyResource('sample.ps1');
-
+    
             defer.resolve(ret);
         })
         .fail((err) => {
             trace('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
-        })
-
+        });
         return <Q.Promise<any>>defer.promise;
     }
 

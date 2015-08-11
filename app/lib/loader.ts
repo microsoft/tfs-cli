@@ -130,15 +130,16 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 var description = mod.describe ? mod.describe() : '';
                 trace('description: ' + description);
                 var listedArguments = '';
-                if (hasImplementation && mod.getArguments) {
-                    listedArguments = mod.getArguments();
+                if (hasImplementation) {
+                    listedArguments = hasImplementation.getArguments();
                 }
                 trace(listedArguments);
 
                 console.log(colors.yellow('   ' + cmdLabel));
                 console.log(colors.white('\t' + description));
-                if (hasImplementation) 
-                    console.log('\t' + cmdLabel + listedArguments);
+                if (hasImplementation) {
+                    console.log('\t' + cmdLabel + listedArguments);   
+                }
 
                 console.log();
             }
