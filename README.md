@@ -32,7 +32,7 @@ Enter personal access token >
 logged in successfully
 ```
 
-You can alternatively use basic auth by passing `--authType basic`.  NTLM will come soon.
+You can alternatively use basic auth by passing `--authtype basic`.  NTLM will come soon.
 
 ## Command Documentation
 [Build Tasks](docs/buildtasks.md): create, list, upload and delete your build tasks
