@@ -55,7 +55,7 @@ It's task is in the
 ~$ tfx build tasks upload ./CreateOctopusRelease
 ```
 
-Note that tasks are cached on the server. If you upload a changed version of a task with the same version number it might happen that still the old cached version is used by the build system.
+Build tasks are cached by version on the agent. The implementation by that version is considered to be immutable. If you are changing the implementation and uploading, bump at least the patch version.
 
 ## List
 
