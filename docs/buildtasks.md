@@ -55,6 +55,8 @@ It's task is in the
 ~$ tfx build tasks upload ./CreateOctopusRelease
 ```
 
+Note that tasks are cached on the server. If you upload a changed version of a task with the same version number it might happen that still the old cached version is used by the build system.
+
 ## List
 
 To list the tasks that are on the server ...
