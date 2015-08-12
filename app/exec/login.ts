@@ -7,6 +7,7 @@ import cam = require('../lib/diskcache');
 import argm = require('../lib/arguments');
 import apim = require('vso-node-api/WebApi');
 import agentm = require('vso-node-api/TaskAgentApi');
+import os = require('os');
 var trace = require('../lib/trace');
 
 export function describe(): string {
@@ -52,7 +53,7 @@ export class Login extends cmdm.TfCommand {
                 }
                 else if (err) {
                     trace('Connection failed.')
-                    defer.reject(new Error('Connection failed. Check your internet connection & collection URL.'));
+                    defer.reject(new Error('Connection failed. Check your internet connection & collection URL.' + os.EOL + 'Message: ' + err.message));
                 }
                 defer.resolve(con.credentials);
             });

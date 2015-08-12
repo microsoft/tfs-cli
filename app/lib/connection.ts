@@ -29,15 +29,18 @@ export class TfsConnection {
                 break;
         }
 
-        // TODO: validate url
         var purl = url.parse(collectionUrl);
         if (!purl.protocol || !purl.host) {
             trace('Invalid collection url');
             throw new Error('Invalid collection url');
         }
-
-        // TODO: handle on prem /tfs
+        
         this.accountUrl = purl.protocol + '//' + purl.host;
+        var path: string[] = purl.path.split('/');
+        if (path.length > 2 && path[1] === 'tfs') {
+            // on prem
+            this.accountUrl += '/' + 'tfs';
+        }
     }
 
     public collectionUrl: string;
