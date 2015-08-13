@@ -34,6 +34,11 @@ logged in successfully
 
 You can alternatively use basic auth by passing `--authType basic`.  NTLM will come soon.
 
+### Basic Auth for TFS
+In order to use basic auth, you first have to enable basic auth on the TFS application tier IIS. Install the Basic Auth feature (if it is not installed) using Server Manager. Once it is installed, browse to the "tfs" application under the TFS website and enable Basic Auth. WARNING! Passwords are sent in clear-text when you enable basic auth.
+
+Once you have enabled basic auth in IIS, you can then run `tfx login --authtype basic`. When prompted for username, use DOMAIN\USERNAME format (if you're on a Workgroup the DOMAIN will be the TFS machine name). Enter the password for the user when prompted for your password.
+
 ## Command Documentation
 [Build Tasks](docs/buildtasks.md): create, list, upload and delete your build tasks
 
