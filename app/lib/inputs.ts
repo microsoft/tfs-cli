@@ -88,8 +88,7 @@ export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Arg
         msg += ' > ';
 
         read({ prompt: msg, silent: input.silent }, function(err, answer) {
-            var useVal = answer === "" ? input.defaultValue : answer;
-            result[input.name] = input.getValueFromString(useVal.toString());
+            result[input.name] = answer ? input.getValueFromString(answer.toString()) : input.defaultValue;
             trace('read: ' + result[input.name]);
             inputDone(null, null);
         });
