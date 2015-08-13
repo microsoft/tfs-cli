@@ -38,7 +38,6 @@ export class TfsConnection {
         
         var splitPath: string[] = purl.path.split('/').slice(1);
         this.accountUrl = purl.protocol + '//' + purl.host;
-        console.log(splitPath.length);
         if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
             trace('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
             throw new Error('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
