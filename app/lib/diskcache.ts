@@ -29,10 +29,11 @@ export class DiskCache {
     }
 
     public getItem(store: string, name: string): Q.Promise<string> {
+        trace.debug('cache.getItem');
         var defer = Q.defer<string>();
         var fp = this.getFilePath(store, name);
-        trace.debug('read: ' + store + ':' + name, 'CACHE');
-        trace.debug(fp, 'CACHE');
+        trace.debugArea('read: ' + store + ':' + name, 'CACHE');
+        trace.debugArea(fp, 'CACHE');
         fs.readFile(fp, (err: Error, contents: Buffer) => {
             if (err) {
                 defer.reject(err);
@@ -40,7 +41,7 @@ export class DiskCache {
             }
 
             var str = contents.toString();
-            trace.debug(str, 'CACHE');
+            trace.debugArea(str, 'CACHE');
             defer.resolve(str);
         });
 
@@ -48,16 +49,17 @@ export class DiskCache {
     }
 
     public setItem(store: string, name: string, data:string): Q.Promise<void> {
+        trace.debug('cache.setItem');
         var defer = Q.defer<void>();
         var fp = this.getFilePath(store, name);
-        trace.debug('write: ' + store + ':' + name + ':' + data, 'CACHE');
-        trace.debug(fp, 'CACHE');
+        trace.debugArea('write: ' + store + ':' + name + ':' + data, 'CACHE');
+        trace.debugArea(fp, 'CACHE');
         fs.writeFile(fp, data, {flag: 'w'}, (err: Error) => {
             if (err) {
                 defer.reject(err);
                 return;
             }
-            trace.debug('written', 'CACHE');
+            trace.debugArea('written', 'CACHE');
             defer.resolve(null);
         });
 

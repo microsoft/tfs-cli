@@ -32,7 +32,7 @@ export class BuildTaskList extends cmdm.TfCommand {
             return agentapi.getTaskDefinitions(['build']).then((tasks) => {
                 trace.debug("Retrieved " + tasks.length + " build tasks from server.");
                 if(allArguments[argm.ALL.name]) {
-                    trace("Listing all build tasks.");
+                    trace.debug("Listing all build tasks.");
                     return tasks;
                 }
                 else {

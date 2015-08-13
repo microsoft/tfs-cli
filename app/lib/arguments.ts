@@ -20,8 +20,10 @@ export class Argument {
 }
 
 export class ArrayArgument extends Argument {
+	public defaultValue = [];
+	
 	public getValueFromString(stringRepresentation: string): any {
-		return [stringRepresentation]
+		return stringRepresentation.split(',');
 	}
 }
 
@@ -90,8 +92,11 @@ export var TASK_NAME: StringArgument = new StringArgument('name', 'short task na
 export var TASK_PATH: FilePathArgument = new FilePathArgument('taskpath');
 
 ///VSIX
+export var EXTENSION_ID: StringArgument = new StringArgument('extensionid');
 export var PUBLISHER_NAME: StringArgument = new StringArgument('name', 'publisher name');
 export var GALLERY_URL: StringArgument = new StringArgument('galleryurl', 'gallery url', 'https://app.market.visualstudio.com');
 export var MANIFEST_GLOB: ArrayArgument = new ArrayArgument('manifestglob', 'manifest glob', ['vss-extension.json']);
 export var OUTPUT_PATH: StringArgument = new StringArgument('outputpath', 'output path', '{auto}');
 export var OVERRIDE: StringArgument = new StringArgument('override', 'overrides JSON');
+export var SHARE_WITH: ArrayArgument = new ArrayArgument('sharewith');
+export var VSIX_PATH: StringArgument = new StringArgument('vsix', 'path to vsix');

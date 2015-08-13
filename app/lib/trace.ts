@@ -10,18 +10,22 @@ export function success(str: string, ...replacements: string[]): void {
 	doLog(str, colors.green, replacements);
 }
 
+export function info(str: string, ...replacements: string[]): void {
+	doLog(str, colors.gray, replacements);
+}
+
 export function warn(str: string, ...replacements: string[]): void {
 	doLog(str, colors.bgYellow.black, replacements);
 }
 
-var write = function(msg, replacements: string[]) {
-	doLog(msg, colors.grey, replacements);
+export function debugArea(msg: any, area: string) {
+	traceEnabled = process.env['TFX_TRACE_' + area.toUpperCase()];
+	debug(msg);
+	traceEnabled = process.env['TFX_TRACE'];
 }
 
 export function debug(msg: any, ...replacements: string[]) {
-    var traceMsg = traceEnabled;
-
-    if (traceMsg) {
+    if (traceEnabled) {
         var t = typeof(msg);
         if (t === 'string') {
             write(msg, replacements);
@@ -38,6 +42,10 @@ export function debug(msg: any, ...replacements: string[]) {
         } 
     }
 };
+
+var write = function(msg, replacements: string[]) {
+	doLog(msg, colors.grey, replacements);
+}
 
 function doLog(str: string, color: any, replacements: string[], method = console.log): void {
 	let toLog = doReplacements(str, replacements);

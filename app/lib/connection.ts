@@ -61,7 +61,7 @@ export class TfsConnection {
 var result: string;
 
 export function getCollectionUrl(): Q.Promise<string> {
-    trace.debug('loader.getCollectionUrl');
+    trace.debug('connection.getCollectionUrl');
     var defer = Q.defer<string>();
 
     return this.getCachedUrl()
@@ -73,7 +73,7 @@ export function getCollectionUrl(): Q.Promise<string> {
 }
 
 export function getCachedUrl(): Q.Promise<string> {
-    trace.debug('loader.getCachedUrl');
+    trace.debug('connection.getCachedUrl');
     var defer = Q.defer<string>();
 
     if (process.env['TFS_BYPASS_CACHE']) {
@@ -96,7 +96,7 @@ export function getCachedUrl(): Q.Promise<string> {
 }
 
 export function promptForUrl(): Q.Promise<string> {
-    trace.debug('loader.promptForUrl');
+    trace.debug('connection.promptForUrl');
     var defer = Q.defer<string>();
     var promise = <Q.Promise<string>>defer.promise;
 

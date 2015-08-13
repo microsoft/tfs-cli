@@ -1,8 +1,3 @@
-// Type definitions for vso-node-api v0.3.2
-// Project: https://github.com/Microsoft/vso-node-api
-// Definitions by: Teddy Ward <https://github.com/teddyward>
-// Definitions: https://github.com/borisyankov/DefinitelyTyped
-
 /// <reference path="../node/node.d.ts" />
 /// <reference path="../q/Q.d.ts" />
 declare module 'vso-node-api/Serialization' {
@@ -60,7 +55,7 @@ declare module 'vso-node-api/Serialization' {
 	     * @param contractMetadata The type info/metadata for the contract type being serialized
 	     * @param preserveOriginal If true, don't modify the original object. False modifies the original object (the return value points to the data argument).
 	     */
-		function serialize(data: any, contractMetadata: ContractMetadata, preserveOriginal?: boolean): any;
+	    function serialize(data: any, contractMetadata: ContractMetadata, preserveOriginal?: boolean): any;
 	    /**
 	     * Process a pure JSON object (e.g. that came from a REST call) and transform it into a JS object
 	     * where date strings are converted to Date objects and enum values are converted from strings into

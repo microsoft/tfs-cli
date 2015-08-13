@@ -62,8 +62,7 @@ export function match(cmdList: string[], cmds: string[]): string {
             return true;
         }
     });
-    
-    trace.debug('No command matched');
+
     return match;
 }
 
