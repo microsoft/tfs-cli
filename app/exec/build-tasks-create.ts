@@ -35,7 +35,7 @@ export class BuildCreate extends cmdm.TfCommand {
     requiredArguments = [argm.TASK_NAME, argm.FRIENDLY_NAME, argm.DESCRIPTION, argm.AUTHOR];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('build-create.exec');
+        trace.debug('build-create.exec');
         var defer = Q.defer<any>();
         
 		this.promptArguments(this.requiredArguments, this.optionalArguments).then( (allArguments) => {
@@ -64,25 +64,25 @@ export class BuildCreate extends cmdm.TfCommand {
             var ret: any = {};
             
             // create definition
-            trace('creating folder for task');
+            trace.debug('creating folder for task');
             var tp = path.join(process.cwd(), tname);
             trace(tp);
             shell.mkdir('-p', tp);
-            trace('created folder');
+            trace.debug('created folder');
             ret.taskPath = tp;
     
-            trace('creating definition');
+            trace.debug('creating definition');
             var def: any = {};
             def.id = uuid.v1();
-            trace('id: ' + def.id);
+            trace.debug('id: ' + def.id);
             def.name = tname;
-            trace('name: ' + def.name);
+            trace.debug('name: ' + def.name);
             def.friendlyName = tfriendly;
-            trace('friendlyName: ' + def.friendlyName);
+            trace.debug('friendlyName: ' + def.friendlyName);
             def.description = tdescription;
-            trace('description: ' + def.description);
+            trace.debug('description: ' + def.description);
             def.author = tauthor;
-            trace('author: ' + def.author);
+            trace.debug('author: ' + def.author);
     
             def.helpMarkDown = 'Replace with markdown to show in help';
             def.category = 'Utility';
@@ -126,7 +126,7 @@ export class BuildCreate extends cmdm.TfCommand {
     
             ret.definition = def;
     
-            trace('writing definition file');
+            trace.debug('writing definition file');
             var defPath = path.join(tp, 'task.json');
             trace(defPath);
             try {
@@ -137,7 +137,7 @@ export class BuildCreate extends cmdm.TfCommand {
             catch(err) {
                 throw new Error('Failed creating task: ' + err.message);
             }
-            trace('created definition file.');
+            trace.debug('created definition file.');
     
             var copyResource = function(fileName) {
                 var src = path.join(__dirname, 'resources', fileName);
@@ -148,7 +148,7 @@ export class BuildCreate extends cmdm.TfCommand {
                 trace(fileName + ' copied');
             }
     
-            trace('creating temporary icon');
+            trace.debug('creating temporary icon');
             copyResource('icon.png');
             copyResource('sample.js');
             copyResource('sample.ps1');
@@ -156,7 +156,7 @@ export class BuildCreate extends cmdm.TfCommand {
             defer.resolve(ret);
         })
         .fail((err) => {
-            trace('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
         });
         return <Q.Promise<any>>defer.promise;

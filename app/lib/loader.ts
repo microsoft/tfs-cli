@@ -8,7 +8,7 @@ import colors = require('colors');
 var trace = require('../lib/trace');
 
 export function load(execPath: string, cmds: string[], defaultCmd: string): any {
-    trace('loader.load');   
+    trace.debug('loader.load');   
     var module = null;
 
     var execCmds: string[] = null;
@@ -19,14 +19,14 @@ export function load(execPath: string, cmds: string[], defaultCmd: string): any 
         return module;
     }
 
-    trace(execCmds);
+    trace.debug(execCmds);
 
     var match = this.match(execCmds, cmds) || defaultCmd;
     if (match) {
         var mp = path.join(execPath, match);
         module = require(mp);
         if (module) {
-            trace('loaded ' + mp);    
+            trace.debug('loaded ' + mp);    
         }
     }
     
@@ -34,7 +34,7 @@ export function load(execPath: string, cmds: string[], defaultCmd: string): any 
 }
 
 export function match(cmdList: string[], cmds: string[]): string {
-    trace('loader.match');
+    trace.debug('loader.match');
     var candidates = [];
 
     for (var i = 0; i < cmds.length; i++) {
@@ -57,21 +57,21 @@ export function match(cmdList: string[], cmds: string[]): string {
         var file = candidate + '.js';
         var i = cmdList.indexOf(file);
         if (i >= 0) {
-            trace('Command matched');
+            trace.debug('Command matched');
             match = file;
             return true;
         }
     });
     
-    trace('No command matched');
+    trace.debug('No command matched');
     return match;
 }
 
 export function getHelp(execPath: string, scope: string, all: boolean) {
-    trace('loader.getHelp');
+    trace.debug('loader.getHelp');
     var ssc = scope == '' ? 0 : scope.split('-').length;
     var execCmds = execCmds = fs.readdirSync(execPath);
-    trace(execCmds);
+    trace.debug(execCmds);
 
     console.log();
     console.log(colors.magenta('                        fTfs         '));   
@@ -92,7 +92,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
     console.log(colors.cyan('commands:'));
 
     execCmds.forEach((cmd) => {
-        trace('cmd: ' + cmd);
+        trace.debug('cmd: ' + cmd);
         if (!cm.endsWith(cmd, '.js')) {
             return;
         }
@@ -105,7 +105,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
         var csc = cs.length;
         //console.log(scope, ssc, csc, all);
         var show = cmd.indexOf(scope) == 0 && (ssc + 1 == csc || all);
-        trace('show? ' + show);
+        trace.debug('show? ' + show);
 
         //console.log('show: ' + show);
         if (show) {
@@ -115,7 +115,7 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
             // If not, we want to list the 'top level' no impl cmds
             var mod = require(p);
             var hasImplementation = mod.getCommand();
-            trace('hasImplementation? ' + hasImplementation);
+            trace.debug('hasImplementation? ' + hasImplementation);
             if (!all || hasImplementation) {
                 var cmdLabel = '';
                 for (var i = 0; i < cs.length; ++i) {
@@ -128,12 +128,12 @@ export function getHelp(execPath: string, scope: string, all: boolean) {
                 }
 
                 var description = mod.describe ? mod.describe() : '';
-                trace('description: ' + description);
+                trace.debug('description: ' + description);
                 var listedArguments = '';
                 if (hasImplementation) {
                     listedArguments = hasImplementation.getArguments();
                 }
-                trace(listedArguments);
+                trace.debug(listedArguments);
 
                 console.log(colors.yellow('   ' + cmdLabel));
                 console.log(colors.white('\t' + description));

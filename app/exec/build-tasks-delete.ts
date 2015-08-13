@@ -25,27 +25,27 @@ export class BuildTaskDelete extends cmdm.TfCommand {
     requiredArguments = [argm.TASK_ID];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace("build-tasks-delete.exec");
+        trace.debug("build-tasks-delete.exec");
         var defer = Q.defer<agentifm.TaskDefinition>();
 		this.checkArguments(args, options).then( (allArguments) => {
             var taskId: string = allArguments[argm.TASK_ID.name];
     
-            trace("Initializing agent API...");
+            trace.debug("Initializing agent API...");
             var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
     
-            trace("Searching for tasks with id: " + taskId);
+            trace.debug("Searching for tasks with id: " + taskId);
             agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
-                trace("Found " + tasks.length + " tasks with provided id.")
+                trace.debug("Found " + tasks.length + " tasks with provided id.")
                 if (tasks.length > 0) {
-                    trace("Deleting task(s)...");
+                    trace.debug("Deleting task(s)...");
                     agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
                         if (err) {
-                            trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
+                            trace.debug("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
                             err.statusCode = statusCode;
                             defer.reject(err);
                         }
                         else {
-                            trace("Success.")
+                            trace.debug("Success.")
                             defer.resolve(<agentifm.TaskDefinition>{
                                 id: taskId
                             });
@@ -53,13 +53,13 @@ export class BuildTaskDelete extends cmdm.TfCommand {
                     });
                 }
                 else {
-                    trace("No task.");
+                    trace.debug("No task.");
                     defer.reject(new Error("No task found with provided ID: " + taskId));
                 }
             });
         })
         .fail((err) => {
-            trace('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
         });
         return <Q.Promise<agentifm.TaskDefinition>>defer.promise;

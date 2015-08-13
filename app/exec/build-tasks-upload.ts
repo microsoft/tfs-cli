@@ -33,13 +33,13 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     optionalArguments = [argm.OVERWRITE];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('build-task-upload.exec');
+        trace.debug('build-task-upload.exec');
         var defer = Q.defer<agentifm.TaskDefinition>();
 		this.checkArguments(args, options).then( (allArguments) => {
             var taskPath: string = allArguments[argm.TASK_PATH.name];
             var overwrite: boolean = allArguments[argm.OVERWRITE.name];
     
-            trace('taskPath: ' + taskPath);
+            trace.debug('taskPath: ' + taskPath);
             try {
                 vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
             }
@@ -49,29 +49,29 @@ export class BuildTaskUpload extends cmdm.TfCommand {
             //directory is good, check json
     
             var tp = path.resolve(process.cwd(), path.join(taskPath, c_taskJsonFile));
-            trace('task.json path: ' + tp);
+            trace.debug('task.json path: ' + tp);
     
             vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory')
             .then((taskJson) => {
                 var archive = archiver('zip');
                 archive.on('error', function(error) {
-                    trace('Archiving error: ' + error.message);
+                    trace.debug('Archiving error: ' + error.message);
                     error.message = 'Archiving error: ' + error.message;
                     defer.reject(error);
                 })
                 archive.directory(taskPath, false);
     
-                trace("Initializing agent API...");
+                trace.debug("Initializing agent API...");
                 var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
     
                 agentapi.uploadTaskDefinition(null, archive, taskJson.id, overwrite, (err, statusCode, task) => {
                     if(err) {
-                        trace('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
+                        trace.debug('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
                         err.statusCode = statusCode;
                         defer.reject(err);
                     }
                     else {
-                        trace('Success');
+                        trace.debug('Success');
                         defer.resolve(<agentifm.TaskDefinition>{
                             sourceLocation: taskPath
                         });
@@ -80,12 +80,12 @@ export class BuildTaskUpload extends cmdm.TfCommand {
                 archive.finalize();
             })
             .fail((error) => {
-                trace('Task json validation failed.');
+                trace.debug('Task json validation failed.');
                 defer.reject(error);
             });
         })
         .fail((err) => {
-            trace('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
         });
 

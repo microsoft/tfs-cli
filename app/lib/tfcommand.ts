@@ -55,7 +55,7 @@ export class TfCommand {
     //
     public exec(args: string[], options: cm.IOptions): Q.Promise<any> {
         var defer = Q.defer();
-        trace('Unimplemented command');
+        trace.debug('Unimplemented command');
         defer.reject(new Error('Not implemented.  Must override'));
         return <Q.Promise<any>>defer.promise;
     }
@@ -66,12 +66,12 @@ export class TfCommand {
     }
     
     public promptArguments(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
-        trace('tfcommand.promptArguments');
+        trace.debug('tfcommand.promptArguments');
         return inputm.Qprompt(requiredInputs, optionalInputs);
     }
     
     public checkArguments(args: string[], options: cm.IOptions): Q.Promise<cm.IStringIndexer> {
-        trace('tfcommand.checkArguments');
+        trace.debug('tfcommand.checkArguments');
         return inputm.Qcheck(args, options, this.requiredArguments, this.optionalArguments.concat(this.flags));
     }
 }

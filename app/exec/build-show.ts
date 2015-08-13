@@ -24,7 +24,7 @@ export class BuildShow extends cmdm.TfCommand {
     requiredArguments = [argm.PROJECT_NAME, argm.BUILD_ID];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('build-show.exec');
+        trace.debug('build-show.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 		return this.checkArguments(args, options).then( (allArguments) => {
             return buildapi.getBuild(allArguments[argm.BUILD_ID.name], allArguments[argm.PROJECT_NAME.name]);

@@ -3,46 +3,23 @@ import os = require('os');
 var traceEnabled = process.env['TFX_TRACE'];
 
 export function error(str: string, ...replacements: string[]): void {
-	doLog("error", str, colors.bgRed, replacements, console.error);
+	doLog(str, colors.bgRed, replacements, console.error);
 }
 
 export function success(str: string, ...replacements: string[]): void {
-	doLog("success", str, colors.green, replacements);
+	doLog(str, colors.green, replacements);
 }
 
 export function warn(str: string, ...replacements: string[]): void {
-	doLog("warning", str, colors.bgYellow.black, replacements);
-}
-
-export function info(str: string, level: number, ...replacements: string[]): void {
-	let logStr;
-	switch (level) {
-		case 1:
-			console.log(); // empty line before a strong message
-			logStr = colors.cyan(str);
-			break;
-		case 2: 
-			logStr = "- " + str;
-			break;
-		case 3: 
-			logStr = "-- " + str;
-			break;
-		default:
-			logStr = str;
-	}
-	doLog("info", logStr, colors.white, replacements);
+	doLog(str, colors.bgYellow.black, replacements);
 }
 
 var write = function(msg, replacements: string[]) {
-	doLog(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, replacements);
+	doLog(msg, colors.grey, replacements);
 }
 
-module.exports = function trace (msg: any, area?:string, ...replacements: string[]) {
+export function debug(msg: any, ...replacements: string[]) {
     var traceMsg = traceEnabled;
-
-    if (area) {
-        traceMsg = process.env['TFX_TRACE_' + area.toUpperCase()];
-    }
 
     if (traceMsg) {
         var t = typeof(msg);
@@ -62,9 +39,9 @@ module.exports = function trace (msg: any, area?:string, ...replacements: string
     }
 };
 
-function doLog(prefix: string, str: string, color: any, replacements: string[], method = console.log): void {
+function doLog(str: string, color: any, replacements: string[], method = console.log): void {
 	let toLog = doReplacements(str, replacements);
-	toLog = toLog.split(/\n|\r\n/).map(line => prefix + line).join(os.EOL);
+	toLog = toLog.split(/\n|\r\n/).map(line => colors.cyan(new Date().toISOString() + ' : ') + line).join(os.EOL);
 	method(color(toLog));
 }
 

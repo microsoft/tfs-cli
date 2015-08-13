@@ -18,12 +18,12 @@ export class TfsConnection {
         this.credentials = credentials;
         switch(credentials.type) {
             case "basic":
-                trace('Using basic creds');
+                trace.debug('Using basic creds');
                 var basicCreds: am.BasicCredentials = <am.BasicCredentials>credentials;
                 this.authHandler = apim.getBasicHandler(basicCreds.username, basicCreds.password);
                 break;
             case "pat":
-                trace('Using PAT creds');
+                trace.debug('Using PAT creds');
                 var patCreds: am.PatCredentials = <am.PatCredentials>credentials;
                 this.authHandler = apim.getBasicHandler("OAuth", patCreds.token);
                 break;
@@ -31,7 +31,7 @@ export class TfsConnection {
 
         var purl = url.parse(collectionUrl);
         if (!purl.protocol || !purl.host) {
-            trace('Invalid collection url - protocol and host are required');
+            trace.debug('Invalid collection url - protocol and host are required');
             throw new Error('Invalid collection url - protocol and host are required');
         }
         
@@ -39,7 +39,7 @@ export class TfsConnection {
         var splitPath: string[] = purl.path.split('/').slice(1);
         this.accountUrl = purl.protocol + '//' + purl.host;
         if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
-            trace('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+            trace.debug('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
             throw new Error('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
         }
         if(splitPath.length === 2 && splitPath[0] === 'tfs') {
@@ -47,7 +47,7 @@ export class TfsConnection {
             this.accountUrl += '/' + 'tfs';
         } 
         else if(splitPath.length > 1) {
-            trace('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
+            trace.debug('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
             throw new Error('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
         }
     }
@@ -61,7 +61,7 @@ export class TfsConnection {
 var result: string;
 
 export function getCollectionUrl(): Q.Promise<string> {
-    trace('loader.getCollectionUrl');
+    trace.debug('loader.getCollectionUrl');
     var defer = Q.defer<string>();
 
     return this.getCachedUrl()
@@ -73,21 +73,21 @@ export function getCollectionUrl(): Q.Promise<string> {
 }
 
 export function getCachedUrl(): Q.Promise<string> {
-    trace('loader.getCachedUrl');
+    trace.debug('loader.getCachedUrl');
     var defer = Q.defer<string>();
 
     if (process.env['TFS_BYPASS_CACHE']) {
-        trace('Skipping checking cache for collection url');
+        trace.debug('Skipping checking cache for collection url');
         defer.resolve('');
     }
     else {
          cache.getItem('cache', 'connection')
         .then(function(url) {
-            trace('Retrieved collection url from cache');
+            trace.debug('Retrieved collection url from cache');
             defer.resolve(url);
         })
         .fail((err) => {
-            trace('No collection url found in cache');
+            trace.debug('No collection url found in cache');
             defer.resolve('');
         });   
     }
@@ -96,7 +96,7 @@ export function getCachedUrl(): Q.Promise<string> {
 }
 
 export function promptForUrl(): Q.Promise<string> {
-    trace('loader.promptForUrl');
+    trace.debug('loader.promptForUrl');
     var defer = Q.defer<string>();
     var promise = <Q.Promise<string>>defer.promise;
 

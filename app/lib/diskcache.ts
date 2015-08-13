@@ -31,8 +31,8 @@ export class DiskCache {
     public getItem(store: string, name: string): Q.Promise<string> {
         var defer = Q.defer<string>();
         var fp = this.getFilePath(store, name);
-        trace('read: ' + store + ':' + name, 'CACHE');
-        trace(fp, 'CACHE');
+        trace.debug('read: ' + store + ':' + name, 'CACHE');
+        trace.debug(fp, 'CACHE');
         fs.readFile(fp, (err: Error, contents: Buffer) => {
             if (err) {
                 defer.reject(err);
@@ -40,7 +40,7 @@ export class DiskCache {
             }
 
             var str = contents.toString();
-            trace(str, 'CACHE');
+            trace.debug(str, 'CACHE');
             defer.resolve(str);
         });
 
@@ -50,14 +50,14 @@ export class DiskCache {
     public setItem(store: string, name: string, data:string): Q.Promise<void> {
         var defer = Q.defer<void>();
         var fp = this.getFilePath(store, name);
-        trace('write: ' + store + ':' + name + ':' + data, 'CACHE');
-        trace(fp, 'CACHE');
+        trace.debug('write: ' + store + ':' + name + ':' + data, 'CACHE');
+        trace.debug(fp, 'CACHE');
         fs.writeFile(fp, data, {flag: 'w'}, (err: Error) => {
             if (err) {
                 defer.reject(err);
                 return;
             }
-            trace('written', 'CACHE');
+            trace.debug('written', 'CACHE');
             defer.resolve(null);
         });
 

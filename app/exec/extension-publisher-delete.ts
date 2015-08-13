@@ -26,19 +26,19 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
     optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('extension-publisher-delete.exec');
+        trace.debug('extension-publisher-delete.exec');
         var defer = Q.defer<galleryifm.Publisher>();
         var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi();
 		this.checkArguments(args, options).then( (allArguments) => {
             var name: string = allArguments[argm.PUBLISHER_NAME.name];
             galleryapi.deletePublisher(name, (err, statusCode: number) => {
                 if (err) {
-                    trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
+                    trace.debug("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
                     err.statusCode = statusCode;
                     defer.reject(err);
                 }
                 else {
-                    trace("Success.");
+                    trace.debug("Success.");
                     defer.resolve(<galleryifm.Publisher>{
                         publisherName: name
                     })
@@ -46,7 +46,7 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
             });
 		})
         .fail((err) => {
-            trace('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
         });
         return <Q.Promise<galleryifm.Publisher>>defer.promise;

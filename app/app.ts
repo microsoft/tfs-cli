@@ -86,14 +86,14 @@ else {
 
     cnm.getCollectionUrl()
     .then((url: string) => {
-        trace('url: ' + url);
+        trace.debug('url: ' + url);
         collectionUrl = url;
         return inputm.Qcheck(args, options, [argm.AUTH_TYPE], []).then((allArguments) => {
             return am.getCredentials(url, allArguments[argm.AUTH_TYPE.name]);
         });
     })
     .then((creds: am.ICredentials) => {
-        trace(creds, 'CREDS');
+        trace.debugArea(creds, 'CREDS');
         connection = new cnm.TfsConnection(collectionUrl, creds);
         cmd.connection = connection;
         return cmd.exec(args, options);
@@ -122,4 +122,3 @@ process.on('uncaughtException', (err) => {
     console.error('unhandled:');
     console.error(err.stack);
 });
-

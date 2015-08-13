@@ -29,14 +29,14 @@ export function Qcheck(args: string[], options: cm.IOptions, requiredArguments: 
 }
 
 export function check(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[], done: (err:Error, result: cm.IStringIndexer) => void): void {
-    trace('inputs.check');
+    trace.debug('inputs.check');
     var allArguments: cm.IStringIndexer = {};
     for(var i = 0; i < requiredArguments.length; i++) {
         var arg: argm.Argument = requiredArguments[i];
         var name: string = arg.name;
         allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue);
         if(!allArguments[name]) {
-            trace('Required parameter ' + name + ' not supplied.');
+            trace.debug('Required parameter ' + name + ' not supplied.');
             done(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + arg.friendlyName + '>'), null);
         }
     }
@@ -65,7 +65,7 @@ export function Qprompt( requiredInputs: argm.Argument[], optionalInputs: argm.A
 
 // done(err, result)
 export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[], done: (err: Error, result: cm.IStringIndexer) => void): void {
-    trace('inputs.prompt');
+    trace.debug('inputs.prompt');
     var result: cm.IStringIndexer = <cm.IStringIndexer>{};
     
     result['_'] = args['_'];
@@ -89,13 +89,13 @@ export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Arg
 
         read({ prompt: msg, silent: input.silent }, function(err, answer) {
             result[input.name] = answer ? input.getValueFromString(answer.toString()) : input.defaultValue;
-            trace('read: ' + result[input.name]);
+            trace.debug('read: ' + result[input.name]);
             inputDone(null, null);
         });
     }, function(err) {
         
         if (err) {
-            trace('Input reading failed with message: ' + err.message);
+            trace.debug('Input reading failed with message: ' + err.message);
             done(err, null);
             return;
         }
@@ -104,7 +104,7 @@ export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Arg
         requiredInputs.forEach(function(input) {
 
             if (!result[input.name]) {
-                trace(input.name + ' is required.');
+                trace.debug(input.name + ' is required.');
                 done(new Error(input.name + ' is required.'), null);
                 return;
             }

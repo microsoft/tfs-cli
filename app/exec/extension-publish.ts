@@ -24,7 +24,7 @@ export class ExtensionPublish extends cmdm.TfCommand {
     optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('extension-publish.exec');
+        trace.debug('extension-publish.exec');
         var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi();
     }
 

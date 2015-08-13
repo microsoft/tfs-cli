@@ -27,7 +27,7 @@ export class Parse extends cmdm.TfCommand {
     requiredArguments = [argm.JSON_FILTER];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<any> {
-        trace('parse.exec');
+        trace.debug('parse.exec');
         var defer = Q.defer();
         
 		return this.checkArguments(args, options).then( (allArguments) => {
@@ -52,7 +52,7 @@ export class Parse extends cmdm.TfCommand {
             });
         })
         .fail((err) => {
-            trace('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: ' + err.message);
             defer.reject(err);
         })
         

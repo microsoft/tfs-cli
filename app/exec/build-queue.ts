@@ -31,8 +31,8 @@ export class BuildQueue extends cmdm.TfCommand {
     }
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('build-queue.exec');
-        trace('Initializing Build API...');
+        trace.debug('build-queue.exec');
+        trace.debug('Initializing Build API...');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 
 		return this.checkArguments(args, options).then( (allArguments) => {
@@ -41,26 +41,26 @@ export class BuildQueue extends cmdm.TfCommand {
             var definitionId: number = allArguments[argm.DEFINITION_ID.name];
     
             if(definitionId) {
-                trace('Searching for definitions with id ' + definitionId);
+                trace.debug('Searching for definitions with id ' + definitionId);
                 return buildapi.getDefinition(definitionId, project).then((definition: buildifm.DefinitionReference) => {
                     return this._queueBuild(buildapi, definition, project);
                 });
             }
             else if (definitionName) {
-                trace('No definition id provided, Searching for definitions with name: ' + definitionName);
+                trace.debug('No definition id provided, Searching for definitions with name: ' + definitionName);
                 return buildapi.getDefinitions(project, definitionName).then((definitions: buildifm.DefinitionReference[]) => {
                     if(definitions.length > 0) {
                         var definition = definitions[0];
                         return this._queueBuild(buildapi, definition, project);
                     }
                     else {
-                        trace('No definition found with name ' + definitionName);
+                        trace.debug('No definition found with name ' + definitionName);
                         throw new Error('No definition found with name ' + definitionName);
                     }
                 });
             }
             else {
-                trace('neither definitionId nor definitionName provided.')
+                trace.debug('neither definitionId nor definitionName provided.')
                 throw new Error('definitionId or definitionName required. Try adding a switch to the end of your command --definitionId <definitionId>')
             }
         });

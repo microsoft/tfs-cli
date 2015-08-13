@@ -24,19 +24,19 @@ export class BuildTaskList extends cmdm.TfCommand {
     flags = [argm.ALL];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace("build-tasks-list.exec");
-        trace("Initializing agent API...");
+        trace.debug("build-tasks-list.exec");
+        trace.debug("Initializing agent API...");
         var agentapi = this.getWebApi().getQTaskAgentApi(this.connection.accountUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
-            trace("Searching for build tasks...");
+            trace.debug("Searching for build tasks...");
             return agentapi.getTaskDefinitions(['build']).then((tasks) => {
-                trace("Retrieved " + tasks.length + " build tasks from server.");
+                trace.debug("Retrieved " + tasks.length + " build tasks from server.");
                 if(allArguments[argm.ALL.name]) {
                     trace("Listing all build tasks.");
                     return tasks;
                 }
                 else {
-                    trace("Filtering build tasks to give only the latest versions.");
+                    trace.debug("Filtering build tasks to give only the latest versions.");
                     return this._getNewestTasks(tasks);
                 }           
             });

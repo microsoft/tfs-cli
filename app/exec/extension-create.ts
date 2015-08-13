@@ -16,7 +16,7 @@ export function getCommand(): cmdm.TfCommand {
 }
 
 // requires auth, connect etc...
-export var isServerOperation: boolean = true;
+export var isServerOperation: boolean = false;
 
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
@@ -26,18 +26,17 @@ export class ExtensionCreate extends cmdm.TfCommand {
     optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('extension-create.exec');
-        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi();
-        this.checkArguments(args, options).then( (allArguments) => {
-            trace("Begin package creation", 1);
+        trace.debug('extension-create.exec');
+        return this.checkArguments(args, options).then( (allArguments) => {
+            trace.debug("Begin package creation");
             let merger = new package.Package.Merger(allArguments);
-            trace("Merge partial manifests", 2);
+            trace.debug("Merge partial manifests");
             return merger.merge().then((vsixComponents) => {
                 trace.success("Merged successfully");
                 let vsixWriter = new package.Package.VsixWriter(vsixComponents.vsoManifest, vsixComponents.vsixManifest, vsixComponents.files);
-                trace("Beginning writing VSIX", 2);
+                trace.debug("Beginning writing VSIX");
                 return vsixWriter.writeVsix(allArguments[argm.OUTPUT_PATH.name]).then((outPath: string) => {
-                    trace("VSIX written to: %s", 3, outPath);
+                    trace.debug("VSIX written to: %s", outPath);
                     return outPath;
                 });
             }).then((outPath) => {

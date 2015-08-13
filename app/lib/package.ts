@@ -166,22 +166,24 @@ export module Package {
 		}
 		
 		private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
+			trace.debug('merger.gatherManifests');
 			let globs = globPatterns.map(pattern => 
 				path.isAbsolute(pattern) ? pattern : path.join(this.mergeSettings.root, pattern));
 			return Q.all(globs.map(pattern => this.gatherManifestsFromGlob(pattern))).then((fileLists) => {
 				return _.unique(fileLists.reduce((a, b) => { return a.concat(b); }));
 			}).then((paths) => {
 				if (paths.length > 0) {
-					trace("Merging %s manifests from the following paths: ", 2, paths.length.toString());
-					paths.forEach(path => trace(path, 3));
+					trace.debug("Merging %s manifests from the following paths: ", paths.length.toString());
+					paths.forEach(path => trace.debug(path));
 					return paths;
 				} else {
-					throw "No manifests found from the following glob patterns: \n" + globPatterns.join("\n");
+					throw new Error("No manifests found from the following glob patterns: \n" + globPatterns.join("\n"));
 				}
 			});
 		}
 		
 		private gatherManifestsFromGlob(globPattern: string): Q.Promise<string[]> {
+			trace.debug('merger.gatherManifestsFromGlob');
 			return Q.Promise<string[]>((resolve, reject, notify) => {
 				glob(globPattern, (err, matches) => {
 					if (!err) {
@@ -198,6 +200,7 @@ export module Package {
 		 * @return Q.Promise<SplitManifest> An object containing the two manifests
 		 */
 		public merge(): Q.Promise<VsixComponents> {
+			trace.debug('merger.merge')
 			return this.gatherManifests(this.mergeSettings.manifestGlobs).then((files: string[]) => {
 				let overridesProvided = false;
 				let manifestPromises: Q.Promise<any>[] = [];
@@ -210,7 +213,7 @@ export module Package {
 							return result;	
 						} catch (err) {
 							trace.error("Error parsing the JSON in %s: ", file);
-							trace(jsonData, null);
+							trace.debug(jsonData, null);
 							throw err;
 						}
 					}));
@@ -237,7 +240,7 @@ export module Package {
 							(<Array<FileDeclaration>>partial["files"]).forEach((asset) => {
 								let keys = Object.keys(asset);
 								if (keys.indexOf("path") < 0) {
-									throw "Files must have an absolute or relative (to the manifest) path.";
+									throw new Error("Files must have an absolute or relative (to the manifest) path.");
 								}
 								let absolutePath;
 								if (path.isAbsolute(asset.path)) {
@@ -261,9 +264,9 @@ export module Package {
 						let pathToFileDeclarations = (fsPath: string, root: string): FileDeclaration[] => {
 							let files: FileDeclaration[] = [];
 							if (fs.lstatSync(fsPath).isDirectory()) {
-								trace("Path '%s` is a directory. Adding all contained files (recursive).", fsPath);
+								trace.debug("Path '%s` is a directory. Adding all contained files (recursive).", fsPath);
 								fs.readdirSync(fsPath).forEach((dirChildPath) => {
-									trace("-- %s", dirChildPath);
+									trace.debug("-- %s", dirChildPath);
 									files = files.concat(pathToFileDeclarations(path.join(fsPath, dirChildPath), root));
 								});
 							} else {
@@ -298,12 +301,12 @@ export module Package {
 						}
 					});
 					let validationResult = this.validateVsixJson(vsixManifest);
-					trace("VSO Manifest: " + JSON.stringify(vsoManifest, null, 4));
-					trace("VSIX Manifest: " + JSON.stringify(vsixManifest, null, 4)); 
+					trace.debug("VSO Manifest: " + JSON.stringify(vsoManifest, null, 4));
+					trace.debug("VSIX Manifest: " + JSON.stringify(vsixManifest, null, 4)); 
 					if (validationResult.length === 0) {
 						return <VsixComponents>{vsoManifest: vsoManifest, vsixManifest: vsixManifest, files: packageFiles};
 					} else {
-						throw "There were errors with your manifests. Address the following errors and re-run the tool.\n" + validationResult;
+						throw new Error("There were errors with your manifests. Address the following errors and re-run the tool.\n" + validationResult);
 					}
 				});
 			});
@@ -543,7 +546,7 @@ export module Package {
 				Path: VsixWriter.VSO_MANIFEST_FILENAME
 			}});
 			
-			trace("Manifests finished prepping.");
+			trace.debug("Manifests finished prepping.");
 		}
 		
 		/**
@@ -601,7 +604,7 @@ export module Package {
 			let vsix = new zip();
 			let root = this.vsoManifest.__meta_root;
 			if (!root) {
-				throw "Manifest root unknown. Manifest objects should have a __meta_root key specifying the absolute path to the root of assets.";
+				throw new Error("Manifest root unknown. Manifest objects should have a __meta_root key specifying the absolute path to the root of assets.");
 			}
 			// Add assets to vsix archive
 			let overrides: {[partName: string]: PackagePart} = {};
@@ -657,7 +660,7 @@ export module Package {
 					compressionOptions: { level: 9 },
 					platform: process.platform
 				});
-				trace("Writing vsix to: %s", outputPath);
+				trace.debug("Writing vsix to: %s", outputPath);
 				this.ensureDirExists(outputPath);
 				return Q.nfcall(fs.writeFile, outputPath, buffer).then(() => {
 					return outputPath;
@@ -671,7 +674,7 @@ export module Package {
 		 * found in the package, mapping it to the appropriate MIME type.
 		 */
 		private genContentTypesXml(fileNames: string[], overrides: {[partName: string]: PackagePart}): Q.Promise<string> {
-			trace("Generating [Content_Types].xml");
+			trace.debug("Generating [Content_Types].xml");
 			let contentTypes: any = {
 				Types: {
 					$: {
@@ -719,7 +722,7 @@ export module Package {
 						key: "\\" + ext.toLowerCase()
 					});
 					let regPromise = Q.ninvoke(hkcrKey, "get", "Content Type").then((type: WinregValue) => {
-						trace("Found content type for %s: %s.", ext, type.value);
+						trace.debug("Found content type for %s: %s.", ext, type.value);
 						let contentType = "application/octet-stream";
 						if (type) {
 							contentType = type.value;
@@ -771,7 +774,7 @@ export module Package {
 								}
 								let stdoutStr = stdout.toString("utf8");
 								let magicMime = _.trimRight(stdoutStr.substr(stdoutStr.lastIndexOf(" ") + 1), "\n");
-								trace("Magic mime type for %s is %s.", fileName, magicMime);
+								trace.debug("Magic mime type for %s is %s.", fileName, magicMime);
 								if (magicMime) {
 									if (extension) {
 										if (!extTypeCounter[extension]) {

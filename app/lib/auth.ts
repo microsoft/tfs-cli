@@ -33,7 +33,7 @@ export class PatCredentials implements ICredentials {
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
-        trace('PatCredentials.promptCredentials');
+        trace.debug('PatCredentials.promptCredentials');
         var credInputs = [ argm.PAT ];
 
         return inputs.Qprompt(credInputs, []).then((result) => {
@@ -66,7 +66,7 @@ export class BasicCredentials implements ICredentials {
     }
 
     public promptCredentials(): Q.Promise<ICredentials> {
-        trace('BasicCredentials.promptCredentials');
+        trace.debug('BasicCredentials.promptCredentials');
         var credInputs = [ argm.USERNAME, argm.PASSWORD ];
 
         return inputs.Qprompt(credInputs, []).then((result) => {
@@ -79,7 +79,7 @@ export class BasicCredentials implements ICredentials {
 
 
 export function getCredentials(url: string, authType: string): Q.Promise<ICredentials> {
-    trace('auth.getCredentials');
+    trace.debug('auth.getCredentials');
     var defer = Q.defer<ICredentials>();
 
     // TODO: support other credential types
@@ -110,22 +110,22 @@ export function getCredentials(url: string, authType: string): Q.Promise<ICreden
 }
 
 export function getCachedCredentials(url: string): Q.Promise<string> {
-    trace('auth.getCachedCredentials');
+    trace.debug('auth.getCachedCredentials');
     var defer = Q.defer<string>();
 
     if (process.env['TFS_BYPASS_CACHE']) {
-         trace('Skipping checking cache for credentials');
+         trace.debug('Skipping checking cache for credentials');
         defer.resolve('');
     }
 
     var cs: csm.ICredentialStore = csm.getCredentialStore('tfx');
     cs.getCredential(url, 'allusers')
     .then((cred: string) => {
-        trace('Retrieved credentials from cache');
+        trace.debug('Retrieved credentials from cache');
         defer.resolve(cred);
     })
     .fail((err) => {
-        trace('No credentials found in cache');
+        trace.debug('No credentials found in cache');
         defer.resolve('');
     });
     

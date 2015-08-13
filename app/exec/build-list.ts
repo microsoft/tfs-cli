@@ -25,7 +25,7 @@ export class BuildGetList extends cmdm.TfCommand {
     public optionalArguments = [argm.DEFINITION_ID, argm.DEFINITION_NAME, argm.STATUS, argm.TOP];
     
     public exec(args: string[], options: cm.IOptions): any {
-        trace('build-list.exec');
+        trace.debug('build-list.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
         
 		return this.checkArguments(args, options).then( (allArguments) => {
@@ -40,14 +40,14 @@ export class BuildGetList extends cmdm.TfCommand {
                 definitions = [definitionId];
             }
             else if(definitionName) {
-                trace('No definition Id provided, checking for definitions with name ' + definitionName);
+                trace.debug('No definition Id provided, checking for definitions with name ' + definitionName);
                 return buildapi.getDefinitions(project, definitionName).then((defs: buildifm.DefinitionReference[]) => {
                     if(defs.length > 0) {
                         definitions = [defs[0].id];
                         return this._getBuilds(buildapi, project, definitions, buildifm.BuildStatus[status], top);   
                     }
                     else {
-                        trace('No definition found with name ' + definitionName);
+                        trace.debug('No definition found with name ' + definitionName);
                         throw new Error('No definition found with name ' + definitionName);
                     }
                 });
