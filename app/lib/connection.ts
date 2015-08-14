@@ -31,15 +31,24 @@ export class TfsConnection {
 
         var purl = url.parse(collectionUrl);
         if (!purl.protocol || !purl.host) {
-            trace('Invalid collection url');
-            throw new Error('Invalid collection url');
+            trace('Invalid collection url - protocol and host are required');
+            throw new Error('Invalid collection url - protocol and host are required');
         }
         
+        
+        var splitPath: string[] = purl.path.split('/').slice(1);
         this.accountUrl = purl.protocol + '//' + purl.host;
-        var path: string[] = purl.path.split('/');
-        if (path.length > 2 && path[1] === 'tfs') {
-            // on prem
+        if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
+            trace('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+            throw new Error('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+        }
+        if(splitPath.length === 2 && splitPath[0] === 'tfs') {
+            //on prem
             this.accountUrl += '/' + 'tfs';
+        } 
+        else if(splitPath.length > 1) {
+            trace('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
+            throw new Error('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
         }
     }
 
