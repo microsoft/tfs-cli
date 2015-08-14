@@ -73,3 +73,8 @@ export var JSON_FILTER: StringArgument = new StringArgument('jsonfilter');
 export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
 export var TASK_NAME: StringArgument = new StringArgument('name', 'short task name');
 export var TASK_PATH: StringArgument = new StringArgument('taskpath');
+
+///WORK
+export var WORKITEM_ID: IntArgument = new IntArgument('id', 'workitemid');
+export var QUERY: StringArgument = new StringArgument('query');
+export var TOP: IntArgument = new IntArgument('top');
