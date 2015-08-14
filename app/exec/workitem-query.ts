@@ -21,8 +21,7 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class WorkItemQuery extends cmdm.TfCommand {
-    public requiredArguments = [argm.PROJECT_NAME, argm.QUERY];
-    public optionalArguments = [argm.TOP];
+    requiredArguments = [argm.PROJECT_NAME, argm.QUERY];
     
     public exec(args: string[], options: cm.IOptions): any {
         trace('workitem-list.exec');
@@ -31,13 +30,12 @@ export class WorkItemQuery extends cmdm.TfCommand {
 		return this.checkArguments(args, options).then( (allArguments) => {
             var project: string = allArguments[argm.PROJECT_NAME.name];
             var query: string = allArguments[argm.QUERY.name];
-            var top: number = allArguments[argm.TOP.name];
             var wiql: witifm.Wiql = { query: query }
             var workItemIds: witifm.WorkItemReference[] = [];
             
             return witapi.queryByWiql(wiql, project).then((result: witifm.WorkItemQueryResult) => {
                
-               var workItemIds = result.workItems.map(val => val.id);
+               var workItemIds = result.workItems.map(val => val.id) .slice(0,Math.min(200, result.workItems.length));
                var fieldRefs = result.columns.map(val => val.referenceName);
                
                return witapi.getWorkItems(workItemIds, fieldRefs);

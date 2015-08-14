@@ -78,3 +78,7 @@ export var TASK_PATH: StringArgument = new StringArgument('taskpath');
 export var WORKITEM_ID: IntArgument = new IntArgument('id', 'workitemid');
 export var QUERY: StringArgument = new StringArgument('query');
 export var TOP: IntArgument = new IntArgument('top');
+export var TITLE: StringArgument = new StringArgument('title');
+export var ASSIGNEDTO: StringArgument = new StringArgument('assignedto');
+export var WORKITEMTYPE: StringArgument = new StringArgument('workitemtype');
+
