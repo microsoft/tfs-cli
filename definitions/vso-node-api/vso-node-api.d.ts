@@ -109,6 +109,9 @@ declare module 'vso-node-api/interfaces/common/VsoBaseInterfaces' {
 	     */
 	    routeTemplate: string;
 	}
+	export interface IHeaders {
+	    [key: string]: any;
+	}
 	export interface IBasicCredentials {
 	    username: string;
 	    password: string;
@@ -134,16 +137,16 @@ declare module 'vso-node-api/interfaces/common/VsoBaseInterfaces' {
 	export interface IRestClient {
 	    baseUrl: string;
 	    httpClient: IHttpClient;
-	    getJson(relativeUrl: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    getJsonWrappedArray(relativeUrl: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    getJson(relativeUrl: string, apiVersion: string, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    getJsonWrappedArray(relativeUrl: string, apiVersion: string, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	    options(requestUrl: string, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    create(relativeUrl: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    createJsonWrappedArray(relativeUrl: string, apiVersion: string, resources: any[], serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    update(relativeUrl: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    updateJsonWrappedArray(relativeUrl: string, apiVersion: string, resources: any[], serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    uploadFile(verb: string, relativeUrl: string, apiVersion: string, filePath: string, customHeaders: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    uploadStream(verb: string, relativeUrl: string, apiVersion: string, contentStream: NodeJS.ReadableStream, customHeaders: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    replace(relativeUrl: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    create(relativeUrl: string, apiVersion: string, resources: any, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    createJsonWrappedArray(relativeUrl: string, apiVersion: string, resources: any[], customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    update(relativeUrl: string, apiVersion: string, resources: any, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    updateJsonWrappedArray(relativeUrl: string, apiVersion: string, resources: any[], customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    uploadFile(verb: string, relativeUrl: string, apiVersion: string, filePath: string, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    uploadStream(verb: string, relativeUrl: string, apiVersion: string, contentStream: NodeJS.ReadableStream, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    replace(relativeUrl: string, apiVersion: string, resources: any, customHeaders: IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	}
 
 }
@@ -156,9 +159,9 @@ declare module 'vso-node-api/HttpClient' {
 	    handlers: ifm.IRequestHandler[];
 	    socketTimeout: number;
 	    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], socketTimeout?: number);
-	    get(verb: string, requestUrl: string, headers: any, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
-	    send(verb: string, requestUrl: string, objs: any, headers: any, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
-	    sendFile(verb: string, requestUrl: string, content: NodeJS.ReadableStream, headers: any, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
+	    get(verb: string, requestUrl: string, headers: ifm.IHeaders, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
+	    send(verb: string, requestUrl: string, objs: any, headers: ifm.IHeaders, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
+	    sendFile(verb: string, requestUrl: string, content: NodeJS.ReadableStream, headers: ifm.IHeaders, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void;
 	    getStream(requestUrl: string, apiVersion: string, type: string, onResult: (err: any, statusCode: number, res: NodeJS.ReadableStream) => void): void;
 	    makeAcceptHeader(type: string, apiVersion: string): string;
 	    _getOptions(method: string, requestUrl: string, headers: any): any;
@@ -177,20 +180,20 @@ declare module 'vso-node-api/RestClient' {
 	    basePath: string;
 	    httpClient: ifm.IHttpClient;
 	    constructor(httpClient: ifm.IHttpClient);
-	    getJson(url: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    getJsonWrappedArray(url: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    getJson(url: string, apiVersion: string, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    getJsonWrappedArray(url: string, apiVersion: string, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	    options(url: string, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    delete(url: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    create(url: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    createJsonWrappedArray(url: string, apiVersion: string, resources: any[], serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
-	    update(url: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    updateJsonWrappedArray(url: string, apiVersion: string, resources: any[], serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
-	    uploadFile(verb: string, url: string, apiVersion: string, filePath: string, customHeaders: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    uploadStream(verb: string, url: string, apiVersion: string, contentStream: NodeJS.ReadableStream, customHeaders: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    replace(url: string, apiVersion: string, resources: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    _sendWrappedJson(verb: string, url: string, apiVersion: string, resources: any[], serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
-	    _getJson(verb: string, url: string, apiVersion: string, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
-	    _sendJson(verb: string, url: string, apiVersion: string, data: any, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    delete(url: string, apiVersion: string, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    create(url: string, apiVersion: string, resources: any, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    createJsonWrappedArray(url: string, apiVersion: string, resources: any[], customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
+	    update(url: string, apiVersion: string, resources: any, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    updateJsonWrappedArray(url: string, apiVersion: string, resources: any[], customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
+	    uploadFile(verb: string, url: string, apiVersion: string, filePath: string, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    uploadStream(verb: string, url: string, apiVersion: string, contentStream: NodeJS.ReadableStream, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    replace(url: string, apiVersion: string, resources: any, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    _sendWrappedJson(verb: string, url: string, apiVersion: string, resources: any[], customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, resources: any[]) => void): void;
+	    _getJson(verb: string, url: string, apiVersion: string, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    _sendJson(verb: string, url: string, apiVersion: string, data: any, customHeaders: ifm.IHeaders, serializationData: Serialization.SerializationData, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	}
 
 }
@@ -3800,7 +3803,7 @@ declare module 'vso-node-api/FileContainerApi' {
 	     * @param {string} scope - A guid representing the scope of the container. This is often the project id.
 	     * @param onResult callback function with the resulting FileContainerInterfaces.FileContainerItem
 	     */
-	    createItem(customHeaders: any, contentStream: NodeJS.ReadableStream, containerId: number, itemPath: string, scope: string, onResult: (err: any, statusCode: number, Container: FileContainerInterfaces.FileContainerItem) => void): void;
+	    createItem(customHeaders: VsoBaseInterfaces.IHeaders, contentStream: NodeJS.ReadableStream, containerId: number, itemPath: string, scope: string, onResult: (err: any, statusCode: number, Container: FileContainerInterfaces.FileContainerItem) => void): void;
 	    /**
 	     * Creates the specified items in in the referenced container.
 	     *
@@ -6088,6 +6091,7 @@ declare module 'vso-node-api/GitApi' {
 	    deletePullRequestReviewer(repositoryId: string, pullRequestId: number, reviewerId: string, project: string, onResult: (err: any, statusCode: number) => void): void;
 	    getPullRequestReviewer(repositoryId: string, pullRequestId: number, reviewerId: string, project: string, onResult: (err: any, statusCode: number, PullRequestReviewer: GitInterfaces.IdentityRefWithVote) => void): void;
 	    getPullRequestReviewers(repositoryId: string, pullRequestId: number, project: string, onResult: (err: any, statusCode: number, PullRequestReviewers: GitInterfaces.IdentityRefWithVote[]) => void): void;
+	    getPullRequestsByProject(project: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, maxCommentLength: number, skip: number, top: number, onResult: (err: any, statusCode: number, PullRequests: GitInterfaces.GitPullRequest[]) => void): void;
 	    createPullRequest(gitPullRequestToCreate: GitInterfaces.GitPullRequest, repositoryId: string, project: string, onResult: (err: any, statusCode: number, PullRequest: GitInterfaces.GitPullRequest) => void): void;
 	    getPullRequest(repositoryId: string, pullRequestId: number, project: string, maxCommentLength: number, skip: number, top: number, onResult: (err: any, statusCode: number, PullRequest: GitInterfaces.GitPullRequest) => void): void;
 	    getPullRequests(repositoryId: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, project: string, maxCommentLength: number, skip: number, top: number, onResult: (err: any, statusCode: number, PullRequests: GitInterfaces.GitPullRequest[]) => void): void;
@@ -6123,6 +6127,7 @@ declare module 'vso-node-api/GitApi' {
 	    createPullRequestReviewers(reviewers: VSSInterfaces.IdentityRef[], repositoryId: string, pullRequestId: number, project?: string): Q.Promise<GitInterfaces.IdentityRefWithVote[]>;
 	    getPullRequestReviewer(repositoryId: string, pullRequestId: number, reviewerId: string, project?: string): Q.Promise<GitInterfaces.IdentityRefWithVote>;
 	    getPullRequestReviewers(repositoryId: string, pullRequestId: number, project?: string): Q.Promise<GitInterfaces.IdentityRefWithVote[]>;
+	    getPullRequestsByProject(project: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): Q.Promise<GitInterfaces.GitPullRequest[]>;
 	    createPullRequest(gitPullRequestToCreate: GitInterfaces.GitPullRequest, repositoryId: string, project?: string): Q.Promise<GitInterfaces.GitPullRequest>;
 	    getPullRequest(repositoryId: string, pullRequestId: number, project?: string, maxCommentLength?: number, skip?: number, top?: number): Q.Promise<GitInterfaces.GitPullRequest>;
 	    getPullRequests(repositoryId: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, project?: string, maxCommentLength?: number, skip?: number, top?: number): Q.Promise<GitInterfaces.GitPullRequest[]>;
@@ -6400,6 +6405,17 @@ declare module 'vso-node-api/GitApi' {
 	     * @param onResult callback function with the resulting GitInterfaces.IdentityRefWithVote[]
 	     */
 	    getPullRequestReviewers(repositoryId: string, pullRequestId: number, project: string, onResult: (err: any, statusCode: number, PullRequestReviewers: GitInterfaces.IdentityRefWithVote[]) => void): void;
+	    /**
+	     * Query pull requests by project
+	     *
+	     * @param {string} project - Project ID or project name
+	     * @param {GitInterfaces.GitPullRequestSearchCriteria} searchCriteria
+	     * @param {number} maxCommentLength
+	     * @param {number} skip
+	     * @param {number} top
+	     * @param onResult callback function with the resulting GitInterfaces.GitPullRequest[]
+	     */
+	    getPullRequestsByProject(project: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, maxCommentLength: number, skip: number, top: number, onResult: (err: any, statusCode: number, PullRequests: GitInterfaces.GitPullRequest[]) => void): void;
 	    /**
 	     * Create a git pull request
 	     *
@@ -6724,6 +6740,16 @@ declare module 'vso-node-api/GitApi' {
 	    * @param {string} project - Project ID or project name
 	    */
 	    getPullRequestReviewers(repositoryId: string, pullRequestId: number, project?: string): Q.Promise<GitInterfaces.IdentityRefWithVote[]>;
+	    /**
+	    * Query pull requests by project
+	    *
+	    * @param {string} project - Project ID or project name
+	    * @param {GitInterfaces.GitPullRequestSearchCriteria} searchCriteria
+	    * @param {number} maxCommentLength
+	    * @param {number} skip
+	    * @param {number} top
+	    */
+	    getPullRequestsByProject(project: string, searchCriteria: GitInterfaces.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): Q.Promise<GitInterfaces.GitPullRequest[]>;
 	    /**
 	    * Create a git pull request
 	    *
@@ -7969,7 +7995,7 @@ declare module 'vso-node-api/TaskAgentApi' {
 	     * @param {boolean} overwrite
 	     * @param onResult callback function
 	     */
-	    uploadTaskDefinition(customHeaders: any, contentStream: NodeJS.ReadableStream, taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number, obj: any) => void): void;
+	    uploadTaskDefinition(customHeaders: VsoBaseInterfaces.IHeaders, contentStream: NodeJS.ReadableStream, taskId: string, overwrite: boolean, onResult: (err: any, statusCode: number, obj: any) => void): void;
 	    /**
 	     * @param {{ [key: string] : string; }} userCapabilities
 	     * @param {number} poolId
@@ -8182,7 +8208,7 @@ declare module 'vso-node-api/TaskApi' {
 	     * @param {string} name
 	     * @param onResult callback function with the resulting TaskAgentInterfaces.TaskAttachment
 	     */
-	    createAttachment(customHeaders: any, contentStream: NodeJS.ReadableStream, scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, type: string, name: string, onResult: (err: any, statusCode: number, attachment: TaskAgentInterfaces.TaskAttachment) => void): void;
+	    createAttachment(customHeaders: VsoBaseInterfaces.IHeaders, contentStream: NodeJS.ReadableStream, scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, type: string, name: string, onResult: (err: any, statusCode: number, attachment: TaskAgentInterfaces.TaskAttachment) => void): void;
 	    /**
 	     * @param {string} scopeIdentifier - The project GUID to scope the request
 	     * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
@@ -8219,7 +8245,7 @@ declare module 'vso-node-api/TaskApi' {
 	     * @param {number} logId
 	     * @param onResult callback function with the resulting TaskAgentInterfaces.TaskLog
 	     */
-	    appendLog(customHeaders: any, contentStream: NodeJS.ReadableStream, scopeIdentifier: string, hubName: string, planId: string, logId: number, onResult: (err: any, statusCode: number, log: TaskAgentInterfaces.TaskLog) => void): void;
+	    appendLog(customHeaders: VsoBaseInterfaces.IHeaders, contentStream: NodeJS.ReadableStream, scopeIdentifier: string, hubName: string, planId: string, logId: number, onResult: (err: any, statusCode: number, log: TaskAgentInterfaces.TaskLog) => void): void;
 	    /**
 	     * @param {TaskAgentInterfaces.TaskLog} log
 	     * @param {string} scopeIdentifier - The project GUID to scope the request
@@ -8411,187 +8437,8 @@ declare module 'vso-node-api/TaskApi' {
 	}
 
 }
-declare module 'vso-node-api/interfaces/common/SystemDataInterfaces' {
-	/**
-	 * Specifies SQL Server-specific data type of a field, property, for use in a System.Data.SqlClient.SqlParameter.
-	 */
-	export enum SqlDbType {
-	    /**
-	     * A 64-bit signed integer.
-	     */
-	    BigInt = 0,
-	    /**
-	     * Array of type Byte. A fixed-length stream of binary data ranging between 1 and 8,000 bytes.
-	     */
-	    Binary = 1,
-	    /**
-	     * Boolean. An unsigned numeric value that can be 0, 1, or null.
-	     */
-	    Bit = 2,
-	    /**
-	     * String. A fixed-length stream of non-Unicode characters ranging between 1 and 8,000 characters.
-	     */
-	    Char = 3,
-	    /**
-	     * DateTime. Date and time data ranging in value from January 1, 1753 to December 31, 9999 to an accuracy of 3.33 milliseconds.
-	     */
-	    DateTime = 4,
-	    /**
-	     * Decimal. A fixed precision and scale numeric value between -10 38 -1 and 10 38 -1.
-	     */
-	    Decimal = 5,
-	    /**
-	     * Double. A floating point number within the range of -1.79E +308 through 1.79E +308.
-	     */
-	    Float = 6,
-	    /**
-	     * Array of type Byte. A variable-length stream of binary data ranging from 0 to 2 31 -1 (or 2,147,483,647) bytes.
-	     */
-	    Image = 7,
-	    /**
-	     * Int32. A 32-bit signed integer.
-	     */
-	    Int = 8,
-	    /**
-	     * Decimal. A currency value ranging from -2 63 (or -9,223,372,036,854,775,808) to 2 63 -1 (or +9,223,372,036,854,775,807) with an accuracy to a ten-thousandth of a currency unit.
-	     */
-	    Money = 9,
-	    /**
-	     * String. A fixed-length stream of Unicode characters ranging between 1 and 4,000 characters.
-	     */
-	    NChar = 10,
-	    /**
-	     * String. A variable-length stream of Unicode data with a maximum length of 2 30 - 1 (or 1,073,741,823) characters.
-	     */
-	    NText = 11,
-	    /**
-	     * String. A variable-length stream of Unicode characters ranging between 1 and 4,000 characters. Implicit conversion fails if the string is greater than 4,000 characters. Explicitly set the object when working with strings longer than 4,000 characters. Use System.Data.SqlDbType.NVarChar when the database column is nvarchar(max).
-	     */
-	    NVarChar = 12,
-	    /**
-	     * Single. A floating point number within the range of -3.40E +38 through 3.40E +38.
-	     */
-	    Real = 13,
-	    /**
-	     * Guid. A globally unique identifier (or GUID).
-	     */
-	    UniqueIdentifier = 14,
-	    /**
-	     * DateTime. Date and time data ranging in value from January 1, 1900 to June 6, 2079 to an accuracy of one minute.
-	     */
-	    SmallDateTime = 15,
-	    /**
-	     * Int16. A 16-bit signed integer.
-	     */
-	    SmallInt = 16,
-	    /**
-	     * Decimal. A currency value ranging from -214,748.3648 to +214,748.3647 with an accuracy to a ten-thousandth of a currency unit.
-	     */
-	    SmallMoney = 17,
-	    /**
-	     * String. A variable-length stream of non-Unicode data with a maximum length of 2 31 -1 (or 2,147,483,647) characters.
-	     */
-	    Text = 18,
-	    /**
-	     * Array of type System.Byte. Automatically generated binary numbers, which are guaranteed to be unique within a database. timestamp is used typically as a mechanism for version-stamping table rows. The storage size is 8 bytes.
-	     */
-	    Timestamp = 19,
-	    /**
-	     * Byte. An 8-bit unsigned integer.
-	     */
-	    TinyInt = 20,
-	    /**
-	     * Array of type Byte. A variable-length stream of binary data ranging between 1 and 8,000 bytes. Implicit conversion fails if the byte array is greater than 8,000 bytes. Explicitly set the object when working with byte arrays larger than 8,000 bytes.
-	     */
-	    VarBinary = 21,
-	    /**
-	     * String. A variable-length stream of non-Unicode characters ranging between 1 and 8,000 characters. Use System.Data.SqlDbType.VarChar when the database column is varchar(max).
-	     */
-	    VarChar = 22,
-	    /**
-	     * Object. A special data type that can contain numeric, string, binary, or date data as well as the SQL Server values Empty and Null, which is assumed if no other type is declared.
-	     */
-	    Variant = 23,
-	    /**
-	     * An XML value. Obtain the XML as a string using the System.Data.SqlClient.SqlDataReader.GetValue(System.Int32) method or System.Data.SqlTypes.SqlXml.Value property, or as an System.Xml.XmlReader by calling the System.Data.SqlTypes.SqlXml.CreateReader method.
-	     */
-	    Xml = 25,
-	    /**
-	     * A SQL Server user-defined type (UDT).
-	     */
-	    Udt = 29,
-	    /**
-	     * A special data type for specifying structured data contained in table-valued parameters.
-	     */
-	    Structured = 30,
-	    /**
-	     * Date data ranging in value from January 1,1 AD through December 31, 9999 AD.
-	     */
-	    Date = 31,
-	    /**
-	     * Time data based on a 24-hour clock. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Corresponds to a SQL Server time value.
-	     */
-	    Time = 32,
-	    /**
-	     * Date and time data. Date value range is from January 1,1 AD through December 31, 9999 AD. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds.
-	     */
-	    DateTime2 = 33,
-	    /**
-	     * Date and time data with time zone awareness. Date value range is from January 1,1 AD through December 31, 9999 AD. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Time zone value range is -14:00 through +14:00.
-	     */
-	    DateTimeOffset = 34,
-	}
-	export var TypeInfo: {
-	    SqlDbType: {
-	        enumValues: {
-	            "BigInt": number;
-	            "Binary": number;
-	            "Bit": number;
-	            "Char": number;
-	            "DateTime": number;
-	            "Decimal": number;
-	            "Float": number;
-	            "Image": number;
-	            "Int": number;
-	            "Money": number;
-	            "NChar": number;
-	            "NText": number;
-	            "NVarChar": number;
-	            "Real": number;
-	            "UniqueIdentifier": number;
-	            "SmallDateTime": number;
-	            "SmallInt": number;
-	            "SmallMoney": number;
-	            "Text": number;
-	            "Timestamp": number;
-	            "TinyInt": number;
-	            "VarBinary": number;
-	            "VarChar": number;
-	            "Variant": number;
-	            "Xml": number;
-	            "Udt": number;
-	            "Structured": number;
-	            "Date": number;
-	            "Time": number;
-	            "DateTime2": number;
-	            "DateTimeOffset": number;
-	        };
-	    };
-	};
-
-}
 declare module 'vso-node-api/interfaces/TestInterfaces' {
-	import SystemData = require('vso-node-api/interfaces/common/SystemDataInterfaces');
 	import VSSInterfaces = require('vso-node-api/interfaces/common/VSSInterfaces');
-	export interface AdditionalTestField {
-	    fieldName: string;
-	    value: any;
-	}
-	export interface AddtionalTestFieldDefinition {
-	    fieldName: string;
-	    scope: TestExtensionFieldScope;
-	    value: SystemData.SqlDbType;
-	}
 	export interface AggregatedResultsByPivot {
 	    count: number;
 	    duration: any;
@@ -8665,10 +8512,6 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	     */
 	    delta: number;
 	    /**
-	     * Position of label
-	     */
-	    index: number;
-	    /**
 	     * Is delta valid
 	     */
 	    isDeltaAvailable: boolean;
@@ -8676,6 +8519,10 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	     * Label of coverage data ("Blocks", "Statements", "Modules", etc.)
 	     */
 	    label: string;
+	    /**
+	     * Position of label
+	     */
+	    position: number;
 	    /**
 	     * Total units
 	     */
@@ -8688,7 +8535,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    /**
 	     * Uri of build for which data is retrieved/published
 	     */
-	    buildUri: string;
+	    build: ShallowReference;
 	    /**
 	     * List of coverage data and details for the build
 	     */
@@ -8696,7 +8543,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    /**
 	     * Uri of build against which difference in coverage is computed
 	     */
-	    deltaBuildUri: string;
+	    deltaBuild: ShallowReference;
 	}
 	export enum CoverageQueryFlags {
 	    /**
@@ -8718,6 +8565,31 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    linesCovered: number;
 	    linesNotCovered: number;
 	    linesPartiallyCovered: number;
+	}
+	export interface CustomTestField {
+	    fieldName: string;
+	    value: any;
+	}
+	export interface CustomTestFieldDefinition {
+	    fieldId: number;
+	    fieldName: string;
+	    fieldType: CustomTestFieldType;
+	    scope: CustomTestFieldScope;
+	}
+	export enum CustomTestFieldScope {
+	    None = 0,
+	    TestRun = 1,
+	    TestResult = 2,
+	    System = 4,
+	    All = 7,
+	}
+	export enum CustomTestFieldType {
+	    Bit = 2,
+	    Int = 8,
+	    Float = 6,
+	    Guid = 14,
+	    DateTime = 4,
+	    String = 12,
 	}
 	/**
 	 * This is a temporary class to provide the details for the test run environment.
@@ -8797,7 +8669,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    revision: number;
 	}
 	export interface RunCreateModel {
-	    additionalTestFields: AdditionalTestField[];
+	    additionalTestFields: CustomTestField[];
 	    automated: boolean;
 	    build: ShallowReference;
 	    buildDropLocation: string;
@@ -8913,7 +8785,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    stream: string;
 	}
 	export interface TestCaseResult {
-	    additionalFields: AdditionalTestField[];
+	    additionalFields: CustomTestField[];
 	    afnStripId: number;
 	    area: ShallowReference;
 	    associatedBugs: ShallowReference[];
@@ -8986,7 +8858,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	export interface TestCaseResultIdentifier {
 	}
 	export interface TestCaseResultUpdateModel {
-	    additionalFields: AdditionalTestField[];
+	    additionalFields: CustomTestField[];
 	    associatedWorkItems: number[];
 	    automatedTestTypeId: string;
 	    comment: string;
@@ -9008,12 +8880,6 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	export interface TestEnvironment {
 	    environmentId: string;
 	    environmentName: string;
-	}
-	export enum TestExtensionFieldScope {
-	    None = 0,
-	    TestRun = 1,
-	    TestResult = 2,
-	    System = 4,
 	}
 	export interface TestInsightDetails {
 	    count: number;
@@ -9120,7 +8986,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    project: ShallowReference;
 	}
 	export interface TestResultCreateModel {
-	    additionalFields: AdditionalTestField[];
+	    additionalFields: CustomTestField[];
 	    area: ShallowReference;
 	    associatedWorkItems: number[];
 	    automatedTestId: string;
@@ -9163,7 +9029,7 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    value: string;
 	}
 	export interface TestRun {
-	    additionalFields: AdditionalTestField[];
+	    additionalFields: CustomTestField[];
 	    build: ShallowReference;
 	    buildConfiguration: BuildConfiguration;
 	    comment: string;
@@ -9319,12 +9185,6 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    webUrl: string;
 	}
 	export var TypeInfo: {
-	    AdditionalTestField: {
-	        fields: any;
-	    };
-	    AddtionalTestFieldDefinition: {
-	        fields: any;
-	    };
 	    AggregatedResultsByPivot: {
 	        fields: any;
 	    };
@@ -9373,6 +9233,31 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    };
 	    CoverageStatistics: {
 	        fields: any;
+	    };
+	    CustomTestField: {
+	        fields: any;
+	    };
+	    CustomTestFieldDefinition: {
+	        fields: any;
+	    };
+	    CustomTestFieldScope: {
+	        enumValues: {
+	            "none": number;
+	            "testRun": number;
+	            "testResult": number;
+	            "system": number;
+	            "all": number;
+	        };
+	    };
+	    CustomTestFieldType: {
+	        enumValues: {
+	            "bit": number;
+	            "int": number;
+	            "float": number;
+	            "guid": number;
+	            "dateTime": number;
+	            "string": number;
+	        };
 	    };
 	    DtlEnvironmentDetails: {
 	        fields: any;
@@ -9467,14 +9352,6 @@ declare module 'vso-node-api/interfaces/TestInterfaces' {
 	    };
 	    TestEnvironment: {
 	        fields: any;
-	    };
-	    TestExtensionFieldScope: {
-	        enumValues: {
-	            "none": number;
-	            "testRun": number;
-	            "testResult": number;
-	            "system": number;
-	        };
 	    };
 	    TestInsightDetails: {
 	        fields: any;
@@ -9571,6 +9448,8 @@ declare module 'vso-node-api/TestApi' {
 	    getCodeCoverageSummary(project: string, buildId: number, deltaBuildId: number, onResult: (err: any, statusCode: number, CodeCoverage: TestInterfaces.CodeCoverageSummary) => void): void;
 	    updateCodeCoverageSummary(coverageData: TestInterfaces.CodeCoverageData, project: string, build: number, onResult: (err: any, statusCode: number) => void): void;
 	    getTestRunCodeCoverage(project: string, runId: number, flags: number, onResult: (err: any, statusCode: number, CodeCoverage: TestInterfaces.TestRunCoverage[]) => void): void;
+	    addCustomFields(newFields: TestInterfaces.CustomTestFieldDefinition[], project: string, onResult: (err: any, statusCode: number, ExtensionFields: TestInterfaces.CustomTestFieldDefinition[]) => void): void;
+	    queryCustomFields(project: string, scopeFilter: TestInterfaces.CustomTestFieldScope, onResult: (err: any, statusCode: number, ExtensionFields: TestInterfaces.CustomTestFieldDefinition[]) => void): void;
 	    getTestRunLogs(project: string, runId: number, onResult: (err: any, statusCode: number, MessageLogs: TestInterfaces.TestMessageLogDetails[]) => void): void;
 	    createTestPlan(testPlan: TestInterfaces.PlanUpdateModel, project: string, onResult: (err: any, statusCode: number, Plan: TestInterfaces.TestPlan) => void): void;
 	    getPlanById(project: string, planId: number, onResult: (err: any, statusCode: number, Plan: TestInterfaces.TestPlan) => void): void;
@@ -9616,6 +9495,8 @@ declare module 'vso-node-api/TestApi' {
 	    getBuildCodeCoverage(project: string, buildId: number, flags: number): Q.Promise<TestInterfaces.BuildCoverage[]>;
 	    getCodeCoverageSummary(project: string, buildId: number, deltaBuildId?: number): Q.Promise<TestInterfaces.CodeCoverageSummary>;
 	    getTestRunCodeCoverage(project: string, runId: number, flags: number): Q.Promise<TestInterfaces.TestRunCoverage[]>;
+	    addCustomFields(newFields: TestInterfaces.CustomTestFieldDefinition[], project: string): Q.Promise<TestInterfaces.CustomTestFieldDefinition[]>;
+	    queryCustomFields(project: string, scopeFilter: TestInterfaces.CustomTestFieldScope): Q.Promise<TestInterfaces.CustomTestFieldDefinition[]>;
 	    getTestRunLogs(project: string, runId: number): Q.Promise<TestInterfaces.TestMessageLogDetails[]>;
 	    createTestPlan(testPlan: TestInterfaces.PlanUpdateModel, project: string): Q.Promise<TestInterfaces.TestPlan>;
 	    getPlanById(project: string, planId: number): Q.Promise<TestInterfaces.TestPlan>;
@@ -9698,6 +9579,18 @@ declare module 'vso-node-api/TestApi' {
 	     * @param onResult callback function with the resulting TestInterfaces.TestRunCoverage[]
 	     */
 	    getTestRunCodeCoverage(project: string, runId: number, flags: number, onResult: (err: any, statusCode: number, CodeCoverage: TestInterfaces.TestRunCoverage[]) => void): void;
+	    /**
+	     * @param {TestInterfaces.CustomTestFieldDefinition[]} newFields
+	     * @param {string} project - Project ID or project name
+	     * @param onResult callback function with the resulting TestInterfaces.CustomTestFieldDefinition[]
+	     */
+	    addCustomFields(newFields: TestInterfaces.CustomTestFieldDefinition[], project: string, onResult: (err: any, statusCode: number, ExtensionFields: TestInterfaces.CustomTestFieldDefinition[]) => void): void;
+	    /**
+	     * @param {string} project - Project ID or project name
+	     * @param {TestInterfaces.CustomTestFieldScope} scopeFilter
+	     * @param onResult callback function with the resulting TestInterfaces.CustomTestFieldDefinition[]
+	     */
+	    queryCustomFields(project: string, scopeFilter: TestInterfaces.CustomTestFieldScope, onResult: (err: any, statusCode: number, ExtensionFields: TestInterfaces.CustomTestFieldDefinition[]) => void): void;
 	    /**
 	     * @param {string} project - Project ID or project name
 	     * @param {number} runId
@@ -10029,6 +9922,16 @@ declare module 'vso-node-api/TestApi' {
 	    * @param {number} flags
 	    */
 	    getTestRunCodeCoverage(project: string, runId: number, flags: number): Q.Promise<TestInterfaces.TestRunCoverage[]>;
+	    /**
+	    * @param {TestInterfaces.CustomTestFieldDefinition[]} newFields
+	    * @param {string} project - Project ID or project name
+	    */
+	    addCustomFields(newFields: TestInterfaces.CustomTestFieldDefinition[], project: string): Q.Promise<TestInterfaces.CustomTestFieldDefinition[]>;
+	    /**
+	    * @param {string} project - Project ID or project name
+	    * @param {TestInterfaces.CustomTestFieldScope} scopeFilter
+	    */
+	    queryCustomFields(project: string, scopeFilter: TestInterfaces.CustomTestFieldScope): Q.Promise<TestInterfaces.CustomTestFieldDefinition[]>;
 	    /**
 	    * @param {string} project - Project ID or project name
 	    * @param {number} runId
@@ -12767,7 +12670,7 @@ declare module 'vso-node-api/WorkItemTrackingApi' {
 	     * @param {string} uploadType
 	     * @param onResult callback function with the resulting WorkItemTrackingInterfaces.AttachmentReference
 	     */
-	    createAttachment(customHeaders: any, contentStream: NodeJS.ReadableStream, fileName: string, uploadType: string, onResult: (err: any, statusCode: number, attachment: WorkItemTrackingInterfaces.AttachmentReference) => void): void;
+	    createAttachment(customHeaders: VsoBaseInterfaces.IHeaders, contentStream: NodeJS.ReadableStream, fileName: string, uploadType: string, onResult: (err: any, statusCode: number, attachment: WorkItemTrackingInterfaces.AttachmentReference) => void): void;
 	    /**
 	     * Returns an attachment
 	     *
@@ -13011,7 +12914,7 @@ declare module 'vso-node-api/WorkItemTrackingApi' {
 	     * @param {boolean} bypassRules
 	     * @param onResult callback function with the resulting WorkItemTrackingInterfaces.WorkItem
 	     */
-	    updateWorkItem(customHeaders: any, document: VSSInterfaces.JsonPatchDocument, id: number, validateOnly: boolean, bypassRules: boolean, onResult: (err: any, statusCode: number, workItem: WorkItemTrackingInterfaces.WorkItem) => void): void;
+	    updateWorkItem(customHeaders: VsoBaseInterfaces.IHeaders, document: VSSInterfaces.JsonPatchDocument, id: number, validateOnly: boolean, bypassRules: boolean, onResult: (err: any, statusCode: number, workItem: WorkItemTrackingInterfaces.WorkItem) => void): void;
 	    /**
 	     * Returns a single work item from a template
 	     *
@@ -13031,7 +12934,7 @@ declare module 'vso-node-api/WorkItemTrackingApi' {
 	     * @param {boolean} bypassRules
 	     * @param onResult callback function with the resulting WorkItemTrackingInterfaces.WorkItem
 	     */
-	    updateWorkItemTemplate(customHeaders: any, document: VSSInterfaces.JsonPatchDocument, project: string, type: string, validateOnly: boolean, bypassRules: boolean, onResult: (err: any, statusCode: number, workItem: WorkItemTrackingInterfaces.WorkItem) => void): void;
+	    updateWorkItemTemplate(customHeaders: VsoBaseInterfaces.IHeaders, document: VSSInterfaces.JsonPatchDocument, project: string, type: string, validateOnly: boolean, bypassRules: boolean, onResult: (err: any, statusCode: number, workItem: WorkItemTrackingInterfaces.WorkItem) => void): void;
 	    /**
 	     * @param {string} project - Project ID or project name
 	     * @param onResult callback function with the resulting WorkItemTrackingInterfaces.WorkItemTypeCategory[]

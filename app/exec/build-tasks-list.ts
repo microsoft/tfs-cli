@@ -75,14 +75,14 @@ export class BuildTaskList extends cmdm.TfCommand {
             {
                 var newVersion: TaskVersion = new TaskVersion(currTask.version);
                 var knownVersion: TaskVersion = new TaskVersion(taskDictionary[currTask.id].version);
-                trace("Found additional version of " + currTask.name + " and comparing to the previously encountered version.");
+                trace.debug("Found additional version of " + currTask.name + " and comparing to the previously encountered version.");
                 if (this._compareTaskVersion(newVersion, knownVersion) > 0) {
-                    trace("Found newer version of " + currTask.name + ".  Previous: " + knownVersion.toString() + "; New: " + newVersion.toString());
+                    trace.debug("Found newer version of " + currTask.name + ".  Previous: " + knownVersion.toString() + "; New: " + newVersion.toString());
                     taskDictionary[currTask.id] = currTask;
                 }
             }
             else {
-                trace("Found task " + currTask.name);
+                trace.debug("Found task " + currTask.name);
                 taskDictionary[currTask.id] = currTask;
             }
         }

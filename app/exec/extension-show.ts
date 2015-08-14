@@ -13,7 +13,7 @@ export function describe(): string {
 
 export function getCommand(): cmdm.TfCommand {
     // this just offers description for help and to offer sub commands
-    return new ExtensionShare;
+    return new ExtensionShow;
 }
 
 // requires auth, connect etc...
@@ -22,34 +22,24 @@ export var isServerOperation: boolean = true;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
-export class ExtensionShare extends cmdm.TfCommand {
+export class ExtensionShow extends cmdm.TfCommand {
     requiredArguments = [argm.SHARE_WITH];
     optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.GALLERY_URL];
     
-    public exec(args: string[], options: cm.IOptions): Q.Promise<string[]> {
-        trace.debug('extension-share.exec');
+    public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.PublishedExtension> {
+        trace.debug('extension-show.exec');
         var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi();
 		return this.checkArguments(args, options).then( (allArguments) => {
-            var accounts: string[] = allArguments[argm.SHARE_WITH.name];
-            return extinfom.getExtInfo(allArguments[argm.EXTENSION_ID.name], allArguments[argm.VSIX_PATH.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
-                for(var i = 0; i < accounts.length; i++) {
-	 				galleryapi.shareExtension(extInfo.publisher, extInfo.id, accounts[i], (err, statuscode) => {
-                         if(err) {
-                             Q.reject(err);
-                         }
-                     });                    
-                }
-                return Q.resolve(accounts);
-            });
+			return null;
         });
     }
 
-    public output(accounts: string[]): void {
-        if (!accounts) {
-            throw new Error('no sharing information supplied');
+    public output(info: string): void {
+        if (!info) {
+            throw new Error('no extension information supplied');
         }
 
         console.log();
-        trace.success('Extension shared successfully with: ' + accounts);
+        console.log(info);
     }   
 }

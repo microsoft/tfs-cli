@@ -5,6 +5,7 @@ import argm = require('./arguments');
 import colors = require('colors');
 import cm = require('./common');
 import fs= require("fs");
+import extinfom = require('./extensioninfo');
 import gallerym = require("vso-node-api/GalleryApi");
 import galleryifm = require("vso-node-api/interfaces/GalleryInterfaces");
 import os = require("os");
@@ -15,18 +16,11 @@ import zip = require("jszip");
 
 export module Publish {
 	
-	interface CoreExtInfo {
-		id: string;
-		publisher: string;
-		version: string;
-		published?: boolean;
-	}
-	
 	class GalleryBase {
 		protected settings: cm.IStringIndexer;
 		protected galleryClient: gallerym.IQGalleryApi;
-		private vsixInfoPromise: Q.Promise<CoreExtInfo>;
-		private publisherName: string;
+		protected publisherName: string;
+		protected cachedExtensionInfo: extinfom.CoreExtInfo;
 		
 		/**
 		 * Constructor
@@ -35,44 +29,6 @@ export module Publish {
 		constructor(publisherName: string, galleryapi: gallerym.IQGalleryApi ) {
 			this.publisherName = publisherName;
 			this.galleryClient = galleryapi;
-		}
-		
-		protected getExtInfo(extensionId: string, vsixPath: string): Q.Promise<CoreExtInfo> {
-			if (!this.vsixInfoPromise) {
-				if (extensionId && this.publisherName) {
-					this.vsixInfoPromise = Q.resolve({id: extensionId, publisher: this.publisherName, version: null});
-				} else {
-					this.vsixInfoPromise = Q.Promise<JSZip>((resolve, reject, notify) => {
-						fs.readFile(vsixPath, function(err, data) {
-							if (err) reject(err);
-							trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
-							try {
-								resolve(new zip(data));
-							} catch (err) {
-								reject(err);
-							}
-						});
-					}).then((zip) => {
-						trace.debug("Files in the zip: %s", Object.keys(zip.files).join(", "));
-						let vsixManifestFileNames = Object.keys(zip.files).filter(key => _.endsWith(key, "vsixmanifest"));
-						if (vsixManifestFileNames.length > 0) {
-							return Q.nfcall(xml2js.parseString, zip.files[vsixManifestFileNames[0]].asText());
-						} else {
-							throw new Error("Could not locate vsix manifest!");
-						}
-					}).then((vsixManifestAsJson) => {
-						let extensionId: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
-						let extensionPublisher: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-						let extensionVersion: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
-						if (extensionId && extensionPublisher) {
-							return {id: extensionId, publisher: extensionPublisher, version: extensionVersion};
-						} else {
-							throw new Error("Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property.");
-						}
-					});
-				} 
-			}
-			return this.vsixInfoPromise;
 		}
 	}
 	
@@ -149,9 +105,10 @@ export module Publish {
 			super(publisherName, galleryapi);
 		}
 		
-		private checkVsixPublished(vsixPath: string): Q.Promise<CoreExtInfo> {
+		private checkVsixPublished(vsixPath: string): Q.Promise<extinfom.CoreExtInfo> {
 			trace.debug('publish.checkVsixPublished');
-			return this.getExtInfo(null, vsixPath).then((extInfo) => {
+			return extinfom.getExtInfo(null, vsixPath, this.publisherName, this.cachedExtensionInfo).then((extInfo) => {
+				this.cachedExtensionInfo = extInfo;
 				return this.galleryClient.getExtension(extInfo.publisher, extInfo.id).then((ext) => {
 					if (ext) {
 						extInfo.published = true;
@@ -189,7 +146,7 @@ export module Publish {
 			});
 		}
 		
-		private createOrUpdateExtension(vsixPath: string, extPackage: galleryifm.ExtensionPackage): Q.Promise<CoreExtInfo> {
+		private createOrUpdateExtension(vsixPath: string, extPackage: galleryifm.ExtensionPackage): Q.Promise<extinfom.CoreExtInfo> {
 			return this.checkVsixPublished(vsixPath).then((extInfo) => {
 				if (extInfo && extInfo.published) {
 					trace.info("Extension already published, %s the extension", "updating");
@@ -212,7 +169,7 @@ export module Publish {
 				trace.info("This is taking longer than usual. Hold tight...");
 			}
 			trace.debug("Polling for validation (%s retries remaining).", retries.toString());
-			return Q.delay(this.getValidationStatus(version), interval).then((status) => {
+			return Q.delay(this.getValidationStatus(vsixPath, version), interval).then((status) => {
 				trace.debug("--Retrieved validation status: %s", status);
 				if (status === PackagePublisher.validationPending) {
 					return this.waitForValidation(vsixPath, version, interval, retries - 1);
@@ -223,7 +180,8 @@ export module Publish {
 		}
 		
 		public getValidationStatus(vsixPath: string, version?: string): Q.Promise<string> {
-			return this.getExtInfo(null, vsixPath).then((extInfo) => {
+			return extinfom.getExtInfo(null, vsixPath, this.publisherName, this.cachedExtensionInfo).then((extInfo) => {
+				this.cachedExtensionInfo = extInfo;
 				return this.galleryClient.getExtension(extInfo.publisher, extInfo.id, extInfo.version, galleryifm.ExtensionQueryFlags.IncludeVersions).then((ext) => {
 					if (!ext || ext.versions.length === 0) {
 						throw "Extension not published.";

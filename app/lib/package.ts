@@ -167,6 +167,7 @@ export module Package {
 		
 		private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
 			trace.debug('merger.gatherManifests');
+			console.log(globPatterns);
 			let globs = globPatterns.map(pattern => 
 				path.isAbsolute(pattern) ? pattern : path.join(this.mergeSettings.root, pattern));
 			return Q.all(globs.map(pattern => this.gatherManifestsFromGlob(pattern))).then((fileLists) => {
