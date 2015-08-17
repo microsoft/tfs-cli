@@ -28,7 +28,7 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): any {
         trace.debug('extension-publisher-delete.exec');
         var defer = Q.defer<galleryifm.Publisher>();
-        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi();
+        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
 		this.checkArguments(args, options).then( (allArguments) => {
             var name: string = allArguments[argm.PUBLISHER_NAME.name];
             galleryapi.deletePublisher(name, (err, statusCode: number) => {

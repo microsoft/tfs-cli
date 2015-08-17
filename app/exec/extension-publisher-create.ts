@@ -26,7 +26,7 @@ export class ExtensionPublisherCreate extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): any {
         trace.debug('extension-publisher-create.exec');
-        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi();
+        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
 			return galleryapi.createPublisher(<galleryifm.Publisher>{
 				publisherName: allArguments[argm.PUBLISHER_NAME.name],

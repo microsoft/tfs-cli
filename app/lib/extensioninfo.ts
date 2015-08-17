@@ -14,7 +14,7 @@ export interface CoreExtInfo {
 	published?: boolean;
 }
 
-export function getExtInfo(extensionId: string, vsixPath: string, publisherName: string, cachedInfo?: CoreExtInfo): Q.Promise<CoreExtInfo> {
+export function getExtInfo(vsixPath: string, extensionId: string, publisherName: string, cachedInfo?: CoreExtInfo): Q.Promise<CoreExtInfo> {
 	trace.debug('extensioninfo.getExtInfo');
 	var vsixInfoPromise: Q.Promise<CoreExtInfo>;
 	if(cachedInfo) {
@@ -22,9 +22,9 @@ export function getExtInfo(extensionId: string, vsixPath: string, publisherName:
 	}
 	else if (extensionId && publisherName) {
 		vsixInfoPromise = Q.resolve({id: extensionId, publisher: publisherName, version: null});
-	} else {
+	} 
+	else if (vsixPath) {
 		vsixInfoPromise = Q.Promise<JSZip>((resolve, reject, notify) => {
-			console.log(vsixPath);
 			fs.readFile(vsixPath, function(err, data) {
 				if (err) reject(err);
 				trace.debug(vsixPath);
@@ -54,5 +54,8 @@ export function getExtInfo(extensionId: string, vsixPath: string, publisherName:
 			}
 		});
 	} 
+	else {
+		throw new Error("Either --vsix <path to vsix file> or BOTH of --extensionid <id> and --name <publisherName> is required");
+	}
 	return vsixInfoPromise;
 }

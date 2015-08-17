@@ -28,12 +28,15 @@ export class ExtensionShare extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string[]> {
         trace.debug('extension-share.exec');
-        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi();
+        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
+            trace.debug("read args");
             var accounts: string[] = allArguments[argm.SHARE_WITH.name];
-            return extinfom.getExtInfo(allArguments[argm.EXTENSION_ID.name], allArguments[argm.VSIX_PATH.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
+            return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
+                trace.debug("got info");
                 for(var i = 0; i < accounts.length; i++) {
 	 				galleryapi.shareExtension(extInfo.publisher, extInfo.id, accounts[i], (err, statuscode) => {
+                         trace.debug("shared most maximally");
                          if(err) {
                              Q.reject(err);
                          }

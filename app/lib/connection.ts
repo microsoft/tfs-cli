@@ -38,22 +38,28 @@ export class TfsConnection {
         
         var splitPath: string[] = purl.path.split('/').slice(1);
         this.accountUrl = purl.protocol + '//' + purl.host;
-        if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
-            trace.debug('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
-            throw new Error('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+        this.galleryUrl = 'https://app.market.visualstudio.com';
+        if(purl.host.indexOf('tfsallin.net') > -1) {
+            // devfabric
+            this.galleryUrl = purl.protocol + '//' + purl.host;
         }
-        if(splitPath.length === 2 && splitPath[0] === 'tfs') {
-            //on prem
+        else if(splitPath.length === 2 && splitPath[0] === 'tfs') {
+            // on prem
             this.accountUrl += '/' + 'tfs';
         } 
         else if(splitPath.length > 1) {
             trace.debug('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
             throw new Error('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
         }
+        else if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
+            trace.debug('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+            throw new Error('Invalid collection url - collection name is required. Eg: [accounturl]/[collectionname]');
+        }
     }
 
     public collectionUrl: string;
     public accountUrl: string;
+    public galleryUrl: string;
     public credentials: am.ICredentials;
     public authHandler: apibasem.IRequestHandler;
 }

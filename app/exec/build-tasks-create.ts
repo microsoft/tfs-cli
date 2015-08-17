@@ -66,7 +66,7 @@ export class BuildCreate extends cmdm.TfCommand {
             // create definition
             trace.debug('creating folder for task');
             var tp = path.join(process.cwd(), tname);
-            trace(tp);
+            trace.debug(tp);
             shell.mkdir('-p', tp);
             trace.debug('created folder');
             ret.taskPath = tp;
@@ -128,10 +128,10 @@ export class BuildCreate extends cmdm.TfCommand {
     
             trace.debug('writing definition file');
             var defPath = path.join(tp, 'task.json');
-            trace(defPath);
+            trace.debug(defPath);
             try {
                 var defStr = JSON.stringify(def, null, 2);
-                trace(defStr);
+                trace.debug(defStr);
                 fs.writeFileSync(defPath, defStr);
             }
             catch(err) {
@@ -141,11 +141,11 @@ export class BuildCreate extends cmdm.TfCommand {
     
             var copyResource = function(fileName) {
                 var src = path.join(__dirname, 'resources', fileName);
-                trace('src: ' + src);
+                trace.debug('src: ' + src);
                 var dest = path.join(tp, fileName);
-                trace('dest: ' + dest);
+                trace.debug('dest: ' + dest);
                 shell.cp(src, dest);
-                trace(fileName + ' copied');
+                trace.debug(fileName + ' copied');
             }
     
             trace.debug('creating temporary icon');

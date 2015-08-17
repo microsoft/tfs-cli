@@ -23,23 +23,38 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class ExtensionShow extends cmdm.TfCommand {
-    requiredArguments = [argm.SHARE_WITH];
     optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.GALLERY_URL];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.PublishedExtension> {
         trace.debug('extension-show.exec');
-        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi();
+        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
-			return null;
+			return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
+				return galleryapi.getExtension(
+					extInfo.publisher, 
+					extInfo.id, 
+					null, 
+					galleryifm.ExtensionQueryFlags.IncludeVersions |
+						galleryifm.ExtensionQueryFlags.IncludeFiles |
+						galleryifm.ExtensionQueryFlags.IncludeCategoryAndTags |
+						galleryifm.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
+						
+						return extension;
+				});
+			});
         });
     }
 
-    public output(info: string): void {
-        if (!info) {
+    public output(ext: galleryifm.PublishedExtension): void {
+        if (!ext) {
             throw new Error('no extension information supplied');
         }
 
         console.log();
-        console.log(info);
+        console.log("Extension name: " + ext.extensionName);
+        console.log("Publisher name: " + ext.publisher.displayName);
+        console.log("Extension id: " + ext.extensionId);
+        console.log("Last updated: " + ext.lastUpdated.toLocaleTimeString());
+        console.log("Shared with: " + ext.allowedAccounts.map(acct => acct.accountName));
     }   
 }
