@@ -66,7 +66,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     
                 agentapi.uploadTaskDefinition(null, archive, taskJson.id, overwrite, (err, statusCode, task) => {
                     if(err) {
-                        trace.debug('TaskAgentApi.uploadTaskDefinition failed with code ' + statusCode + '. Message: ' + err.message);
+                        trace.debug('TaskAgentApi.uploadTaskDefinition failed with code %s. Message: %s', statusCode, err.message);
                         err.statusCode = statusCode;
                         defer.reject(err);
                     }
@@ -85,7 +85,7 @@ export class BuildTaskUpload extends cmdm.TfCommand {
             });
         })
         .fail((err) => {
-            trace.debug('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: %s', err.message);
             defer.reject(err);
         });
 
@@ -93,6 +93,6 @@ export class BuildTaskUpload extends cmdm.TfCommand {
     }
 
     public output(data: any): void {
-        console.log('task at: ' + data.sourceLocation + ' uploaded successfully!');
+        trace.success('Task at %s uploaded successfully!', data.sourceLocation);
     }
 }

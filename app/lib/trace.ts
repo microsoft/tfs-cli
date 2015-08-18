@@ -2,20 +2,20 @@ import colors = require("colors");
 import os = require('os');
 var traceEnabled = process.env['TFX_TRACE'];
 
-export function error(str: string, ...replacements: string[]): void {
-	doLog(str, colors.bgRed, replacements, console.error);
+export function error(msg: string, ...replacements: string[]): void {
+	doLog(msg, colors.bgRed, replacements, console.error);
 }
 
-export function success(str: string, ...replacements: string[]): void {
-	doLog(str, colors.green, replacements);
+export function success(msg: string, ...replacements: string[]): void {
+	doLog(msg, colors.green, replacements);
 }
 
-export function info(str: string, ...replacements: string[]): void {
-	doLog(str, colors.gray, replacements);
+export function info(msg: string = '', ...replacements: string[]): void {
+	doLog(msg, colors.white, replacements);
 }
 
-export function warn(str: string, ...replacements: string[]): void {
-	doLog(str, colors.bgYellow.black, replacements);
+export function warn(msg: string, ...replacements: string[]): void {
+	doLog(msg, colors.bgYellow.black, replacements);
 }
 
 export function debugArea(msg: any, area: string) {
@@ -57,7 +57,7 @@ function doReplacements(str: string, replacements: string[]): string {
 	let lcRepl = str.replace(/%S/g, "%s");
 	let split = lcRepl.split("%s");
 	if (split.length - 1 !== replacements.length) {
-		throw "The number of replacements (" + replacements.length + ") does not match the number of placeholders (" + (split.length - 1) + ")";
+		throw new Error("The number of replacements (" + replacements.length + ") does not match the number of placeholders (" + (split.length - 1) + ")");
 	}
 	
 	let resultArr = [];

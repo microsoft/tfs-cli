@@ -35,12 +35,12 @@ export class BuildTaskDelete extends cmdm.TfCommand {
     
             trace.debug("Searching for tasks with id: " + taskId);
             agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
-                trace.debug("Found " + tasks.length + " tasks with provided id.")
-                if (tasks.length > 0) {
+                trace.debug("Found %s tasks with provided id.", tasks.length)
+                if (tasks && tasks.length > 0) {
                     trace.debug("Deleting task(s)...");
                     agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
                         if (err) {
-                            trace.debug("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
+                            trace.debug("Call to TaskAgentApi.deleteTaskDefinition failed with code %s. Message: %s", statusCode, err.message);
                             err.statusCode = statusCode;
                             defer.reject(err);
                         }
@@ -53,19 +53,19 @@ export class BuildTaskDelete extends cmdm.TfCommand {
                     });
                 }
                 else {
-                    trace.debug("No task.");
+                    trace.debug("No such task.");
                     defer.reject(new Error("No task found with provided ID: " + taskId));
                 }
             });
         })
         .fail((err) => {
-            trace.debug('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: %s', err.message);
             defer.reject(err);
         });
         return <Q.Promise<agentifm.TaskDefinition>>defer.promise;
     }
 
     public output(data: any): void {
-        console.log('task: ' + data.id + ' deleted successfully!');
+        trace.success('Task %s deleted successfully!', data.id);
     }
 }

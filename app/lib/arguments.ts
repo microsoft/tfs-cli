@@ -63,6 +63,7 @@ export function identity<T>(arg: T): T {
 export var AUTHOR: StringArgument = new StringArgument('author');
 export var DESCRIPTION: StringArgument = new StringArgument('description');
 export var DISPLAY_NAME: StringArgument = new StringArgument('displayname');
+export var FORCE: BooleanArgument = new BooleanArgument('force');
 export var FRIENDLY_NAME: StringArgument = new StringArgument('friendlyname', 'friendly name');
 export var OVERWRITE: BooleanArgument = new BooleanArgument('overwrite');
 export var PROJECT_NAME: StringArgument = new StringArgument('project', 'projectName');
@@ -95,6 +96,7 @@ export var EXTENSION_ID: StringArgument = new StringArgument('extensionid');
 export var PUBLISHER_NAME: StringArgument = new StringArgument('name', 'publisher name');
 export var GALLERY_URL: StringArgument = new StringArgument('galleryurl', 'gallery url', 'https://app.market.visualstudio.com');
 export var MANIFEST_GLOB: ArrayArgument = new ArrayArgument('manifestglob', 'manifest glob', ['vss-extension.json']);
+export var MANIFEST_PATH: FilePathArgument = new FilePathArgument('manifestpath', 'path to manifest');
 export var OUTPUT_PATH: StringArgument = new StringArgument('outputpath', 'output path', '{auto}');
 export var OVERRIDE: StringArgument = new StringArgument('override', 'overrides JSON');
 export var SHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to share with', []);

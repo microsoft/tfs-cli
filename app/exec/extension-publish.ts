@@ -1,14 +1,16 @@
+/// <reference path="../../definitions/tsd.d.ts" />
+
+import argm = require('../lib/arguments');
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
+import createm = require('./extension-create');
 import extinfom = require('../lib/extensioninfo');
 import fs = require('fs');
 import gallerym = require('vso-node-api/GalleryApi');
 import galleryifm = require('vso-node-api/interfaces/GalleryInterfaces');
 import os = require('os');
-import argm = require('../lib/arguments');
-import createm = require('./extension-create');
-import sharem = require('./extension-share');
 import Q = require('q');
+import sharem = require('./extension-share');
 var trace = require('../lib/trace');
 
 export function describe(): string {
@@ -33,16 +35,10 @@ export interface PublishResults {
 
 export class ExtensionPublish extends cmdm.TfCommand {
     optionalArguments = [argm.VSIX_PATH, argm.SHARE_WITH];
-    protected galleryapi: gallerym.IQGalleryApi;
-    protected cachedExtensionInfo: extinfom.CoreExtInfo;
-    private static validationPending = "__validation_pending";
-    private static validated = "__validated";
-    private static validationInterval = 1000;
-    private static validationRetries = 50;
     
     public exec(args: string[], options: cm.IOptions): any {
         trace.debug('extension-publish.exec');
-        this.galleryapi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
+        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
         return this.checkArguments(args, options).then( (allArguments: cm.IStringIndexer) => {        
 			return Q.Promise<string>((resolve, reject, notify) => {
                 if (allArguments[argm.VSIX_PATH.name]) {
@@ -54,16 +50,18 @@ export class ExtensionPublish extends cmdm.TfCommand {
                 }
             }).then((vsixPath: string) => {
                 trace.debug("Begin publish to Gallery");
-                return this._publish(vsixPath).then(() => {
+                return new PublisherManager(galleryapi).publish(vsixPath).then(() => {
                     trace.debug("Success");
                     return <PublishResults> {
                         vsixPath: vsixPath
                     };
                 });            
             }).then((results: PublishResults) => {
+                trace.debug("Begin sharing");
 				if (allArguments[argm.SHARE_WITH.name]) {
                     var sharer: sharem.ExtensionShare = sharem.getCommand();
                     sharer.connection = this.connection;
+                    options[argm.VSIX_PATH.name] = results.vsixPath;
                     return sharer.exec(args, options).then((accounts) => {
                         results.shareWith = accounts;
                         return results;
@@ -73,13 +71,40 @@ export class ExtensionPublish extends cmdm.TfCommand {
 			});
         });
     }
+
+    public output(data: any): void {
+        if (!data) {
+            throw new Error('no package supplied');
+        }
+
+        var results: PublishResults = data;
+        trace.info();
+        trace.success("Successfully published VSIX from %s to the gallery.", results.vsixPath);
+    }   
+}
+
+export class PublisherManager {
+    protected galleryapi: gallerym.IQGalleryApi;
+    protected cachedExtensionInfo: extinfom.CoreExtInfo;
+    private static validationPending = "__validation_pending";
+    private static validated = "__validated";
+    private static validationInterval = 1000;
+    private static validationRetries = 50;
+    
+    /**
+    * Constructor
+    * @param PublishSettings
+    */
+    constructor(galleryapi: gallerym.IQGalleryApi) {
+        this.galleryapi = galleryapi;
+    }
     
     /**
      * Publish the VSIX extension given by vsixPath
      * @param string path to a VSIX extension to publish
      * @return Q.Promise that is resolved when publish is complete
      */
-    private _publish(vsixPath: string): Q.Promise<any> {
+    public publish(vsixPath: string): Q.Promise<any> {
         trace.debug('publish.publish');
         
         let extPackage: galleryifm.ExtensionPackage = {
@@ -92,7 +117,7 @@ export class ExtensionPublish extends cmdm.TfCommand {
         return this._createOrUpdateExtension(vsixPath, extPackage).then((extInfo) => {
             trace.info("Waiting for server to validate extension package...");
             return this._waitForValidation(vsixPath, extInfo.version).then((result) => {
-                if (result === ExtensionPublish.validated) {
+                if (result === PublisherManager.validated) {
                     return "success";
                 } else {
                     throw new Error("Extension validation failed. Please address the following issues and retry publishing." + os.EOL + result);
@@ -117,16 +142,16 @@ export class ExtensionPublish extends cmdm.TfCommand {
         });
     }
     
-    private _waitForValidation(vsixPath: string, publisherName: string, version?: string, interval = ExtensionPublish.validationInterval, retries = ExtensionPublish.validationRetries): Q.Promise<string> {
+    private _waitForValidation(vsixPath: string, publisherName: string, version?: string, interval = PublisherManager.validationInterval, retries = PublisherManager.validationRetries): Q.Promise<string> {
         if (retries === 0) {
-            throw "Validation timed out. There may be a problem validating your extension. Please try again later.";
+            throw new Error("Validation timed out. There may be a problem validating your extension. Please try again later.");
         } else if (retries === 25) {
             trace.info("This is taking longer than usual. Hold tight...");
         }
         trace.debug("Polling for validation (%s retries remaining).", retries.toString());
         return Q.delay(this._getValidationStatus(vsixPath, publisherName, version), interval).then((status) => {
             trace.debug("--Retrieved validation status: %s", status);
-            if (status === ExtensionPublish.validationPending) {
+            if (status === PublisherManager.validationPending) {
                 return this._waitForValidation(vsixPath, publisherName, version, interval, retries - 1);
             } else {
                 return status;
@@ -166,9 +191,9 @@ export class ExtensionPublish extends cmdm.TfCommand {
                 if (extVersion.validationResultMessage) {
                     return extVersion.validationResultMessage;
                 } else if ((extVersion.flags & galleryifm.ExtensionVersionFlags.Validated) === 0) {
-                    return ExtensionPublish.validationPending;
+                    return PublisherManager.validationPending;
                 } else {
-                    return ExtensionPublish.validated;
+                    return PublisherManager.validated;
                 }
             });
         });
@@ -182,14 +207,4 @@ export class ExtensionPublish extends cmdm.TfCommand {
             return null;
         }
     }
-
-    public output(data: any): void {
-        if (!data) {
-            throw new Error('no package supplied');
-        }
-
-        var results: PublishResults = data;
-        console.log();
-        trace.success("Successfully published VSIX from %s to the gallery.", results.vsixPath);
-    }   
 }

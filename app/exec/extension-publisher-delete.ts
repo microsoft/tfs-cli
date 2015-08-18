@@ -58,7 +58,7 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
         }
 
         var publisher: galleryifm.Publisher = <galleryifm.Publisher>data;
-        console.log();
-        console.log('Successfully deleted publisher ' + publisher.publisherName);
+        trace.info('');
+        trace.success('Successfully deleted publisher %s', publisher.publisherName);
     }   
 }

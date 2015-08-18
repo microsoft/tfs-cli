@@ -43,26 +43,6 @@ export class BuildTaskList extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
-            throw new Error('no tasks supplied');
-        }
-
-        if (!(data instanceof Array)) {
-            throw new Error('expected an array of tasks');
-        }
-
-        data.forEach((task) => {
-            console.log();
-            console.log('id   : ' + task.id);
-            console.log('name : ' + task.name);
-            console.log('friendly name : ' + task.friendlyName);
-            console.log('visibility: ' + task.visibility);
-            console.log('description: ' + task.description);
-            console.log('version: ' + new TaskVersion(task.version).toString());
-        });
-    }   
-
     /*
      * takes a list of non-unique task definitions and returns only the newest unique definitions
      * TODO: move this code to the server, add a parameter to the controllers
@@ -108,6 +88,26 @@ export class BuildTaskList extends cmdm.TfCommand {
         }
         return 0;
     }
+    
+    public output(data: any): void {
+        if (!data) {
+            throw new Error('no tasks supplied');
+        }
+
+        if (!(data instanceof Array)) {
+            throw new Error('expected an array of tasks');
+        }
+
+        data.forEach((task) => {
+            trace.info();
+            trace.info('id   : %s', task.id);
+            trace.info('name : %s', task.name);
+            trace.info('friendly name : %s', task.friendlyName);
+            trace.info('visibility: %s', task.visibility);
+            trace.info('description: %s', task.description);
+            trace.info('version: %s', new TaskVersion(task.version).toString());
+        });
+    }   
 }
 
 class TaskVersion {

@@ -72,13 +72,13 @@ export class BuildQueue extends cmdm.TfCommand {
         }
 
         var build: buildifm.Build = <buildifm.Build>data;
-        console.log();
-        console.log('Queued new build:')
-        console.log('id   : ' + build.id);
-        console.log('definition name: ' + build.definition.name)
-        console.log('requested by : ' + build.requestedBy.displayName);
-        console.log('status : ' + buildifm.BuildStatus[build.status]);
-        console.log('queue time : ' + build.queueTime);
+        trace.info('');
+        trace.info('Queued new build:')
+        trace.info('id   : %s', build.id);
+        trace.info('definition name: %s', build.definition.name)
+        trace.info('requested by : %s', build.requestedBy.displayName);
+        trace.info('status : %s', buildifm.BuildStatus[build.status]);
+        trace.info('queue time : %s', build.queueTime);
     }
 
     private _queueBuild(buildapi: buildm.IQBuildApi, definition: buildifm.DefinitionReference, project: string) {

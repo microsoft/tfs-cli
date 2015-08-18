@@ -156,7 +156,7 @@ export class BuildCreate extends cmdm.TfCommand {
             defer.resolve(ret);
         })
         .fail((err) => {
-            trace.debug('Failed to gather inputs. Message: ' + err.message);
+            trace.debug('Failed to gather inputs. Message: %s', err.message);
             defer.reject(err);
         });
         return <Q.Promise<any>>defer.promise;
@@ -167,13 +167,13 @@ export class BuildCreate extends cmdm.TfCommand {
             throw new Error('no results');
         }
 
-        console.log();
-        console.log('created task @ ' + data.taskPath);
+        trace.info('');
+        trace.success('created task @ %s', data.taskPath);
         var def = data.definition;
-        console.log('id   : ' + def.id);
-        console.log('name: ' + def.name);
-        console.log();
-        console.log('A temporary task icon was created.  Replace with a 32x32 png with transparencies');
+        trace.info('id   : %s', def.id);
+        trace.info('name: %s', def.name);
+        trace.info('');
+        trace.info('A temporary task icon was created.  Replace with a 32x32 png with transparencies');
 
     }   
 }

@@ -43,10 +43,10 @@ export class ExtensionPublisherCreate extends cmdm.TfCommand {
         }
 
         var publisher: galleryifm.Publisher = <galleryifm.Publisher>data;
-        console.log();
-        console.log('Successfully created publisher');
-        console.log('name   : ' + publisher.publisherName);
-        console.log('display name: ' + publisher.displayName);
-        console.log('description : ' + publisher.shortDescription);
+        trace.info('');
+        trace.info('Successfully created publisher');
+        trace.info('name   : %s', publisher.publisherName);
+        trace.info('display name: %s', publisher.displayName);
+        trace.info('description : %s', publisher.shortDescription);
     }   
 }

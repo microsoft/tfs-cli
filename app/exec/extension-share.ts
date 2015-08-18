@@ -30,13 +30,10 @@ export class ExtensionShare extends cmdm.TfCommand {
         trace.debug('extension-share.exec');
         var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
-            trace.debug("read args");
             var accounts: string[] = allArguments[argm.SHARE_WITH.name];
             return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
-                trace.debug("got info");
                 for(var i = 0; i < accounts.length; i++) {
 	 				galleryapi.shareExtension(extInfo.publisher, extInfo.id, accounts[i], (err, statuscode) => {
-                         trace.debug("shared most maximally");
                          if(err) {
                              Q.reject(err);
                          }
@@ -52,7 +49,7 @@ export class ExtensionShare extends cmdm.TfCommand {
             throw new Error('no sharing information supplied');
         }
 
-        console.log();
-        trace.success('Extension shared successfully with:' + accounts.map((account) => " " + account));
+        trace.info('');
+        trace.success('Extension shared successfully with:%s', accounts.map((account) => " " + account));
     }   
 }

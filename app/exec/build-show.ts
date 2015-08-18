@@ -37,11 +37,11 @@ export class BuildShow extends cmdm.TfCommand {
         }
 
         var build: buildifm.Build = <buildifm.Build>data;
-        console.log();
-        console.log('id   : ' + build.id);
-        console.log('definition name: ' + build.definition.name)
-        console.log('requested by : ' + build.requestedBy.displayName);
-        console.log('status : ' + buildifm.BuildStatus[build.status]);
-        console.log('queue time : ' + build.queueTime);
+        trace.info('');
+        trace.info('id   : %s', build.id);
+        trace.info('definition name: %s', build.definition.name)
+        trace.info('requested by : %s', build.requestedBy.displayName);
+        trace.info('status : %s', buildifm.BuildStatus[build.status]);
+        trace.info('queue time : %s', build.queueTime);
     }   
 }

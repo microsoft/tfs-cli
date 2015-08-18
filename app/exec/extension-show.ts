@@ -50,11 +50,11 @@ export class ExtensionShow extends cmdm.TfCommand {
             throw new Error('no extension information supplied');
         }
 
-        console.log();
-        console.log("Extension name: " + ext.extensionName);
-        console.log("Publisher name: " + ext.publisher.displayName);
-        console.log("Extension id: " + ext.extensionId);
-        console.log("Last updated: " + ext.lastUpdated.toLocaleTimeString());
-        console.log("Shared with: " + ext.allowedAccounts.map(acct => acct.accountName));
+        trace.info('');
+        trace.info("Extension name: %s", ext.extensionName);
+        trace.info("Publisher name: %s", ext.publisher.displayName);
+        trace.info("Extension id: %s", ext.extensionId);
+        trace.info("Last updated: %s", ext.lastUpdated.toLocaleTimeString());
+        trace.info("Shared with: %s", ext.allowedAccounts.map(acct => acct.accountName));
     }   
 }

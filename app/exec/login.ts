@@ -59,14 +59,14 @@ export class Login extends cmdm.TfCommand {
             });
         })
         .fail((err) => {
-            trace.debug('Login Failed: ' + err.message);
-            defer.reject('Login Failed: ' + err.message);
+            trace.debug('Login Failed: %s', err.message);
+            defer.reject(new Error('Login Failed: ' + err.message));
         })
         
         return <Q.Promise<am.ICredentials>>defer.promise;
     }
 
     public output(creds: am.ICredentials): void {
-        console.log('logged in successfully');
+        trace.info('logged in successfully');
     }
 }

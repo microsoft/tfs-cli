@@ -22,14 +22,12 @@ export class Version extends cmdm.TfCommand {
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('version.exec');
         var defer = Q.defer();
-        var packagejson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-        
-        defer.resolve(packagejson.version);
-        
+        var packageJson = require('../package.json');
+        defer.resolve(packageJson.version);
         return <Q.Promise<string>>defer.promise;
     }
 
     public output(version: string): void {
-        console.log('Version: ' + version);
+        trace.info('Version %s', version);
     }
 }

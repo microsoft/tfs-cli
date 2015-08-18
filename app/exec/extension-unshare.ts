@@ -64,7 +64,7 @@ export class ExtensionUnshare extends cmdm.TfCommand {
             throw new Error('no sharing information supplied');
         }
 
-        console.log();
+        trace.info('');
         trace.success('Extension successfully unshared from:' + accounts.map((account) => " " + account));
     }   
 }
