@@ -65,6 +65,6 @@ export class ExtensionUnshare extends cmdm.TfCommand {
         }
 
         console.log();
-        trace.success('Extension successfully unshared from: ' + accounts);
+        trace.success('Extension successfully unshared from:' + accounts.map((account) => " " + account));
     }   
 }

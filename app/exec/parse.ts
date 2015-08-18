@@ -43,7 +43,7 @@ export class Parse extends cmdm.TfCommand {
             process.stdin.on('end', () => {
                 try {
                     var obj = JSON.parse(contents);
-                    process.stdout.write(eval('obj' + filter));
+                    console.log(eval('obj' + filter));
                     defer.resolve({});
                 }
                 catch (err) {

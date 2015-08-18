@@ -20,7 +20,7 @@ export var hideBanner: boolean = false;
 export class Version extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
-        trace('version.exec');
+        trace.debug('version.exec');
         var defer = Q.defer();
         var packagejson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
         

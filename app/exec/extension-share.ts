@@ -53,6 +53,6 @@ export class ExtensionShare extends cmdm.TfCommand {
         }
 
         console.log();
-        trace.success('Extension shared successfully with: ' + accounts);
+        trace.success('Extension shared successfully with:' + accounts.map((account) => " " + account));
     }   
 }

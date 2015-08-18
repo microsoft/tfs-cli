@@ -40,7 +40,6 @@ export class ExtensionCreate extends cmdm.TfCommand {
                     return outPath;
                 });
             }).then((outPath) => {
-                trace.success("Successfully created VSIX package.");
                 return outPath;
             });
         });

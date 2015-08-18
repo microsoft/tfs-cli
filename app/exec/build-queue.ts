@@ -82,7 +82,7 @@ export class BuildQueue extends cmdm.TfCommand {
     }
 
     private _queueBuild(buildapi: buildm.IQBuildApi, definition: buildifm.DefinitionReference, project: string) {
-        trace('Queueing build...')
+        trace.debug('Queueing build...')
         var build = <buildifm.Build> {
             definition: definition
         };
