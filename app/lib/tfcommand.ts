@@ -72,6 +72,6 @@ export class TfCommand {
     
     public checkArguments(args: string[], options: cm.IOptions): Q.Promise<cm.IStringIndexer> {
         trace.debug('tfcommand.checkArguments');
-        return inputm.Qcheck(args, options, this.requiredArguments, this.optionalArguments.concat(this.flags));
+        return inputm.checkAll(args, options, this.requiredArguments, this.optionalArguments.concat(this.flags));
     }
 }

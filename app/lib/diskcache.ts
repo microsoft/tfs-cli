@@ -1,3 +1,7 @@
+/// <reference path="../../definitions/tsd.d.ts" />
+
+import _ = require('lodash');
+import cm = require('./common');
 import Q = require('q');
 import fs = require('fs');
 var osHomedir = require('os-homedir');
@@ -72,4 +76,59 @@ export class DiskCache {
         defer.reject(new Error('Not implemented'));
         return <Q.Promise<void>>defer.promise;
     }
+}
+
+export function saveOptions(cliOptions: cm.IStringIndexer, settingsPath: string): Q.Promise<any> {
+    trace.info("Saving CLI options to %s.", settingsPath);
+    return Q.Promise((resolve, reject, notify) => {
+        try {
+            fs.exists(settingsPath, (exists: boolean) => {
+                resolve(exists);
+            });
+        } catch (err) {
+            reject(err);
+        }
+    }).then((exists: boolean) => {
+        if (exists) {
+            trace.debug("Settings file exists. Merging settings.");
+            return Q.nfcall<string>(fs.readFile, settingsPath, "utf8").then(content => content.replace(/^\uFEFF/, ""));
+        } else {
+            trace.debug("Settings file does not exist. Writing file.");
+            return "{}";
+        }
+    }).then((settingsStr: string) => {
+        let settings = JSON.parse(settingsStr);
+        _.merge(settings, cliOptions);
+        if (Object.keys(settings).length > 0) {
+            let fileContents = JSON.stringify(settings, null, 4);
+            trace.debug("Content: %s", fileContents);
+            return Q.nfcall(fs.writeFile, settingsPath, fileContents, "utf8");
+        } else {
+            return;
+        }
+    });
+}
+
+export function parseSettingsFile(settingsPath: string, noWarn: boolean): Q.Promise<cm.IStringIndexer> {
+    return Q.Promise<cm.IStringIndexer>((resolve, reject, notify) => {
+        try {
+            if (fs.existsSync(settingsPath)) {
+                let settingsStr = fs.readFileSync(settingsPath, "utf8").replace(/^\uFEFF/, "");
+                let settingsJSON;
+                try {
+                    resolve(JSON.parse(settingsStr)) 
+                } catch (err) {
+                    trace.warn("Could not parse settings file as JSON. No settings were read from %s.", settingsPath);
+                    resolve({});
+                }
+            } else {
+                if (!noWarn) {
+                    trace.warn("No settings file found at %s.", settingsPath);
+                }
+                resolve({});
+            }
+        } catch (err) {
+            reject(err);
+        }
+    });
 }

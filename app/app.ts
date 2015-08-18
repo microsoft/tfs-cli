@@ -51,8 +51,10 @@ if (!cmd) {
     console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help] [--json]');
     loader.getHelp(execPath, scope, options.all || false);
     console.log('Options:');
-    console.log('   --help    : get help on a command');
-    console.log('   --json    : output in json format.  useful for scripting');
+    console.log('   --help             : get help on a command');
+    console.log('   --json             : output in json format.  useful for scripting');
+    console.log("   --save             : save values of all options in a settings file -- then don't have to reenter for future commands");
+    console.log("   --settings <path>  : relative path to a settings file to save to and load from");
     console.log();
     process.exit(1);
 }
@@ -88,7 +90,7 @@ else {
     .then((url: string) => {
         trace.debug('url: ' + url);
         collectionUrl = url;
-        return inputm.Qcheck(args, options, [argm.AUTH_TYPE], []).then((allArguments) => {
+        return inputm.checkAll(args, options, [argm.AUTH_TYPE], []).then((allArguments) => {
             return am.getCredentials(url, allArguments[argm.AUTH_TYPE.name]);
         });
     })

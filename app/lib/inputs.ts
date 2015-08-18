@@ -3,6 +3,8 @@
 
 /// <reference path="../../definitions/q/Q.d.ts" />
 
+import arm = require('./arguments');
+import cachem = require('./diskcache');
 import cm = require('./common');
 import os = require('os');
 import Q = require('q');
@@ -16,40 +18,44 @@ var readline = require("readline")
 
 var args = argparser(process.argv.slice(2));
 
-export function Qcheck(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
-    var defer = Q.defer<cm.IStringDictionary>();
-    this.check(args, options, requiredArguments, optionalArguments, (err, result: cm.IStringDictionary) => {
-        if (err) {
-            defer.reject(err);
-        }
-
-        defer.resolve(result);
+export function checkAll(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+    var settingsArg = argm.SETTINGS;
+    var settingsPath = options[settingsArg.name] ? settingsArg.getValueFromString(options[settingsArg.name].toString()) : settingsArg.defaultValue;
+    return cachem.parseSettingsFile(settingsPath, !options[settingsArg.name]).then((settings: cm.IStringIndexer) => {
+        return check(args, options, settings, requiredArguments, optionalArguments).then((allArguments) => {
+            if(options[argm.SAVE.name]) {
+                cachem.saveOptions(allArguments, settingsPath);
+            }
+            return Q.resolve(allArguments); 
+        });
     });
-    return defer.promise;
 }
 
-export function check(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[], done: (err:Error, result: cm.IStringIndexer) => void): void {
+export function check(args: string[], options: cm.IOptions, settings: cm.IStringIndexer, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
     trace.debug('inputs.check');
-    var allArguments: cm.IStringIndexer = {};
+    var defer = Q.defer<cm.IStringDictionary>();
+    var allArguments: cm.IStringIndexer = settings;
     for(var i = 0; i < requiredArguments.length; i++) {
         var arg: argm.Argument = requiredArguments[i];
         var name: string = arg.name;
-        allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue);
+        allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : (settings[name] ? arg.getValueFromString(settings[name].toString()) : arg.defaultValue));
         if(!allArguments[name]) {
             trace.debug('Required parameter ' + name + ' not supplied.');
-            done(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + arg.friendlyName + '>'), null);
+            defer.reject(new Error('Required parameter ' + name + ' not supplied.' + os.EOL + 'Try adding a switch to the end of your command: --' + name + ' <' + arg.friendlyName + '>'));
         }
     }
     for(var i = 0; i < optionalArguments.length; i++) {
         var arg: argm.Argument = optionalArguments[i];
         var name: string = arg.name;
-        allArguments[name] = options[name] ? arg.getValueFromString(options[name].toString()) : arg.defaultValue;
+        allArguments[name] = options[name] ? arg.getValueFromString(options[name].toString()) : (settings[name] ? arg.getValueFromString(settings[name].toString()) : arg.defaultValue);
     }
-    done(null, allArguments);
+    var settingsPath = 
+    defer.resolve(allArguments);
+    return defer.promise;
 }
 
 // Q wrapper
-export function Qprompt( requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringDictionary> {
+export function Qprompt(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringDictionary> {
     var defer = Q.defer<cm.IStringDictionary>();
 
     this.prompt(requiredInputs, optionalInputs, (err, result: cm.IStringDictionary) => {

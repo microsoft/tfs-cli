@@ -74,7 +74,8 @@ export var AUTH_TYPE: StringArgument = new StringArgument('authtype', 'authtype'
 export var COLLECTION_URL: StringArgument = new StringArgument('collectionurl', 'collection url');
 export var PASSWORD: SilentStringArgument = new SilentStringArgument('password');
 export var PAT: SilentStringArgument = new SilentStringArgument('token', 'personal access token');
-export var SETTINGS: StringArgument = new StringArgument('settings', 'settings path');
+export var SAVE: BooleanArgument = new BooleanArgument('save');
+export var SETTINGS: StringArgument = new StringArgument('settings', 'settings path', 'settings.vset.json');
 export var USERNAME: StringArgument = new StringArgument('username');
 
 ///BUILD
