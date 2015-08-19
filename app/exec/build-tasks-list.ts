@@ -23,7 +23,7 @@ export var hideBanner: boolean = false;
 export class BuildTaskList extends cmdm.TfCommand {
     flags = [argm.ALL];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<agentifm.TaskDefinition[]> {
         trace.debug("build-tasks-list.exec");
         trace.debug("Initializing agent API...");
         var agentapi = this.getWebApi().getQTaskAgentApi(this.connection.accountUrl);
@@ -89,7 +89,7 @@ export class BuildTaskList extends cmdm.TfCommand {
         return 0;
     }
     
-    public output(data: any): void {
+    public output(data: agentifm.TaskDefinition[]): void {
         if (!data) {
             throw new Error('no tasks supplied');
         }
@@ -99,7 +99,7 @@ export class BuildTaskList extends cmdm.TfCommand {
         }
 
         data.forEach((task) => {
-            trace.info();
+            trace.println();
             trace.info('id   : %s', task.id);
             trace.info('name : %s', task.name);
             trace.info('friendly name : %s', task.friendlyName);

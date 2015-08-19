@@ -49,7 +49,7 @@ export class ExtensionShare extends cmdm.TfCommand {
             throw new Error('no sharing information supplied');
         }
 
-        trace.info('');
+        trace.println();
         trace.success('Extension shared successfully with:%s', accounts.map((account) => " " + account));
     }   
 }

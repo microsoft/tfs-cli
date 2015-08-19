@@ -25,7 +25,7 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
     requiredArguments = [argm.PUBLISHER_NAME];
     optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.Publisher> {
         trace.debug('extension-publisher-delete.exec');
         var defer = Q.defer<galleryifm.Publisher>();
         var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
@@ -52,13 +52,12 @@ export class ExtensionPublisherDelete extends cmdm.TfCommand {
         return <Q.Promise<galleryifm.Publisher>>defer.promise;
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(publisher: galleryifm.Publisher): void {
+        if (!publisher) {
             throw new Error('no publisher supplied');
         }
 
-        var publisher: galleryifm.Publisher = <galleryifm.Publisher>data;
-        trace.info('');
+        trace.println();
         trace.success('Successfully deleted publisher %s', publisher.publisherName);
     }   
 }

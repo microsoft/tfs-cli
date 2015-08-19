@@ -66,7 +66,7 @@ export class BuildGetList extends cmdm.TfCommand {
         }
 
         data.forEach((build) => {
-            trace.info('');
+            trace.println();
             trace.info('id   : %s', build.id);
             trace.info('definition name: %s', build.definition.name)
             trace.info('requested by : %s', build.requestedBy.displayName);

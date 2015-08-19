@@ -39,7 +39,7 @@ export class ExtensionCreate extends cmdm.TfCommand {
     requiredArguments = [argm.OUTPUT_PATH];
     optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('extension-create.exec');
         return this.checkArguments(args, options).then( (allArguments) => {
             trace.debug("Begin package creation");
@@ -59,13 +59,12 @@ export class ExtensionCreate extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(outPath: string): void {
+        if (!outPath) {
             throw new Error('no path supplied');
         }
 
-        var outPath: string = data;
-        trace.info('');
+        trace.println();
         trace.success('Successfully created package at ' + outPath);
     }   
 }

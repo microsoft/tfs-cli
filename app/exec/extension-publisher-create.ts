@@ -24,7 +24,7 @@ export class ExtensionPublisherCreate extends cmdm.TfCommand {
     requiredArguments = [argm.PUBLISHER_NAME, argm.DISPLAY_NAME, argm.DESCRIPTION];
     optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.Publisher> {
         trace.debug('extension-publisher-create.exec');
         var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
@@ -37,13 +37,12 @@ export class ExtensionPublisherCreate extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(publisher: galleryifm.Publisher): void {
+        if (!publisher) {
             throw new Error('no publisher supplied');
         }
 
-        var publisher: galleryifm.Publisher = <galleryifm.Publisher>data;
-        trace.info('');
+        trace.println();
         trace.info('Successfully created publisher');
         trace.info('name   : %s', publisher.publisherName);
         trace.info('display name: %s', publisher.displayName);

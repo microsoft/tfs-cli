@@ -63,7 +63,7 @@ export class ExtensionMigrate extends cmdm.TfCommand {
             throw new Error('no extension information supplied');
         }
 
-        trace.info('');
+        trace.println();
         trace.info("Extension name: %s", ext.extensionName);
         trace.info("Publisher name: %s", ext.publisher.displayName);
         trace.info("Extension id: %s", ext.extensionId);

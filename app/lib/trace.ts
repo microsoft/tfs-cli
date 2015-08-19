@@ -1,6 +1,12 @@
+/// <reference path="../../definitions/tsd.d.ts" />
+
 import colors = require("colors");
 import os = require('os');
 var traceEnabled = process.env['TFX_TRACE'];
+
+export function println() {
+	info('');
+}
 
 export function error(msg: string, ...replacements: string[]): void {
 	doLog('', msg, colors.bgRed, replacements, console.error);
@@ -10,7 +16,7 @@ export function success(msg: string, ...replacements: string[]): void {
 	doLog('', msg, colors.green, replacements);
 }
 
-export function info(msg: string = '', ...replacements: string[]): void {
+export function info(msg: string, ...replacements: string[]): void {
 	doLog('', msg, colors.white, replacements);
 }
 

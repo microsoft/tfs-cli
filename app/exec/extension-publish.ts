@@ -36,7 +36,7 @@ export interface PublishResults {
 export class ExtensionPublish extends cmdm.TfCommand {
     optionalArguments = [argm.VSIX_PATH, argm.SHARE_WITH];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<PublishResults> {
         trace.debug('extension-publish.exec');
         var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
         return this.checkArguments(args, options).then( (allArguments: cm.IStringIndexer) => {        
@@ -72,13 +72,12 @@ export class ExtensionPublish extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(results: PublishResults): void {
+        if (!results) {
             throw new Error('no package supplied');
         }
 
-        var results: PublishResults = data;
-        trace.info();
+        trace.println();
         trace.success("Successfully published VSIX from %s to the gallery.", results.vsixPath);
     }   
 }

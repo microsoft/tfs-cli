@@ -34,7 +34,7 @@ export var hideBanner: boolean = false;
 export class BuildCreate extends cmdm.TfCommand {
     requiredArguments = [argm.TASK_NAME, argm.FRIENDLY_NAME, argm.DESCRIPTION, argm.AUTHOR];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<any> {
         trace.debug('build-create.exec');
         var defer = Q.defer<any>();
         
@@ -167,12 +167,12 @@ export class BuildCreate extends cmdm.TfCommand {
             throw new Error('no results');
         }
 
-        trace.info('');
+        trace.println();
         trace.success('created task @ %s', data.taskPath);
         var def = data.definition;
         trace.info('id   : %s', def.id);
         trace.info('name: %s', def.name);
-        trace.info('');
+        trace.println();
         trace.info('A temporary task icon was created.  Replace with a 32x32 png with transparencies');
 
     }   

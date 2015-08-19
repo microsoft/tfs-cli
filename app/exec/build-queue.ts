@@ -30,7 +30,7 @@ export class BuildQueue extends cmdm.TfCommand {
             + os.EOL + '\tmust supply ' + argm.DEFINITION_ID + ' or ' + argm.DEFINITION_NAME;
     }
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<buildifm.Build> {
         trace.debug('build-queue.exec');
         trace.debug('Initializing Build API...');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
@@ -66,13 +66,12 @@ export class BuildQueue extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(build: buildifm.Build): void {
+        if (!build) {
             throw new Error('no build supplied');
         }
 
-        var build: buildifm.Build = <buildifm.Build>data;
-        trace.info('');
+        trace.println();
         trace.info('Queued new build:')
         trace.info('id   : %s', build.id);
         trace.info('definition name: %s', build.definition.name)

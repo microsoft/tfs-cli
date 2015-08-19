@@ -60,6 +60,6 @@ export class Parse extends cmdm.TfCommand {
     }
 
     public output(creds: am.ICredentials): void {
-        // not s server operation
+        // not a server operation
     }
 }

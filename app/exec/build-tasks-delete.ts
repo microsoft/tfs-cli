@@ -24,7 +24,7 @@ export var hideBanner: boolean = false;
 export class BuildTaskDelete extends cmdm.TfCommand {
     requiredArguments = [argm.TASK_ID];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<agentifm.TaskDefinition> {
         trace.debug("build-tasks-delete.exec");
         var defer = Q.defer<agentifm.TaskDefinition>();
 		this.checkArguments(args, options).then( (allArguments) => {
@@ -65,7 +65,8 @@ export class BuildTaskDelete extends cmdm.TfCommand {
         return <Q.Promise<agentifm.TaskDefinition>>defer.promise;
     }
 
-    public output(data: any): void {
+    public output(data: agentifm.TaskDefinition): void {
+        trace.println();
         trace.success('Task %s deleted successfully!', data.id);
     }
 }

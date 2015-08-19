@@ -92,7 +92,8 @@ export class BuildTaskUpload extends cmdm.TfCommand {
         return <Q.Promise<agentifm.TaskDefinition>>defer.promise;
     }
 
-    public output(data: any): void {
+    public output(data: agentifm.TaskDefinition): void {
+        trace.println();
         trace.success('Task at %s uploaded successfully!', data.sourceLocation);
     }
 }

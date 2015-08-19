@@ -23,7 +23,7 @@ export var hideBanner: boolean = false;
 export class BuildShow extends cmdm.TfCommand {
     requiredArguments = [argm.PROJECT_NAME, argm.BUILD_ID];
     
-    public exec(args: string[], options: cm.IOptions): any {
+    public exec(args: string[], options: cm.IOptions): Q.Promise<buildifm.Build> {
         trace.debug('build-show.exec');
         var buildapi: buildm.IQBuildApi = this.getWebApi().getQBuildApi();
 		return this.checkArguments(args, options).then( (allArguments) => {
@@ -31,13 +31,12 @@ export class BuildShow extends cmdm.TfCommand {
         });
     }
 
-    public output(data: any): void {
-        if (!data) {
+    public output(build: buildifm.Build): void {
+        if (!build) {
             throw new Error('no build supplied');
         }
 
-        var build: buildifm.Build = <buildifm.Build>data;
-        trace.info('');
+        trace.println();
         trace.info('id   : %s', build.id);
         trace.info('definition name: %s', build.definition.name)
         trace.info('requested by : %s', build.requestedBy.displayName);

@@ -50,13 +50,19 @@ if (!cmd) {
     var scope = loaded.name == 'help' ? '' : loaded.name;
     console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help] [--json]');
     loader.getHelp(execPath, scope, options.all || false);
-    console.log('Options:');
-    console.log('   --help             : get help on a command');
-    console.log('   --json             : output in json format.  useful for scripting');
-    console.log("   --save             : save values of all options in a settings file -- then don't have to reenter for future commands");
-    console.log("   --settings <path>  : relative path to a settings file to save to and load from");
-    console.log();
+    trace.info('Options:');
+    trace.info('   --help             : get help on a command');
+    trace.info('   --json             : output in json format.  useful for scripting');
+    trace.info('   --fiddler          : Use the fiddler proxy for REST API calls');
+    trace.info("   --save             : save values of all options in a settings file -- then don't have to reenter for future commands");
+    trace.info("   --settings <path>  : relative path to a settings file to save to and load from");
+    trace.println();
     process.exit(1);
+}
+
+var previousProxy = process.env.HTTP_PROXY;
+if(options.fiddler) {
+    process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 }
 
 if (loaded.name == 'login') {
@@ -74,11 +80,11 @@ if (!cmdm.isServerOperation) {
     .then((result: any) => {
         if (result && cmd.output) {
             cmd.output(result);
-            console.log();
+            trace.println();
         }
     })
     .fail((err) => {
-        console.error('Error: ' + err.message);
+        trace.error('Error: %s', err.message);
         process.exit(1);
     })    
 }
@@ -101,26 +107,30 @@ else {
         return cmd.exec(args, options);
     })
     .then((result: any) => {
+        if(options.fiddler) {
+            process.env.HTTP_PROXY = previousProxy;
+        }
+        
         if (!result) {
-            console.error('Error: did not return results');
+            trace.error('Error: did not return results');
             process.exit(1);
         }
 
         if (options.json && result) {
-            console.log(JSON.stringify(result, null, 2));
+            trace.info(JSON.stringify(result, null, 2));
         }
         else {
             cmd.output(result);
-            console.log();
+            trace.info('');
         }   
     })
     .fail((err) => {
-        console.error('Error: ' + err.message);
+        trace.error('Error: %s', err.message);
         process.exit(1);
     })    
 }
 
 process.on('uncaughtException', (err) => {
-    console.error('unhandled:');
-    console.error(err.stack);
+    trace.error('unhandled:');
+    trace.error(err.stack);
 });
