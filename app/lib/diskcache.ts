@@ -110,6 +110,8 @@ export function saveOptions(cliOptions: cm.IStringIndexer, settingsPath: string)
 }
 
 export function parseSettingsFile(settingsPath: string, noWarn: boolean): Q.Promise<cm.IStringIndexer> {
+    trace.debug("diskcache.parseSettings");
+    trace.debug("reading settings from %s", settingsPath);
     return Q.Promise<cm.IStringIndexer>((resolve, reject, notify) => {
         try {
             if (fs.existsSync(settingsPath)) {

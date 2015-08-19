@@ -96,7 +96,7 @@ else {
     .then((url: string) => {
         trace.debug('url: ' + url);
         collectionUrl = url;
-        return inputm.checkAll(args, options, [argm.AUTH_TYPE], []).then((allArguments) => {
+        return inputm.check(args, options, {}, [argm.AUTH_TYPE], []).then((allArguments) => {
             return am.getCredentials(url, allArguments[argm.AUTH_TYPE.name]);
         });
     })

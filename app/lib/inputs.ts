@@ -7,6 +7,7 @@ import arm = require('./arguments');
 import cachem = require('./diskcache');
 import cm = require('./common');
 import os = require('os');
+import path = require('path');
 import Q = require('q');
 import argm = require('./arguments');
 
@@ -18,9 +19,13 @@ var readline = require("readline")
 
 var args = argparser(process.argv.slice(2));
 
+/**
+ * Checks for argument values in both the on-disk settings file and the provided command line arguments/options
+ */
 export function checkAll(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+    trace.debug('inputs.checkAll');
     var settingsArg = argm.SETTINGS;
-    var settingsPath = options[settingsArg.name] ? settingsArg.getValueFromString(options[settingsArg.name].toString()) : settingsArg.defaultValue;
+    var settingsPath = path.resolve(options[settingsArg.name] ? settingsArg.getValueFromString(options[settingsArg.name].toString()) : settingsArg.defaultValue);
     return cachem.parseSettingsFile(settingsPath, !options[settingsArg.name]).then((settings: cm.IStringIndexer) => {
         return check(args, options, settings, requiredArguments, optionalArguments).then((allArguments) => {
             if(options[argm.SAVE.name]) {
@@ -31,6 +36,9 @@ export function checkAll(args: string[], options: cm.IOptions, requiredArguments
     });
 }
 
+/**
+ * Checks for option values
+ */
 export function check(args: string[], options: cm.IOptions, settings: cm.IStringIndexer, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
     trace.debug('inputs.check');
     var defer = Q.defer<cm.IStringDictionary>();
