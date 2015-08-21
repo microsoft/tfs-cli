@@ -100,12 +100,12 @@ export class BuildTaskList extends cmdm.TfCommand {
 
         data.forEach((task) => {
             trace.println();
-            trace.info('id   : %s', task.id);
-            trace.info('name : %s', task.name);
+            trace.info('id            : %s', task.id);
+            trace.info('name          : %s', task.name);
             trace.info('friendly name : %s', task.friendlyName);
-            trace.info('visibility: %s', task.visibility);
-            trace.info('description: %s', task.description);
-            trace.info('version: %s', new TaskVersion(task.version).toString());
+            trace.info('visibility    : %s', task.visibility);
+            trace.info('description   : %s', task.description);
+            trace.info('version       : %s', new TaskVersion(task.version).toString());
         });
     }   
 }

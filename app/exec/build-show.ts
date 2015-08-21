@@ -37,10 +37,10 @@ export class BuildShow extends cmdm.TfCommand {
         }
 
         trace.println();
-        trace.info('id   : %s', build.id);
-        trace.info('definition name: %s', build.definition.name)
-        trace.info('requested by : %s', build.requestedBy.displayName);
-        trace.info('status : %s', buildifm.BuildStatus[build.status]);
-        trace.info('queue time : %s', build.queueTime);
+        trace.info('id              : %s', build.id);
+        trace.info('definition name : %s', build.definition.name)
+        trace.info('requested by    : %s', build.requestedBy.displayName);
+        trace.info('status          : %s', buildifm.BuildStatus[build.status]);
+        trace.info('queue time      : %s', build.queueTime);
     }   
 }

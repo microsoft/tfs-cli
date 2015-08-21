@@ -44,8 +44,8 @@ export class ExtensionPublisherCreate extends cmdm.TfCommand {
 
         trace.println();
         trace.info('Successfully created publisher');
-        trace.info('name   : %s', publisher.publisherName);
-        trace.info('display name: %s', publisher.displayName);
-        trace.info('description : %s', publisher.shortDescription);
+        trace.info('name         : %s', publisher.publisherName);
+        trace.info('display name : %s', publisher.displayName);
+        trace.info('description  : %s', publisher.shortDescription);
     }   
 }

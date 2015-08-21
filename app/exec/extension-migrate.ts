@@ -64,11 +64,11 @@ export class ExtensionMigrate extends cmdm.TfCommand {
         }
 
         trace.println();
-        trace.info("Extension name: %s", ext.extensionName);
-        trace.info("Publisher name: %s", ext.publisher.displayName);
-        trace.info("Extension id: %s", ext.extensionId);
-        trace.info("Last updated: %s", ext.lastUpdated.toLocaleTimeString());
-        trace.info("Shared with: %s", ext.allowedAccounts.map(acct => acct.accountName));
+        trace.info("Extension name : %s", ext.extensionName);
+        trace.info("Publisher name : %s", ext.publisher.displayName);
+        trace.info("Extension id   : %s", ext.extensionId);
+        trace.info("Last updated   : %s", ext.lastUpdated.toLocaleTimeString());
+        trace.info("Shared with    : %s", ext.allowedAccounts.map(acct => acct.accountName));
     }   
 }
 
