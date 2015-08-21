@@ -79,7 +79,7 @@ export class ExtensionPublish extends cmdm.TfCommand {
 
         trace.println();
         trace.success("Successfully published VSIX from %s to the gallery.", results.vsixPath);
-        if (results.shareWith) {
+        if (results.shareWith && results.shareWith.length > 0) {
             trace.success('Extension shared successfully with:%s', results.shareWith.map((account) => " " + account));
         }
     }   

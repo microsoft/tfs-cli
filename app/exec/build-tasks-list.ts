@@ -29,7 +29,7 @@ export class BuildTaskList extends cmdm.TfCommand {
         var agentapi = this.getWebApi().getQTaskAgentApi(this.connection.accountUrl);
 		return this.checkArguments(args, options).then( (allArguments) => {
             trace.debug("Searching for build tasks...");
-            return agentapi.getTaskDefinitions(['build']).then((tasks) => {
+            return agentapi.getTaskDefinitions(null, null, ['build'], null).then((tasks) => {
                 trace.debug("Retrieved " + tasks.length + " build tasks from server.");
                 if(allArguments[argm.ALL.name]) {
                     trace.debug("Listing all build tasks.");

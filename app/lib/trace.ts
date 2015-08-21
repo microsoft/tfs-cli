@@ -8,53 +8,55 @@ export function println() {
 	info('');
 }
 
-export function error(msg: string, ...replacements: string[]): void {
-	doLog('', msg, colors.bgRed, replacements, console.error);
+export function error(msg: any, ...replacements: string[]): void {
+	log('', msg, colors.bgRed, replacements, console.error);
 }
 
-export function success(msg: string, ...replacements: string[]): void {
-	doLog('', msg, colors.green, replacements);
+export function success(msg: any, ...replacements: string[]): void {
+	log('', msg, colors.green, replacements);
 }
 
-export function info(msg: string, ...replacements: string[]): void {
-	doLog('', msg, colors.white, replacements);
+export function info(msg: any, ...replacements: string[]): void {
+	log('', msg, colors.white, replacements);
 }
 
-export function warn(msg: string, ...replacements: string[]): void {
-	doLog('', msg, colors.bgYellow.black, replacements);
+export function warn(msg: any, ...replacements: string[]): void {
+	log('', msg, colors.bgYellow.black, replacements);
 }
 
 export function debugArea(msg: any, area: string) {
 	traceEnabled = process.env['TFX_TRACE_' + area.toUpperCase()];
-	debug(msg);
+	if(traceEnabled) {
+		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, []);	
+	}
 	traceEnabled = process.env['TFX_TRACE'];
 }
 
 export function debug(msg: any, ...replacements: string[]) {
     if (traceEnabled) {
-        var t = typeof(msg);
-        if (t === 'string') {
-            timestamp(msg, replacements);
-        }
-        else if (msg instanceof Array) {
-            msg.forEach(function(line) {
-                if (typeof(line) === 'string') {
-                    timestamp(line, replacements);
-                }
-            })
-        }
-        else if(t === 'object') {
-            timestamp(JSON.stringify(msg, null, 2), replacements);
-        } 
+		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, replacements);
     }
-};
-
-var timestamp = function(msg: any, replacements: string[]) {
-	doLog(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, replacements);
 }
 
-function doLog(prefix: string, str: string, color: any, replacements: string[], method = console.log): void {
-	let toLog = doReplacements(str, replacements);
+function log(prefix: string, msg: any, color: any, replacements: string[], method = console.log): void {
+	var t = typeof(msg);
+	if (t === 'string') {
+		write(prefix, msg, color, replacements, method);
+	}
+	else if (msg instanceof Array) {
+		msg.forEach(function(line) {
+			if (typeof(line) === 'string') {
+				write(prefix, line, color, replacements, method);
+			}
+		})
+	}
+	else if(t === 'object') {
+		write(prefix, JSON.stringify(msg, null, 2), color, replacements, method);
+	}
+}
+
+function write(prefix: string, msg: string, color: any, replacements: string[], method = console.log) {
+	let toLog = doReplacements(msg, replacements);
 	toLog = toLog.split(/\n|\r\n/).map(line => prefix + line).join(os.EOL);
 	method(color(toLog));
 }

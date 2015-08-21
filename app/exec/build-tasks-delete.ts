@@ -34,7 +34,7 @@ export class BuildTaskDelete extends cmdm.TfCommand {
             var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
     
             trace.debug("Searching for tasks with id: " + taskId);
-            agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
+            agentapi.getTaskDefinitions(taskId, null, null, null, (err, statusCode, tasks) => {
                 trace.debug("Found %s tasks with provided id.", tasks.length)
                 if (tasks && tasks.length > 0) {
                     trace.debug("Deleting task(s)...");

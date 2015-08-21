@@ -24,7 +24,7 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
         taskJson = require(jsonFilePath);
     }
     catch (jsonError) {
-        trace.debug('Invalid task json: ' + jsonError);
+        trace.debug('Invalid task json: %s', jsonError);
         throw new Error("Invalid task json: " + jsonError);
     }
     

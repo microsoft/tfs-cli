@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "TFS Extensions Command Line Utility",
   "repository": {
     "type": "git",
@@ -33,7 +33,7 @@
     "tmp": "0.0.26",
     "tracer": "0.7.4",
     "validator": "^3.43.0",
-    "vso-node-api": "^0.3.0",
+    "vso-node-api": "^0.4.0",
     "winreg": "0.0.12",
     "xml2js": "0.4.9"
   },
