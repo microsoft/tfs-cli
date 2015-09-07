@@ -35,8 +35,8 @@ export class WorkItemQuery extends cmdm.TfCommand {
             
             return witapi.queryByWiql(wiql, project).then((result: witifm.WorkItemQueryResult) => {
                
-               var workItemIds = result.workItems.map(val => val.id) .slice(0,Math.min(200, result.workItems.length));
-               var fieldRefs = result.columns.map(val => val.referenceName);
+               var workItemIds = result.workItems.map(val => val.id).slice(0,Math.min(200, result.workItems.length));
+               var fieldRefs = result.columns.map(val => val.referenceName).slice(0,Math.min(20, result.columns.length));
                
                return witapi.getWorkItems(workItemIds, fieldRefs);
             });
