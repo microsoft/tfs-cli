@@ -27,6 +27,12 @@ export class BooleanArgument extends Argument {
 	}
 }
 
+export class FilePathArgument extends Argument {
+	public getValueFromString(stringRepresentation: string): string {
+		return stringRepresentation.replace(/(^\")|(\"$)/g, "")
+	}
+}
+
 export class IntArgument extends Argument {
 	
 	public getValueFromString(stringRepresentation: string): any {
@@ -72,7 +78,7 @@ export var ALL: BooleanArgument = new BooleanArgument('all');
 export var JSON_FILTER: StringArgument = new StringArgument('jsonfilter');
 export var TASK_ID: StringArgument = new StringArgument('id', 'taskId');
 export var TASK_NAME: StringArgument = new StringArgument('name', 'short task name');
-export var TASK_PATH: StringArgument = new StringArgument('taskpath');
+export var TASK_PATH: FilePathArgument = new FilePathArgument('taskpath');
 
 ///WORK
 export var WORKITEM_ID: IntArgument = new IntArgument('id', 'workitemid');

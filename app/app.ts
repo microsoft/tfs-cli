@@ -51,7 +51,6 @@ if (!cmd) {
     console.log('tfx <command> [<subcommand(s)> ...] [<args>] [--version] [--help] [--json]');
     loader.getHelp(execPath, scope, options.all || false);
     console.log('Options:');
-    console.log('   --version : output the version');
     console.log('   --help    : get help on a command');
     console.log('   --json    : output in json format.  useful for scripting');
     console.log();
