@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "TFS Extensions Command Line Utility",
   "repository": {
     "type": "git",
