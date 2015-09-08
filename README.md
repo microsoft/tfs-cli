@@ -27,7 +27,7 @@ Currently supported credential types are Personal Access Tokens and basic auth.
 ~$ tfx login
 Copyright Microsoft Corporation
 
-Enter collection url > https://youraccount.visualstudio.com
+Enter collection url > https://youraccount.visualstudio.com/DefaultCollection
 Enter personal access token > 
 logged in successfully
 ```
