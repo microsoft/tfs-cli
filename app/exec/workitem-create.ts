@@ -30,8 +30,7 @@ export class WorkItemCreate extends cmdm.TfCommand {
         trace('workitem-create.exec');
         var witapi: witm.IQWorkItemTrackingApi = this.getWebApi().getQWorkItemTrackingApi();
         
-        return this.promptArguments(this.requiredArguments, this.optionalArguments).then( (allArguments) => {
-   
+		return this.checkArguments(args, options).then( (allArguments) => {
             var workitemtype: string = allArguments[argm.WORKITEMTYPE.name];
             var assignedto: string = allArguments[argm.ASSIGNEDTO.name];
             var title: string = allArguments[argm.TITLE.name];
