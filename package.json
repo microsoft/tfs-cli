@@ -6,10 +6,10 @@
     "type": "git",
     "url": "https://github.com/Microsoft/tfs-cli"
   },
-  "main": "./tfx-cli.js",
+  "main": "./_build/app/tfx-cli.js",
   "preferGlobal": true,
   "bin": {
-    "tfx": "./tfx-cli.js"
+    "tfx": "./_build/app/tfx-cli.js"
   },
   "scripts": {
     "test": "gulp test"
@@ -30,8 +30,9 @@
   "devDependencies": {
     "del": "^1.2.0",
     "gulp": "^3.9.0",
+    "gulp-filter": "^3.0.1",
     "gulp-mocha": "2.0.0",
-    "gulp-tsc": "^0.10.1",
+    "gulp-tsb": "^1.5.1",
     "minimatch": "^2.0.8",
     "mocha": "^2.2.5"
   },
