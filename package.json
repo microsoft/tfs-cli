@@ -12,6 +12,7 @@
     "tfx": "./_build/app/tfx-cli.js"
   },
   "scripts": {
+    "prepublish": "gulp build",
     "test": "gulp test"
   },
   "dependencies": {
