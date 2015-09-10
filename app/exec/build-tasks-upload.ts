@@ -1,6 +1,3 @@
-/// <reference path="../../definitions/q/Q.d.ts"/>
-/// <reference path="../../definitions/node/node.d.ts"/>
-
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
 import vm = require('../lib/jsonvalidate')

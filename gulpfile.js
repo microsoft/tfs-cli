@@ -3,49 +3,27 @@ var path = require('path');
 var gulp = require('gulp');
 var del = require('del');
 var mocha = require('gulp-mocha');
-var typescript = require('gulp-tsc');
+var tsb = require('gulp-tsb');
+var filter = require('gulp-filter');
 var minimist = require('minimist');
 var shell = require('shelljs');
+var tsconfig = require('./tsconfig.json');
+var compilation = tsb.create(tsconfig.compilerOptions);
 
-gulp.task('compile', function(){
-  gulp.src(['src/**/*.ts'])
-    .pipe(typescript())
-    .pipe(gulp.dest('dest/'))
-});
+var sources = [
+	'app/**',
+	'tests/**',
+	'definitions/**/*.d.ts'
+];
 
-var buildRoot = path.join(__dirname, '_build');
-var appDest = path.join(buildRoot, 'app');
-var resDest = path.join(appDest, 'exec', 'resources');
-var testDest = path.join(buildRoot, 'test');
-
-gulp.task('resources', ['clean'], function () {
-    shell.mkdir('-p', resDest);
-    return gulp.src(['app/exec/resources/*'])
-        .pipe(gulp.dest(resDest));
-});
-
-gulp.task('copy', ['clean', 'resources'], function () {
-	return gulp.src(['package.json', './README.md', './app/tfx-cli.js'])
-		.pipe(gulp.dest(appDest));
-});
-
-gulp.task('compileApp', ['clean'], function () {
-	return gulp.src(['app/**/*.ts'])
-		.pipe(typescript({ declaration: false }))
-		.pipe(gulp.dest(appDest));
-});
-
-gulp.task('compileTests', ['clean'], function () {
-	return gulp.src(['tests/*.ts'])
-		.pipe(typescript({ declaration: false }))
-		.pipe(gulp.dest(testDest));
-});
-
-gulp.task('build', ['clean', 'compileApp', 'compileTests', 'copy']);
-
-gulp.task('testprep', function () {
-	return gulp.src(['tests/resources/*.*'])
-		.pipe(gulp.dest(path.join(testDest, 'resources')));
+gulp.task('build', ['clean'], function () {
+	var tsFilter = filter('**/*.ts', { restore: true });
+	
+	return gulp.src(sources, { base: '.' })
+		.pipe(tsFilter)
+		.pipe(compilation())
+		.pipe(tsFilter.restore)
+		.pipe(gulp.dest('_build'));
 });
 
 var mopts = {
@@ -56,11 +34,11 @@ var mopts = {
 
 var options = minimist(process.argv.slice(2), mopts);
 
-gulp.task('test', ['testprep'], function () {
-	var suitePath = path.join(testDest, '*.js');
+gulp.task('test', function () {
+	var suitePath = path.join('_build', 'tests', '*.js');
 	console.log(suitePath);
 	if (options.suite !== '*') {
-		suitePath = path.join(testPath, options.suite + '.js');
+		suitePath = path.join('_build', 'tests', options.suite + '.js');
 	}
 
 	return gulp.src([suitePath])
@@ -68,7 +46,7 @@ gulp.task('test', ['testprep'], function () {
 });
 
 gulp.task('clean', function (done) {
-	del([buildRoot], done);
+	del(['_build'], done);
 });
 
 gulp.task('default', ['build']);

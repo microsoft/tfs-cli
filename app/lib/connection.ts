@@ -1,5 +1,3 @@
-/// <reference path="../../definitions/vso-node-api/vso-node-api.d.ts"/>
-
 import inputs = require('./inputs');
 import Q = require('q');
 import am = require('./auth');

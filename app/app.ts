@@ -1,5 +1,3 @@
-/// <reference path="../definitions/q/Q.d.ts"/>
-/// <reference path="../definitions/node/node.d.ts"/>
 import fs = require('fs');
 import path = require('path');
 import loader = require('./lib/loader');
