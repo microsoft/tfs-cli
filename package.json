@@ -24,6 +24,7 @@
     "jszip": "2.5.0",
     "lodash": "3.9.3",
     "minimist": "^1.1.2",
+    "mkdirp": "^0.5.1",
     "node-uuid": "^1.4.3",
     "os-homedir": "^1.0.1",
     "q": "^1.4.1",
