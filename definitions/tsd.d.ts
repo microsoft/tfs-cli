@@ -13,3 +13,4 @@
 /// <reference path="vso-node-api/vso-node-api.d.ts" />
 /// <reference path="xml2js/xml2js.d.ts" />
 /// <reference path="winreg/winreg.d.ts" />
+/// <reference path="mkdirp/mkdirp.d.ts" />

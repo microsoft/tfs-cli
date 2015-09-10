@@ -18,6 +18,7 @@ import tmp = require("tmp");
 import winreg = require('winreg');
 import xml = require("xml2js");
 import zip = require("jszip");
+import mkdirp = require("mkdirp");
 var trace = require('../lib/trace');
 
 export function describe(): string {
@@ -600,27 +601,6 @@ export class VsixWriter {
     }
     
     /**
-        * Recursive mkdirSync
-        */
-    private mkdirp(dirPath: string) {
-        let exploded = dirPath.split(/[\/\\]/);
-        if (exploded.length > 0) {
-            let current = path.join();
-            for (let i = 0; i < exploded.length; ++i) {
-                current = path.join(current, exploded[i]);
-                if (!fs.existsSync(current)) {
-                    fs.mkdirSync(current);
-                }
-            }
-        }
-    }
-    
-    private ensureDirExists(fullPath: string) {
-        let dir = path.dirname(fullPath);
-        this.mkdirp(dir);
-    }
-    
-    /**
         * If outPath is {auto}, generate an automatic file name.
         * Otherwise, try to determine if outPath is a directory (checking for a . in the filename)
         * If it is, generate an automatic filename in the given outpath
@@ -711,10 +691,9 @@ export class VsixWriter {
                 platform: process.platform
             });
             trace.debug("Writing vsix to: %s", outputPath);
-            this.ensureDirExists(outputPath);
-            return Q.nfcall(fs.writeFile, outputPath, buffer).then(() => {
-                return outputPath;
-            });
+            return Q.nfcall(mkdirp, path.dirname(outputPath))
+                .then(() => Q.nfcall(fs.writeFile, outputPath, buffer))
+                .then(() => outputPath);
         });
     }
     
