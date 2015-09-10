@@ -27,12 +27,12 @@ Currently supported credential types are Personal Access Tokens and basic auth.
 ~$ tfx login
 Copyright Microsoft Corporation
 
-Enter collection url > https://youraccount.visualstudio.com
+Enter collection url > https://youraccount.visualstudio.com/DefaultCollection
 Enter personal access token > 
 logged in successfully
 ```
 
-You can alternatively use basic auth by passing `--authType basic`.  NTLM will come soon.
+You can alternatively use basic auth by passing `--authType basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
 
 ## Settings
 To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag and optionally including a settings output path.
@@ -85,6 +85,11 @@ export TFX_TRACE=1
 <sub>Windows</sub>
 ```bash
 set TFX_TRACE=1
+```
+
+<sub>PowerShell</sub>
+```bash
+$env:TFX_TRACE=1
 ```
 
 setting `TFX_TRACE_CREDS=1` or `TFX_TRACE_CACHE=1` will trace out cred storage.  Typically those should not be set (to avoid leaking creds when sending traces).  Only set if you are troubleshooting credentials.

@@ -1,5 +1,3 @@
-/// <reference path="../../definitions/q/Q.d.ts"/>
-
 import Q = require('q');
 var fs = require('fs');
 var shell = require('shelljs');

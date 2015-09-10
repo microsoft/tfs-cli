@@ -1,5 +1,3 @@
-/// <reference path="../../definitions/q/Q.d.ts"/>
-
 import agentifm = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');

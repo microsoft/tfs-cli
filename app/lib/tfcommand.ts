@@ -1,5 +1,3 @@
-/// <reference path="../../definitions/vso-node-api/vso-node-api.d.ts"/>
-
 import cm = require('./common');
 import cnm = require('./connection');
 import apim = require('vso-node-api/WebApi');

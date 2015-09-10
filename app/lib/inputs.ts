@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-/// <reference path="../../definitions/q/Q.d.ts" />
-
-import arm = require('./arguments');
 import cachem = require('./diskcache');
 import cm = require('./common');
 import os = require('os');
