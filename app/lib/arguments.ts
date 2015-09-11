@@ -1,32 +1,34 @@
+import trace = require('../lib/trace');
+
 //TODO: add validity check (length, regex, etc...)
-export class Argument {
+export class Argument<T> {
 	public name: string;
-	public defaultValue: any;
+	public defaultValue: T;
 	public friendlyName: string;
 	public silent: boolean = false;
 	
 	constructor(name: string, 
 		friendlyName: string = name, 
-		defaultValue: any = null) {
+		defaultValue: T = null) {
 			
 		this.name = name;
 		this.friendlyName = friendlyName;
 		this.defaultValue = defaultValue;
 	}
 	
-	public getValueFromString(stringRepresentation: string): any {
-		return stringRepresentation;
+	public getValueFromString(stringRepresentation: string): T {
+		throw "This method is abstract.";
 	}
 }
 
-export class ArrayArgument extends Argument {
-	public getValueFromString(stringRepresentation: string): any {
+export class ArrayArgument extends Argument<string[]> {
+	public getValueFromString(stringRepresentation: string): string[] {
 		var stripped = stringRepresentation.replace(/(^\[)|(\]$)/g, "")
-		return stripped.split(',');
+		return stripped.split(',').map(s => s.trim());
 	}
 }
 
-export class BooleanArgument extends Argument {
+export class BooleanArgument extends Argument<boolean> {
 	public defaultValue = false;
 	
 	public getValueFromString(stringRepresentation: string): boolean {
@@ -34,25 +36,44 @@ export class BooleanArgument extends Argument {
 	}
 }
 
-export class FilePathArgument extends Argument {
+export class FilePathArgument extends Argument<string> {
 	public getValueFromString(stringRepresentation: string): string {
 		return stringRepresentation.replace(/(^\")|(\"$)/g, "")
 	}
 }
 
-export class IntArgument extends Argument {
-	
-	public getValueFromString(stringRepresentation: string): any {
-		return parseInt(stringRepresentation) || stringRepresentation;
+export class IntArgument extends Argument<number> {
+	public getValueFromString(stringRepresentation: string): number {
+		let parseResult = parseInt(stringRepresentation, 10);
+		if (isNaN(parseResult)) {
+			trace.warn("Could not parse int argument '" + this.name + "'. Using NaN.");
+		}
+		return parseResult;
 	}
 }
 
-export class SilentStringArgument extends Argument {
-	public silent = true;
+export class JsonArgument extends Argument<any> {
+	public getValueFromString(stringRepresentation: string): any {
+		try {
+			return JSON.parse(stringRepresentation);
+		} catch (parseError) {
+			let info: string = parseError.stack || parseError.message;
+			throw new Error("Failed to parse JSON argument '" + this.name + "'. Info: " + info);
+		}
+	}
 }
 
-export class StringArgument extends Argument {
-	
+export class SilentStringArgument extends Argument<string> {
+	public silent = true;
+	public getValueFromString(stringRepresentation: string): string {
+		return stringRepresentation;
+	}
+}
+
+export class StringArgument extends Argument<string> {
+	public getValueFromString(stringRepresentation: string): string {
+		return stringRepresentation;
+	}
 }
 
 export function identity<T>(arg: T): T {
@@ -99,7 +120,8 @@ export var GALLERY_URL: StringArgument = new StringArgument('galleryurl', 'galle
 export var MANIFEST_GLOB: ArrayArgument = new ArrayArgument('manifestglob', 'manifest glob', ['vss-extension.json']);
 export var MANIFEST_PATH: FilePathArgument = new FilePathArgument('manifestpath', 'path to manifest');
 export var OUTPUT_PATH: StringArgument = new StringArgument('outputpath', 'output path', '{auto}');
-export var OVERRIDE: StringArgument = new StringArgument('override', 'overrides JSON');
+export var OVERRIDE: JsonArgument = new JsonArgument('override', 'overrides JSON', {});
 export var SHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to share with', []);
 export var UNSHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to unshare from', []);
 export var VSIX_PATH: FilePathArgument = new FilePathArgument('vsix', 'path to vsix');
+export var BYPASS_VALIDATION: BooleanArgument = new BooleanArgument("bypassvalidation", "bypass local validation during packaging", false);

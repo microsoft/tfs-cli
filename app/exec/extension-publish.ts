@@ -40,7 +40,7 @@ export class ExtensionPublish extends cmdm.TfCommand {
         trace.debug('extension-publish.exec');
         var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
         return this.checkArguments(args, options).then( (allArguments: cm.IStringIndexer) => {        
-			return Q.Promise<string>((resolve, reject, notify) => {
+            return Q.Promise<string>((resolve, reject, notify) => {
                 if (allArguments[argm.VSIX_PATH.name]) {
                     trace.debug("VSIX was manually specified. Skipping generation.");
                     resolve(allArguments[argm.VSIX_PATH.name]);
@@ -55,10 +55,10 @@ export class ExtensionPublish extends cmdm.TfCommand {
                     return <PublishResults> {
                         vsixPath: vsixPath
                     };
-                });            
+                });
             }).then((results: PublishResults) => {
                 trace.debug("Begin sharing");
-				if (allArguments[argm.SHARE_WITH.name]) {
+                if (allArguments[argm.SHARE_WITH.name]) {
                     var sharer: sharem.ExtensionShare = sharem.getCommand();
                     sharer.connection = this.connection;
                     options[argm.VSIX_PATH.name] = results.vsixPath;
@@ -66,9 +66,9 @@ export class ExtensionPublish extends cmdm.TfCommand {
                         results.shareWith = accounts;
                         return results;
                     });
-				}
+                }
                 return results;
-			});
+            });
         });
     }
 

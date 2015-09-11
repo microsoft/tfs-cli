@@ -71,8 +71,8 @@ export class ExtensionCreate extends cmdm.TfCommand {
 }
 
 /**
-    * Combines the vsix and vso manifests into one object
-    */
+ * Combines the vsix and vso manifests into one object
+ */
 export interface VsixComponents {
     vsoManifest: any;
     vsixManifest: any;
@@ -80,24 +80,24 @@ export interface VsixComponents {
 }
 
 /**
-    * Represents a part in an OPC package
-    */
+ * Represents a part in an OPC package
+ */
 export interface PackagePart {
     contentType?: string;
     partName: string;
 }
 
 /**
-    * List of files in the package, mapped to null, or, if it can't be properly auto-
-    * detected, a content type.
-    */
+ * List of files in the package, mapped to null, or, if it can't be properly auto-
+ * detected, a content type.
+ */
 export interface PackageFiles {
     [path: string]: PackagePart;
 }
 
 /**
-    * Describes a file in a manifest
-    */
+ * Describes a file in a manifest
+ */
 export interface FileDeclaration {
     assetType?: string;
     contentType?: string;
@@ -107,29 +107,34 @@ export interface FileDeclaration {
 }
 
 /**
-    * Settings for doing the merging
-    */
+ * Settings for doing the merging
+ */
 export interface MergeSettings {
     /**
-        * Root of source manifests
-        */
+     * Root of source manifests
+     */
     root: string;
     
     /**
-        * List of globs for searching for partial manifests
-        */
+     * List of globs for searching for partial manifests
+     */
     manifestGlobs: string[];
     
     /**
-        * Highest priority partial manifest
-        */
+     * Highest priority partial manifest
+     */
     overrides: any;
+    
+    /**
+     * True to bypass validation during packaging.
+     */
+    bypassValidation: boolean;
 }
 
 /**
-    * Facilitates the gathering/reading of partial manifests and creating the merged
-    * manifests (one vsoManifest and one vsixManifest)
-    */
+ * Facilitates the gathering/reading of partial manifests and creating the merged
+ * manifests (one vsoManifest and one vsixManifest)
+ */
 export class Merger {
     private mergeSettings: MergeSettings;
     
@@ -212,7 +217,8 @@ export class Merger {
         this.mergeSettings = {
             root: settings[argm.ROOT.name],
             manifestGlobs: settings[argm.MANIFEST_GLOB.name],
-            overrides: settings[argm.OVERRIDE.name]
+            overrides: settings[argm.OVERRIDE.name],
+            bypassValidation: settings[argm.BYPASS_VALIDATION.name]
         }
     }
     
@@ -354,7 +360,7 @@ export class Merger {
                 let validationResult = this.validateVsixJson(vsixManifest);
                 trace.debug("VSO Manifest: " + JSON.stringify(vsoManifest, null, 4));
                 trace.debug("VSIX Manifest: " + JSON.stringify(vsixManifest, null, 4)); 
-                if (validationResult.length === 0) {
+                if (validationResult.length === 0 || this.mergeSettings.bypassValidation) {
                     return <VsixComponents>{vsoManifest: vsoManifest, vsixManifest: vsixManifest, files: packageFiles};
                 } else {
                     throw new Error("There were errors with your manifests. Address the following errors and re-run the tool.\n" + validationResult);
@@ -394,16 +400,16 @@ export class Merger {
             case "extensionid":
             case "id":
                 if (_.isString(value)) {
-                    this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Id", value.replace(/\./g, "-", override), "namespace/extensionId/id");
+                    this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Id", value.replace(/\./g, "-"), "namespace/extensionId/id", override);
                 }
                 break;
             case "version":
-                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Version", value, key), override) {
+                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Version", value, key, override)) {
                     vsoManifest.version = value;
                 }
                 break;
             case "name":
-                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]", value, key), override) {
+                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]", value, key, override)) {
                     vsoManifest.name = value;
                 }
                 break;
@@ -559,12 +565,17 @@ export class VsixWriter {
         * List of known file types to use in the [Content_Types].xml file in the VSIX package.
         */
     private static CONTENT_TYPE_MAP: {[key: string]: string} = {
+        ".bat": "application/bat",
+        ".gif": "image/gif",
+        ".jpeg": "image/jpeg",
+        ".jpg": "image/jpeg",
+        ".json": "application/json",
         ".md": "text/markdown",
         ".pdf": "application/pdf",
-        ".bat": "application/bat",
-        ".json": "application/json",
-        ".vsomanifest": "application/json",
-        ".vsixmanifest": "text/xml"
+        ".png": "image/png",
+        ".ps1": "text/ps1",
+        ".vsixmanifest": "text/xml",
+        ".vsomanifest": "application/json"
     };
     
     /**
@@ -861,7 +872,7 @@ export class VsixWriter {
                 contentTypes.Types.Override.push({
                     $: {
                         ContentType: overrides[partName].contentType,
-                        PartName: partName
+                        PartName: "/" + _.trimLeft(partName, "/")
                     }
                 })
             });

@@ -44,13 +44,13 @@ export function getExtInfo(vsixPath: string, extensionId: string, publisherName:
 				throw new Error("Could not locate vsix manifest!");
 			}
 		}).then((vsixManifestAsJson) => {
-			let extensionId: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
-			let extensionPublisher: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+			let foundExtId: string = extensionId || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+			let foundPublisher: string = publisherName || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
 			let extensionVersion: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
-			if (extensionId && extensionPublisher) {
-				return {id: extensionId, publisher: extensionPublisher, version: extensionVersion};
+			if (foundExtId && foundPublisher) {
+				return {id: foundExtId, publisher: foundPublisher, version: extensionVersion};
 			} else {
-				throw new Error("Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property.");
+				throw new Error("Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property, or specify the necessary --publisher and/or --extension options.");
 			}
 		});
 	} 
