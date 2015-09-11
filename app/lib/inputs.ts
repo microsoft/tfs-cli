@@ -19,7 +19,7 @@ var args = argparser(process.argv.slice(2));
 /**
  * Checks for argument values in both the on-disk settings file and the provided command line arguments/options
  */
-export function checkAll(args: string[], options: cm.IOptions, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+export function checkAll(args: string[], options: cm.IOptions, requiredArguments: argm.Argument<any>[], optionalArguments: argm.Argument<any>[]): Q.Promise<cm.IStringIndexer> {
     trace.debug('inputs.checkAll');
     var settingsArg = argm.SETTINGS;
     var settingsPath = path.resolve(options[settingsArg.name] ? settingsArg.getValueFromString(options[settingsArg.name].toString()) : settingsArg.defaultValue);
@@ -36,12 +36,12 @@ export function checkAll(args: string[], options: cm.IOptions, requiredArguments
 /**
  * Checks for option values
  */
-export function check(args: string[], options: cm.IOptions, settings: cm.IStringIndexer, requiredArguments: argm.Argument[], optionalArguments: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+export function check(args: string[], options: cm.IOptions, settings: cm.IStringIndexer, requiredArguments: argm.Argument<any>[], optionalArguments: argm.Argument<any>[]): Q.Promise<cm.IStringIndexer> {
     trace.debug('inputs.check');
     var defer = Q.defer<cm.IStringDictionary>();
     var allArguments: cm.IStringIndexer = settings;
     for(var i = 0; i < requiredArguments.length; i++) {
-        var arg: argm.Argument = requiredArguments[i];
+        var arg: argm.Argument<any> = requiredArguments[i];
         var name: string = arg.name;
         allArguments[name] = args[i] ? arg.getValueFromString(args[i].toString()) : (options[name] ? arg.getValueFromString(options[name].toString()) : (settings[name] ? arg.getValueFromString(settings[name].toString()) : arg.defaultValue));
         if(!allArguments[name]) {
@@ -50,7 +50,7 @@ export function check(args: string[], options: cm.IOptions, settings: cm.IString
         }
     }
     for(var i = 0; i < optionalArguments.length; i++) {
-        var arg: argm.Argument = optionalArguments[i];
+        var arg: argm.Argument<any> = optionalArguments[i];
         var name: string = arg.name;
         allArguments[name] = options[name] ? arg.getValueFromString(options[name].toString()) : (settings[name] ? arg.getValueFromString(settings[name].toString()) : arg.defaultValue);
     }
@@ -60,7 +60,7 @@ export function check(args: string[], options: cm.IOptions, settings: cm.IString
 }
 
 // Q wrapper
-export function Qprompt(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringDictionary> {
+export function Qprompt(requiredInputs: argm.Argument<any>[], optionalInputs: argm.Argument<any>[]): Q.Promise<cm.IStringDictionary> {
     var defer = Q.defer<cm.IStringDictionary>();
 
     this.prompt(requiredInputs, optionalInputs, (err, result: cm.IStringDictionary) => {
@@ -75,7 +75,7 @@ export function Qprompt(requiredInputs: argm.Argument[], optionalInputs: argm.Ar
 }
 
 // done(err, result)
-export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[], done: (err: Error, result: cm.IStringIndexer) => void): void {
+export function prompt(requiredInputs: argm.Argument<any>[], optionalInputs: argm.Argument<any>[], done: (err: Error, result: cm.IStringIndexer) => void): void {
     trace.debug('inputs.prompt');
     var result: cm.IStringIndexer = <cm.IStringIndexer>{};
     
@@ -85,7 +85,7 @@ export function prompt(requiredInputs: argm.Argument[], optionalInputs: argm.Arg
 
     // TODO: get rid of async and code just with Q
 
-    async.forEachSeries(inputs, function (input: argm.Argument, inputDone) {
+    async.forEachSeries(inputs, function (input: argm.Argument<any>, inputDone) {
         if (args[input.name]) {
             result[input.name] = args[input.name];
             inputDone(null, null);

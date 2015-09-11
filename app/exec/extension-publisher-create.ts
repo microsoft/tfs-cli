@@ -22,7 +22,7 @@ export var hideBanner: boolean = false;
 
 export class ExtensionPublisherCreate extends cmdm.TfCommand {
     requiredArguments = [argm.PUBLISHER_NAME, argm.DISPLAY_NAME, argm.DESCRIPTION];
-    optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
+    optionalArguments = [argm.MARKET_URL, argm.SETTINGS];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.Publisher> {
         trace.debug('extension-publisher-create.exec');

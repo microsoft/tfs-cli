@@ -24,13 +24,13 @@ export var hideBanner: boolean = false;
 
 export class ExtensionUnshare extends cmdm.TfCommand {
     requiredArguments = [];
-    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.GALLERY_URL, argm.ALL, argm.UNSHARE_WITH];
+    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.MARKET_URL, argm.ALL, argm.UNSHARE_WITH];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string[]> {
         trace.debug('extension-unshare.exec');
-        var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
-		return this.checkArguments(args, options).then( (allArguments) => {
-            var accounts: string[];
+        let galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
+        return this.checkArguments(args, options).then( (allArguments) => {
+            let accounts: string[];
             return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
                 if(allArguments[argm.ALL.name]) {
                     return galleryapi.getExtension(extInfo.publisher, extInfo.id).then((ext) => {
@@ -47,16 +47,22 @@ export class ExtensionUnshare extends cmdm.TfCommand {
         });
     }
     
-    private _unshareWith(publisherName: string, extensionId: string, accounts: string[]): string[] {
-        var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
-        for(var i = 0; i < accounts.length; i++) {
-            galleryapi.unshareExtension(publisherName, extensionId, accounts[i], (err, statuscode) => {
-                if(err) {
-                    throw err;
-                }
-            });                    
-        }    
-        return accounts;
+    private _unshareWith(publisherName: string, extensionId: string, accounts: string[]): Q.Promise<string[]> {
+        let galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
+        let promises = []
+        for (var account of accounts) {
+            let promise = Q.Promise((resolve, reject) => {
+                galleryapi.unshareExtension(publisherName, extensionId, account, (err, statuscode) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(accounts);
+                    }
+                });
+            });
+            promises.push(promise);
+        }
+        return Q.all(promises).then(() => accounts);
     }
 
     public output(accounts: string[]): void {
@@ -65,6 +71,6 @@ export class ExtensionUnshare extends cmdm.TfCommand {
         }
 
         trace.println();
-        trace.success('Extension successfully unshared from:' + accounts.map((account) => " " + account));
+        trace.success('Extension successfully unshared from: %s', accounts.join(','));
     }   
 }

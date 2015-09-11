@@ -89,7 +89,6 @@ if (!cmdm.isServerOperation) {
 else {
     var connection: cnm.TfsConnection;
     var collectionUrl: string;
-
     cnm.getCollectionUrl()
     .then((url: string) => {
         trace.debug('url: ' + url);

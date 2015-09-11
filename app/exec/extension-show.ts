@@ -23,25 +23,25 @@ export var isServerOperation: boolean = true;
 export var hideBanner: boolean = false;
 
 export class ExtensionShow extends cmdm.TfCommand {
-    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.GALLERY_URL];
+    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.MARKET_URL];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.PublishedExtension> {
         trace.debug('extension-show.exec');
         var galleryapi: gallerym.IQGalleryApi = this.getWebApi().getQGalleryApi(this.connection.galleryUrl);
-		return this.checkArguments(args, options).then( (allArguments) => {
-			return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
-				return galleryapi.getExtension(
-					extInfo.publisher, 
-					extInfo.id, 
-					null, 
-					galleryifm.ExtensionQueryFlags.IncludeVersions |
-						galleryifm.ExtensionQueryFlags.IncludeFiles |
-						galleryifm.ExtensionQueryFlags.IncludeCategoryAndTags |
-						galleryifm.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
-						
-						return extension;
-				});
-			});
+        return this.checkArguments(args, options).then( (allArguments) => {
+            return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
+                return galleryapi.getExtension(
+                    extInfo.publisher, 
+                    extInfo.id, 
+                    null, 
+                    galleryifm.ExtensionQueryFlags.IncludeVersions |
+                        galleryifm.ExtensionQueryFlags.IncludeFiles |
+                        galleryifm.ExtensionQueryFlags.IncludeCategoryAndTags |
+                        galleryifm.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
+                        
+                        return extension;
+                });
+            });
         });
     }
 

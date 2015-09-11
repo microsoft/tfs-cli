@@ -23,7 +23,7 @@ export var hideBanner: boolean = false;
 
 export class ExtensionPublisherDelete extends cmdm.TfCommand {
     requiredArguments = [argm.PUBLISHER_NAME];
-    optionalArguments = [argm.GALLERY_URL, argm.SETTINGS];
+    optionalArguments = [argm.MARKET_URL, argm.SETTINGS];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<galleryifm.Publisher> {
         trace.debug('extension-publisher-delete.exec');

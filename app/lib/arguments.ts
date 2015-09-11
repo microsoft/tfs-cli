@@ -116,7 +116,7 @@ export var TASK_PATH: FilePathArgument = new FilePathArgument('taskpath');
 ///VSIX
 export var EXTENSION_ID: StringArgument = new StringArgument('extensionid');
 export var PUBLISHER_NAME: StringArgument = new StringArgument('publisher', 'publisher name');
-export var GALLERY_URL: StringArgument = new StringArgument('galleryurl', 'gallery url', 'https://app.market.visualstudio.com');
+export var MARKET_URL: StringArgument = new StringArgument('marketurl', 'market url', 'https://app.market.visualstudio.com');
 export var MANIFEST_GLOB: ArrayArgument = new ArrayArgument('manifestglob', 'manifest glob', ['vss-extension.json']);
 export var MANIFEST_PATH: FilePathArgument = new FilePathArgument('manifestpath', 'path to manifest');
 export var OUTPUT_PATH: StringArgument = new StringArgument('outputpath', 'output path', '{auto}');
@@ -125,3 +125,4 @@ export var SHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to sh
 export var UNSHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to unshare from', []);
 export var VSIX_PATH: FilePathArgument = new FilePathArgument('vsix', 'path to vsix');
 export var BYPASS_VALIDATION: BooleanArgument = new BooleanArgument("bypassvalidation", "bypass local validation during packaging", false);
+export var MARKET: BooleanArgument = new BooleanArgument("market", "login to the Market", false);

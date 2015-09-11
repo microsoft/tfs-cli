@@ -38,7 +38,7 @@ export var hideBanner: boolean = false;
 
 export class ExtensionCreate extends cmdm.TfCommand {
     requiredArguments = [argm.OUTPUT_PATH];
-    optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE];
+    optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE, argm.PUBLISHER_NAME, argm.EXTENSION_ID];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('extension-create.exec');
@@ -220,6 +220,9 @@ export class Merger {
             overrides: settings[argm.OVERRIDE.name],
             bypassValidation: settings[argm.BYPASS_VALIDATION.name]
         }
+        // Short-hand overrides for two common properties
+        this.mergeSettings.overrides.publisher = settings[argm.PUBLISHER_NAME.name];
+        this.mergeSettings.overrides.extensionid = settings[argm.EXTENSION_ID.name];
     }
     
     private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
@@ -345,7 +348,9 @@ export class Merger {
                     
                     // Merge each key of each partial manifest into the joined manifests
                     Object.keys(partial).forEach((key) => {
-                        this.mergeKey(key, partial[key], vsoManifest, vsixManifest, packageFiles, partials.length - 1 === partialIndex && overridesProvided);
+                        if (partial[key] !== undefined && partial[key] !== null) {
+                            this.mergeKey(key, partial[key], vsoManifest, vsixManifest, packageFiles, partials.length - 1 === partialIndex && overridesProvided);
+                        }
                     });
                 });
                 // Merge in the single-value defaults if not provided.

@@ -24,22 +24,28 @@ export var hideBanner: boolean = false;
 
 export class ExtensionShare extends cmdm.TfCommand {
     requiredArguments = [argm.SHARE_WITH];
-    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.GALLERY_URL];
+    optionalArguments = [argm.PUBLISHER_NAME, argm.EXTENSION_ID, argm.VSIX_PATH, argm.MARKET_URL];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string[]> {
         trace.debug('extension-share.exec');
         var galleryapi: gallerym.IGalleryApi = this.getWebApi().getGalleryApi(this.connection.galleryUrl);
-		return this.checkArguments(args, options).then( (allArguments) => {
+        return this.checkArguments(args, options).then( (allArguments) => {
             var accounts: string[] = allArguments[argm.SHARE_WITH.name];
             return extinfom.getExtInfo(allArguments[argm.VSIX_PATH.name], allArguments[argm.EXTENSION_ID.name], allArguments[argm.PUBLISHER_NAME.name]).then((extInfo) => {
-                for(var i = 0; i < accounts.length; i++) {
-	 				galleryapi.shareExtension(extInfo.publisher, extInfo.id, accounts[i], (err, statuscode) => {
-                         if(err) {
-                             Q.reject(err);
-                         }
-                     });                    
+                let promises = [];
+                for (var account of accounts) {
+                    let promise = Q.Promise((resolve, reject) => {
+                        galleryapi.shareExtension(extInfo.publisher, extInfo.id, account, (err, statuscode) => {
+                            if(err) {
+                                reject(err);
+                            } else {
+                                resolve(err);
+                            }
+                        });
+                    });
+                    promises.push(promise);
                 }
-                return Q.resolve(accounts);
+                return Q.all(promises).then(() => accounts);
             });
         });
     }
@@ -50,6 +56,6 @@ export class ExtensionShare extends cmdm.TfCommand {
         }
 
         trace.println();
-        trace.success('Extension shared successfully with:%s', accounts.map((account) => " " + account));
+        trace.success('Extension shared successfully with: %s', accounts.join(','));
     }   
 }

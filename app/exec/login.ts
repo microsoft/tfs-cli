@@ -27,7 +27,7 @@ export var hideBanner: boolean = false;
 
 export class Login extends cmdm.TfCommand {
     public requiredArguments = [argm.COLLECTION_URL];
-    public optionalArguments = [argm.AUTH_TYPE];
+    public optionalArguments = [argm.AUTH_TYPE, argm.MARKET];
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<am.ICredentials> {
         trace.debug('Login.exec');

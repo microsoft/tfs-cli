@@ -13,9 +13,9 @@ var trace = require('./trace');
  * @param requiredArguments an array of the names of all arguments that can be optionally provided
  * @param flags boolean flags (optional because less frequently used) eg "--all"
  */
-export function formatArgumentsHint(requiredArguments: argm.Argument[], 
-    optionalArguments: argm.Argument[], 
-    flags?: argm.Argument[]
+export function formatArgumentsHint(requiredArguments: argm.Argument<any>[], 
+    optionalArguments: argm.Argument<any>[], 
+    flags?: argm.Argument<any>[]
     ): string {
         
     var argumentsHint: string = "";
@@ -31,9 +31,9 @@ export function formatArgumentsHint(requiredArguments: argm.Argument[],
 
 export class TfCommand {
     public connection: cnm.TfsConnection;
-    public requiredArguments: argm.Argument[] = [];
-    public optionalArguments: argm.Argument[] = [];
-    public flags: argm.Argument[] = [];
+    public requiredArguments: argm.Argument<any>[] = [];
+    public optionalArguments: argm.Argument<any>[] = [];
+    public flags: argm.Argument<any>[] = [];
     
     // setConnection
 
@@ -63,7 +63,7 @@ export class TfCommand {
         // in readable text based on data from exec call
     }
     
-    public promptArguments(requiredInputs: argm.Argument[], optionalInputs: argm.Argument[]): Q.Promise<cm.IStringIndexer> {
+    public promptArguments(requiredInputs: argm.Argument<any>[], optionalInputs: argm.Argument<any>[]): Q.Promise<cm.IStringIndexer> {
         trace.debug('tfcommand.promptArguments');
         return inputm.Qprompt(requiredInputs, optionalInputs);
     }
