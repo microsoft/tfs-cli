@@ -19,7 +19,7 @@ import winreg = require('winreg');
 import xml = require("xml2js");
 import zip = require("jszip");
 import mkdirp = require("mkdirp");
-var trace = require('../lib/trace');
+import trace = require('../lib/trace');
 
 export function describe(): string {
     return 'Create a vsix package for an extension.';
@@ -54,8 +54,6 @@ export class ExtensionCreate extends cmdm.TfCommand {
                     trace.debug("VSIX written to: %s", outPath);
                     return outPath;
                 });
-            }).then((outPath) => {
-                return outPath;
             });
         });
     }
@@ -65,7 +63,6 @@ export class ExtensionCreate extends cmdm.TfCommand {
             throw new Error('no path supplied');
         }
 
-        trace.println();
         trace.success('Successfully created package at ' + outPath);
     }   
 }
@@ -687,12 +684,17 @@ export class VsixWriter {
                 resolve(tmpPath);
             });
         }).then((tmpPath) => {
-            let manifestWriter = new ManifestWriter(this.vsoManifest, this.vsixManifest);
             let vsoPath = path.join(tmpPath, VsixWriter.VSO_MANIFEST_FILENAME);
             let vsixPath = path.join(tmpPath, VsixWriter.VSIX_MANIFEST_FILENAME);
-            let vsoStr = fs.createWriteStream(vsoPath);
-            let vsixStr = fs.createWriteStream(vsixPath);
-            return manifestWriter.writeManifests(vsoStr, vsixStr).then(() => {
+            let vsoStream = fs.createWriteStream(vsoPath);
+            let vsixStream = fs.createWriteStream(vsixPath);
+            let vsixManifestWriter = new VsixManifestWriter(this.vsixManifest);
+            let vsoManifestWriter = new VsoManifestWriter(this.vsoManifest);
+            
+            return Q.all([
+                vsixManifestWriter.write(vsixStream),
+                vsoManifestWriter.write(vsoStream)
+            ]).then(() => {
                 vsix.file(VsixWriter.VSO_MANIFEST_FILENAME, fs.readFileSync(vsoPath, "utf-8"));
                 vsix.file(VsixWriter.VSIX_MANIFEST_FILENAME, fs.readFileSync(vsixPath, "utf-8"));
             });
@@ -906,45 +908,34 @@ export class VsixWriter {
     }
 }
 
+function removeMetaKeys(obj: any): any {
+    return _.omit(obj, (v, k) => _.startsWith(k, "__meta_"));
+};
+
 /**
-    * Class to help writing the vso manifest and vsix manifest
-    */
-export class ManifestWriter {
-    private vsoManifest: any;
+* Class to help writing the vsix manifest
+*/
+export class VsixManifestWriter {
+    
     private vsixManifest: any;
     
     /**
-        * constructor
-        * @param any vsoManifest JS Object representing a vso manifest
-        * @param any vsixManifest JS Object representing the XML for a vsix manifest
-        */
-    constructor(vsoManifest: any, vsixManifest: any) {
-        this.vsoManifest = this.removeMetaKeys(vsoManifest);
-        this.vsixManifest = this.removeMetaKeys(vsixManifest);
-    }
-    
-    private removeMetaKeys(obj: any): any {
-        return _.omit(obj, (v, k) => {
-            return _.startsWith(k, "__meta_");
-        });
+     * constructor
+     * @param any vsixManifest JS Object representing the XML for a vsix manifest
+     */
+    constructor(vsixManifest: any) {
+        this.vsixManifest = removeMetaKeys(vsixManifest);
     }
     
     /**
-        * Writes the vso manifest and vsix manifest to given streams and ends the streams.
-        * @param stream.Writable Stream to write the vso manifest (json)
-        * @param stream.Writable Stream to write the vsix manifest (xml)
-        * @return Q.Promise<any> A promise that is resolved when the streams have been written/ended
-        */
-    public writeManifests(vsoStream: stream.Writable, vsixStream: stream.Writable): Q.Promise<any> {
-        let eol = os.EOL;
-        let vsoPromise = Q.ninvoke<any>(vsoStream, "write", JSON.stringify(this.vsoManifest, null, 4).replace(/\n/g, eol), "utf8");
-        vsoPromise = vsoPromise.then(() => {
-            vsoStream.end();
-        });
-        
-        let builder = new xml.Builder({
+     * Writes the vsix manifest to given stream.
+     * @param stream.Writable Stream to write the vsix manifest (xml)
+     * @return Q.Promise<any> A promise that is resolved when the stream has been ended
+     */
+    public write(stream: stream.Writable): Q.Promise<any> {
+        const builder = new xml.Builder({
             indent: "    ",
-            newline: eol,
+            newline: os.EOL,
             pretty: true,
             xmldec: {
                 encoding: "utf-8",
@@ -952,12 +943,35 @@ export class ManifestWriter {
                 version: "1.0"
             }
         });
-        let vsix = builder.buildObject(this.vsixManifest);
-        let vsixPromise = Q.ninvoke<any>(vsixStream, "write", vsix, "utf8");
-        vsixPromise = vsixPromise.then(() => {
-            vsixStream.end();
-        });
+        const vsix = builder.buildObject(this.vsixManifest);
         
-        return Q.all([vsoPromise, vsixPromise]);
+        return Q.ninvoke<any>(stream, 'end', vsix, "utf8");
+    }
+}
+
+/**
+* Class to help writing the vso manifest
+*/
+export class VsoManifestWriter {
+    
+    private vsoManifest: any;
+    
+    /**
+     * constructor
+     * @param any vsoManifest JS Object representing a vso manifest
+     */
+    constructor(vsoManifest: any) {
+        this.vsoManifest = removeMetaKeys(vsoManifest);
+    }
+    
+    /**
+     * Writes the vso manifest to given stream.
+     * @param stream.Writable Stream to write the vso manifest (json)
+     * @return Q.Promise<any> A promise that is resolved when the stream has been ended
+     */
+    public write(stream: stream.Writable): Q.Promise<any> {
+        const contents = JSON.stringify(this.vsoManifest, null, 4).replace(/\n/g, os.EOL);
+        
+        return Q.ninvoke<any>(stream, "end", contents, "utf8");
     }
 }
