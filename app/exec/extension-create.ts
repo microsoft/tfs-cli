@@ -52,7 +52,10 @@ export class ExtensionCreate extends cmdm.TfCommand {
     constructor() {
         super();
         
-        this.requiredArguments = [argm.OUTPUT_PATH];
+        this.requiredArguments = [
+            argm.OUTPUT_PATH
+        ];
+        
         this.optionalArguments = [
             argm.ROOT,
             argm.MANIFEST_GLOB,
@@ -66,9 +69,10 @@ export class ExtensionCreate extends cmdm.TfCommand {
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('extension-create.exec');
-        return this.checkArguments(args, options).then((args: ExtensionCreateArguments) => {
+        return this.checkArguments(args, options).then(rawArgs => {
             trace.debug("Begin package creation");
             
+            var args = <ExtensionCreateArguments><any>rawArgs;
             var merger = new Merger({
                 root: args.root,
                 manifestGlobs: args.manifestglob,
@@ -243,38 +247,30 @@ export class Merger {
      * constructor
      * @param string Root path for locating candidate manifests
      */
-    constructor(private mergeSettings: MergeSettings) {
+    constructor(private settings: MergeSettings) {
         // noop
     }
     
-    private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
+    private gatherManifests(): Q.Promise<string[]> {
         trace.debug('merger.gatherManifests');
-        let globs = globPatterns.map(pattern => 
-            path.isAbsolute(pattern) ? pattern : path.join(this.mergeSettings.root, pattern));
-        return Q.all(globs.map(pattern => this.gatherManifestsFromGlob(pattern))).then((fileLists) => {
-            return _.unique(fileLists.reduce((a, b) => { return a.concat(b); }));
-        }).then((paths) => {
-            if (paths.length > 0) {
-                trace.debug("Merging %s manifests from the following paths: ", paths.length.toString());
-                paths.forEach(path => trace.debug(path));
-                return paths;
-            } else {
-                throw new Error("No manifests found from the following glob patterns: \n" + globPatterns.join("\n"));
-            }
-        });
-    }
-    
-    private gatherManifestsFromGlob(globPattern: string): Q.Promise<string[]> {
+        
+        const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
+        
         trace.debug('merger.gatherManifestsFromGlob');
-        return Q.Promise<string[]>((resolve, reject, notify) => {
-            glob(globPattern, (err, matches) => {
-                if (!err) {
-                    resolve(matches);
+        const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
+        
+        return Q.all(promises)
+            .then(results => _.unique(_.flatten<string>(results)))
+            .then(results => {
+                if (results.length > 0) {
+                    trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
+                    results.forEach(path => trace.debug(path));
                 } else {
-                    reject(err);
+                    throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
                 }
+                
+                return results;
             });
-        });
     }
     
     /**
@@ -283,7 +279,7 @@ export class Merger {
         */
     public merge(): Q.Promise<VsixComponents> {
         trace.debug('merger.merge')
-        return this.gatherManifests(this.mergeSettings.manifestGlobs).then((files: string[]) => {
+        return this.gatherManifests().then((files: string[]) => {
             let overridesProvided = false;
             let manifestPromises: Q.Promise<any>[] = [];
             files.forEach((file) => {
@@ -301,16 +297,16 @@ export class Merger {
                 }));
                 
                 // Add the overrides if necessary
-                if (this.mergeSettings.overrides) {
+                if (this.settings.overrides) {
                     overridesProvided = true;
-                    manifestPromises.push(Q.resolve(this.mergeSettings.overrides));
+                    manifestPromises.push(Q.resolve(this.settings.overrides));
                 }
             });
             // Deep-copy of the default manifest.
             let vsixManifest: any = JSON.parse(JSON.stringify(defaultManifest.defaultManifest));
-            vsixManifest.__meta_root = this.mergeSettings.root;
+            vsixManifest.__meta_root = this.settings.root;
             let vsoManifest: any = {
-                __meta_root: this.mergeSettings.root,
+                __meta_root: this.settings.root,
                 scopes: [],
                 contributions: [],
             };
@@ -330,7 +326,7 @@ export class Merger {
                             } else {
                                 absolutePath = path.join(path.dirname(partial.__origin), asset.path);
                             }
-                            asset.path = path.relative(this.mergeSettings.root, absolutePath);
+                            asset.path = path.relative(this.settings.root, absolutePath);
                         });
                     }
                     // Transform icon paths as above
@@ -338,7 +334,7 @@ export class Merger {
                         let icons = partial["icons"];
                         Object.keys(icons).forEach((iconKind: string) => {
                             let absolutePath = path.join(path.dirname(partial.__origin), icons[iconKind]);
-                            icons[iconKind] = path.relative(this.mergeSettings.root, absolutePath);
+                            icons[iconKind] = path.relative(this.settings.root, absolutePath);
                         });
                     }
                     
@@ -387,7 +383,7 @@ export class Merger {
                 let validationResult = this.validateVsixJson(vsixManifest);
                 trace.debug("VSO Manifest: " + JSON.stringify(vsoManifest, null, 4));
                 trace.debug("VSIX Manifest: " + JSON.stringify(vsixManifest, null, 4)); 
-                if (validationResult.length === 0 || this.mergeSettings.bypassValidation) {
+                if (validationResult.length === 0 || this.settings.bypassValidation) {
                     return <VsixComponents>{vsoManifest: vsoManifest, vsixManifest: vsixManifest, files: packageFiles};
                 } else {
                     throw new Error("There were errors with your manifests. Address the following errors and re-run the tool.\n" + validationResult);
