@@ -285,6 +285,19 @@ export class VsoManifest extends Manifest {
                     this.data.contributionTypes = this.data.contributionTypes.concat(value);
                 }
                 break;
+            case "namespace":
+            case "extensionid":
+            case "id":
+            case "icons":
+            case "public": 
+            case "publisher":
+            case "releasenotes":
+            case "tags":
+            case "vsoflags":
+            case "galleryflags":
+            case "categories":
+            case "files": 
+                break;
             default:
                 if (key.substr(0, 2) !== "__") {
                     this.singleValueProperty(key, value, key, override);
