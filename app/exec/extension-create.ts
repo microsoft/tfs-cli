@@ -327,7 +327,7 @@ export class VsixManifest extends Manifest {
                 _.set<any, any>(this.data, "PackageManifest.Assets[0].Asset[0]", assets);
             }
             
-            assets.concat(this.manifests.map(manifest => ({$:{
+            assets.push(...this.manifests.map(manifest => ({$:{
                 Type: manifest.type,
                 Path: manifest.path
             }})));
