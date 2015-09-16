@@ -36,21 +36,55 @@ export var isServerOperation: boolean = false;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
+export interface ExtensionCreateArguments {
+    outputpath: string;
+    root?: string;
+    manifestglob?: string[];
+    settings?: string;
+    override?: any;
+    publisher?: string;
+    extensionid?: string;
+    bypassvalidation?: boolean
+}
+
 export class ExtensionCreate extends cmdm.TfCommand {
-    requiredArguments = [argm.OUTPUT_PATH];
-    optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE, argm.PUBLISHER_NAME, argm.EXTENSION_ID];
+    
+    constructor() {
+        super();
+        
+        this.requiredArguments = [argm.OUTPUT_PATH];
+        this.optionalArguments = [
+            argm.ROOT,
+            argm.MANIFEST_GLOB,
+            argm.SETTINGS,
+            argm.OVERRIDE,
+            argm.PUBLISHER_NAME,
+            argm.EXTENSION_ID,
+            argm.BYPASS_VALIDATION
+        ];
+    }
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('extension-create.exec');
-        return this.checkArguments(args, options).then( (allArguments) => {
+        return this.checkArguments(args, options).then((args: ExtensionCreateArguments) => {
             trace.debug("Begin package creation");
-            var merger = new Merger(allArguments);
+            
+            var merger = new Merger({
+                root: args.root,
+                manifestGlobs: args.manifestglob,
+                overrides: _.assign({}, args.override, {
+                    publisher: args.publisher,
+                    extensionid: args.extensionid
+                }),
+                bypassValidation: args.bypassvalidation
+            });
+            
             trace.debug("Merge partial manifests");
             return merger.merge().then((vsixComponents) => {
                 trace.success("Merged successfully");
                 var vsixWriter = new VsixWriter(vsixComponents.vsoManifest, vsixComponents.vsixManifest, vsixComponents.files);
                 trace.debug("Beginning writing VSIX");
-                return vsixWriter.writeVsix(allArguments[argm.OUTPUT_PATH.name]).then((outPath: string) => {
+                return vsixWriter.writeVsix(args[argm.OUTPUT_PATH.name]).then((outPath: string) => {
                     trace.debug("VSIX written to: %s", outPath);
                     return outPath;
                 });
@@ -133,7 +167,6 @@ export interface MergeSettings {
  * manifests (one vsoManifest and one vsixManifest)
  */
 export class Merger {
-    private mergeSettings: MergeSettings;
     
     private static vsixValidators: {[path: string]: (value) => string} = {
         "PackageManifest.Metadata[0].Identity[0].$.Id": (value) => {
@@ -207,19 +240,11 @@ export class Merger {
     }
     
     /**
-        * constructor
-        * @param string Root path for locating candidate manifests
-        */
-    constructor(settings: cm.IStringIndexer) {
-        this.mergeSettings = {
-            root: settings[argm.ROOT.name],
-            manifestGlobs: settings[argm.MANIFEST_GLOB.name],
-            overrides: settings[argm.OVERRIDE.name],
-            bypassValidation: settings[argm.BYPASS_VALIDATION.name]
-        }
-        // Short-hand overrides for two common properties
-        this.mergeSettings.overrides.publisher = settings[argm.PUBLISHER_NAME.name];
-        this.mergeSettings.overrides.extensionid = settings[argm.EXTENSION_ID.name];
+     * constructor
+     * @param string Root path for locating candidate manifests
+     */
+    constructor(private mergeSettings: MergeSettings) {
+        // noop
     }
     
     private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
