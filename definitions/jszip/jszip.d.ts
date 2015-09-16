@@ -131,9 +131,11 @@ interface JSZipGeneratorOptions {
     base64?: boolean;
     /** DEFLATE or STORE */
     compression?: string;
+    compressionOptions?: any;
     /** base64 (default), string, uint8array, blob */
     type?: string;
     comment?: string;
+    platform?: string;
 }
 
 interface JSZipLoadOptions {
