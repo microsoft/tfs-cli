@@ -5,7 +5,6 @@ import argm = require('../lib/arguments');
 import childProcess = require("child_process");
 import cmdm = require('../lib/tfcommand');
 import cm = require('../lib/common');
-import defaultManifest = require("./resources/default-manifest");
 import fs = require("fs");
 import gallerym = require('vso-node-api/GalleryApi');
 import galleryifm = require('vso-node-api/interfaces/GalleryInterfaces');
@@ -19,7 +18,8 @@ import winreg = require('winreg');
 import xml = require("xml2js");
 import zip = require("jszip");
 import mkdirp = require("mkdirp");
-var trace = require('../lib/trace');
+import trace = require('../lib/trace');
+var defaultManifest = require("./resources/default-manifest.json");
 
 export function describe(): string {
     return 'Create a vsix package for an extension.';
@@ -36,26 +36,62 @@ export var isServerOperation: boolean = false;
 // unless you have a good reason, should not hide
 export var hideBanner: boolean = false;
 
+export interface ExtensionCreateArguments {
+    outputpath: string;
+    root?: string;
+    manifestglob?: string[];
+    settings?: string;
+    override?: any;
+    publisher?: string;
+    extensionid?: string;
+    bypassvalidation?: boolean
+}
+
 export class ExtensionCreate extends cmdm.TfCommand {
-    requiredArguments = [argm.OUTPUT_PATH];
-    optionalArguments = [argm.ROOT, argm.MANIFEST_GLOB, argm.SETTINGS, argm.OVERRIDE, argm.PUBLISHER_NAME, argm.EXTENSION_ID];
+    
+    constructor() {
+        super();
+        
+        this.requiredArguments = [
+            argm.OUTPUT_PATH
+        ];
+        
+        this.optionalArguments = [
+            argm.ROOT,
+            argm.MANIFEST_GLOB,
+            argm.SETTINGS,
+            argm.OVERRIDE,
+            argm.PUBLISHER_NAME,
+            argm.EXTENSION_ID,
+            argm.BYPASS_VALIDATION
+        ];
+    }
     
     public exec(args: string[], options: cm.IOptions): Q.Promise<string> {
         trace.debug('extension-create.exec');
-        return this.checkArguments(args, options).then( (allArguments) => {
+        return this.checkArguments(args, options).then(rawArgs => {
             trace.debug("Begin package creation");
-            var merger = new Merger(allArguments);
+            
+            var args = <ExtensionCreateArguments><any>rawArgs;
+            var merger = new Merger({
+                root: args.root,
+                manifestGlobs: args.manifestglob,
+                overrides: _.assign({}, args.override, {
+                    publisher: args.publisher,
+                    extensionid: args.extensionid
+                }),
+                bypassValidation: args.bypassvalidation
+            });
+            
             trace.debug("Merge partial manifests");
-            return merger.merge().then((vsixComponents) => {
+            return merger.merge().then(({ vsixManifest, manifests, files }) => {
                 trace.success("Merged successfully");
-                var vsixWriter = new VsixWriter(vsixComponents.vsoManifest, vsixComponents.vsixManifest, vsixComponents.files);
+                var vsixWriter = new VsixWriter(vsixManifest, manifests, files);
                 trace.debug("Beginning writing VSIX");
-                return vsixWriter.writeVsix(allArguments[argm.OUTPUT_PATH.name]).then((outPath: string) => {
+                return vsixWriter.writeVsix(args[argm.OUTPUT_PATH.name]).then((outPath: string) => {
                     trace.debug("VSIX written to: %s", outPath);
                     return outPath;
                 });
-            }).then((outPath) => {
-                return outPath;
             });
         });
     }
@@ -65,7 +101,6 @@ export class ExtensionCreate extends cmdm.TfCommand {
             throw new Error('no path supplied');
         }
 
-        trace.println();
         trace.success('Successfully created package at ' + outPath);
     }   
 }
@@ -74,8 +109,8 @@ export class ExtensionCreate extends cmdm.TfCommand {
  * Combines the vsix and vso manifests into one object
  */
 export interface VsixComponents {
-    vsoManifest: any;
-    vsixManifest: any;
+    vsixManifest: VsixManifest;
+    manifests: Manifest[];
     files: PackageFiles;
 }
 
@@ -131,12 +166,345 @@ export interface MergeSettings {
     bypassValidation: boolean;
 }
 
-/**
- * Facilitates the gathering/reading of partial manifests and creating the merged
- * manifests (one vsoManifest and one vsixManifest)
- */
-export class Merger {
-    private mergeSettings: MergeSettings;
+export /* abstract */ class Manifest {
+    
+    public type: string;
+    public path: string;
+    
+    constructor(protected data: any) {
+        // noop
+    }
+    
+    public toJSON(): string {
+        return this.data;
+    }
+    
+    public merge(key: string, value: any, packageFiles: PackageFiles, override: boolean): void {
+        // noop
+    }
+    
+    public validate(): string[] {
+        return [];
+    }
+    
+    public write(stream: stream.Writable): Q.Promise<any> {
+        return Q.resolve(null);
+    }
+    
+    protected singleValueProperty(path: string, value: any, manifestKey: string, override: boolean = false): boolean {
+        let existingValue = _.get(this.data, path);
+        
+        if (!override && existingValue !== undefined) {
+            trace.warn("Multiple values found for '%s'. Ignoring future occurrences and using the value '%s'.", manifestKey, JSON.stringify(existingValue, null, 4));
+            return false;
+        } else {
+            _.set(this.data, path, value);
+            return true;
+        }
+    }
+    
+    protected handleDelimitedList(value: any, path: string, delimiter: string = ",", uniq: boolean = true): void {
+        if (_.isString(value)) {
+            value = value.split(delimiter);
+            _.remove(value, v => v === "");
+        }
+        var items = _.get(this.data, path, "").split(delimiter);
+        _.remove(items, v => v === "");
+        let val = items.concat(value);
+        if (uniq) {
+            val = _.uniq(val);
+        } 
+        _.set(this.data, path, val.join(delimiter));
+    }
+}
+
+function removeMetaKeys(obj: any): any {
+    return _.omit(obj, (v, k) => _.startsWith(k, "__meta_"));
+}
+
+export class VsoManifest extends Manifest {
+    
+    public path = "extension.vsomanifest";
+    public type = "Microsoft.VisualStudio.Services.Manifest";
+    
+    constructor() {
+        super({
+            manifestVersion: 1,
+            scopes: [],
+            contributions: [],
+        });
+    }
+    
+    public merge(key: string, value: any, packageFiles: PackageFiles, override: boolean): void {
+        switch(key.toLowerCase()) {
+            case "version":
+                this.data.version = value;
+                break;
+            case "name":
+                this.data.name = value;
+                break;
+            case "description":
+                this.data.description = value;
+                break;
+            case "eventcallbacks":
+                if (_.isObject(value)) {
+                    if (!this.data.eventCallbacks) {
+                        this.data.eventCallbacks = {};
+                    }
+                    _.merge(this.data.eventCallbacks, value);
+                }
+                break;
+            case "manifestversion":
+                let version = value;
+                if (_.isString(version)) {
+                    version = parseFloat(version);
+                }
+                if (!version) {
+                    version = 1;
+                }
+                this.singleValueProperty("manifestVersion", version, key, true);
+                break;
+            case "scopes":
+                if (_.isArray(value)) {
+                    this.data.scopes = _.uniq(this.data.scopes.concat(value));
+                }
+                break;
+            case "baseuri":
+                this.singleValueProperty("baseUri", value, key, override);
+                break;
+            case "contributions":
+                if (_.isArray(value)) {
+                    this.data.contributions = this.data.contributions.concat(value);
+                }
+                break;
+            case "contributiontypes":
+                if (_.isArray(value)) {
+                    if (!this.data.contributionTypes) {
+                        this.data.contributionTypes = [];
+                    }
+                    this.data.contributionTypes = this.data.contributionTypes.concat(value);
+                }
+                break;
+            case "namespace":
+            case "extensionid":
+            case "id":
+            case "icons":
+            case "public": 
+            case "publisher":
+            case "releasenotes":
+            case "tags":
+            case "vsoflags":
+            case "galleryflags":
+            case "categories":
+            case "files": 
+                break;
+            default:
+                if (key.substr(0, 2) !== "__") {
+                    this.singleValueProperty(key, value, key, override);
+                }
+                break;
+        }
+    }
+    
+    /**
+     * Writes the vso manifest to given stream.
+     * @param stream.Writable Stream to write the vso manifest (json)
+     * @return Q.Promise<any> A promise that is resolved when the stream has been ended
+     */
+    public write(stream: stream.Writable): Q.Promise<any> {
+        const contents = JSON.stringify(removeMetaKeys(this.data), null, 4).replace(/\n/g, os.EOL);
+        return Q.ninvoke<any>(stream, "end", contents, "utf8");
+    }
+}
+
+export class VsixManifest extends Manifest {
+    
+    private didCleanupAssets = false;
+    public path: string = "extension.vsixmanifest";
+    
+    constructor(public root: string, private manifests: Manifest[]) {
+        super(_.cloneDeep(defaultManifest));
+    }
+    
+    public get assets():any[] {
+        if (!this.didCleanupAssets) {
+            // Remove any vso manifest assets, then add the correct entry.
+            let assets = _.get<any[]>(this.data, "PackageManifest.Assets[0].Asset");
+            if (assets) {
+                _.remove(assets, (asset) => {
+                    let type = _.get(asset, "$.Type", "x").toLowerCase();
+                    return type === "microsoft.vso.manifest" || type === "microsoft.visualstudio.services.manifest";
+                });
+            } else {
+                assets = [];
+                _.set<any, any>(this.data, "PackageManifest.Assets[0].Asset[0]", assets);
+            }
+            
+            assets.push(...this.manifests.map(manifest => ({$:{
+                Type: manifest.type,
+                Path: manifest.path
+            }})));
+            
+            this.didCleanupAssets = true;
+        }
+        
+        return _.get(this.data, "PackageManifest.Assets[0].Asset", [])
+            .filter(asset => asset.$ && !_.contains(this.manifests.map(m => m.type), asset.$.Type));
+    }
+    
+    public merge(key: string, value: any, packageFiles: PackageFiles, override: boolean): void {
+        switch(key.toLowerCase()) {
+            case "namespace":
+            case "extensionid":
+            case "id":
+                if (_.isString(value)) {
+                    this.singleValueProperty("PackageManifest.Metadata[0].Identity[0].$.Id", value.replace(/\./g, "-"), "namespace/extensionId/id", override);
+                }
+                break;
+            case "version":
+                this.singleValueProperty("PackageManifest.Metadata[0].Identity[0].$.Version", value, key, override);
+                break;
+            case "name":
+                this.singleValueProperty("PackageManifest.Metadata[0].DisplayName[0]", value, key, override);
+                break;
+            case "description":
+                this.data.PackageManifest.Metadata[0].Description[0]._ = value;
+                break;
+            case "icons":
+                if (_.isString(value["default"])) {
+                    let assets = _.get<any>(this.data, "PackageManifest.Assets[0].Asset");
+                    let iconPath = value["default"].replace(/\\/g, "/");
+                    assets.push({
+                        "$": {
+                            "Type": "Microsoft.VisualStudio.Services.Icons.Default",
+                            "d:Source": "File",
+                            "Path": iconPath
+                        }
+                    });
+                    
+                    // Default icon is also the package icon
+                    this.singleValueProperty("PackageManifest.Metadata[0].Icon[0]", iconPath, "icons['default']", override);
+                }
+                if (_.isString(value["wide"])) {
+                    let assets = _.get<any>(this.data, "PackageManifest.Assets[0].Asset");
+                    assets.push({
+                        "$": {
+                            "Type": "Microsoft.VisualStudio.Services.Icons.Wide",
+                            "d:Source": "File",
+                            "Path": value["wide"].replace(/\\/g, "/")
+                        }
+                    });
+                }
+                break;
+            case "public": 
+                if (typeof value === "boolean") {
+                    let flags = _.get(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(",");
+                    _.remove(flags, v => v === "");
+                    if (value === true) {
+                        flags.push("Public");
+                    }
+                    _.set(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(","));
+                }
+                break;
+            case "publisher":
+                this.singleValueProperty("PackageManifest.Metadata[0].Identity[0].$.Publisher", value, key, override);
+                break;
+            case "releasenotes":
+                this.singleValueProperty("PackageManifest.Metadata[0].ReleaseNotes[0]", value, key, override);
+                break;
+            case "tags":
+                this.handleDelimitedList(value, "PackageManifest.Metadata[0].Tags[0]");
+                break;
+            case "vsoflags":
+            case "galleryflags":
+                // Gallery Flags are space-separated since it's a Flags enum.
+                this.handleDelimitedList(value, "PackageManifest.Metadata[0].GalleryFlags[0]", " ");
+                break;
+            case "categories":
+                this.handleDelimitedList(value, "PackageManifest.Metadata[0].Categories[0]");
+                break;
+            case "files": 
+                if (_.isArray(value)) {
+                    value.forEach((asset: FileDeclaration) => {
+                        let assetPath = asset.path.replace(/\\/g, "/");
+                        if (!asset.auto || !packageFiles[assetPath]) {
+                            packageFiles[assetPath] = {
+                                partName: asset.partName || assetPath
+                            };
+                        }
+                        if (asset.contentType) {
+                            packageFiles[assetPath].contentType = asset.contentType;
+                        }
+                        if (asset.assetType) {
+                            this.data.PackageManifest.Assets[0].Asset.push({
+                                "$": {
+                                    "Type": asset.assetType,
+                                    "d:Source": "File",
+                                    "Path": assetPath
+                                }
+                            });
+                        }
+                        if (asset.assetType === "Microsoft.VisualStudio.Services.Icons.Default") {
+                            this.data.PackageManifest.Metadata[0].Icon = [assetPath];
+                        }
+                    });
+                }
+                break;
+        }
+    }
+    
+    public validate(): string[] {
+        return Object
+            .keys(VsixManifest.vsixValidators)
+            .map(path => VsixManifest.vsixValidators[path](_.get(this.data, path)))
+            .filter(r => !!r);
+    }
+    
+    /**
+     * Writes the vsix manifest to given stream.
+     * @param stream.Writable Stream to write the vsix manifest (xml)
+     * @return Q.Promise<any> A promise that is resolved when the stream has been ended
+     */
+    public write(stream: stream.Writable): Q.Promise<any> {
+        const builder = new xml.Builder({
+            indent: "    ",
+            newline: os.EOL,
+            pretty: true,
+            xmldec: {
+                encoding: "utf-8",
+                standalone: null,
+                version: "1.0"
+            }
+        });
+        const vsix = builder.buildObject(removeMetaKeys(this.data));
+        
+        return Q.ninvoke<any>(stream, 'end', vsix, "utf8");
+    }
+    
+    /**
+     * If outPath is {auto}, generate an automatic file name.
+     * Otherwise, try to determine if outPath is a directory (checking for a . in the filename)
+     * If it is, generate an automatic filename in the given outpath
+     * Otherwise, outPath doesn't change.
+     */
+    public getOutputPath(outPath: string): string {
+        let newPath = outPath;
+        let pub = _.get(this.data, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+        let ns = _.get(this.data, "PackageManifest.Metadata[0].Identity[0].$.Id");
+        let version = _.get(this.data, "PackageManifest.Metadata[0].Identity[0].$.Version");
+        let autoName = pub + "." + ns + "-" + version + ".vsix";
+        
+        if (outPath === "{auto}") {
+            return path.resolve(autoName);
+        } else {
+            let basename = path.basename(outPath);
+            if (basename.indexOf(".") > 0) { // conscious use of >
+                return path.resolve(outPath);
+            } else {
+                return path.resolve(path.join(outPath, autoName));
+            }
+        }
+    }
     
     private static vsixValidators: {[path: string]: (value) => string} = {
         "PackageManifest.Metadata[0].Identity[0].$.Id": (value) => {
@@ -208,51 +576,42 @@ export class Merger {
             return badCategories.length ? "The following categories are not valid: " + badCategories.join(", ") + ". Valid categories are: " + validCategories.join(", ") + "." : null;
         }
     }
+}
+
+/**
+ * Facilitates the gathering/reading of partial manifests and creating the merged
+ * manifests (one vsoManifest and one vsixManifest)
+ */
+export class Merger {
     
     /**
-        * constructor
-        * @param string Root path for locating candidate manifests
-        */
-    constructor(settings: cm.IStringIndexer) {
-        this.mergeSettings = {
-            root: settings[argm.ROOT.name],
-            manifestGlobs: settings[argm.MANIFEST_GLOB.name],
-            overrides: settings[argm.OVERRIDE.name],
-            bypassValidation: settings[argm.BYPASS_VALIDATION.name]
-        }
-        // Short-hand overrides for two common properties
-        this.mergeSettings.overrides.publisher = settings[argm.PUBLISHER_NAME.name];
-        this.mergeSettings.overrides.extensionid = settings[argm.EXTENSION_ID.name];
+     * constructor
+     * @param string Root path for locating candidate manifests
+     */
+    constructor(private settings: MergeSettings) {
+        // noop
     }
     
-    private gatherManifests(globPatterns: string[]): Q.Promise<string[]> {
+    private gatherManifests(): Q.Promise<string[]> {
         trace.debug('merger.gatherManifests');
-        let globs = globPatterns.map(pattern => 
-            path.isAbsolute(pattern) ? pattern : path.join(this.mergeSettings.root, pattern));
-        return Q.all(globs.map(pattern => this.gatherManifestsFromGlob(pattern))).then((fileLists) => {
-            return _.unique(fileLists.reduce((a, b) => { return a.concat(b); }));
-        }).then((paths) => {
-            if (paths.length > 0) {
-                trace.debug("Merging %s manifests from the following paths: ", paths.length.toString());
-                paths.forEach(path => trace.debug(path));
-                return paths;
-            } else {
-                throw new Error("No manifests found from the following glob patterns: \n" + globPatterns.join("\n"));
-            }
-        });
-    }
-    
-    private gatherManifestsFromGlob(globPattern: string): Q.Promise<string[]> {
+        
+        const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
+        
         trace.debug('merger.gatherManifestsFromGlob');
-        return Q.Promise<string[]>((resolve, reject, notify) => {
-            glob(globPattern, (err, matches) => {
-                if (!err) {
-                    resolve(matches);
+        const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
+        
+        return Q.all(promises)
+            .then(results => _.unique(_.flatten<string>(results)))
+            .then(results => {
+                if (results.length > 0) {
+                    trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
+                    results.forEach(path => trace.debug(path));
                 } else {
-                    reject(err);
+                    throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
                 }
+                
+                return results;
             });
-        });
     }
     
     /**
@@ -261,7 +620,8 @@ export class Merger {
         */
     public merge(): Q.Promise<VsixComponents> {
         trace.debug('merger.merge')
-        return this.gatherManifests(this.mergeSettings.manifestGlobs).then((files: string[]) => {
+        
+        return this.gatherManifests().then(files => {
             let overridesProvided = false;
             let manifestPromises: Q.Promise<any>[] = [];
             files.forEach((file) => {
@@ -277,23 +637,19 @@ export class Merger {
                         throw err;
                     }
                 }));
-                
-                // Add the overrides if necessary
-                if (this.mergeSettings.overrides) {
-                    overridesProvided = true;
-                    manifestPromises.push(Q.resolve(this.mergeSettings.overrides));
-                }
             });
-            // Deep-copy of the default manifest.
-            let vsixManifest: any = JSON.parse(JSON.stringify(defaultManifest.defaultManifest));
-            vsixManifest.__meta_root = this.mergeSettings.root;
-            let vsoManifest: any = {
-                __meta_root: this.mergeSettings.root,
-                scopes: [],
-                contributions: [],
-            };
+            
+            // Add the overrides if necessary
+            if (this.settings.overrides) {
+                overridesProvided = true;
+                manifestPromises.push(Q.resolve(this.settings.overrides));
+            }
+            
+            let vsoManifest = new VsoManifest();
+            let vsixManifest = new VsixManifest(this.settings.root, [vsoManifest]);
             let packageFiles: PackageFiles = {};
-            return Q.all(manifestPromises).then((partials: any[]) => {
+            
+            return Q.all(manifestPromises).then(partials => {
                 partials.forEach((partial, partialIndex) => {
                     // Transform asset paths to be relative to the root of all manifests, verify assets
                     if (_.isArray(partial["files"])) {
@@ -308,7 +664,7 @@ export class Merger {
                             } else {
                                 absolutePath = path.join(path.dirname(partial.__origin), asset.path);
                             }
-                            asset.path = path.relative(this.mergeSettings.root, absolutePath);
+                            asset.path = path.relative(this.settings.root, absolutePath);
                         });
                     }
                     // Transform icon paths as above
@@ -316,7 +672,7 @@ export class Merger {
                         let icons = partial["icons"];
                         Object.keys(icons).forEach((iconKind: string) => {
                             let absolutePath = path.join(path.dirname(partial.__origin), icons[iconKind]);
-                            icons[iconKind] = path.relative(this.mergeSettings.root, absolutePath);
+                            icons[iconKind] = path.relative(this.settings.root, absolutePath);
                         });
                     }
                     
@@ -339,9 +695,9 @@ export class Merger {
                     if (_.isArray(partial["files"])) {
                         for (let i = partial["files"].length - 1; i >= 0; --i) {
                             let fileDecl: FileDeclaration = partial["files"][i];
-                            let fsPath = path.join(vsoManifest.__meta_root, fileDecl.path);
+                            let fsPath = path.join(this.settings.root, fileDecl.path);
                             if (fs.lstatSync(fsPath).isDirectory()) {
-                                Array.prototype.splice.apply(partial["files"], (<any[]>[i, 1]).concat(pathToFileDeclarations(fsPath, vsoManifest.__meta_root)));
+                                Array.prototype.splice.apply(partial["files"], (<any[]>[i, 1]).concat(pathToFileDeclarations(fsPath, this.settings.root)));
                             }
                         }
                     }
@@ -349,208 +705,24 @@ export class Merger {
                     // Merge each key of each partial manifest into the joined manifests
                     Object.keys(partial).forEach((key) => {
                         if (partial[key] !== undefined && partial[key] !== null) {
-                            this.mergeKey(key, partial[key], vsoManifest, vsixManifest, packageFiles, partials.length - 1 === partialIndex && overridesProvided);
+                            vsixManifest.merge(key, partial[key], packageFiles, partials.length - 1 === partialIndex && overridesProvided);
+                            vsoManifest.merge(key, partial[key], packageFiles, partials.length - 1 === partialIndex && overridesProvided);
                         }
                     });
                 });
-                // Merge in the single-value defaults if not provided.
-                let vsoDefaults = {
-                    manifestVersion: 1.0
-                };
-                Object.keys(vsoDefaults).forEach((d) => {
-                    if (!vsoManifest[d]) {
-                        vsoManifest[d] = vsoDefaults[d];
-                    }
-                });
-                let validationResult = this.validateVsixJson(vsixManifest);
-                trace.debug("VSO Manifest: " + JSON.stringify(vsoManifest, null, 4));
-                trace.debug("VSIX Manifest: " + JSON.stringify(vsixManifest, null, 4)); 
-                if (validationResult.length === 0 || this.mergeSettings.bypassValidation) {
-                    return <VsixComponents>{vsoManifest: vsoManifest, vsixManifest: vsixManifest, files: packageFiles};
+                
+                trace.debug("VSO Manifest: " + JSON.stringify(vsoManifest));
+                trace.debug("VSIX Manifest: " + JSON.stringify(vsixManifest)); 
+                
+                let validationResult = [...vsixManifest.validate(), ...vsoManifest.validate()];
+                
+                if (validationResult.length === 0 || this.settings.bypassValidation) {
+                    return <VsixComponents>{ vsixManifest, manifests: [vsoManifest], files: packageFiles };
                 } else {
                     throw new Error("There were errors with your manifests. Address the following errors and re-run the tool.\n" + validationResult);
                 }
             });
         });
-    }
-    
-    private handleDelimitedList(value: any, object: any, path: string, delimiter: string = ",", uniq: boolean = true): void {
-        if (_.isString(value)) {
-            value = value.split(delimiter);
-            _.remove(value, v => v === "");
-        }
-        var items = _.get(object, path, "").split(delimiter);
-        _.remove(items, v => v === "");
-        let val = items.concat(value);
-        if (uniq) {
-            val = _.uniq(val);
-        } 
-        _.set(object, path, val.join(delimiter));
-    }
-    
-    private singleValueProperty(obj: any, path: string, value: any, manifestKey: string, override: boolean = false): boolean {
-        let existingValue = _.get(obj, path); 
-        if (!override && existingValue !== undefined) {
-            trace.warn("Multiple values found for '%s'. Ignoring future occurrences and using the value '%s'.", manifestKey, JSON.stringify(existingValue, null, 4));
-            return false;
-        } else {
-            _.set(obj, path, value);
-            return true;
-        }
-    }
-    
-    private mergeKey(key: string, value: any, vsoManifest: any, vsixManifest: any, packageFiles: PackageFiles, override: boolean): void {
-        switch(key.toLowerCase()) {
-            case "namespace":
-            case "extensionid":
-            case "id":
-                if (_.isString(value)) {
-                    this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Id", value.replace(/\./g, "-"), "namespace/extensionId/id", override);
-                }
-                break;
-            case "version":
-                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Version", value, key, override)) {
-                    vsoManifest.version = value;
-                }
-                break;
-            case "name":
-                if (this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]", value, key, override)) {
-                    vsoManifest.name = value;
-                }
-                break;
-            case "description":
-                vsoManifest.description = value;
-                vsixManifest.PackageManifest.Metadata[0].Description[0]._ = value;
-                break;
-            case "eventcallbacks":
-                if (_.isObject(value)) {
-                    if (!vsoManifest.eventCallbacks) {
-                        vsoManifest.eventCallbacks = {};
-                    }
-                    _.merge(vsoManifest.eventCallbacks, value);
-                }
-                break;
-            case "icons":
-                if (_.isString(value["default"])) {
-                    let assets = _.get<any>(vsixManifest, "PackageManifest.Assets[0].Asset");
-                    let iconPath = value["default"].replace(/\\/g, "/");
-                    assets.push({
-                        "$": {
-                            "Type": "Microsoft.VisualStudio.Services.Icons.Default",
-                            "d:Source": "File",
-                            "Path": iconPath
-                        }
-                    });
-                    
-                    // Default icon is also the package icon
-                    this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Icon[0]", iconPath, "icons['default']", override);
-                }
-                if (_.isString(value["wide"])) {
-                    let assets = _.get<any>(vsixManifest, "PackageManifest.Assets[0].Asset");
-                    assets.push({
-                        "$": {
-                            "Type": "Microsoft.VisualStudio.Services.Icons.Wide",
-                            "d:Source": "File",
-                            "Path": value["wide"].replace(/\\/g, "/")
-                        }
-                    });
-                }
-                break;
-            case "manifestversion":
-                let version = value;
-                if (_.isString(version)) {
-                    version = parseFloat(version);
-                }
-                if (!version) {
-                    version = 1;
-                }
-                this.singleValueProperty(vsoManifest, "manifestVersion", version, key, override);
-                break;
-            case "public": 
-                if (typeof value === "boolean") {
-                    let flags = _.get(vsixManifest, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(",");
-                    _.remove(flags, v => v === "");
-                    if (value === true) {
-                        flags.push("Public");
-                    }
-                    _.set(vsixManifest, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(","));
-                }
-                break;
-            case "publisher":
-                this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Publisher", value, key, override);
-                break;
-            case "releasenotes":
-                this.singleValueProperty(vsixManifest, "PackageManifest.Metadata[0].ReleaseNotes[0]", value, key, override);
-                break;
-            case "scopes":
-                if (_.isArray(value)) {
-                    vsoManifest.scopes = _.uniq(vsoManifest.scopes.concat(value));
-                }
-                break;
-            case "tags":
-                this.handleDelimitedList(value, vsixManifest, "PackageManifest.Metadata[0].Tags[0]");
-                break;
-            case "vsoflags":
-            case "galleryflags":
-                // Gallery Flags are space-separated since it's a Flags enum.
-                this.handleDelimitedList(value, vsixManifest, "PackageManifest.Metadata[0].GalleryFlags[0]", " ");
-                break;
-            case "categories":
-                this.handleDelimitedList(value, vsixManifest, "PackageManifest.Metadata[0].Categories[0]");
-                break;
-            case "baseuri":
-                this.singleValueProperty(vsoManifest, "baseUri", value, key, override);
-                break;
-            case "contributions":
-                if (_.isArray(value)) {
-                    vsoManifest.contributions = vsoManifest.contributions.concat(value);
-                }
-                break;
-            case "contributiontypes":
-                if (_.isArray(value)) {
-                    if (!vsoManifest.contributionTypes) {
-                        vsoManifest.contributionTypes = [];
-                    }
-                    vsoManifest.contributionTypes = vsoManifest.contributionTypes.concat(value);
-                }
-                break;
-            case "files": 
-                if (_.isArray(value)) {
-                    value.forEach((asset: FileDeclaration) => {
-                        let assetPath = asset.path.replace(/\\/g, "/");
-                        if (!asset.auto || !packageFiles[assetPath]) {
-                            packageFiles[assetPath] = {
-                                partName: asset.partName || assetPath
-                            };
-                        }
-                        if (asset.contentType) {
-                            packageFiles[assetPath].contentType = asset.contentType;
-                        }
-                        if (asset.assetType) {
-                            vsixManifest.PackageManifest.Assets[0].Asset.push({
-                                "$": {
-                                    "Type": asset.assetType,
-                                    "d:Source": "File",
-                                    "Path": assetPath
-                                }
-                            });
-                        }
-                        if (asset.assetType === "Microsoft.VisualStudio.Services.Icons.Default") {
-                            vsixManifest.PackageManifest.Metadata[0].Icon = [assetPath];
-                        }
-                    });
-                }
-                break;
-            default:
-                if (key.substr(0, 2) !== "__") {
-                    this.singleValueProperty(vsoManifest, key, value, key, override);
-                }
-                break;
-        }
-    }
-    
-    private validateVsixJson(vsixManifest: any): string[] {
-        return Object.keys(Merger.vsixValidators).map(path => Merger.vsixValidators[path](_.get(vsixManifest, path))).filter(r => !!r);
     }
 }
 
@@ -558,9 +730,6 @@ export class Merger {
     * Facilitates packaging the vsix and writing it to a file
     */
 export class VsixWriter {
-    private vsoManifest: any;
-    private vsixManifest: any;
-    private files: PackageFiles;
     
     private static VSO_MANIFEST_FILENAME: string = "extension.vsomanifest";
     private static VSIX_MANIFEST_FILENAME: string = "extension.vsixmanifest";
@@ -588,57 +757,8 @@ export class VsixWriter {
         * @param any vsoManifest JS Object representing a vso manifest
         * @param any vsixManifest JS Object representing the XML for a vsix manifest
         */
-    constructor(vsoManifest: any, vsixManifest: any, files: PackageFiles) {
-        this.vsoManifest = vsoManifest;
-        this.vsixManifest = vsixManifest;
-        this.files = files;
-        this.prepManifests();
-    }
-    
-    private prepManifests() {
-        // Remove any vso manifest assets, then add the correct entry.
-        let assets = _.get<any[]>(this.vsixManifest, "PackageManifest.Assets[0].Asset");
-        if (assets) {
-            _.remove(assets, (asset) => {
-                let type = _.get(asset, "$.Type", "x").toLowerCase();
-                return type === "microsoft.vso.manifest" || type === "microsoft.visualstudio.services.manifest";
-            });
-        } else {
-            assets = [];
-            _.set<any, any>(this.vsixManifest, "PackageManifest.Assets[0].Asset[0]", assets);
-        }
-        
-        assets.push({$:{
-            Type: "Microsoft.VisualStudio.Services.Manifest",
-            Path: VsixWriter.VSO_MANIFEST_FILENAME
-        }});
-        
-        trace.debug("Manifests finished prepping.");
-    }
-    
-    /**
-        * If outPath is {auto}, generate an automatic file name.
-        * Otherwise, try to determine if outPath is a directory (checking for a . in the filename)
-        * If it is, generate an automatic filename in the given outpath
-        * Otherwise, outPath doesn't change.
-        */
-    private getOutputPath(outPath: string): string {
-        let newPath = outPath;
-        let pub = _.get(this.vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-        let ns = _.get(this.vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Id");
-        let version = _.get(this.vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Version");
-        let autoName = pub + "." + ns + "-" + version + ".vsix";
-        
-        if (outPath === "{auto}") {
-            return path.resolve(autoName);
-        } else {
-            let basename = path.basename(outPath);
-            if (basename.indexOf(".") > 0) { // conscious use of >
-                return path.resolve(outPath);
-            } else {
-                return path.resolve(path.join(outPath, autoName));
-            }
-        }
+    constructor(private vsixManifest: VsixManifest, private manifests: Manifest[], private files: PackageFiles) {
+        // noop
     }
     
     /**
@@ -646,9 +766,9 @@ export class VsixWriter {
         * @param stream.Writable Stream to write the vsix package
         */
     public writeVsix(outPath: string): Q.Promise<any> {
-        let outputPath = this.getOutputPath(outPath);
-        let vsix = new zip();
-        let root = this.vsoManifest.__meta_root;
+        let outputPath = this.vsixManifest.getOutputPath(outPath);
+        let vsixzip = new zip();
+        let root = this.vsixManifest.root;
         if (!root) {
             throw new Error("Manifest root unknown. Manifest objects should have a __meta_root key specifying the absolute path to the root of assets.");
         }
@@ -662,45 +782,34 @@ export class VsixWriter {
             let partName = this.files[file].partName.replace(/\\/g, "/"); 
             let fsPath = path.join(root, file);
             
-            vsix.file(partName, fs.readFileSync(path.join(root, file)));
+            vsixzip.file(partName, fs.readFileSync(path.join(root, file)));
             if (this.files[file].contentType) {
                 overrides[partName] = this.files[file];
             }
         });
-        let assets = <any[]>_.get(this.vsixManifest, "PackageManifest.Assets[0].Asset");
-        if (_.isArray(assets)) {
-            assets.forEach((asset) => {
-                if (asset.$) {
-                    if (asset.$.Type === "Microsoft.VisualStudio.Services.Manifest") {
-                        return; // skip the vsomanifest, it is added later.
-                    }
-                    vsix.file((<string>asset.$.Path).replace(/\\/g, "/"), fs.readFileSync(path.join(root, asset.$.Path)));
-                }
-            });
-        }
+        
+        this.vsixManifest.assets.forEach(asset => {
+            vsixzip.file((<string>asset.$.Path).replace(/\\/g, "/"), fs.readFileSync(path.join(root, asset.$.Path)));
+        });
+        
         // Write the manifests to a temporary path and add them to the zip
-        return Q.Promise<string>((resolve, reject, notify) => {
-            tmp.dir({unsafeCleanup: true}, (err, tmpPath, cleanupCallback) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(tmpPath);
-            });
-        }).then((tmpPath) => {
-            let manifestWriter = new ManifestWriter(this.vsoManifest, this.vsixManifest);
-            let vsoPath = path.join(tmpPath, VsixWriter.VSO_MANIFEST_FILENAME);
-            let vsixPath = path.join(tmpPath, VsixWriter.VSIX_MANIFEST_FILENAME);
-            let vsoStr = fs.createWriteStream(vsoPath);
-            let vsixStr = fs.createWriteStream(vsixPath);
-            return manifestWriter.writeManifests(vsoStr, vsixStr).then(() => {
-                vsix.file(VsixWriter.VSO_MANIFEST_FILENAME, fs.readFileSync(vsoPath, "utf-8"));
-                vsix.file(VsixWriter.VSIX_MANIFEST_FILENAME, fs.readFileSync(vsixPath, "utf-8"));
-            });
+        return Q.nfcall(tmp.dir, {unsafeCleanup: true}).then((result) => {
+            let tmpPath = result[0];
+            let manifests = [<Manifest> this.vsixManifest].concat(this.manifests);
+            
+            return Q.all(manifests.map(manifest => {
+                const manifestPath = path.join(tmpPath, manifest.path);
+                const stream = fs.createWriteStream(manifestPath);
+                
+                return manifest.write(stream).then(() => {
+                    vsixzip.file(manifest.path, fs.readFileSync(manifestPath, "utf-8"));
+                });
+            }));
         }).then(() => {
-            return this.genContentTypesXml(Object.keys(vsix.files), overrides);
+            return this.genContentTypesXml(Object.keys(vsixzip.files), overrides);
         }).then((contentTypesXml) => {
-            vsix.file(VsixWriter.CONTENT_TYPES_FILENAME, contentTypesXml);
-            let buffer = vsix.generate({
+            vsixzip.file(VsixWriter.CONTENT_TYPES_FILENAME, contentTypesXml);
+            let buffer = vsixzip.generate({
                 type: "nodebuffer",
                 compression: "DEFLATE",
                 compressionOptions: { level: 9 },
@@ -903,61 +1012,5 @@ export class VsixWriter {
             }
         }
         return maxProp;
-    }
-}
-
-/**
-    * Class to help writing the vso manifest and vsix manifest
-    */
-export class ManifestWriter {
-    private vsoManifest: any;
-    private vsixManifest: any;
-    
-    /**
-        * constructor
-        * @param any vsoManifest JS Object representing a vso manifest
-        * @param any vsixManifest JS Object representing the XML for a vsix manifest
-        */
-    constructor(vsoManifest: any, vsixManifest: any) {
-        this.vsoManifest = this.removeMetaKeys(vsoManifest);
-        this.vsixManifest = this.removeMetaKeys(vsixManifest);
-    }
-    
-    private removeMetaKeys(obj: any): any {
-        return _.omit(obj, (v, k) => {
-            return _.startsWith(k, "__meta_");
-        });
-    }
-    
-    /**
-        * Writes the vso manifest and vsix manifest to given streams and ends the streams.
-        * @param stream.Writable Stream to write the vso manifest (json)
-        * @param stream.Writable Stream to write the vsix manifest (xml)
-        * @return Q.Promise<any> A promise that is resolved when the streams have been written/ended
-        */
-    public writeManifests(vsoStream: stream.Writable, vsixStream: stream.Writable): Q.Promise<any> {
-        let eol = os.EOL;
-        let vsoPromise = Q.ninvoke<any>(vsoStream, "write", JSON.stringify(this.vsoManifest, null, 4).replace(/\n/g, eol), "utf8");
-        vsoPromise = vsoPromise.then(() => {
-            vsoStream.end();
-        });
-        
-        let builder = new xml.Builder({
-            indent: "    ",
-            newline: eol,
-            pretty: true,
-            xmldec: {
-                encoding: "utf-8",
-                standalone: null,
-                version: "1.0"
-            }
-        });
-        let vsix = builder.buildObject(this.vsixManifest);
-        let vsixPromise = Q.ninvoke<any>(vsixStream, "write", vsix, "utf8");
-        vsixPromise = vsixPromise.then(() => {
-            vsixStream.end();
-        });
-        
-        return Q.all([vsoPromise, vsixPromise]);
     }
 }
