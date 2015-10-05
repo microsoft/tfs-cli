@@ -29,30 +29,19 @@ export class BuildTaskDelete extends cmdm.TfCommand {
             var taskId: string = allArguments[argm.TASK_ID.name];
     
             trace("Initializing agent API...");
-            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.accountUrl);
+            var agentapi = this.getWebApi().getTaskAgentApi(this.connection.collectionUrl);
     
-            trace("Searching for tasks with id: " + taskId);
-            agentapi.getTaskContent(taskId, "", (err, statusCode, tasks) => {
-                trace("Found " + tasks.length + " tasks with provided id.")
-                if (tasks.length > 0) {
-                    trace("Deleting task(s)...");
-                    agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
-                        if (err) {
-                            trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
-                            err.statusCode = statusCode;
-                            defer.reject(err);
-                        }
-                        else {
-                            trace("Success.")
-                            defer.resolve(<agentifm.TaskDefinition>{
-                                id: taskId
-                            });
-                        }
-                    });
+            agentapi.deleteTaskDefinition(taskId, (err, statusCode) => {
+                if (err) {
+                    trace("Call to TaskAgentApi.deleteTaskDefinition failed with code " + statusCode + ". Message: " + err.message);
+                    err.statusCode = statusCode;
+                    defer.reject(err);
                 }
                 else {
-                    trace("No task.");
-                    defer.reject(new Error("No task found with provided ID: " + taskId));
+                    trace("Success.")
+                    defer.resolve(<agentifm.TaskDefinition>{
+                        id: taskId
+                    });
                 }
             });
         })
