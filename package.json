@@ -27,6 +27,7 @@
     "minimist": "^1.1.2",
     "mkdirp": "^0.5.1",
     "node-uuid": "^1.4.3",
+    "onecolor": "^2.5.0",
     "os-homedir": "^1.0.1",
     "q": "^1.4.1",
     "read": "^1.0.6",
@@ -44,7 +45,7 @@
     "gulp": "^3.9.0",
     "gulp-filter": "^3.0.1",
     "gulp-mocha": "2.0.0",
-    "gulp-tsb": "^1.5.1",
+    "gulp-tsb": "^1.6.2",
     "minimatch": "^2.0.8",
     "mocha": "^2.2.5"
   },

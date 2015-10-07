@@ -126,3 +126,12 @@ export var UNSHARE_WITH: ArrayArgument = new ArrayArgument('with', 'accounts to 
 export var VSIX_PATH: FilePathArgument = new FilePathArgument('vsix', 'path to vsix');
 export var BYPASS_VALIDATION: BooleanArgument = new BooleanArgument("bypassvalidation", "bypass local validation during packaging", false);
 export var MARKET: BooleanArgument = new BooleanArgument("market", "login to the Market", false);
+export var LOC_ROOT: StringArgument = new StringArgument("locRoot", "root for localization files");
+
+///WORK
+export var WORKITEM_ID: IntArgument = new IntArgument('id', 'workitemid');
+export var QUERY: StringArgument = new StringArgument('query');
+export var TOP: IntArgument = new IntArgument('top');
+export var TITLE: StringArgument = new StringArgument('title');
+export var ASSIGNEDTO: StringArgument = new StringArgument('assignedto');
+export var WORKITEMTYPE: StringArgument = new StringArgument('workitemtype');

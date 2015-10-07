@@ -3,7 +3,7 @@ import cm = require('../lib/common');
 import gallerym = require('vso-node-api/GalleryApi');
 import galleryifm = require('vso-node-api/interfaces/GalleryInterfaces');
 import argm = require('../lib/arguments');
-import extinfom = require('../lib/extensioninfo');
+import extinfom = require('../lib/extensions/extensioninfo');
 import Q = require('q');
 var trace = require('../lib/trace');
 

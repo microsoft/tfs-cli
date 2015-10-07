@@ -14,3 +14,4 @@
 /// <reference path="xml2js/xml2js.d.ts" />
 /// <reference path="winreg/winreg.d.ts" />
 /// <reference path="mkdirp/mkdirp.d.ts" />
+/// <reference path="onecolor/onecolor.d.ts" />

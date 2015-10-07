@@ -54,5 +54,4 @@ interface Winreg {
 interface WinregCallback<T> {
 	(err: NodeJS.ErrnoException, val: T): void;
 }
-
 declare var winreg: Winreg;

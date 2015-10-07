@@ -1,8 +1,8 @@
-/// <reference path="../../definitions/tsd.d.ts" />
+/// <reference path="../../../definitions/tsd.d.ts" />
 
 import _ = require('lodash');
 import Q = require('q');
-import trace = require('./trace');
+import trace = require('../trace');
 import fs = require('fs');
 import xml2js = require("xml2js");
 import zip = require("jszip");
