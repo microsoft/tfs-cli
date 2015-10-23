@@ -76,13 +76,13 @@ if (!cmdm.isServerOperation) {
     .fail((err) => {
         console.error('Error: ' + err.message);
         process.exit(1);
-    })    
+    })
 }
 else {
     var connection: cnm.TfsConnection;
     var collectionUrl: string;
 
-    cnm.getCollectionUrl()
+    cnm.getCollectionUrl(args, options)
     .then((url: string) => {
         trace('url: ' + url);
         collectionUrl = url;
@@ -108,12 +108,12 @@ else {
         else {
             cmd.output(result);
             console.log();
-        }   
+        }
     })
     .fail((err) => {
         console.error('Error: ' + err.message);
         process.exit(1);
-    })    
+    })
 }
 
 process.on('uncaughtException', (err) => {

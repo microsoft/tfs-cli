@@ -32,8 +32,8 @@ export class TfsConnection {
             trace('Invalid collection url - protocol and host are required');
             throw new Error('Invalid collection url - protocol and host are required');
         }
-        
-        
+
+
         var splitPath: string[] = purl.path.split('/').slice(1);
         this.accountUrl = purl.protocol + '//' + purl.host;
         if(splitPath.length === 0 || (splitPath.length === 1 && splitPath[0] === '')) {
@@ -43,7 +43,7 @@ export class TfsConnection {
         if(splitPath.length === 2 && splitPath[0] === 'tfs') {
             //on prem
             this.accountUrl += '/' + 'tfs';
-        } 
+        }
         else if(splitPath.length > 1) {
             trace('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
             throw new Error('Invalid collection url - path is too long. Collection url should take the form [accounturl]/[collectionname]');
@@ -56,18 +56,27 @@ export class TfsConnection {
     public authHandler: apibasem.IRequestHandler;
 }
 
-var result: string;
-
-export function getCollectionUrl(): Q.Promise<string> {
+export function getCollectionUrl(args: string[], options: any): Q.Promise<string> {
     trace('loader.getCollectionUrl');
-    var defer = Q.defer<string>();
 
-    return this.getCachedUrl()
+    return this.getCommandLineUrl(args, options)
+    .then((url: string) => {
+        return url ? url : getCachedUrl();
+    })
     .then((url: string) => {
         return url ? url : promptForUrl();
-    })
+    });
+}
 
-    return <Q.Promise<string>>defer.promise;
+export function getCommandLineUrl(args: string[], options: any): Q.Promise<string> {
+    trace('loader.getCommandLineUrl');
+
+    var credInputs = [ argm.COLLECTION_URL ];
+
+    // Check to see if the collectionurl was optionally specified on the command line
+    return inputs.Qcheck(args, options, [], credInputs).then((result) => {
+        return result[argm.COLLECTION_URL.name];
+    });
 }
 
 export function getCachedUrl(): Q.Promise<string> {
@@ -87,7 +96,7 @@ export function getCachedUrl(): Q.Promise<string> {
         .fail((err) => {
             trace('No collection url found in cache');
             defer.resolve('');
-        });   
+        });
     }
 
     return <Q.Promise<string>>defer.promise;
@@ -95,13 +104,6 @@ export function getCachedUrl(): Q.Promise<string> {
 
 export function promptForUrl(): Q.Promise<string> {
     trace('loader.promptForUrl');
-    var defer = Q.defer<string>();
-    var promise = <Q.Promise<string>>defer.promise;
-
-    if (result) {
-        defer.resolve(result);
-        return promise;
-    }
 
     var credInputs = [ argm.COLLECTION_URL ];
 
