@@ -36,27 +36,36 @@ export class LoginStatus extends cmdm.TfCommand {
         var result: ILoginStatus = {url: null, creds: null};
 
         trace('Loading cached connection url');
-        cache.getItem('cache', 'connection')
-        .then((url) => {
-            if (url) {
-                result.url = url;
-                trace('Found url ' + url);
-                trace('Looking for cached credentials for ' + url);
-                return cs.credentialExists(url, 'allusers')
-                .then((result) => {
-                    if (result)
-                    {
-                        trace('Found credentials in the cache');
-                        return cs.getCredential(url, 'allusers');
+        cache.itemExists('cache', 'connection')
+        .then((exists) => {
+            if (exists) {
+                cache.getItem('cache', 'connection')
+                .then((url) => {
+                    if (url) {
+                        result.url = url;
+                        trace('Found url ' + url);
+                        trace('Looking for cached credentials for ' + url);
+                        return cs.credentialExists(url, 'allusers')
+                        .then((result) => {
+                            if (result)
+                            {
+                                trace('Found credentials in the cache');
+                                return cs.getCredential(url, 'allusers');
+                            }
+                            trace('Did not find credentials in the cache');
+                        })
+                        .then((creds) => {
+                            result.creds = creds;
+                            defer.resolve(result);
+                        });
                     }
-                    trace('Did not find credentials in the cache');
+                    else {
+                        defer.resolve(result);
+                    }
                 })
-                .then((creds) => {
-                    result.creds = creds;
-                    defer.resolve(result);
-                });
             }
             else {
+                trace('No cached connection file found');
                 defer.resolve(result);
             }
         });
@@ -67,14 +76,14 @@ export class LoginStatus extends cmdm.TfCommand {
     public output(status: ILoginStatus): void {
         if (status.url) {
             if (status.creds) {
-                console.log("Logged into to collection '" + status.url + "' with credentials '" + status.creds + "'.");
+                console.log("Logged in to collection '" + status.url + "' with credentials '" + status.creds + "'.");
             }
             else {
-                console.log("Logged into to collection '" + status.url + "', but no credentials are cached");
+                console.log("Logged in to collection '" + status.url + "', but no credentials are cached");
             }
         }
         else {
-            console.log("You are not logged into to any collection");
+            console.log("You are not logged in to any collection");
         }
     }
 }
