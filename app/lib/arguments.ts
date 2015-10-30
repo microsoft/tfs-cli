@@ -1,7 +1,7 @@
 import trace = require('../lib/trace');
 
 //TODO: add validity check (length, regex, etc...)
-export class Argument<T> {
+export abstract class Argument<T> {
 	public name: string;
 	public defaultValue: T;
 	public friendlyName: string;
@@ -16,9 +16,7 @@ export class Argument<T> {
 		this.defaultValue = defaultValue;
 	}
 	
-	public getValueFromString(stringRepresentation: string): T {
-		throw "This method is abstract.";
-	}
+	public abstract getValueFromString(stringRepresentation: string): T;
 }
 
 export class ArrayArgument extends Argument<string[]> {

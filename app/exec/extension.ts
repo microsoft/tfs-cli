@@ -1,7 +1,7 @@
 import cmdm = require('../lib/tfcommand');
 
 export function describe(): string {
-    return 'manage visual studio extensions';
+    return 'manage Visual Studio Online and Team Foundation Server extensions';
 }
 
 export function getCommand(): cmdm.TfCommand {
