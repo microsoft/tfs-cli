@@ -3,6 +3,6 @@
 		"module": "commonjs",
 		"target": "ES5",
 		"declaration": false,
-		"sourceMap": true
+		"sourceMap": false
 	}
 }

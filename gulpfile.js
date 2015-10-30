@@ -13,7 +13,7 @@ var compilation = tsb.create(tsconfig.compilerOptions);
 var sources = [
 	'app/**',
 	'tests/**',
-	'definitions/**/*.d.ts'
+	'typings/**/*.d.ts'
 ];
 
 gulp.task('build', ['clean'], function () {

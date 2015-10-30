@@ -1,26 +1,32 @@
-/// <reference path="../../definitions/tsd.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 
 import colors = require("colors");
 import os = require('os');
-var traceEnabled = process.env['TFX_TRACE'];
+let traceEnabled = process.env['TFX_TRACE'];
+
+export let outputType;
+
+export type printable = (string | number | boolean);
 
 export function println() {
 	info('');
 }
 
-export function error(msg: any, ...replacements: string[]): void {
+export function error(msg: any, ...replacements: printable[]): void {
 	log('', msg, colors.bgRed, replacements, console.error);
 }
 
-export function success(msg: any, ...replacements: string[]): void {
+export function success(msg: any, ...replacements: printable[]): void {
 	log('', msg, colors.green, replacements);
 }
 
-export function info(msg: any, ...replacements: string[]): void {
-	log('', msg, colors.white, replacements);
+export function info(msg: any, ...replacements: printable[]): void {
+	if (outputType === "friendly" || traceEnabled) {
+		log('', msg, colors.white, replacements);
+	}
 }
 
-export function warn(msg: any, ...replacements: string[]): void {
+export function warn(msg: any, ...replacements: printable[]): void {
 	log('', msg, colors.bgYellow.black, replacements);
 }
 
@@ -32,13 +38,13 @@ export function debugArea(msg: any, area: string) {
 	traceEnabled = process.env['TFX_TRACE'];
 }
 
-export function debug(msg: any, ...replacements: string[]) {
+export function debug(msg: any, ...replacements: printable[]) {
     if (traceEnabled) {
 		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, replacements);
     }
 }
 
-function log(prefix: string, msg: any, color: any, replacements: string[], method = console.log): void {
+function log(prefix: string, msg: any, color: any, replacements: printable[], method = console.log): void {
 	var t = typeof(msg);
 	if (t === 'string') {
 		write(prefix, msg, color, replacements, method);
@@ -55,13 +61,13 @@ function log(prefix: string, msg: any, color: any, replacements: string[], metho
 	}
 }
 
-function write(prefix: string, msg: string, color: any, replacements: string[], method = console.log) {
+function write(prefix: string, msg: string, color: any, replacements: printable[], method = console.log) {
 	let toLog = doReplacements(msg, replacements);
 	toLog = toLog.split(/\n|\r\n/).map(line => prefix + line).join(os.EOL);
 	method(color(toLog));
 }
 
-function doReplacements(str: string, replacements: string[]): string {
+function doReplacements(str: string, replacements: printable[]): string {
 	let lcRepl = str.replace(/%S/g, "%s");
 	let split = lcRepl.split("%s");
 	if (split.length - 1 !== replacements.length) {

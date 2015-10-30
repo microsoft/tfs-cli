@@ -1,4 +1,4 @@
-/// <reference path="../../definitions/tsd.d.ts" />
+/// <reference path="../../typings/tsd.d.ts" />
 
 import _ = require('lodash');
 import cm = require('./common');
