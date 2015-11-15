@@ -3,7 +3,7 @@ import args = require("../../../lib/arguments");
 import extPub = require("../default");
 import Q = require("q");
 
-export function getCommand(args: string[]): ExtensionPublisherBase<void> {
+export function getCommand(args: string[]): TfCommand<extPub.ExtensionArguments, void> {
     return new ExtensionPublisherBase<void>(args);
 }
 

@@ -9,7 +9,6 @@ import Q = require('q');
 import trace = require('../../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, DeletePublisherResult> {
-    // this just offers description for help and to offer sub commands
     return new ExtensionPublisherDelete(args);
 }
 
