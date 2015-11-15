@@ -9,37 +9,37 @@ export interface IStringIndexer { [name: string]: any }
 export interface IOptions { [name: string]: string }
 
 export function endsWith(str: string, end:string): boolean {
-    return str.slice(-end.length) == end;
+	return str.slice(-end.length) == end;
 }
 
 /**
  * Ensure a value is a promise of type T.
  */
 export function promisify<T>(val: T | Q.Promise<T>): Q.Promise<T> {
-    if (val && typeof (<Q.Promise<T>>val).then === "function") {
-        return <Q.Promise<T>>val;
-    } else {
-        return Q.resolve<T>(<T>val);
-    }
+	if (val && typeof (<Q.Promise<T>>val).then === "function") {
+		return <Q.Promise<T>>val;
+	} else {
+		return Q.resolve<T>(<T>val);
+	}
 }
 
 /**
  * Generate a new rfc4122 version 4 compliant GUID.
  */
 export function newGuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+		return v.toString(16);
+	});
 }
 
 /**
  * Repeat a string <count> times.
  */
 export function repeatStr(str: string, count: number): string {
-    let result = [];
-    for (let i = 0; i < count; ++i) {
-        result.push(str);
-    }
-    return result.join("");
+	let result = [];
+	for (let i = 0; i < count; ++i) {
+		result.push(str);
+	}
+	return result.join("");
 }

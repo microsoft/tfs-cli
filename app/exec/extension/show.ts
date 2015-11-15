@@ -8,22 +8,22 @@ import Q = require('q');
 import trace = require('../../lib/trace');
 
 export function getCommand(args: string[]): extBase.ExtensionBase<galleryContracts.PublishedExtension> {
-    return new ExtensionShow(args);
+	return new ExtensionShow(args);
 }
 
 export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.PublishedExtension> {
-    protected description = "Show info about a published Visual Studio Services Extension.";
+	protected description = "Show info about a published Visual Studio Services Extension.";
 
-    protected getHelpArgs(): string[] {
-        return ["publisher", "extensionId", "vsix", "serviceUrl"];
-    }
-    
-    public exec(): Q.Promise<galleryContracts.PublishedExtension> {
-        let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
-        
-        return this.identifyExtension().then((extInfo) => {
-            let sharingMgr = new publishUtils.SharingManager({ }, galleryApi, extInfo);
-            return sharingMgr.getExtensionInfo();
-        });
-    }
+	protected getHelpArgs(): string[] {
+		return ["publisher", "extensionId", "vsix", "serviceUrl"];
+	}
+
+	public exec(): Q.Promise<galleryContracts.PublishedExtension> {
+		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+
+		return this.identifyExtension().then((extInfo) => {
+			let sharingMgr = new publishUtils.SharingManager({ }, galleryApi, extInfo);
+			return sharingMgr.getExtensionInfo();
+		});
+	}
 }

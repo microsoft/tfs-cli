@@ -33,15 +33,15 @@ export function warn(msg: any, ...replacements: printable[]): void {
 export function debugArea(msg: any, area: string) {
 	traceEnabled = process.env['TFX_TRACE_' + area.toUpperCase()];
 	if(traceEnabled) {
-		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, []);	
+		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, []);
 	}
 	traceEnabled = process.env['TFX_TRACE'];
 }
 
 export function debug(msg: any, ...replacements: printable[]) {
-    if (traceEnabled) {
+	if (traceEnabled) {
 		log(colors.cyan(new Date().toISOString() + ' : '), msg, colors.grey, replacements);
-    }
+	}
 }
 
 function log(prefix: string, msg: any, color: any, replacements: printable[], method = console.log): void {
@@ -73,7 +73,7 @@ function doReplacements(str: string, replacements: printable[]): string {
 	if (split.length - 1 !== replacements.length) {
 		throw new Error("The number of replacements (" + replacements.length + ") does not match the number of placeholders (" + (split.length - 1) + ")");
 	}
-	
+
 	let resultArr = [];
 	split.forEach((piece, index) => {
 		resultArr.push(piece);

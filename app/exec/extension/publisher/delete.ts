@@ -9,30 +9,30 @@ import Q = require('q');
 import trace = require('../../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, DeletePublisherResult> {
-    return new ExtensionPublisherDelete(args);
+	return new ExtensionPublisherDelete(args);
 }
 
 export interface DeletePublisherResult {
-    publisher: galleryifm.Publisher;
+	publisher: galleryifm.Publisher;
 }
 
 export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<DeletePublisherResult> {
-    protected description = "Delete a Visual Studio Services Market publisher.";
-    public exec(): Q.Promise<DeletePublisherResult> {
-        let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
-        return this.commandArgs.publisher.val().then((publisherName) => {
-            return galleryApi.deletePublisher(publisherName).then(() => {
-                return <DeletePublisherResult>{
-                    publisher: {
-                        publisherName: publisherName
-                    }
-                };
-            });
-        });
-    }
-    
-    protected friendlyOutput(data: DeletePublisherResult): void {
-        trace.success("\n=== Completed operation: delete publisher ===");
-        trace.info(" - Name: %s", data.publisher.publisherName);
-    }
+	protected description = "Delete a Visual Studio Services Market publisher.";
+	public exec(): Q.Promise<DeletePublisherResult> {
+		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+		return this.commandArgs.publisher.val().then((publisherName) => {
+			return galleryApi.deletePublisher(publisherName).then(() => {
+				return <DeletePublisherResult>{
+					publisher: {
+						publisherName: publisherName
+					}
+				};
+			});
+		});
+	}
+
+	protected friendlyOutput(data: DeletePublisherResult): void {
+		trace.success("\n=== Completed operation: delete publisher ===");
+		trace.info(" - Name: %s", data.publisher.publisherName);
+	}
 }

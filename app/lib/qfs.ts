@@ -31,41 +31,41 @@ export function readFile(filename: string, options: { encoding: string, flag?: s
 export function readFile(filename: string, options: { flag?: string }): Q.Promise<Buffer>
 export function readFile(filename: string): Q.Promise<Buffer>
 export function readFile(filename: string, options?: { encoding?: string, flag?: string} | string): Q.Promise<string> & Q.Promise<Buffer> {
-    return Q.nfcall<string & Buffer>(fs.readFile, filename, options);
+	return Q.nfcall<string & Buffer>(fs.readFile, filename, options);
 }
 
 export function writeFile(filename: string, data: any): Q.Promise<void> {
-    return Q.nfcall<void>(fs.writeFile, filename, data);
+	return Q.nfcall<void>(fs.writeFile, filename, data);
 };
 
 //export function writeFile(filename: string, data: any, callback?: (err: NodeJS.ErrnoException) => void): void;
 
 /**
- * Returns a promise resolved true or false if a file is accessible 
+ * Returns a promise resolved true or false if a file is accessible
  * with the given mode (F_OK, R_OK, W_OK, X_OK)
  */
 export function fileAccess(path: string, mode: number = F_OK): Q.Promise<boolean> {
-    return Q.Promise<boolean>((resolve) => {
-        fs.access(path, mode, (err) => {
-            if (err) {
-                resolve(false);
-            } else {
-                resolve(true);
-            }
-        });
-    });
+	return Q.Promise<boolean>((resolve) => {
+		fs.access(path, mode, (err) => {
+			if (err) {
+				resolve(false);
+			} else {
+				resolve(true);
+			}
+		});
+	});
 }
 
 /**
- * Given a valid path, resolves true if the file represented by the path 
+ * Given a valid path, resolves true if the file represented by the path
  * can be written to. Files that do not exist are assumed writable.
  */
 export function canWriteTo(path: string): Q.Promise<boolean> {
-    return exists(path).then((exists) => {
-        if (exists) {
-            return fileAccess(path, fs.W_OK);
-        } else {
-            return true;
-        }
-    });
+	return exists(path).then((exists) => {
+		if (exists) {
+			return fileAccess(path, fs.W_OK);
+		} else {
+			return true;
+		}
+	});
 }

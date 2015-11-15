@@ -18,14 +18,14 @@ export abstract class Argument<T> {
 	protected assignedValue: T;
 	protected initializePromise: Q.Promise<void>;
 	protected givenValue: string[];
-	
+
 	constructor(
-		public name: string, 
-		public friendlyName: string = name, 
+		public name: string,
+		public friendlyName: string = name,
 		public description?: string,
 		givenValue?: string[] | string,
 		public hasDefaultValue?: boolean) {
-			
+
 		if (typeof givenValue === "string") {
 			this.givenValue = [givenValue];
 		} else {
@@ -33,7 +33,7 @@ export abstract class Argument<T> {
 		}
 		this.initialize();
 	}
-		
+
 	/**
 	 * If this argument was given a default value:
 	 *   check the cache
@@ -44,8 +44,8 @@ export abstract class Argument<T> {
 	 * If this argument was not given any value
 	 *   check the cache
 	 *     if it's there, set assignedValue to cachedValue
-	 * 
-	 * Promise is resolved after any values that need parsing are parsed, 
+	 *
+	 * Promise is resolved after any values that need parsing are parsed,
 	 * and there are no more calls to the cache.
 	 */
 	protected initialize(): Q.Promise<void> {
@@ -87,13 +87,13 @@ export abstract class Argument<T> {
 		this.initializePromise = initPromise;
 		return initPromise;
 	}
-	
+
 	private initializeAssignedValue(val: T) {
 		if (this.assignedValue === undefined) {
 			this.assignedValue = val;
 		}
 	}
-	
+
 	/**
 	 * Override whatever exists and give this argument a value.
 	 */
@@ -101,7 +101,7 @@ export abstract class Argument<T> {
 		this.assignedValue = value;
 		this.initializePromise = Q.resolve<void>(null);
 	}
-	
+
 	/**
 	 * Get the value of this argument by what was passed in. If nothing has
 	 * been passed in, prompt the user. The resulting promise is resolved
@@ -135,7 +135,7 @@ export abstract class Argument<T> {
 			}
 		});
 	}
-	
+
 	/**
 	 * Arguments come in as a string array. The getValue method must
 	 * be implemented by the type of argument to do the conversion
@@ -145,7 +145,7 @@ export abstract class Argument<T> {
 }
 
 /**
- * Argument that represents an array of comma-separated strings. 
+ * Argument that represents an array of comma-separated strings.
  */
 export class ArrayArgument extends Argument<string[]> {
 	protected getValue(argParams: string[]) {
@@ -181,7 +181,7 @@ export class ExistingFilePathsArgument extends FilePathsArgument {
 						throw new Error("The file at path " + p + " does not exist.");
 					} else {
 						return p;
-					} 
+					}
 				});
 				existencePromises.push(promise);
 			});
@@ -279,7 +279,7 @@ export class BooleanArgument extends Argument<boolean> {
 		}
 		return this.initializePromise;
 	}
-	
+
 	/**
 	 * If there is no argument to this option, assume true.
 	 */
@@ -343,7 +343,7 @@ export class FloatArgument extends Argument<number> {
 
 /**
  * Argument that represents a block of JSON.
- * Note: This class must be extended with a concrete type before its constructor 
+ * Note: This class must be extended with a concrete type before its constructor
  * function can be referenced. See exec/extensions/default.ts for an example.
  */
 export class JsonArgument<T> extends Argument<T> {

@@ -45,7 +45,7 @@ function getCommandHierarchy(root: string): Q.Promise<CommandHierarchy> {
 			}
 			let fullPath = path.resolve(root, file);
 			let parsedPath = path.parse(fullPath);
-			
+
 			let promise = fs.lstat(fullPath).then((stats) => {
 				if (stats.isDirectory()) {
 					return getCommandHierarchy(fullPath).then((subHierarchy) => {

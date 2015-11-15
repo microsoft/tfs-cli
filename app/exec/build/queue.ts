@@ -6,70 +6,70 @@ import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import trace = require('../../lib/trace');
 
 export function describe(): string {
-    return 'queue a build';
+	return 'queue a build';
 }
 
 export function getCommand(args: string[]): BuildQueue {
-    return new BuildQueue(args);
+	return new BuildQueue(args);
 }
 
 export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-    
-    protected description = "Queue a build.";
-    
-    protected getHelpArgs(): string[] {
+
+	protected description = "Queue a build.";
+
+	protected getHelpArgs(): string[] {
 		return ["project", "definitionId", "definitionName"];
 	}
-    
-    public exec(): Q.Promise<buildContracts.Build> {
-        var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
 
-        return this.commandArgs.project.val().then((project) => {
-            return this.commandArgs.definitionId.val(true).then((definitionId) => {
-                let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
-                if (definitionId) {
-                    definitionPromise = buildapi.getDefinition(definitionId, project);
-                } else {
-                    definitionPromise = this.commandArgs.definitionName.val().then((definitionName) => {
-                        trace.debug('No definition id provided, Searching for definitions with name: ' + definitionName);
-                        return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
-                            if(definitions.length > 0) {
-                                var definition = definitions[0];
-                                return definition;
-                            }
-                            else {
-                                trace.debug('No definition found with name ' + definitionName);
-                                throw new Error('No definition found with name ' + definitionName);
-                            }
-                        });
-                    });
-                }
-                return definitionPromise.then((definition) => {
-                    return this._queueBuild(buildapi, definition, project);
-                });
-            });
-        });
-    }
+	public exec(): Q.Promise<buildContracts.Build> {
+		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
 
-    public friendlyOutput(build: buildContracts.Build): void {
-        if (!build) {
-            throw new Error('no build supplied');
-        }
+		return this.commandArgs.project.val().then((project) => {
+			return this.commandArgs.definitionId.val(true).then((definitionId) => {
+				let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
+				if (definitionId) {
+					definitionPromise = buildapi.getDefinition(definitionId, project);
+				} else {
+					definitionPromise = this.commandArgs.definitionName.val().then((definitionName) => {
+						trace.debug('No definition id provided, Searching for definitions with name: ' + definitionName);
+						return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
+							if(definitions.length > 0) {
+								var definition = definitions[0];
+								return definition;
+							}
+							else {
+								trace.debug('No definition found with name ' + definitionName);
+								throw new Error('No definition found with name ' + definitionName);
+							}
+						});
+					});
+				}
+				return definitionPromise.then((definition) => {
+					return this._queueBuild(buildapi, definition, project);
+				});
+			});
+		});
+	}
 
-        trace.println();
-        trace.info('Queued new build:')
-        trace.info('id              : %s', build.id);
-        trace.info('definition name : %s', build.definition.name)
-        trace.info('requested by    : %s', build.requestedBy.displayName);
-        trace.info('status          : %s', buildContracts.BuildStatus[build.status]);
-        trace.info('queue time      : %s', build.queueTime.toJSON());
-    }
+	public friendlyOutput(build: buildContracts.Build): void {
+		if (!build) {
+			throw new Error('no build supplied');
+		}
 
-    private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string) {
-        trace.debug('Queueing build...')
-        var build = <buildContracts.Build> {
-            definition: definition
-        };
-        return buildapi.queueBuild(build, project);
-    }
+		trace.println();
+		trace.info('Queued new build:')
+		trace.info('id              : %s', build.id);
+		trace.info('definition name : %s', build.definition.name)
+		trace.info('requested by    : %s', build.requestedBy.displayName);
+		trace.info('status          : %s', buildContracts.BuildStatus[build.status]);
+		trace.info('queue time      : %s', build.queueTime.toJSON());
+	}
+
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string) {
+		trace.debug('Queueing build...')
+		var build = <buildContracts.Build> {
+			definition: definition
+		};
+		return buildapi.queueBuild(build, project);
+	}
 }
