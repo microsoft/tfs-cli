@@ -8,7 +8,7 @@ export function getCommand(args: string[]): TfCommand<any, void> {
 
 export class DefaultCommand extends TfCommand<any, void> {
 	constructor(passedArgs: string[]) {
-		super(passedArgs);
+		super(passedArgs, false);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {

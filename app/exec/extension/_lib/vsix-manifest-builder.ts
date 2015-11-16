@@ -434,6 +434,19 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * --Builds the [Content_Types].xml file
 	 */
 	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Q.Promise<void> {
+		// Default installation target to VSS if not provided (and log warning)
+		let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
+		if (!(_.isArray(installationTarget) && installationTarget.length > 0)) {
+			trace.warn("No 'target' provided. Defaulting to Microsoft.VisualStudio.Services.");
+			_.set(this.data, "PackageManifest.Installation[0].InstallationTarget", [
+				{
+					$: {
+						Id: "Microsoft.VisualStudio.Services"
+					}
+				}
+			]);
+		}
+		
 		Object.keys(files).forEach((fileName) => {
 			let file = files[fileName];
 

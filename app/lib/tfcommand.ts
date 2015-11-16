@@ -77,10 +77,19 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					// Set the cached service url
 					return this.commandArgs.serviceUrl.val(true).then((serviceUrl) => {
 						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"] && common.EXEC_PATH.join("") !== "login") {
-							return new DiskCache("tfx").getItem("cache", "connection").then((url) => {
-								if (url) {
-									this.commandArgs.serviceUrl.setValue(url);
+							let diskCache = new DiskCache("tfx");
+							return diskCache.itemExists("cache", "connection").then((isConnection) => {
+								let connectionUrlPromise: Q.Promise<string>;
+								if (!isConnection) {
+									connectionUrlPromise = Q.resolve<string>(null);
+								} else {
+									connectionUrlPromise = diskCache.getItem("cache", "connection");
 								}
+								return connectionUrlPromise.then((url) => {
+									if (url) {
+										this.commandArgs.serviceUrl.setValue(url);
+									}
+								});
 							});
 						} else {
 							return Q.resolve<void>(null);
@@ -253,7 +262,8 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		let newToCache = {};
 		return this.commandArgs.save.val().then((shouldSave) => {
 			if (shouldSave) {
-				let cacheKey = common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
+				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
+					common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
 				let getValuePromises: Q.Promise<void>[] = [];
 				Object.keys(this.commandArgs).forEach((arg) => {
 					let argObj = <args.Argument<any>>this.commandArgs[arg];
@@ -261,9 +271,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						let pr = argObj.val().then((value) => {
 							// don't cache these 5 options.
 							if (["username", "password", "save", "token", "help"].indexOf(arg) < 0) {
-								if (!cacheKey) {
-									cacheKey = "/";
-								}
 								_.set(newToCache, cacheKey + "." + arg, value);
 							}
 						});
@@ -271,16 +278,15 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					}
 				});
 				return Q.all(getValuePromises).then(() => {
-					args.getOptionsCache().then((existingCache) => {
+					return args.getOptionsCache().then((existingCache) => {
 						// custom shallow-ish merge of cache properties.
-						let newInThisCommand = newToCache[cacheKey];
-						if (!existingCache[cacheKey]) {
-							existingCache[cacheKey] = {};
+						let newInThisCommand = _.get(newToCache, cacheKey);
+						if (!_.get(existingCache, cacheKey)) {
+							_.set(existingCache, cacheKey, {});
 						}
 						Object.keys(newInThisCommand).forEach((key) => {
-							existingCache[cacheKey][key] = newInThisCommand[key];
+							_.set(existingCache, cacheKey + "." + key, newInThisCommand[key]);
 						});
-
 						new DiskCache("tfx").setItem("cache", "command-options", JSON.stringify(existingCache, null, 4).replace(/\n/g, eol));
 					});
 				});

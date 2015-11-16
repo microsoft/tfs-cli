@@ -71,42 +71,16 @@ export class DiskCache {
 	}
 
 	public deleteItem(store: string, name: string): Q.Promise<void> {
-		// TODO
-		var defer = Q.defer<void>();
-		defer.reject(new Error('Not implemented'));
-		return <Q.Promise<void>>defer.promise;
-	}
-}
-
-export function saveOptions(cliOptions: cm.IStringIndexer, settingsPath: string): Q.Promise<any> {
-	trace.info("Saving CLI options to %s.", settingsPath);
-	return Q.Promise((resolve, reject, notify) => {
-		try {
-			fs.exists(settingsPath, (exists: boolean) => {
-				resolve(exists);
+		return Q.Promise<void>((resolve, reject) => {
+			fs.unlink(this.getFilePath(store, name), (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(null);
+				}
 			});
-		} catch (err) {
-			reject(err);
-		}
-	}).then((exists: boolean) => {
-		if (exists) {
-			trace.debug("Settings file exists. Merging settings.");
-			return Q.nfcall<string>(fs.readFile, settingsPath, "utf8").then(content => content.replace(/^\uFEFF/, ""));
-		} else {
-			trace.debug("Settings file does not exist. Writing file.");
-			return "{}";
-		}
-	}).then((settingsStr: string) => {
-		let settings = JSON.parse(settingsStr);
-		_.merge(settings, cliOptions);
-		if (Object.keys(settings).length > 0) {
-			let fileContents = JSON.stringify(settings, null, 4);
-			trace.debug("Content: %s", fileContents);
-			return Q.nfcall(fs.writeFile, settingsPath, fileContents, "utf8");
-		} else {
-			return;
-		}
-	});
+		})
+	}
 }
 
 export function parseSettingsFile(settingsPath: string, noWarn: boolean): Q.Promise<cm.IStringIndexer> {

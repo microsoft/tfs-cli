@@ -52,10 +52,8 @@ export abstract class Argument<T> {
 		let initPromise = Q.resolve<void>(null);
 		if (this.assignedValue === undefined && (this.hasDefaultValue || this.givenValue === undefined)) {
 			initPromise = getOptionsCache().then((cache) => {
-				let cacheKey = common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
-				if (!cacheKey) {
-					cacheKey = "/";
-				}
+				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
+					common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
 				let cachedValue = _.get<string | string[]>(cache, cacheKey + "." + this.name);
 				let cachedValueStringArray: string[];
 				if (typeof cachedValue === "string") {
@@ -395,26 +393,3 @@ export function getOptionsCache(): Q.Promise<any> {
 		});
 	});
 }
-
-
-///BUILD
-export let BUILD_ID: IntArgument = new IntArgument("id", "buildId");
-export let DEFINITION_ID: IntArgument = new IntArgument("definitionid");
-export let DEFINITION_NAME: StringArgument = new StringArgument("definitionname");
-export let STATUS: StringArgument = new StringArgument("status");
-
-///TASKS
-export let ALL: BooleanArgument = new BooleanArgument("all");
-export let JSON_FILTER: StringArgument = new StringArgument("jsonfilter");
-export let TASK_ID: StringArgument = new StringArgument("id", "taskId");
-export let TASK_NAME: StringArgument = new StringArgument("name", "short task name");
-export let TASK_PATH: FilePathsArgument = new FilePathsArgument("taskpath");
-
-
-
-///WORK
-export let WORKITEM_ID: IntArgument = new IntArgument("id", "workitemid");
-export let QUERY: StringArgument = new StringArgument("query");
-export let TITLE: StringArgument = new StringArgument("title");
-export let ASSIGNEDTO: StringArgument = new StringArgument("assignedto");
-export let WORKITEMTYPE: StringArgument = new StringArgument("workitemtype");
