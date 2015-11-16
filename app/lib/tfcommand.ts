@@ -168,7 +168,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Return a list of registered arguments that should be displayed when help is emitted.
 	 */
 	protected getHelpArgs(): string[] {
-		return Object.keys(this.commandArgs);
+		return [];
 	}
 
 	/**
@@ -362,7 +362,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				}
 				
 				result += eol + cyan("Global arguments:") + eol;
-				["help", "save", "noPrompt"].forEach((arg) => {
+				["help", "save", "noPrompt", "output", "json"].forEach((arg) => {
 					result += singleArgData(arg, 9);
 				});
 				
