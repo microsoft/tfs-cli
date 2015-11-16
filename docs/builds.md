@@ -10,14 +10,14 @@ Queues a build for a given project with a given definition.
 ```txt
 --project <string>         - Required. The name of the project to queue a build for.
 AND
---definitionId <number>    - The id of the build definition to build against.
+--definition-id <number>    - The id of the build definition to build against.
 OR
---definitionName <string>  - The name of the build definition to build against.
+--definition-name <string>  - The name of the build definition to build against.
 ```
 
 ####Example
 ```bash
-~$ tfx build queue --project MyProject --definitionName TestDefinition
+~$ tfx build queue --project MyProject --definition-name TestDefinition
 Copyright Microsoft Corporation
 
 Queued new build:
@@ -58,8 +58,8 @@ Queries for a list of builds.
 ####Options
 ```txt
 --project <string>        - Required. The name of the project to queue a build for.
---defintionId <number>    - The id of a build definition.
---definitionName <string> - The name of a build definition.
+--defintion-id <number>    - The id of a build definition.
+--definition-name <string> - The name of a build definition.
 --status <string>         - The status of the build (eg: NotStarted, Completed).
 --top <number>            - Show the first X builds that satisfy the other query criteria.
 ```

@@ -54,7 +54,7 @@ Checking connectivity... done.
 It's task is in the 
 
 ```bash
-~$ tfx build tasks upload ./CreateOctopusRelease
+~$ tfx build tasks upload --task-path ./CreateOctopusRelease
 ```
 
 ## List
