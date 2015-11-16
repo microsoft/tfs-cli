@@ -15,7 +15,7 @@ export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.Publis
 	protected description = "Show info about a published Visual Studio Services Extension.";
 
 	protected getHelpArgs(): string[] {
-		return ["publisher", "extensionId", "vsix", "serviceUrl"];
+		return ["publisher", "extensionId", "vsix"];
 	}
 
 	public exec(): Q.Promise<galleryContracts.PublishedExtension> {

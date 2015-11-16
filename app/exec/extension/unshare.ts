@@ -22,7 +22,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["publisher", "extensionId", "vsix", "serviceUrl", "unshareWith"];
+		return ["publisher", "extensionId", "vsix", "unshareWith"];
 	}
 
 	public exec(): Q.Promise<string[]> {

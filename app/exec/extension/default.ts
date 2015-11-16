@@ -24,12 +24,14 @@ export interface ExtensionArguments extends CoreArguments {
 	vsix: args.ReadableFilePathsArgument;
 	bypassValidation: args.BooleanArgument;
 	locRoot: args.ExistingDirectoriesArgument;
+	displayName: args.StringArgument;
+	description: args.StringArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
-	protected description = "Suite of commands to package, publish, and manage Extensions for Visual Studio Online.";
+	protected description = "Commands to package, publish, and manage Extensions for Visual Studio Online.";
 
-	constructor(passedArgs: string[], serverCommand: boolean = false) {
+	constructor(passedArgs: string[], serverCommand: boolean = true) {
 		super(passedArgs, serverCommand);
 	}
 
@@ -45,11 +47,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("manifestGlobs", "Manifest globs", "List of globs to find manifests.", args.ArrayArgument, "vss-extension.json");
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument("override", "Overrides JSON", "JSON string which is merged into the manifests, overriding any values.", ManifestJsonArgument, "{}");
-		this.registerCommandArgument("shareWith", "Share with", "List of accounts with which to share the extension.", args.ArrayArgument, null);
-		this.registerCommandArgument("unshareWith", "Un-share with", "List of accounts with which to un-share the extension.", args.ArrayArgument, null);
+		this.registerCommandArgument("shareWith", "Share with", "List of VSO Accounts with which to share the extension.", args.ArrayArgument, null);
+		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSO Accounts with which to un-share the extension.", args.ArrayArgument, null);
 		this.registerCommandArgument("vsix", "VSIX path", "Path to an existing VSIX (to publish or query for).", args.ReadableFilePathsArgument);
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("locRoot", "Localization root", "Root of localization hierarchy (see README for more info).", args.ExistingDirectoriesArgument, null);
+		this.registerCommandArgument("displayName", "Display name", null, args.StringArgument);
+		this.registerCommandArgument("description", "Description", "Description of the Publisher.", args.StringArgument);
 	}
 
 	protected getMergeSettings(): Q.Promise<MergeSettings> {

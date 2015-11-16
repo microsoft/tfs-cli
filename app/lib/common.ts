@@ -2,6 +2,7 @@ import fs = require("fs");
 import Q = require("q");
 
 export let APP_ROOT: string;
+export let NO_PROMPT: boolean;
 export let EXEC_PATH: string[];
 
 export interface IStringDictionary { [name: string]: string }

@@ -7,6 +7,7 @@ export interface WorkItemArguments extends CoreArguments {
 	workItemType: args.StringArgument;
 	assignedTo: args.StringArgument;
 	title: args.StringArgument;
+	description: args.StringArgument;
 }
 
 export function getCommand(args: string[]): TfCommand<WorkItemArguments, void> {

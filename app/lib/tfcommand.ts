@@ -17,12 +17,6 @@ import qfs = require("./qfs");
 import trace = require('./trace');
 
 export interface CoreArguments {
-	author: args.StringArgument;
-	description: args.StringArgument;
-	displayName: args.StringArgument;
-	force: args.BooleanArgument;
-	friendlyName: args.StringArgument;
-	overwrite: args.BooleanArgument;
 	project: args.StringArgument;
 	root: args.ExistingDirectoriesArgument;
 	authType: args.StringArgument;
@@ -35,6 +29,7 @@ export interface CoreArguments {
 	json: args.BooleanArgument;
 	fiddler: args.BooleanArgument;
 	help: args.BooleanArgument;
+	noPrompt: args.BooleanArgument;
 }
 
 export interface Executor<TResult> {
@@ -74,9 +69,14 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 					}
 				}).then(() => {
+					// Set the no-prompt flag 
+					return this.commandArgs.noPrompt.val(true).then((noPrompt) => {
+						common.NO_PROMPT = noPrompt;
+					});
+				}).then(() => {
 					// Set the cached service url
 					return this.commandArgs.serviceUrl.val(true).then((serviceUrl) => {
-						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"]) {
+						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"] && common.EXEC_PATH.join("") !== "login") {
 							return new DiskCache("tfx").getItem("cache", "connection").then((url) => {
 								if (url) {
 									this.commandArgs.serviceUrl.setValue(url);
@@ -140,24 +140,19 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Register arguments that may be used with this command.
 	 */
 	protected setCommandArgs(): void {
-		this.registerCommandArgument("author", "Author", null, args.StringArgument);
-		this.registerCommandArgument("description", "Description", null, args.StringArgument);
-		this.registerCommandArgument("displayName", "Display name", null, args.StringArgument);
-		this.registerCommandArgument("force", "Force", null, args.BooleanArgument, "false");
-		this.registerCommandArgument("friendlyName", "Friendly name", null, args.StringArgument);
-		this.registerCommandArgument("overwrite", "Overwrite", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("project", "Project name", null, args.StringArgument);
 		this.registerCommandArgument("root", "Root directory", null, args.ExistingDirectoriesArgument, ".");
 		this.registerCommandArgument("authType", "Authentication Method", "Method of authentication ('pat' or 'basic').", args.StringArgument, "pat");
 		this.registerCommandArgument("serviceUrl", "Service URL", "URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.", args.StringArgument);
 		this.registerCommandArgument("password", "Password", "Password to use for basic authentication.", args.SilentStringArgument);
 		this.registerCommandArgument("token", "Personal access token", null, args.SilentStringArgument);
-		this.registerCommandArgument("save", "Save settings", "Save arguments for the next time this command is run.", args.BooleanArgument, "false");
+		this.registerCommandArgument("save", "Save settings", "Save arguments for the next time a command in this command group is run.", args.BooleanArgument, "false");
 		this.registerCommandArgument("username", "Username", "Username to use for basic authentication.", args.StringArgument);
 		this.registerCommandArgument("output", "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
 		this.registerCommandArgument("json", "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
 		this.registerCommandArgument("fiddler", "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
 		this.registerCommandArgument("help", "Help", "Get help for any command.", args.BooleanArgument, "false");
+		this.registerCommandArgument("noPrompt", "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
 
 	/**
@@ -298,7 +293,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	/**
 	 * Gets help (as a string) for the given command
 	 */
-	public getHelp(cmd: command.TFXCommand): Q.Promise<string> {
+	public getHelp(cmd: command.TFXCommand): Q.Promise<string> {		
 		this.commandArgs.output.setValue("help");
 		let result = eol;
 		result += ['                        fTfs         ',
@@ -322,34 +317,50 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			continuedHierarchy = continuedHierarchy[segment];
 		});
 
-		result += cyan("Syntax: ") + eol +
-			cyan("tfx ") + yellow("command [subcommand [subsubcommand]]") +
-			green(" --arg1 arg1val1 arg1val2") +
-			gray(" --arg2 arg2val1 arg2val2") + eol + eol;
-
 		if (continuedHierarchy === null) {
 			// Need help with a particular command
+			let singleArgData = (argName: string, maxArgLen: number) => {
+				let argKebab = _.kebabCase(argName);
+				let argObj = this.commandArgs[argName];
+				return "  --" +
+					argKebab + "  " +
+					repeatStr(" ", maxArgLen - argKebab.length) +
+					gray((argObj.description || (argObj.friendlyName + "."))) + eol;
+			};
+			let commandName = cmd.execPath[cmd.execPath.length - 1];
+			result += cyan("Syntax: ") + eol +
+				cyan("tfx ") + yellow(cmd.execPath.join(" ")) +
+				green(" --arg1 arg1val1 arg1val2[...]") +
+				gray(" --arg2 arg2val1 arg2val2[...]") + eol + eol;
+			
 			return loader.load(cmd.execPath, []).then((tfCommand) => {
-				result += cyan("Command: ") + cmd.execPath[cmd.execPath.length - 1] + eol;
+				result += cyan("Command: ") + commandName + eol;
 				result += tfCommand.description + eol + eol
 				result += cyan("Arguments: ") + eol;
-				let maxArgLen = this.getHelpArgs().map(a => _.kebabCase(a)).reduce((a, b) => Math.max(a, b.length), 0);
-				let uniqueArgs = ["help"].concat(this.getHelpArgs());
-				if (this.serverCommand) {
-					uniqueArgs = uniqueArgs.concat(["authType", "username", "password", "token", "serviceUrl"]);
-				}
+				
+				let uniqueArgs = this.getHelpArgs();
 				uniqueArgs = _.uniq(uniqueArgs);
+				let maxArgLen = uniqueArgs.map(a => _.kebabCase(a)).reduce((a, b) => Math.max(a, b.length), 0);
 				if (uniqueArgs.length === 0) {
 					result += "[No arguments for this command]" + eol;
 				}
 				uniqueArgs.forEach((arg) => {
-					let argKebab = _.kebabCase(arg);
-					let argObj = this.commandArgs[arg];
-					result += "  --" +
-						argKebab + "  " +
-						repeatStr(" ", maxArgLen - argKebab.length) +
-						(argObj.description || (argObj.friendlyName + ".")) + eol;
+					result += singleArgData(arg, maxArgLen);
 				});
+				
+				if (this.serverCommand) {
+					result += eol + cyan("Global server command arguments:") + eol;
+					["authType", "username", "password", "token", "serviceUrl"].forEach((arg) => {
+						result += singleArgData(arg, 11);
+					});
+				}
+				
+				result += eol + cyan("Global arguments:") + eol;
+				["help", "save", "noPrompt"].forEach((arg) => {
+					result += singleArgData(arg, 9);
+				});
+				
+				result += eol + gray("To see more commands, type " + resetColors("tfx " + cmd.execPath.slice(0, cmd.execPath.length - 1).join(" ") + " --help"));
 			}).then(() => {
 				return result;
 			});
@@ -377,7 +388,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				commandDescriptionPromises.push(pr);
 			});
 			return Q.all(commandDescriptionPromises).then(() => {
-				result += eol + eol + "For help with an individual command, type tfx " + cmd.execPath.join(" ") + " <command> --help" + eol;
+				result += eol + eol + gray("For help with an individual command, type ") + resetColors("tfx " + cmd.execPath.join(" ") + " <command> --help") + eol;
 			}).then(() => {
 				return result;
 			});

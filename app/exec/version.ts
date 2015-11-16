@@ -16,6 +16,11 @@ export interface SemanticVersion {
 
 export class Version extends TfCommand<CoreArguments, SemanticVersion> {
 	protected description = "Output the version of this tool.";
+	protected getHelpArgs() {return [];}
+	
+	constructor(args: string[]) {
+		super(args, false);
+	}
 
 	public exec(): Q.Promise<SemanticVersion> {
 		trace.debug('version.exec');

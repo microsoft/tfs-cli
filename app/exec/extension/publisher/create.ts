@@ -16,7 +16,7 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 	protected description = "Create a Visual Studio Services Market publisher";
 
 	protected getHelpArgs(): string[] {
-		return ["publisher", "displayName", "description", "serviceUrl"];
+		return ["publisher", "displayName", "description"];
 	}
 
 	public exec(): Q.Promise<galleryInterfaces.Publisher> {

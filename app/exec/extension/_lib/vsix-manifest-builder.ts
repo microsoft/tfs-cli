@@ -391,8 +391,6 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			case "tags":
 				this.handleDelimitedList(value, "PackageManifest.Metadata[0].Tags[0]");
 				break;
-			case "flags":
-			case "vsoflags":
 			case "galleryflags":
 				// Gallery Flags are space-separated since it's a Flags enum.
 				this.handleDelimitedList(value, "PackageManifest.Metadata[0].GalleryFlags[0]", " ", true);

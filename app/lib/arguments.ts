@@ -113,6 +113,9 @@ export abstract class Argument<T> {
 				return Q.resolve(this.assignedValue);
 			} else {
 				if (!noPrompt) {
+					if (common.NO_PROMPT) {
+						throw "Missing required value for argument '" + this.name + "'.";
+					}
 					return qread.read(this.name, this.friendlyName, this.silent).then((answer) => {
 						// Split answer into args, just as if they were passed through command line
 						let splitAnswer = answer.match(/".+?"|[^ ]+/g) || [""];

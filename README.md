@@ -1,50 +1,45 @@
-# TFS Extensions Command Line Utility
+# VSO Extensions Command Line Utility
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.png)](http://badge.fury.io/js/tfx-cli)
 
-This is a utility to manage extensions for TFS.  It is cross platform and supported on Windows, OSX and Linux.
+This is a utility to manage extensions for VSO.  It is cross platform and supported on Windows, OSX and Linux.
 
-*Pre-release but supported*
+## Setup
+### Tooling
+This app requires [NodeJS](http://nodejs.org) and npm (included with the NodeJS installer).
 
-## Install
+### Install
 ```bash
 sudo npm install -g tfx-cli
 ```
-<sub>Note: windows does not need sudo</sub>
+<sub>Note: Windows does not need sudo</sub>
 
 ## Help
-Just type tfx.  It will list the commands and sub commands available
-```bash
-~$ tfx
-```
+Just type `tfx` to see a list of commands. To get help with an individual command, tpye `tfx <command> --help`.
 ![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
 
 ## Login
 To avoid providing credentials in every command, you can login once.
 Currently supported credential types are Personal Access Tokens and basic auth.
-[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command
+[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command.
 ```bash
 ~$ tfx login
 Copyright Microsoft Corporation
 
-Enter collection url > https://youraccount.visualstudio.com/DefaultCollection
-Enter personal access token > 
-logged in successfully
+> Service URL: https://marketplace.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
+> Personal access token: 
+Logged in successfully
 ```
 
-You can alternatively use basic auth by passing `--authType basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
+You can alternatively use basic auth by passing `--auth-type basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
 
-## Settings
-To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag and optionally including a settings output path.
+Note: Using this feature will store your login credentials on disk in plain text.
 
+## Settings Cache
+To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag.
 
 ```bash
-~$ tfx build list --project MyProject --definitionName println --top 5 --settings my-
-settings.json --save
-Copyright Microsoft Corporation
-
-No settings file found at C:\tfx-cli\_build\app\my-settings.json.
-Saving CLI options to C:\tfx-cli\_build\app\my-settings.json.
+~$ tfx build list --project MyProject --definition-name println --top 5 --save
 
 ...
 

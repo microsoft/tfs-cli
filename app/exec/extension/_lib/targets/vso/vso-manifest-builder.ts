@@ -99,6 +99,8 @@ export class VsoManifestBuilder extends ManifestBuilder {
 						this.data.contributions = [];
 					}
 					this.data.contributions = this.data.contributions.concat(value);
+				} else {
+					throw "\"contributions\" must be an array of Contribution objects.";
 				}
 				break;
 			case "contributiontypes":

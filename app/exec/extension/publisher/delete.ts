@@ -18,6 +18,9 @@ export interface DeletePublisherResult {
 
 export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<DeletePublisherResult> {
 	protected description = "Delete a Visual Studio Services Market publisher.";
+	protected getArgs(): string[] {
+		return ["publisher"];
+	}
 	public exec(): Q.Promise<DeletePublisherResult> {
 		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
 		return this.commandArgs.publisher.val().then((publisherName) => {

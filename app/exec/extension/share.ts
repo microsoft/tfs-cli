@@ -18,7 +18,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["publisher", "extensionId", "vsix", "serviceUrl", "shareWith"];
+		return ["publisher", "extensionId", "vsix", "shareWith"];
 	}
 
 	public exec(): Q.Promise<string[]> {

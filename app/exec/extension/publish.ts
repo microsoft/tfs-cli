@@ -42,11 +42,11 @@ export interface ExtensionPublishResult {
 }
 
 export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResult> {
-	protected description = "Publish a Visual Studio Services Extension.";
+	protected description = "Publish a Visual Studio Marketplace Extension.";
 
 	protected getHelpArgs(): string[] {
 		return ["root", "manifestGlobs", "override", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot",
-			"vsix", "serviceUrl", "shareWith"];
+			"vsix", "shareWith"];
 	}
 
 	public exec(): Q.Promise<ExtensionPublishResult> {

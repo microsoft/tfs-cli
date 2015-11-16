@@ -19,12 +19,16 @@ export function getCommand(): Q.Promise<TFXCommand> {
 		let execPath: string[] = [];
 		let commandArgs: string[] = [];
 		let currentHierarchy = hierarchy;
+		let inArgs = false;
 		args.forEach((arg) => {
 			if (currentHierarchy && currentHierarchy[arg] !== undefined) {
 				currentHierarchy = currentHierarchy[arg];
 				execPath.push(arg);
-			} else {
+			} else if (arg.substr(0, 2) === "--" || inArgs) {
 				commandArgs.push(arg);
+				inArgs = true;
+			} else {
+				throw "Command '" + arg + "' not found. For help, type tfx " + execPath.join(" ") + " --help";
 			}
 		});
 		return {
