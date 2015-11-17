@@ -509,6 +509,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				let extName = path.extname(f);
 				if (!extName && !this.files[f].contentType) {
 					trace.warn("File %s does not have an extension, and its content-type is not declared. Defaulting to application/octet-stream.", path.resolve(f));
+					this.files[f].contentType = "application/octet-stream";
 				}
 				if (this.files[f].contentType) {
 					// If there is an override for this file, ignore its extension
@@ -645,7 +646,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					contentTypes.Types.Override.push({
 						$: {
 							ContentType: this.files[filePath].contentType,
-							PartName: toZipItemName(this.files[filePath].partName)
+							PartName: "/" + toZipItemName(this.files[filePath].partName)
 						}
 					});
 				}
