@@ -37,7 +37,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 						error.message = 'Archiving error: ' + error.message;
 						throw error;
 					});
-					archive.directory(taskPath, false);
+					archive.directory(path.resolve(taskPath), false);
 
 					let agentApi = this.webApi.getQTaskAgentApi();
 

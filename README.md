@@ -16,8 +16,9 @@ sudo npm install -g tfx-cli
 
 ## Help
 Just type `tfx` to see a list of commands.    
-For help with an individual command, use `tfx <command> --help`.
-![tfs-cli](docs/help-screen.png "TFS cross platform command line"). Help info is dynamically generated, so it should always be the most up-to-date authority.
+For help with an individual command, use `tfx <command> --help`.    
+![tfs-cli](docs/help-screen.png "TFS cross platform command line")    
+Help info is dynamically generated, so it should always be the most up-to-date authority.
 
 ## Command Documentation
 [Build Tasks](docs/buildtasks.md): Create, list, upload and delete your Build Tasks
@@ -70,7 +71,7 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
 ## Troubleshooting
-If you use --save to set a default value for an option, you may need to override it by explicitly providing the option with a different value.
+If you used --save to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
 To see detailed tracing output, you can set a value for the TFX_TRACE environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
 
 <sub>Linux/OSX</sub>
