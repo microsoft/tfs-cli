@@ -1,20 +1,21 @@
-import { BasicCredentialHandler } from 'vso-node-api/handlers/basiccreds';
+import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import { repeatStr } from "../lib/common";
-import { WebApi, getBasicHandler } from 'vso-node-api/WebApi';
+import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
 import {cyan, gray, green, yellow, magenta, reset as resetColors} from "colors";
 import command = require("../lib/command");
-import common = require('./common');
+import common = require("./common");
 import copypaste = require("copy-paste");
 import loader = require("../lib/loader");
 import path = require("path");
 import Q = require("q");
 import qfs = require("./qfs");
-import trace = require('./trace');
+import trace = require("./trace");
+import version = require("./version");
 
 export interface CoreArguments {
 	project: args.StringArgument;
@@ -269,7 +270,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					let argObj = <args.Argument<any>>this.commandArgs[arg];
 					if (!argObj.hasDefaultValue) {
 						let pr = argObj.val().then((value) => {
-							// don't cache these 5 options.
+							// don"t cache these 5 options.
 							if (["username", "password", "save", "token", "help"].indexOf(arg) < 0) {
 								_.set(newToCache, cacheKey + "." + arg, value);
 							}
@@ -302,20 +303,20 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	public getHelp(cmd: command.TFXCommand): Q.Promise<string> {		
 		this.commandArgs.output.setValue("help");
 		let result = eol;
-		result += ['                        fTfs         ',
-				   '                      fSSSSSSSs      ',
-				   '                    fSSSSSSSSSS      ',
-				   '     TSSf         fSSSSSSSSSSSS      ',
-				   '     SSSSSF     fSSSSSSST SSSSS      ',
-				   '     SSfSSSSSsfSSSSSSSt   SSSSS      ',
-				   '     SS  tSSSSSSSSSs      SSSSS      ',
-				   '     SS   fSSSSSSST       SSSSS      ',
-				   '     SS fSSSSSFSSSSSSf    SSSSS      ',
-				   '     SSSSSST    FSSSSSSFt SSSSS      ',
-				   '     SSSSt        FSSSSSSSSSSSS      ',
-				   '                    FSSSSSSSSSS      ',
-				   '                       FSSSSSSs      ',
-				   '                        FSFs    (TM) '].
+		result += ["                        fTfs         ",
+				   "                      fSSSSSSSs      ",
+				   "                    fSSSSSSSSSS      ",
+				   "     TSSf         fSSSSSSSSSSSS      ",
+				   "     SSSSSF     fSSSSSSST SSSSS      ",
+				   "     SSfSSSSSsfSSSSSSSt   SSSSS      ",
+				   "     SS  tSSSSSSSSSs      SSSSS      ",
+				   "     SS   fSSSSSSST       SSSSS      ",
+				   "     SS fSSSSSFSSSSSSf    SSSSS      ",
+				   "     SSSSSST    FSSSSSSFt SSSSS      ",
+				   "     SSSSt        FSSSSSSSSSSSS      ",
+				   "                    FSSSSSSSSSS      ",
+				   "                       FSSSSSSs      ",
+				   "                        FSFs    (TM) "].
 				   map(l => magenta(l)).join(eol) + eol + eol;
 
 		let continuedHierarchy: command.CommandHierarchy = cmd.commandHierarchy;
@@ -373,7 +374,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 		} else {
 			// Need help with a suite of commands
-			// There is a weird coloring bug when colors are nested, so we don't do that.
+			// There is a weird coloring bug when colors are nested, so we don"t do that.
 			result += cyan("Available ") +
 				"commands" +
 				cyan(" and ") +
@@ -411,10 +412,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			}
 		}).then(() => {
 			return this.commandArgs.output.val(true).then((outputType) => {
-				trace.outputType = outputType;
-				if (outputType === "friendly") {
-					console.log("Copyright Microsoft Corporation");
-				}
+				return version.getTfxVersion().then((semVer) => {
+					trace.outputType = outputType;
+					if (outputType === "friendly") {
+						trace.info(gray("TFS Cross Platform Command Line Interface v" + semVer.toString()));
+						trace.info(gray("Copyright Microsoft Corporation"));
+					}
+				});
 			});
 		});
 	}

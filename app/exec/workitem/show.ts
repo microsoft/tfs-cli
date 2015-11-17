@@ -1,5 +1,7 @@
+import { EOL as eol } from "os";
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
+import trace = require("../../lib/trace");
 import witBase = require("./default");
 import witClient = require("vso-node-api/WorkItemTrackingApi");
 import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
@@ -7,12 +9,6 @@ import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterface
 export function getCommand(args: string[]): WorkItemShow {
 	return new WorkItemShow(args);
 }
-
-// requires auth, connect etc...
-export var isServerOperation: boolean = true;
-
-// unless you have a good reason, should not hide
-export var hideBanner: boolean = false;
 
 export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 	protected description = "Show Work Item details.";
@@ -30,17 +26,17 @@ export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 
 	public friendlyOutput(data: witContracts.WorkItem): void {
 		if (!data) {
-			throw new Error('no results');
+			throw new Error("no results");
 		}
 
-		var workitem: witContracts.WorkItem = data;
+		var workItem: witContracts.WorkItem = data;
 
-		console.log();
-		console.log('id   : ' + workitem.id);
-		console.log('rev : ' + workitem.rev);
-		console.log('type : ' + workitem.fields['System.WorkItemType']);
-		console.log('state : ' + workitem.fields['System.State']);
-		console.log('title : ' + workitem.fields['System.Title']);
-		console.log('assigned to : ' + workitem.fields['System.AssignedTo']);
+		trace.info(eol);
+		trace.info("id:          " + workItem.id);
+		trace.info("rev:         " + workItem.rev);
+		trace.info("type:        " + workItem.fields["System.WorkItemType"]);
+		trace.info("state:       " + workItem.fields["System.State"]);
+		trace.info("title:       " + workItem.fields["System.Title"]);
+		trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
 	}
 }

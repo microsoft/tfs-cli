@@ -1,7 +1,9 @@
+import { EOL as eol } from "os";
 import { TfCommand } from "../../lib/tfcommand";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
 import coreContracts = require("vso-node-api/interfaces/CoreInterfaces");
+import trace = require("../../lib/trace");
 import witBase = require("./default");
 import witClient = require("vso-node-api/WorkItemTrackingApi");
 import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
@@ -31,21 +33,21 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 
 	public friendlyOutput(data: witContracts.WorkItem[]): void {
 		if (!data) {
-			throw new Error('no results');
+			throw new Error("no results");
 		}
 
 		if (_.isArray(data)) {
-			throw new Error('expected an array of workitems');
+			throw new Error("expected an array of workitems");
 		}
 
 		data.forEach((workItem) => {
-			console.log();
-			console.log('id   : ' + workItem.id);
-			console.log('rev : ' + workItem.rev);
-			console.log('type : ' + workItem.fields['System.WorkItemType']);
-			console.log('state : ' + workItem.fields['System.State']);
-			console.log('title : ' + workItem.fields['System.Title']);
-			console.log('assigned to : ' + workItem.fields['System.AssignedTo']);
+			trace.info(eol);
+			trace.info("id:          " + workItem.id);
+			trace.info("rev:         " + workItem.rev);
+			trace.info("type:        " + workItem.fields["System.WorkItemType"]);
+			trace.info("state:       " + workItem.fields["System.State"]);
+			trace.info("title:       " + workItem.fields["System.Title"]);
+			trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
 		});
 	}
 }

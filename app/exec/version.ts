@@ -1,20 +1,14 @@
 import { TfCommand, CoreArguments } from "../lib/tfcommand";
-import common = require("../lib/common");
-import path = require("path");
-import Q = require("q");
+import version = require("../lib/version");
 import trace = require("../lib/trace");
 
-export function getCommand(args: string[]): TfCommand<CoreArguments, SemanticVersion> {
+export function getCommand(args: string[]): TfCommand<CoreArguments, version.SemanticVersion> {
 	return new Version(args);
 }
 
-export interface SemanticVersion {
-	major: number;
-	minor: number;
-	patch: number;
-}
 
-export class Version extends TfCommand<CoreArguments, SemanticVersion> {
+
+export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 	protected description = "Output the version of this tool.";
 	protected getHelpArgs() {return [];}
 	
@@ -22,30 +16,12 @@ export class Version extends TfCommand<CoreArguments, SemanticVersion> {
 		super(args, false);
 	}
 
-	public exec(): Q.Promise<SemanticVersion> {
-		trace.debug('version.exec');
-		var packageJson = require(path.join(common.APP_ROOT, "../../package.json"));
-		return Q.resolve(this.parseVersion(packageJson.version));
+	public exec(): Q.Promise<version.SemanticVersion> {
+		trace.debug("version.exec");
+		return version.getTfxVersion();
 	}
 
-	private parseVersion(version: string): SemanticVersion {
-		try {
-			let spl = version.split(".").map(v => parseInt(v));
-			if (spl.length === 3) {
-				return {
-					major: spl[0],
-					minor: spl[1],
-					patch: spl[2]
-				};
-			} else {
-				throw "";
-			}
-		} catch (e) {
-			throw "Could not parse version '" + version + "'.";
-		}
-	}
-
-	public friendlyOutput(data: SemanticVersion): void {
-		trace.info('Version %s', data.major + "." + data.minor + "." + data.patch);
+	public friendlyOutput(data: version.SemanticVersion): void {
+		trace.info("Version %s", version.toString());
 	}
 }

@@ -27,7 +27,7 @@ export function load(execPath: string[], args): Q.Promise<TfCommand<any, any>> {
 			// exists (if it doens't, we will find out below).
 			resolveDefaultPromise = qfs.lstat(commandModulePath).then((stats) => {
 				if (stats.isDirectory()) {
-					return commandModulePath + "\\default";
+					return path.join(commandModulePath, "default");
 				}
 				return commandModulePath;
 			});
