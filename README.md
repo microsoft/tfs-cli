@@ -17,7 +17,7 @@ sudo npm install -g tfx-cli
 ## Help
 Just type `tfx` to see a list of commands.    
 For help with an individual command, use `tfx <command> --help`.
-![tfs-cli](docs/tfx-cli.png "TFS cross platform command line"). Help info is dynamically generated, so it should always be the most up-to-date authority.
+![tfs-cli](docs/help-screen.png "TFS cross platform command line"). Help info is dynamically generated, so it should always be the most up-to-date authority.
 
 ## Command Documentation
 [Build Tasks](docs/buildtasks.md): Create, list, upload and delete your Build Tasks
