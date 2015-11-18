@@ -39,7 +39,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					});
 					archive.directory(path.resolve(taskPath), false);
 
-					let agentApi = this.webApi.getQTaskAgentApi(this.connection.getAccountUrl());
+					let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
 
 					archive.finalize();
 					return agentApi.uploadTaskDefinition(null, archive, taskJson.id, overwrite).then((task) => {

@@ -16,7 +16,7 @@ export class BuildTaskDelete extends tasksBase.BuildTaskBase<agentContracts.Task
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition> {
-		let agentApi = this.webApi.getQTaskAgentApi(this.connection.getAccountUrl());
+		let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
 		return this.commandArgs.taskId.val().then((taskId) => {
 			return agentApi.getTaskDefinitions(taskId).then((tasks) => {
 				if (tasks && tasks.length > 0) {
