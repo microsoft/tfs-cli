@@ -14,17 +14,17 @@ Follow these steps to enable basic auth for your TFS:
 ##`tfx login` with Basic Authentication
 Now you can start to use `tfx` against your TFS server. You'll want to `login` before issuing commands.
 
-1. Type `tfx login --authType basic`
-2. You will be prompted to add your collection Url.
+1. Type `tfx login --auth-type basic`
+2. You will be prompted to add your service Url.
 3. You will be prompted for your username. Use `domain\user` (e.g. fabrikam\peter). If you are on a workgroup machine, use `machinename\username`.
 4. You will be prompted for your password. Enter the password for the username you entered.
 
 You can now use any other `tfx` commands.
 ```
-> tfx login --authType basic
+> tfx login --auth-type basic
 Copyright Microsoft Corporation
 
-Enter collection url > http://localhost:8080/tfs/defaultcollection
+Enter service url > http://localhost:8080/tfs/defaultcollection
 Enter username > fabfiber\peter
 Enter password > *******
 logged in successfully

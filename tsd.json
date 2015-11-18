@@ -1,0 +1,72 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "typings",
+  "bundle": "typings/tsd.d.ts",
+  "installed": {
+    "node/node.d.ts": {
+      "commit": "f0aa5507070dc74859b636bd2dac37f3e8cab8d1"
+    },
+    "q/Q.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "colors/colors.d.ts": {
+      "commit": "b83eea746f8583a6c9956c19d8b553f2b66ce577"
+    },
+    "glob/glob.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "xml2js/xml2js.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "mocha/mocha.d.ts": {
+      "commit": "9cf502e3c1a8532f92ee0114e46509175e790938"
+    },
+    "minimatch/minimatch.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "lodash/lodash.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "tmp/tmp.d.ts": {
+      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+    },
+    "fs-extra/fs-extra.d.ts": {
+      "commit": "230b346dad577c91af8db9f0a1db26697d2dd5bd"
+    },
+    "jszip/jszip.d.ts": {
+      "commit": "e18e130e2188348070f98d92b98c0ea481c4a086"
+    },
+    "request/request.d.ts": {
+      "commit": "43b6bf88758852b9ab713a9b011487f047f94f4e"
+    },
+    "form-data/form-data.d.ts": {
+      "commit": "43b6bf88758852b9ab713a9b011487f047f94f4e"
+    },
+    "vso-node-api/vso-node-api.d.ts": {
+      "commit": "b9c534a52a50547c61c5f80519aaed285eb3e8b8"
+    },
+    "mkdirp/mkdirp.d.ts": {
+      "commit": "76ed26e95e91f1c91f2d11819c44b55b617e859a"
+    },
+    "minimist/minimist.d.ts": {
+      "commit": "eb59a40d3c2f3257e34ec2ede181046230814a41"
+    },
+    "shelljs/shelljs.d.ts": {
+      "commit": "eb59a40d3c2f3257e34ec2ede181046230814a41"
+    },
+    "node-uuid/node-uuid.d.ts": {
+      "commit": "eb59a40d3c2f3257e34ec2ede181046230814a41"
+    },
+    "validator/validator.d.ts": {
+      "commit": "eb59a40d3c2f3257e34ec2ede181046230814a41"
+    },
+    "archiver/archiver.d.ts": {
+      "commit": "eb59a40d3c2f3257e34ec2ede181046230814a41"
+    },
+    "read/read.d.ts": {
+      "commit": "0dd29bf8253536ae24e61c109524e924ea510046"
+    }
+  }
+}

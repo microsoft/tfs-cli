@@ -1,45 +1,77 @@
-# TFS Extensions Command Line Utility
+# TFS Cross Platform Command Line Interface
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.png)](http://badge.fury.io/js/tfx-cli)
 
-This is a utility to manage extensions for TFS.  It is cross platform and supported on Windows, OSX and Linux.
+This is a utility to interact with Visual Studio Online and TFS.  It is cross platform and supported on Windows, OSX and Linux.
 
-*Pre-release but supported*
+## Setup
+### Tooling
+This app requires [NodeJS](http://nodejs.org) and npm (included with the NodeJS installer).
 
-## Install
+### Install
 ```bash
 sudo npm install -g tfx-cli
 ```
-<sub>Note: windows does not need sudo</sub>
+<sub>Note: Windows does not need sudo</sub>
 
 ## Help
-Just type tfx.  It will list the commands and sub commands available
-```bash
-~$ tfx
-```
-![tfs-cli](docs/tfx-cli.png "TFS cross platform command line")
+Just type `tfx` to see a list of commands.    
+For help with an individual command, use `tfx <command> --help`.    
+![tfs-cli](docs/help-screen.png "TFS cross platform command line")    
+Help info is dynamically generated, so it should always be the most up-to-date authority.
+
+## Command Documentation
+[Build Tasks](docs/buildtasks.md): Create, list, upload and delete your Build Tasks
+
+[Marketplace Extensions](docs/appext.md): Manage your Visual Studio Marketplace Extensions
+
+[Builds](docs/builds.md): Manage your Builds
 
 ## Login
 To avoid providing credentials in every command, you can login once.
 Currently supported credential types are Personal Access Tokens and basic auth.
-[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command
+[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command.
 ```bash
 ~$ tfx login
 Copyright Microsoft Corporation
 
-Enter collection url > https://youraccount.visualstudio.com/DefaultCollection
-Enter personal access token > 
-logged in successfully
+> Service URL: https://marketplace.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
+> Personal access token: 
+Logged in successfully
 ```
 
-You can alternatively use basic auth by passing `--authType basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
+You can alternatively use basic auth by passing `--auth-type basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
 
-## Command Documentation
-[Build Tasks](docs/buildtasks.md): create, list, upload and delete your build tasks
+Note: Using this feature will store your login credentials on disk in plain text.
 
-[App Extensions](docs/appext.md): manage your app extensions
+## Settings Cache
+To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag.
+
+```bash
+~$ tfx build list --project MyProject --definition-name println --top 5 --save
+
+...
+
+id              : 1
+definition name : TestDefinition
+requested by    : Teddy Ward
+status          : NotStarted
+queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
+
+~$ tfx build list
+Copyright Microsoft Corporation
+
+...
+
+id              : 1
+definition name : TestDefinition
+requested by    : Teddy Ward
+status          : NotStarted
+queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
+```
 
 ## Troubleshooting
+If you used --save to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
 To see detailed tracing output, you can set a value for the TFX_TRACE environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
 
 <sub>Linux/OSX</sub>
@@ -57,8 +89,6 @@ set TFX_TRACE=1
 $env:TFX_TRACE=1
 ```
 
-setting `TFX_TRACE_CREDS=1` or `TFX_TRACE_CACHE=1` will trace out cred storage.  Typically those should not be set (to avoid leaking creds when sending traces).  Only set if you are troubleshooting credentials.
-
 ## Contributing
 
-We take contributions and fixes.  [Read here](docs/contributions.md) for the details.
+We take contributions and fixes via Pull Request.  [Read here](docs/contributions.md) for the details.
