@@ -1,12 +1,12 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require('vso-node-api/BuildApi');
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
-import trace = require('../../lib/trace');
+import buildClient = require("vso-node-api/BuildApi");
+import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import trace = require("../../lib/trace");
 
 export function describe(): string {
-	return 'queue a build';
+	return "queue a build";
 }
 
 export function getCommand(args: string[]): BuildQueue {
@@ -31,15 +31,15 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 					definitionPromise = buildapi.getDefinition(definitionId, project);
 				} else {
 					definitionPromise = this.commandArgs.definitionName.val().then((definitionName) => {
-						trace.debug('No definition id provided, Searching for definitions with name: ' + definitionName);
+						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
 						return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
 							if(definitions.length > 0) {
 								var definition = definitions[0];
 								return definition;
 							}
 							else {
-								trace.debug('No definition found with name ' + definitionName);
-								throw new Error('No definition found with name ' + definitionName);
+								trace.debug("No definition found with name " + definitionName);
+								throw new Error("No definition found with name " + definitionName);
 							}
 						});
 					});
@@ -53,20 +53,19 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 
 	public friendlyOutput(build: buildContracts.Build): void {
 		if (!build) {
-			throw new Error('no build supplied');
+			throw new Error("no build supplied");
 		}
 
 		trace.println();
-		trace.info('Queued new build:')
-		trace.info('id              : %s', build.id);
-		trace.info('definition name : %s', build.definition.name)
-		trace.info('requested by    : %s', build.requestedBy.displayName);
-		trace.info('status          : %s', buildContracts.BuildStatus[build.status]);
-		trace.info('queue time      : %s', build.queueTime.toJSON());
+		trace.info("id              : %s", build.id);
+		trace.info("definition name : %s", build.definition ? build.definition.name : "unknown");
+		trace.info("requested by    : %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
+		trace.info("status          : %s", buildContracts.BuildStatus[build.status]);
+		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
 	}
 
 	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string) {
-		trace.debug('Queueing build...')
+		trace.debug("Queueing build...")
 		var build = <buildContracts.Build> {
 			definition: definition
 		};

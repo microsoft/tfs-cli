@@ -1,9 +1,9 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require('vso-node-api/BuildApi');
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
-import trace = require('../../lib/trace');
+import buildClient = require("vso-node-api/BuildApi");
+import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): BuildShow {
 	return new BuildShow(args);
@@ -17,7 +17,7 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
-		trace.debug('build-show.exec');
+		trace.debug("build-show.exec");
 		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
@@ -29,14 +29,14 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 
 	public friendlyOutput(build: buildContracts.Build): void {
 		if (!build) {
-			throw new Error('no build supplied');
+			throw new Error("no build supplied");
 		}
 
 		trace.println();
-		trace.info('id              : %s', build.id);
-		trace.info('definition name : %s', build.definition.name)
-		trace.info('requested by    : %s', build.requestedBy.displayName);
-		trace.info('status          : %s', buildContracts.BuildStatus[build.status]);
-		trace.info('queue time      : %s', build.queueTime.toJSON());
+		trace.info("id              : %s", build.id);
+		trace.info("definition name : %s", build.definition ? build.definition.name : "unknown");
+		trace.info("requested by    : %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
+		trace.info("status          : %s", buildContracts.BuildStatus[build.status]);
+		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
 	}
 }
