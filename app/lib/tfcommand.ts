@@ -2,6 +2,7 @@ import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import { repeatStr } from "../lib/common";
+import { TfsConnection } from "../lib/connection";
 import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
@@ -43,6 +44,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	private initialized: Q.Promise<Executor<any>>;
 	protected webApi: WebApi;
 	protected description: string = "A suite of command line tools to interact with Visual Studio Online.";
+	public connection: TfsConnection;
 
 	/**
 	 * @param serverCommand True to initialize the WebApi object during init phase.
@@ -236,6 +238,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	public getWebApi(): Q.Promise<WebApi> {
 		return this.commandArgs.serviceUrl.val().then((url) => {
 			return this.getCredentials(url).then((handler) => {
+				this.connection = new TfsConnection(url);
 				this.webApi = new WebApi(url, handler);
 				return this.webApi;
 			});

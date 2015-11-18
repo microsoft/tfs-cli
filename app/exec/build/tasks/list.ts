@@ -17,7 +17,7 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition[]> {
-		var agentapi = this.webApi.getQTaskAgentApi();
+		var agentapi = this.webApi.getQTaskAgentApi(this.connection.getAccountUrl());
 
 		trace.debug("Searching for build tasks...");
 		return agentapi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
@@ -94,7 +94,7 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 			trace.info('id            : %s', task.id);
 			trace.info('name          : %s', task.name);
 			trace.info('friendly name : %s', task.friendlyName);
-			trace.info('visibility    : %s', task.visibility.join(","));
+			trace.info('visibility    : %s', task.visibility ? task.visibility.join(",") : "");
 			trace.info('description   : %s', task.description);
 			trace.info('version       : %s', new TaskVersion(task.version).toString());
 		});
