@@ -16,7 +16,12 @@ var sources = [
 	'typings/**/*.d.ts'
 ];
 
-gulp.task('build', ['clean'], function () {
+gulp.task('copy', ['clean'], function() {
+	return gulp.src(['package.json', './README.md', './app/tfs-cli.js'])
+		.pipe(gulp.dest(path.join('_build', 'app')));
+});
+
+gulp.task('compile', ['clean', 'copy'], function () {
 	var tsFilter = filter('**/*.ts', { restore: true });
 	
 	return gulp.src(sources, { base: '.' })
@@ -25,6 +30,8 @@ gulp.task('build', ['clean'], function () {
 		.pipe(tsFilter.restore)
 		.pipe(gulp.dest('_build'));
 });
+
+gulp.task('build', ['clean', 'compile', 'copy']);
 
 var mopts = {
   boolean: 'ci',

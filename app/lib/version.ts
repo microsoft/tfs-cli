@@ -65,6 +65,6 @@ export class SemanticVersion {
 }
 
 export function getTfxVersion(): Q.Promise<SemanticVersion> {
-	let packageJson = require(path.join(common.APP_ROOT, "../../package.json"));
+	let packageJson = require(path.join(common.APP_ROOT, "package.json"));
 	return Q.resolve(SemanticVersion.parse(packageJson.version));
 }

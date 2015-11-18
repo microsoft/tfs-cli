@@ -6,10 +6,10 @@
     "type": "git",
     "url": "https://github.com/Microsoft/tfs-cli"
   },
-  "main": "./_build/app/tfx-cli.js",
+  "main": "./tfx-cli.js",
   "preferGlobal": true,
   "bin": {
-    "tfx": "./_build/app/tfx-cli.js"
+    "tfx": "./tfx-cli.js"
   },
   "scripts": {
     "prepublish": "gulp build",

@@ -3,6 +3,7 @@
 		"module": "commonjs",
 		"target": "ES5",
 		"declaration": false,
-		"sourceMap": false
+		"sourceMap": false,
+        "newLine": "LF"
 	}
 }
