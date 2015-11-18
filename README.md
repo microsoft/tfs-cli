@@ -1,8 +1,8 @@
-# VSO Extensions Command Line Utility
+# TFS Cross Platform Command Line Interface
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.png)](http://badge.fury.io/js/tfx-cli)
 
-This is a utility to manage extensions for VSO.  It is cross platform and supported on Windows, OSX and Linux.
+This is a utility to interact with Visual Studio Online and TFS.  It is cross platform and supported on Windows, OSX and Linux.
 
 ## Setup
 ### Tooling
