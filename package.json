@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "TFS Extensions Command Line Utility",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
     "tfx": "./tfx-cli.js"
   },
   "scripts": {
-    "prepublish": "gulp build",
     "test": "gulp test"
   },
   "dependencies": {
