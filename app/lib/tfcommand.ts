@@ -207,10 +207,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						if (credString.substr(0, 3) === "pat") {
 							return getBasicHandler("OAuth", credString.substr(4));
 						} else if (credString.substr(0, 5) === "basic") {
-							let credParts = credString.split(":").slice(1);
-							if (credParts.length === 3) {
-								credParts = credParts.slice(1);
-								return getBasicHandler(credParts[0], credParts[1]);
+							let rest = credString.substr(6);
+							let unpwDividerIndex = rest.indexOf(":");
+							let username = rest.substr(0, unpwDividerIndex);
+							let password = rest.substr(unpwDividerIndex + 1);
+							if (username && password) {
+								return getBasicHandler(username, password);
 							} else {
 								throw "Could not get credentials from credential store.";
 							}
