@@ -63,6 +63,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 						return createExtension(mergeSettings, packageSettings);
 					});
 				}).then((createResult) => {
+					result.packaged = createResult.path;
 					return createResult.path;
 				});
 			}
