@@ -1,7 +1,9 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
 
-import { ManifestBuilder } from "./manifest"
-import { FileDeclaration, MergeSettings, PackageFiles, ResourceSet } from "./interfaces"
+import { ManifestBuilder } from "./manifest";
+import { ComposerFactory } from "./extension-composer-factory";
+import { ExtensionComposer } from "./extension-composer";
+import { FileDeclaration, MergeSettings, PackageFiles, ResourceSet, TargetDeclaration } from "./interfaces";
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
@@ -24,16 +26,14 @@ export interface VsixComponents {
  */
 export class Merger {
 
+	private extensionComposer: ExtensionComposer;
 	private manifestBuilders: ManifestBuilder[];
 
 	/**
 	 * constructor. Instantiates one of each manifest builder.
 	 */
-	constructor(private settings: MergeSettings, builderTypes: { new(extRoot: string): ManifestBuilder }[] ) {
+	constructor(private settings: MergeSettings) {
 		this.manifestBuilders = [];
-		builderTypes.forEach((builderType) => {
-			this.manifestBuilders.push(new builderType(settings.root));
-		});
 	}
 
 	private gatherManifests(): Q.Promise<string[]> {
@@ -90,6 +90,16 @@ export class Merger {
 			}
 
 			return Q.all(manifestPromises).then(partials => {
+				// Determine the targets so we can construct the builders
+				let targets: TargetDeclaration[] = [];
+				partials.forEach((partial) => {
+					if (_.isArray(partial["targets"])) {
+						targets = targets.concat(partial["targets"]);
+					}
+				});
+				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
+				this.manifestBuilders = this.extensionComposer.getBuilders();
+				
 				partials.forEach((partial, partialIndex) => {
 					// Transform asset paths to be relative to the root of all manifests, verify assets
 					if (_.isArray(partial["files"])) {
@@ -149,18 +159,16 @@ export class Merger {
 					_.assign(packageFiles, builder.files);
 				});
 
+				let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
+
 				// Finalize each builder
 				return Q.all(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders))).then(() => {
-					// Let each builder validate, then concat the results.
-					return Q.all(this.manifestBuilders.map(b => b.validate())).then((results) => {
-						let flattened = results.reduce((a, b) => a.concat(b), []);
-						if (flattened.length === 0 || this.settings.bypassValidation) {
-							return {
-								builders: this.manifestBuilders,
-								resources: resources
-							};
+					// Let the composer do validation
+					return this.extensionComposer.validate(components).then((validationResult) => {
+						if (validationResult.length === 0 || this.settings.bypassValidation) {
+							return components;
 						} else {
-							throw new Error("There were errors with your manifests. Address the following errors and re-run the tool.\n" + flattened);
+							throw new Error("There were errors with your extension. Address the following and re-run the tool.\n" + validationResult);
 						}
 					});
 				});
@@ -170,6 +178,7 @@ export class Merger {
 
 	/**
 	 * Recursively converts a given path to a flat list of FileDeclaration
+	 * @TODO: Async.
 	 */
 	private pathToFileDeclarations(fsPath: string, root: string, addressable: boolean): FileDeclaration[] {
 		let files: FileDeclaration[] = [];

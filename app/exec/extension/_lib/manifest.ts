@@ -44,11 +44,6 @@ export abstract class ManifestBuilder {
 	public abstract processKey(key: string, value: any, override: boolean): void;
 
 	/**
-	 * Return a string[] of current validation errors
-	 */
-	public abstract validate(): Q.Promise<string[]>;
-
-	/**
 	 * Called just before the package is written to make any final adjustments.
 	 */
 	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Q.Promise<void> {

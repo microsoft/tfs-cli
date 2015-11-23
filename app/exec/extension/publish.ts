@@ -1,8 +1,8 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 
+import { CreationResult, createExtension } from "./create";
 import { Merger } from "./_lib/merger";
 import { VsixManifestBuilder } from "./_lib/vsix-manifest-builder";
-import { VsoManifestBuilder } from "./_lib/targets/VSO/vso-manifest-builder";
 import { MergeSettings, PackageSettings } from "./_lib/interfaces";
 import { VsixWriter } from "./_lib/vsix-writer";
 import { TfCommand } from "../../lib/tfcommand";
@@ -59,14 +59,11 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 				extensionCreatePromise = Q.resolve(publishSettings.vsixPath);
 			} else {
 				extensionCreatePromise = this.getMergeSettings().then((mergeSettings) => {
-					return new Merger(mergeSettings, [VsixManifestBuilder, VsoManifestBuilder]).merge().then((components) => {
-						return this.getPackageSettings().then((packagesettings) => {
-							return new VsixWriter(packagesettings, components).writeVsix().then((packagePath) => {
-								result.packaged = packagePath;
-								return packagePath;
-							});
-						});
+					return this.getPackageSettings().then((packageSettings) => {
+						return createExtension(mergeSettings, packageSettings);
 					});
+				}).then((createResult) => {
+					return createResult.path;
 				});
 			}
 			return extensionCreatePromise.then((vsixPath) => {
