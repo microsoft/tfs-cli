@@ -22,6 +22,6 @@ export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 	}
 
 	public friendlyOutput(data: version.SemanticVersion): void {
-		trace.info("Version %s", version.toString());
+		trace.info("Version %s", data.toString());
 	}
 }
