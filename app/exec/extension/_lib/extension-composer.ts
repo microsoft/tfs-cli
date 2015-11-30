@@ -90,6 +90,7 @@ export abstract class ExtensionComposer {
 				return "For now, extensions are limited to a single category.";
 			}
 			let validCategories = [
+				"Build and release",
 				"Collaborate",
 				"Code",
 				"Test",
