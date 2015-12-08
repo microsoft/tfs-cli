@@ -211,7 +211,13 @@ export class PackagePublisher extends GalleryBase {
 		trace.info("Checking if this extension is already published");
 		return this.createOrUpdateExtension(extPackage).then((ext) => {
 			trace.info("Waiting for server to validate extension package...");
-			return this.waitForValidation(ext.versions[ext.versions.length - 1].version).then((result) => {
+			let versions = ext.versions;
+			versions.sort((a, b) => {
+				let aTime = a.lastUpdated.getTime();
+				let bTime = b.lastUpdated.getTime();
+				return aTime < bTime ? 1 : (aTime === bTime ? 0 : -1);
+			});
+			return this.waitForValidation(versions[0].version).then((result) => {
 				if (result === PackagePublisher.validated) {
 					return ext;
 				} else {

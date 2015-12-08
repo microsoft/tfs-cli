@@ -10,15 +10,8 @@ import extBase = require("./default");
 import trace = require('../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, CreationResult> {
-	// this just offers description for help and to offer sub commands
 	return new ExtensionCreate(args);
 }
-
-// requires auth, connect etc...
-export var isServerOperation: boolean = false;
-
-// unless you have a good reason, should not hide
-export var hideBanner: boolean = false;
 
 export interface CreationResult {
 	path: string;
