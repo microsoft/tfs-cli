@@ -7,11 +7,11 @@ export function removeMetaKeys(obj: any): any {
 	return _.omit(obj, (v, k) => _.startsWith(k, "__meta_"));
 }
 
-export function cleanAssetPath(assetPath: string) {
+export function cleanAssetPath(assetPath: string, root: string = ".") {
 	if (!assetPath) {
 		return null;
 	}
-	return forwardSlashesPath(path.resolve(assetPath));
+	return forwardSlashesPath(path.resolve(root, assetPath));
 }
 
 export function forwardSlashesPath(filePath: string) {

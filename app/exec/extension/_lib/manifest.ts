@@ -170,7 +170,8 @@ export abstract class ManifestBuilder {
 		if (typeof file.assetType === "string") {
 			file.assetType = [<string>file.assetType];
 		}
-		file.path = cleanAssetPath(file.path);
+		
+		file.path = cleanAssetPath(file.path, this.extRoot);
 		if (!file.partName) {
 			file.partName = "/" + path.relative(this.extRoot, file.path);
 		}
@@ -179,7 +180,7 @@ export abstract class ManifestBuilder {
 		}
 
 		file.partName = forwardSlashesPath(file.partName);
-
+		
 		// Default the assetType to the partName.
 		if (file.addressable && !file.assetType) {
 			file.assetType = [toZipItemName(file.partName)];
