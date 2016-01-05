@@ -15,6 +15,10 @@ export function getCommand(args: string[]): WorkItemQuery {
 export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]> {
 	protected description = "Get a list of workitems given query";
 
+	protected getHelpArgs(): string[] {
+		return ["project", "query"];
+	}
+
 	public exec(): Q.Promise<witContracts.WorkItem[]> {
 		var witApi: witClient.IQWorkItemTrackingApi = this.webApi.getQWorkItemTrackingApi();
 
