@@ -186,8 +186,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					let fileDecl: FileDeclaration = {
 						path: value[key],
 						addressable: true,
-						assetType: "Microsoft.VisualStudio.Services.Icons." + iconType,
-						partName: value[key]
+						assetType: "Microsoft.VisualStudio.Services.Icons." + iconType
 					};
 					this.addAsset(fileDecl);
 				});
@@ -213,8 +212,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						let fileDecl: FileDeclaration = {
 							path: value[key].path,
 							addressable: true,
-							assetType: "Microsoft.VisualStudio.Services.Content." + contentKey,
-							partName: value[key].path
+							assetType: "Microsoft.VisualStudio.Services.Content." + contentKey
 						};
 						if (value[key].contentType) {
 							fileDecl.contentType = value[key].contentType;
@@ -376,7 +374,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			this.addFile({
 				path: null,
 				content: result,
-				partName: "[Content_Types].xml"
+				partName: "/[Content_Types].xml"
 			});
 		});
 	}

@@ -190,7 +190,7 @@ export class Merger {
 			});
 		} else {
 			let relativePath = path.relative(root, fsPath);
-			files.push({path: relativePath, partName: relativePath, auto: true, addressable: addressable});
+			files.push({path: relativePath, partName: "/" + relativePath, auto: true, addressable: addressable});
 		}
 		return files;
 	}
