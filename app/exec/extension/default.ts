@@ -85,7 +85,9 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				let content = contentStr;
 				if (content === "") {
 					content = "{}";
-					trace.warn("Overrides file was empty. No overrides will be imported from " + overridesFile[0]);
+					if (overridesFile && overridesFile.length > 0) {
+						trace.warn("Overrides file was empty. No overrides will be imported from " + overridesFile[0]);
+					}
 				}
 				let mergedOverrides = {};
 				let contentJSON = "";
