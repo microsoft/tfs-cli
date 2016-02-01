@@ -45,7 +45,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 	protected description = "Publish a Visual Studio Marketplace Extension.";
 
 	protected getHelpArgs(): string[] {
-		return ["root", "manifestGlobs", "override", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot",
+		return ["root", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot",
 			"vsix", "shareWith"];
 	}
 

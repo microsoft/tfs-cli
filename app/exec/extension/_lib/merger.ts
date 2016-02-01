@@ -139,11 +139,12 @@ export class Merger {
 
 					// Process each key by each manifest builder.
 					Object.keys(partial).forEach((key) => {
-						if (partial[key] !== undefined && partial[key] !== null) {
+						let isOverridePartial = partials.length - 1 === partialIndex && overridesProvided;
+						if (partial[key] !== undefined && (partial[key] !== null || isOverridePartial)) {
 
 							// Notify each manifest builder of the key/value pair
 							this.manifestBuilders.forEach((builder) => {
-								builder.processKey(key, partial[key], partials.length - 1 === partialIndex && overridesProvided);
+								builder.processKey(key, partial[key], isOverridePartial);
 							});
 						}
 					});

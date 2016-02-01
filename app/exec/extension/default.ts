@@ -3,8 +3,11 @@ import { MergeSettings, PackageSettings, PublishSettings } from "./_lib/interfac
 import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
 import { GalleryBase, CoreExtInfo } from "./_lib/publish";
+import { readFile } from "../../lib/qfs";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
+import trace = require("../../lib/trace");
+
 import Q = require("q");
 
 export function getCommand(args: string[]): TfCommand<ExtensionArguments, void> {
@@ -19,6 +22,7 @@ export interface ExtensionArguments extends CoreArguments {
 	manifestGlobs: args.ArrayArgument;
 	outputPath: args.StringArgument;
 	override: ManifestJsonArgument;
+	overridesFile: args.ReadableFilePathsArgument;
 	shareWith: args.ArrayArgument;
 	unshareWith: args.ArrayArgument;
 	vsix: args.ReadableFilePathsArgument;
@@ -47,6 +51,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("manifestGlobs", "Manifest globs", "List of globs to find manifests.", args.ArrayArgument, "vss-extension.json");
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument("override", "Overrides JSON", "JSON string which is merged into the manifests, overriding any values.", ManifestJsonArgument, "{}");
+		this.registerCommandArgument("overridesFile", "Overrides JSON file", "Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.", args.ReadableFilePathsArgument, null);
 		this.registerCommandArgument("shareWith", "Share with", "List of VSO Accounts with which to share the extension.", args.ArrayArgument, null);
 		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSO Accounts with which to un-share the extension.", args.ArrayArgument, null);
 		this.registerCommandArgument("vsix", "VSIX path", "Path to an existing VSIX (to publish or query for).", args.ReadableFilePathsArgument);
@@ -61,22 +66,42 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.root.val(),
 			this.commandArgs.manifestGlobs.val(),
 			this.commandArgs.override.val(),
+			this.commandArgs.overridesFile.val(),
 			this.commandArgs.bypassValidation.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true)
-		]).spread<MergeSettings>((root: string[], manifestGlob: string[], override: any, bypassValidation: boolean, publisher: string, extensionId: String) => {
+		]).spread<MergeSettings>((root: string[], manifestGlob: string[], override: any, overridesFile: string[], bypassValidation: boolean, publisher: string, extensionId: String) => {
 			if (publisher) {
 				_.set(override, "publisher", publisher);
 			}
 			if (extensionId) {
 				_.set(override, "extensionid", extensionId);
 			}
-			return {
-				root: root[0],
-				manifestGlobs: manifestGlob,
-				overrides: override,
-				bypassValidation: bypassValidation
-			};
+			let overrideFileContent = Q.resolve("");
+			if (overridesFile && overridesFile.length > 0) {
+				overrideFileContent = readFile(overridesFile[0], "utf-8");
+			}
+			return overrideFileContent.then((contentStr) => {
+				let content = contentStr;
+				if (content === "") {
+					content = "{}";
+					trace.warn("Overrides file was empty. No overrides will be imported from " + overridesFile[0]);
+				}
+				let mergedOverrides = {};
+				let contentJSON = "";
+				try {
+					contentJSON = JSON.parse(content);
+				} catch (e) {
+					throw "Could not parse contents of " + overridesFile[0] + " as JSON. \n" + e;
+				}
+				_.merge(mergedOverrides, contentJSON, override);
+				return {
+					root: root[0],
+					manifestGlobs: manifestGlob,
+					overrides: mergedOverrides,
+					bypassValidation: bypassValidation
+				};
+			});
 		});
 	}
 

@@ -290,6 +290,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					if (value === true) {
 						flags.push("Public");
 					}
+					if (value === false) {
+						_.remove(flags, v => v === "Public");
+					}
 					_.set(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(","));
 				}
 				break;
