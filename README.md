@@ -6,7 +6,7 @@ This is a utility to interact with Visual Studio Online and TFS.  It is cross pl
 
 ## Setup
 ### Tooling
-This app requires [NodeJS](http://nodejs.org) and npm (included with the NodeJS installer).
+This app requires [NodeJS](http://nodejs.org) 4.0.x or later and npm (included with the NodeJS installer).
 
 ### Install
 ```bash
