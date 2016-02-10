@@ -34,7 +34,7 @@ In addition to all of the `extension create` options, the following options are 
 ```
 Arguments:
   --vsix               Path to an existing VSIX (to publish or query for).
-  --share-with         List of VSO accounts with which to share the extension.
+  --share-with         List of VSTS accounts with which to share the extension.
 
 Global server command arguments:
   --auth-type    Method of authentication ('pat' or 'basic').

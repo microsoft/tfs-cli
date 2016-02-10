@@ -33,7 +33,7 @@ export interface ExtensionArguments extends CoreArguments {
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
-	protected description = "Commands to package, publish, and manage Extensions for Visual Studio Online.";
+	protected description = "Commands to package, publish, and manage Extensions for Visual Studio Team Services.";
 
 	constructor(passedArgs: string[], serverCommand: boolean = true) {
 		super(passedArgs, serverCommand);
@@ -52,8 +52,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument("override", "Overrides JSON", "JSON string which is merged into the manifests, overriding any values.", ManifestJsonArgument, "{}");
 		this.registerCommandArgument("overridesFile", "Overrides JSON file", "Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.", args.ReadableFilePathsArgument, null);
-		this.registerCommandArgument("shareWith", "Share with", "List of VSO Accounts with which to share the extension.", args.ArrayArgument, null);
-		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSO Accounts with which to un-share the extension.", args.ArrayArgument, null);
+		this.registerCommandArgument("shareWith", "Share with", "List of VSTS Accounts with which to share the extension.", args.ArrayArgument, null);
+		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSTS Accounts with which to un-share the extension.", args.ArrayArgument, null);
 		this.registerCommandArgument("vsix", "VSIX path", "Path to an existing VSIX (to publish or query for).", args.ReadableFilePathsArgument);
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("locRoot", "Localization root", "Root of localization hierarchy (see README for more info).", args.ExistingDirectoriesArgument, null);

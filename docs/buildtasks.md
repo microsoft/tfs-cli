@@ -2,7 +2,7 @@
 
 You can create, list, upload and delete build tasks with tfx.
 
-[![Managing VSO Tasks](http://img.youtube.com/vi/u_4ZJcEE3S4/0.jpg)](https://youtu.be/u_4ZJcEE3S4 "Managing VSO Build Tasks")
+[![Managing VSTS Tasks](http://img.youtube.com/vi/u_4ZJcEE3S4/0.jpg)](https://youtu.be/u_4ZJcEE3S4 "Managing VSTS Build Tasks")
 
 [Video Link](https://youtu.be/u_4ZJcEE3S4)
 

@@ -13,7 +13,7 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 }
 
 export class ExtensionShare extends extBase.ExtensionBase<string[]> {
-	protected description = "Unhare a Visual Studio Services Extension with VSO Accounts.";
+	protected description = "Unhare a Visual Studio Services Extension with VSTS Accounts.";
 	constructor(passedArgs: string[]) {
 		super(passedArgs);
 
