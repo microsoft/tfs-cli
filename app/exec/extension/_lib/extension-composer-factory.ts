@@ -6,6 +6,7 @@ import { VsixManifestBuilder } from "./vsix-manifest-builder";
 import { VsoManifestBuilder } from "./targets/Microsoft.VisualStudio.Services/vso-manifest-builder";
 import { VSSExtensionComposer } from "./targets/Microsoft.VisualStudio.Services/composer";
 import { VSSIntegrationComposer } from "./targets/Microsoft.VisualStudio.Services.Integration/composer";
+import { VSOfferComposer } from "./targets/Microsoft.VisualStudio.Offer/composer";
 import _ = require("lodash");
 import Q = require("q");
 import trace = require("../../../lib/trace");
@@ -22,6 +23,9 @@ export class ComposerFactory {
 					break;
 				case "Microsoft.VisualStudio.Services.Integration" : 
 					composers.push(new VSSIntegrationComposer(settings));
+					break;
+				case "Microsoft.VisualStudio.Offer" :
+					composers.push(new VSOfferComposer(settings));
 					break;
 				default :
 					trace.warn("'" + target.id + "' is not a recognized target. Defualting to Microsoft.VisualStudio.Services.");
