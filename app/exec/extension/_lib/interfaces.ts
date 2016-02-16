@@ -175,7 +175,7 @@ export interface PublishSettings {
 	extensionId?: string;
 
 	/**
-	 * List of VSO accounts to share an extension with.
+	 * List of VSTS accounts to share an extension with.
 	 */
 	shareWith?: string[];
 }
