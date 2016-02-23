@@ -290,10 +290,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						if (!_.get(existingCache, cacheKey)) {
 							_.set(existingCache, cacheKey, {});
 						}
-						Object.keys(newInThisCommand).forEach((key) => {
-							_.set(existingCache, cacheKey + "." + key, newInThisCommand[key]);
-						});
-						new DiskCache("tfx").setItem("cache", "command-options", JSON.stringify(existingCache, null, 4).replace(/\n/g, eol));
+						if (newInThisCommand) {
+							Object.keys(newInThisCommand).forEach((key) => {
+								_.set(existingCache, cacheKey + "." + key, newInThisCommand[key]);
+							});
+							new DiskCache("tfx").setItem("cache", "command-options", JSON.stringify(existingCache, null, 4).replace(/\n/g, eol));
+						}
 					});
 				});
 			} else {
