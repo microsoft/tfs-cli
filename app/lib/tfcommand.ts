@@ -30,6 +30,7 @@ export interface CoreArguments {
 	output: args.StringArgument;
 	json: args.BooleanArgument;
 	fiddler: args.BooleanArgument;
+	proxy: args.StringArgument;
 	help: args.BooleanArgument;
 	noPrompt: args.BooleanArgument;
 }
@@ -71,6 +72,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					if (useProxy) {
 						process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 					}
+				}).then(() => {
+					// Set custom proxy 
+					return this.commandArgs.proxy.val(true).then((proxy) => {
+						if (proxy) {
+							process.env.HTTP_PROXY = proxy;
+						}
+					});
 				}).then(() => {
 					// Set the no-prompt flag 
 					return this.commandArgs.noPrompt.val(true).then((noPrompt) => {
@@ -163,6 +171,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		this.registerCommandArgument("output", "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
 		this.registerCommandArgument("json", "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
 		this.registerCommandArgument("fiddler", "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
+		this.registerCommandArgument("proxy","Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
 		this.registerCommandArgument("help", "Help", "Get help for any command.", args.BooleanArgument, "false");
 		this.registerCommandArgument("noPrompt", "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
@@ -364,7 +373,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				
 				if (this.serverCommand) {
 					result += eol + cyan("Global server command arguments:") + eol;
-					["authType", "username", "password", "token", "serviceUrl"].forEach((arg) => {
+					["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy"].forEach((arg) => {
 						result += singleArgData(arg, 11);
 					});
 				}
