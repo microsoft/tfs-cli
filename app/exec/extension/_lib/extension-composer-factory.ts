@@ -19,6 +19,7 @@ export class ComposerFactory {
 		targets.forEach((target) => {
 			switch (target.id) {
 				case "Microsoft.VisualStudio.Services" :
+				case "Microsoft.VisualStudio.Services.Cloud" :
 					composers.push(new VSSExtensionComposer(settings));
 					break;
 				case "Microsoft.VisualStudio.Services.Integration" : 
