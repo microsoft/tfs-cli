@@ -54,7 +54,7 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 					from: null
 				});
 			}
-
+            // TODO: Check why this is failing in Feature Create
 			return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
 		});
 	}
