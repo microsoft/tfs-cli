@@ -31,7 +31,7 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 				let agentApi = webApi.getTaskAgentApi();
 				return Q.Promise<LoginResult>((resolve, reject) => {
 					agentApi.connect((err, statusCode, obj) => {
-						trace.debug("Response code: %s", statusCode.toString())
+						trace.debug("Response code: %s", statusCode)
                         if (statusCode && statusCode === 401) {
 							trace.debug("Connection failed: invalid credentials.");
 							reject("Invalid credentials.");
