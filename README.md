@@ -39,7 +39,10 @@ Copyright Microsoft Corporation
 > Personal access token: 
 Logged in successfully
 ```
-
+* on premise loggin (basic authentication only):
+    Collection name is case sensitive (rul should not end with trailing slash)
+    User name format: Domain\\User or "Domain\User"
+    passwords with special characters should NOT be escaped ('\') - works with or without parentheses ("<Password>")
 You can alternatively use basic auth by passing `--auth-type basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
 
 Note: Using this feature will store your login credentials on disk in plain text.
