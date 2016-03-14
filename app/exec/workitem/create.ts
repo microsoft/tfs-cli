@@ -16,7 +16,7 @@ export function getCommand(args: string[]): WorkItemCreate {
 export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> {
 
 	protected getHelpArgs(): string[] {
-		return ["workItemType", "title", "assignedTo", "description", "project"];
+		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
 	public exec(): Q.Promise<witContracts.WorkItem> {
@@ -24,19 +24,24 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 
 		return Q.all([
 			this.commandArgs.workItemType.val(),
+			this.commandArgs.project.val(),
+			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
-			this.commandArgs.title.val(),
 			this.commandArgs.description.val(true),
-			this.commandArgs.project.val()
-		]).spread((wiType, assignedTo, title, description, project) => {
+			this.commandArgs.values.val(true)
+		]).spread((wiType, project, title, assignedTo, description, values) => {
 			var patchDoc: vssCoreContracts.JsonPatchOperation[]  = [];
-			patchDoc.push({
-				op: vssCoreContracts.Operation.Add,
-				path: "/fields/System.Title",
-				value: title,
-				from: null
-			});
-
+			
+            // Check the convienience helpers for wit values
+            if(title){
+                patchDoc.push({
+                    op: vssCoreContracts.Operation.Add,
+                    path: "/fields/System.Title",
+                    value: title,
+                    from: null
+                });
+            }
+            
 			if (assignedTo) {
 				patchDoc.push({
 					op: vssCoreContracts.Operation.Add,
@@ -55,21 +60,22 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 				});
 			}
 
-			return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
+            // Set the field reference values
+            Object.keys(values).forEach((fieldReference) => {
+                patchDoc.push({
+					op: vssCoreContracts.Operation.Add,
+					path: "/fields/" + fieldReference,
+					value: values[fieldReference],
+					from: null
+				});
+            });
+            
+			//return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
+            return witapi.createWorkItem(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
 		});
 	}
 
 	public friendlyOutput(workItem: witContracts.WorkItem): void {
-		if (!workItem) {
-			throw new Error("no results");
-		}
-		
-		trace.success(eol + "Created Work Item @ " + workItem.id + eol);
-		trace.info("id:          " + workItem.id);
-		trace.info("rev:         " + workItem.rev);
-		trace.info("type:        " + workItem.fields["System.WorkItemType"]);
-		trace.info("state:       " + workItem.fields["System.State"]);
-		trace.info("title:       " + workItem.fields["System.Title"]);
-		trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
+		return witBase.friendlyOutput([workItem]);
 	}
 }

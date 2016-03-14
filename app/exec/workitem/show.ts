@@ -24,19 +24,7 @@ export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 		});
 	}
 
-	public friendlyOutput(data: witContracts.WorkItem): void {
-		if (!data) {
-			throw new Error("no results");
-		}
-
-		var workItem: witContracts.WorkItem = data;
-
-		trace.info(eol);
-		trace.info("id:          " + workItem.id);
-		trace.info("rev:         " + workItem.rev);
-		trace.info("type:        " + workItem.fields["System.WorkItemType"]);
-		trace.info("state:       " + workItem.fields["System.State"]);
-		trace.info("title:       " + workItem.fields["System.Title"]);
-		trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
+	public friendlyOutput(workItem: witContracts.WorkItem): void {
+		return witBase.friendlyOutput([workItem]);
 	}
 }
