@@ -7,30 +7,29 @@ import witBase = require("./default");
 import witClient = require("vso-node-api/WorkItemTrackingApi");
 import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
 
-export function getCommand(args: string[]): WorkItemCreate {
-	return new WorkItemCreate(args);
+export function getCommand(args: string[]): WorkItemUpdate {
+	return new WorkItemUpdate(args);
 }
 
-export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> {
+export class WorkItemUpdate extends witBase.WorkItemBase<witContracts.WorkItem> {
 
 	protected getHelpArgs(): string[] {
-		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
+		return ["workItemId", "title", "assignedTo", "description", "values"];
 	}
 
 	public exec(): Q.Promise<witContracts.WorkItem> {
 		var witapi = this.webApi.getQWorkItemTrackingApi();
 
 		return Q.all([
-			this.commandArgs.workItemType.val(),
-			this.commandArgs.project.val(),
+			this.commandArgs.workItemId.val(),
 			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
 			this.commandArgs.values.val(true)
-		]).spread((wiType, project, title, assignedTo, description, values) => {
+		]).spread((workItemId, title, assignedTo, description, values) => {
 			
             var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
-            return witapi.createWorkItem(null, patchDoc, project, wiType);
+            return witapi.updateWorkItem(null, patchDoc, workItemId);
 		});
 	}
 

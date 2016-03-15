@@ -1,5 +1,6 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
+import vssCoreContracts = require("vso-node-api/interfaces/common/VSSInterfaces")
 import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
 import trace = require("../../lib/trace");
 import { EOL as eol } from "os";
@@ -17,6 +18,7 @@ export interface WorkItemArguments extends CoreArguments {
 	assignedTo: args.StringArgument;
 	title: args.StringArgument;
 	description: args.StringArgument;
+    
     
     // Generic way to assign work item values
     values: WorkItemValuesJsonArgument;
@@ -48,20 +50,65 @@ export class WorkItemBase<T> extends TfCommand<WorkItemArguments, T> {
 
 
 export function friendlyOutput(data: witContracts.WorkItem[]): void {
-		if (!data) {
-			throw new Error("no results");
-		}
-        
-        let fieldsToIgnore = ["System.AreaLevel1", "System.IterationId", "System.IterationLevel1", "System.ExternalLinkCount", "System.AreaLevel1"];
-        
-		data.forEach((workItem) => {
-			trace.info(eol);
-			trace.info("System.Id:          " + workItem.id);
-			trace.info("System.Rev:         " + workItem.rev);
-			Object.keys(workItem.fields).forEach((arg) => {
-                if(!_.contains(fieldsToIgnore, arg)) {
-                    trace.info(arg + ":        " + workItem.fields[arg]);
-                }   
-            });
-		});
-	}
+    if (!data) {
+        throw new Error("no results");
+    }
+    
+    let fieldsToIgnore = ["System.AreaLevel1", "System.IterationId", "System.IterationLevel1", "System.ExternalLinkCount", "System.AreaLevel1"];
+    
+    data.forEach((workItem) => {
+        trace.info(eol);
+        trace.info("System.Id:          " + workItem.id);
+        trace.info("System.Rev:         " + workItem.rev);
+        Object.keys(workItem.fields).forEach((arg) => {
+            if(!_.contains(fieldsToIgnore, arg)) {
+                trace.info(arg + ":        " + workItem.fields[arg]);
+            }   
+        });
+    });
+}
+
+
+export function buildWorkItemPatchDoc(title, assignedTo, description, values) {
+    var patchDoc: vssCoreContracts.JsonPatchOperation[]  = [];
+    
+    // Check the convienience helpers for wit values
+    if(title){
+        patchDoc.push({
+            op: vssCoreContracts.Operation.Add,
+            path: "/fields/System.Title",
+            value: title,
+            from: null
+        });
+    }
+    
+    if (assignedTo) {
+        patchDoc.push({
+            op: vssCoreContracts.Operation.Add,
+            path: "/fields/System.AssignedTo",
+            value: assignedTo,
+            from: null
+        });
+    }
+
+    if (description) {
+        patchDoc.push({
+            op: vssCoreContracts.Operation.Add,
+            path: "/fields/System.Description",
+            value: description,
+            from: null
+        });
+    }
+
+    // Set the field reference values
+    Object.keys(values).forEach((fieldReference) => {
+        patchDoc.push({
+            op: vssCoreContracts.Operation.Add,
+            path: "/fields/" + fieldReference,
+            value: values[fieldReference],
+            from: null
+        });
+    });
+    
+    return patchDoc;
+}
