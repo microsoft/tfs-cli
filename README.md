@@ -35,7 +35,7 @@ Currently supported credential types are Personal Access Tokens and basic auth.
 ~$ tfx login
 Copyright Microsoft Corporation
 
-> Service URL: https://marketplace.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
+> Service URL: https://app.market.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
 > Personal access token: 
 Logged in successfully
 ```

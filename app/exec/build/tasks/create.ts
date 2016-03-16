@@ -57,7 +57,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 				throw new Error("name is a required alphanumeric string with no spaces");
 			}
 
-			if (!friendlyName || !check.isLength(friendlyName, 1, 25)) {
+			if (!friendlyName || !check.isLength(friendlyName, 1, 40)) {
 				throw new Error("friendlyName is a required string <= 40 chars");
 			}
 

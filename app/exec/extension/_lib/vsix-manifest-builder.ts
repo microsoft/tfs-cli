@@ -472,7 +472,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 
 			let contentTypePromises: Q.Promise<any>[] = [];
 			let extTypeCounter: {[ext: string]: {[type: string]: string[]}} = {};
-			Object.keys(this.files).forEach((fileName) => {
+			Object.keys(this.files).filter((fileName) => {
+				return !this.files[fileName].contentType;
+			}).forEach((fileName) => {
 				let extension = path.extname(fileName);
 				let mimePromise;
 				if (typeMap[extension]) {

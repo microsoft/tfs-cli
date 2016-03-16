@@ -30,6 +30,7 @@ export interface ExtensionArguments extends CoreArguments {
 	locRoot: args.ExistingDirectoriesArgument;
 	displayName: args.StringArgument;
 	description: args.StringArgument;
+	accounts: args.ArrayArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
