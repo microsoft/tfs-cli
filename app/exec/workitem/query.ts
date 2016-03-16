@@ -27,7 +27,9 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 				let wiql: witContracts.Wiql = { query: query };
 				return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then((result) => {
 					let workItemIds = result.workItems.map(val => val.id).slice(0, Math.min(200, result.workItems.length));
-					let fieldRefs = result.columns.map(val => val.referenceName).slice(0, Math.min(20, result.columns.length));
+					let fieldRefs = result.columns.map(val => val.referenceName)
+                    
+                    fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
 					return witApi.getWorkItems(workItemIds, fieldRefs);
 				});
 			});
@@ -36,22 +38,6 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 	}
 
 	public friendlyOutput(data: witContracts.WorkItem[]): void {
-		if (!data) {
-			throw new Error("no results");
-		}
-
-		if (_.isArray(data)) {
-			throw new Error("expected an array of workitems");
-		}
-
-		data.forEach((workItem) => {
-			trace.info(eol);
-			trace.info("id:          " + workItem.id);
-			trace.info("rev:         " + workItem.rev);
-			trace.info("type:        " + workItem.fields["System.WorkItemType"]);
-			trace.info("state:       " + workItem.fields["System.State"]);
-			trace.info("title:       " + workItem.fields["System.Title"]);
-			trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
-		});
+		return witBase.friendlyOutput(data);
 	}
 }
