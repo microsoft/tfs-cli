@@ -23,6 +23,7 @@ export class VsixWriter {
 	private manifestBuilders: ManifestBuilder[];
 	private resources: ResourceSet;
 
+	private static VSIX_ADD_FILES_BATCH_SIZE: number = 20;
 	private static VSO_MANIFEST_FILENAME: string = "extension.vsomanifest";
 	private static VSIX_MANIFEST_FILENAME: string = "extension.vsixmanifest";
 	private static CONTENT_TYPES_FILENAME: string = "[Content_Types].xml";
@@ -98,27 +99,49 @@ export class VsixWriter {
 
 		let builderPromises: Q.Promise<void>[] = [];
 		this.manifestBuilders.forEach((builder) => {
-			// Add the package files
-			let readFilePromises: Q.Promise<void>[] = [];
-			Object.keys(builder.files).forEach((path) => {
-				let itemName = toZipItemName(builder.files[path].partName);
-				if (!VsixWriter.validatePartName(itemName)) {
-					let eol = require("os").EOL;
-					throw "Part Name '" + itemName + "' is invalid. Please check the following: " + eol  + "1. No whitespace or any of these characters: #^[]<>?" + eol + "2. Cannot end with a period." + eol + "3. No percent-encoded / or \\ characters. Additionally, % must be followed by two hex characters.";
+			// Avoid the error EMFILE: too many open files
+			const addPackageFilesBatch = (paths: string[], numBatch: number, batchSize: number, deferred?: Q.Deferred<void>): Q.Promise<void> => {
+				deferred = deferred || Q.defer<void>();
+				
+				let readFilePromises = [];
+				const start = numBatch * batchSize;
+				const end = Math.min(paths.length, start + batchSize);
+				for (let i = start; i < end; i++) {
+					const path = paths[i];
+					let itemName = toZipItemName(builder.files[path].partName);
+					if (!VsixWriter.validatePartName(itemName)) {
+						let eol = require("os").EOL;
+						throw "Part Name '" + itemName + "' is invalid. Please check the following: " + eol  + "1. No whitespace or any of these characters: #^[]<>?" + eol + "2. Cannot end with a period." + eol + "3. No percent-encoded / or \\ characters. Additionally, % must be followed by two hex characters.";
+					}
+					if (itemName.indexOf(" ") )
+					if (!builder.files[path].content) {
+						let readFilePromise = Q.nfcall(fs.readFile, path).then((result) => {
+							vsix.file(itemName, result);
+						});
+						readFilePromises.push(readFilePromise);
+					} else {
+						vsix.file(itemName, builder.files[path].content);
+						readFilePromises.push(Q.resolve<void>(null));
+					}
 				}
-				if (itemName.indexOf(" ") )
-				if (!builder.files[path].content) {
-					let readFilePromise = Q.nfcall(fs.readFile, path).then((result) => {
-						vsix.file(itemName, result);
-					});
-					readFilePromises.push(readFilePromise);
-				} else {
-					vsix.file(itemName, builder.files[path].content);
-					readFilePromises.push(Q.resolve<void>(null));
-				}
-			});
-
-			let builderPromise = Q.all(readFilePromises).then(() => {
+				
+				Q.all(readFilePromises).then(function() {
+					if (end < paths.length) {
+						// Next batch
+						addPackageFilesBatch(paths, numBatch + 1, batchSize, deferred);
+					} else {
+						deferred.resolve(null);
+					}
+					
+				}).fail(function (err) {
+					deferred.reject(err);
+				});
+				
+				return deferred.promise;
+			}
+			
+			// Add the package files in batches
+			let builderPromise = addPackageFilesBatch(Object.keys(builder.files), 0, VsixWriter.VSIX_ADD_FILES_BATCH_SIZE).then(() => {
 				// Add the manifest itself
 				vsix.file(toZipItemName(builder.getPath()), builder.getResult());
 			});
