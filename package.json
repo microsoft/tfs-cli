@@ -46,7 +46,7 @@
     "gulp": "^3.9.0",
     "gulp-filter": "^3.0.1",
     "gulp-mocha": "2.0.0",
-    "gulp-tsb": "^1.6.2",
+    "gulp-tsb": "^1.10.2",
     "minimatch": "^2.0.8",
     "mocha": "^2.2.5"
   },

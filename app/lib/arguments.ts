@@ -300,7 +300,6 @@ export class BooleanArgument extends Argument<boolean> {
 		} else {
 			throw new Error("Multiple values provided for Boolean Argument " + this.name + ".");
 		}
-		return Q.resolve(false);
 	}
 }
 
