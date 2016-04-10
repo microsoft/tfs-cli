@@ -285,7 +285,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "public":
 				if (typeof value === "boolean") {
-					let flags = _.get(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(",");
+					let flags = _.get(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(" ");
 					_.remove(flags, v => v === "");
 					if (value === true) {
 						flags.push("Public");
@@ -293,7 +293,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					if (value === false) {
 						_.remove(flags, v => v === "Public");
 					}
-					_.set(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(","));
+					_.set(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(" "));
 				}
 				break;
 			case "publisher":
@@ -472,7 +472,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 
 			let contentTypePromises: Q.Promise<any>[] = [];
 			let extTypeCounter: {[ext: string]: {[type: string]: string[]}} = {};
-			Object.keys(this.files).forEach((fileName) => {
+			Object.keys(this.files).filter((fileName) => {
+				return !this.files[fileName].contentType;
+			}).forEach((fileName) => {
 				let extension = path.extname(fileName);
 				let mimePromise;
 				if (typeMap[extension]) {

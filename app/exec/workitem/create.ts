@@ -2,8 +2,6 @@ import { EOL as eol } from "os";
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import Q = require("q");
-import vssCoreContracts = require("vso-node-api/interfaces/common/VSSInterfaces")
-import tfsCoreContracts = require("vso-node-api/interfaces/CoreInterfaces");
 import trace = require("../../lib/trace");
 import witBase = require("./default");
 import witClient = require("vso-node-api/WorkItemTrackingApi");
@@ -16,7 +14,7 @@ export function getCommand(args: string[]): WorkItemCreate {
 export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> {
 
 	protected getHelpArgs(): string[] {
-		return ["workItemType", "title", "assignedTo", "description", "project"];
+		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
 	public exec(): Q.Promise<witContracts.WorkItem> {
@@ -24,9 +22,11 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 
 		return Q.all([
 			this.commandArgs.workItemType.val(),
+			this.commandArgs.project.val(),
+			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
-			this.commandArgs.title.val(),
 			this.commandArgs.description.val(true),
+<<<<<<< HEAD
 			this.commandArgs.project.val()
 		]).spread((wiType, assignedTo, title, description, project) => {
 			var patchDoc: vssCoreContracts.JsonPatchOperation[]  = [];
@@ -56,20 +56,17 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 			}
             // TODO: Check why this is failing in Feature Create
 			return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
+=======
+			this.commandArgs.values.val(true)
+		]).spread((wiType, project, title, assignedTo, description, values) => {
+			
+            var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
+            return witapi.createWorkItem(null, patchDoc, project, wiType);
+>>>>>>> upstream/master
 		});
 	}
 
 	public friendlyOutput(workItem: witContracts.WorkItem): void {
-		if (!workItem) {
-			throw new Error("no results");
-		}
-		
-		trace.success(eol + "Created Work Item @ " + workItem.id + eol);
-		trace.info("id:          " + workItem.id);
-		trace.info("rev:         " + workItem.rev);
-		trace.info("type:        " + workItem.fields["System.WorkItemType"]);
-		trace.info("state:       " + workItem.fields["System.State"]);
-		trace.info("title:       " + workItem.fields["System.Title"]);
-		trace.info("assigned to: " + workItem.fields["System.AssignedTo"]);
+		return witBase.friendlyOutput([workItem]);
 	}
 }
