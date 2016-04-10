@@ -27,6 +27,7 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
 <<<<<<< HEAD
+<<<<<<< HEAD
 			this.commandArgs.project.val()
 		]).spread((wiType, assignedTo, title, description, project) => {
 			var patchDoc: vssCoreContracts.JsonPatchOperation[]  = [];
@@ -57,11 +58,16 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
             // TODO: Check why this is failing in Feature Create
 			return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
 =======
+=======
+>>>>>>> upstream/master
 			this.commandArgs.values.val(true)
 		]).spread((wiType, project, title, assignedTo, description, values) => {
 			
             var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
             return witapi.createWorkItem(null, patchDoc, project, wiType);
+<<<<<<< HEAD
+>>>>>>> upstream/master
+=======
 >>>>>>> upstream/master
 		});
 	}
