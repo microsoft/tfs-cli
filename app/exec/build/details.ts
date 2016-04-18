@@ -36,6 +36,7 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
 		trace.info("id              : %s", build.id);
 		trace.info("number (name)   : %s", build.buildNumber);
         trace.info("definition name : %s", build.definition ? build.definition.name : "unknown");
+        trace.info("definition id   : %s", build.definition ? build.definition.id :"unknown");
 		trace.info("requested by    : %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
 		trace.info("status          : %s", buildContracts.BuildStatus[build.status]);
         trace.info("result          : %s", build.result ? buildContracts.BuildResult[build.result] : "unknown")

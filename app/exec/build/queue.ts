@@ -4,6 +4,7 @@ import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
+import fs = require('fs');
 
 export function describe(): string {
 	return "queue a build";
@@ -18,13 +19,12 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName"];
+		return ["project", "definitionId", "definitionName", "parameters"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
 		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
-
-		return this.commandArgs.project.val().then((project) => {
+        return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val(true).then((definitionId) => {
 				let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
@@ -45,7 +45,10 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 					});
 				}
 				return definitionPromise.then((definition) => {
-					return this._queueBuild(buildapi, definition, project);
+                    return this.commandArgs.parameters.val().then((parameters) => {
+                        return this._queueBuild(buildapi, definition, project, parameters);    
+                    })
+                    
 				});
 			});
 		});
@@ -64,10 +67,14 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
 	}
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string) {
+
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string) {
 		trace.debug("Queueing build...")
-		var build = <buildContracts.Build> {
-			definition: definition
+		var parameters = fs.readFileSync(parameters,'utf8');
+        var build = <buildContracts.Build> {
+			definition: definition,
+            priority: 1,
+            parameters: parameters
 		};
 		return buildapi.queueBuild(build, project);
 	}
