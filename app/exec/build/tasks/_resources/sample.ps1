@@ -1,30 +1,18 @@
-param (
-    [string]$cwd,
-    [string]$msg
-)
+[CmdletBinding()]
+param()
 
-Write-Verbose 'Entering sample.ps1'
-Write-Verbose "cwd = $cwd"
-Write-Verbose "msg = $msg"
+# For more information on the VSTS Task SDK:
+# https://github.com/Microsoft/vsts-task-lib
+Trace-VstsEnteringInvocation $MyInvocation
+try {
+    # Set the working directory.
+    $cwd = Get-VstsInput -Name cwd -Require
+    Assert-VstsPath -LiteralPath $cwd -PathType Container
+    Write-Verbose "Setting working directory to '$cwd'."
+    Set-Location $cwd
 
-# Import the Task.Common dll that has all the cmdlets we need for Build
-import-module "Microsoft.TeamFoundation.DistributedTask.Task.Common"
-
-if(!$cwd)
-{
-    throw (Get-LocalizedString -Key "Working directory parameter is not set")
+    # Output the message to the log.
+    Write-Host (Get-VstsInput -Name msg)
+} finally {
+    Trace-VstsLeavingInvocation $MyInvocation
 }
-
-if(!(Test-Path $cwd -PathType Container))
-{
-    throw ("$cwd does not exist");
-}
-
-Write-Verbose "Setting working directory to $cwd"
-Set-Location $cwd
-
-Write-Host $msg
-
-
-
-
