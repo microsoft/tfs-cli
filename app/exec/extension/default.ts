@@ -48,7 +48,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		super.setCommandArgs();
 		this.registerCommandArgument("extensionId", "Extension ID", "Use this as the extension ID instead of what is specified in the manifest.", args.StringArgument);
 		this.registerCommandArgument("publisher", "Publisher name", "Use this as the publisher ID instead of what is specified in the manifest.", args.StringArgument);
-		this.registerCommandArgument("serviceUrl", "Market URL", "URL to the VSS Marketplace.", args.StringArgument, "https://app.market.visualstudio.com");
+		this.registerCommandArgument("serviceUrl", "Market URL", "URL to the VSS Marketplace.", args.StringArgument, "https://marketplace.visualstudio.com");
 		this.registerCommandArgument("manifestGlobs", "Manifest globs", "List of globs to find manifests.", args.ArrayArgument, "vss-extension.json");
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument("override", "Overrides JSON", "JSON string which is merged into the manifests, overriding any values.", ManifestJsonArgument, "{}");
