@@ -46,6 +46,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 				}
 				return definitionPromise.then((definition) => {
                     return this.commandArgs.parameters.val().then((parameters) => {
+                        trace.debug("using file %s for build parameters",parameters);
                         return this._queueBuild(buildapi, definition, project, parameters);    
                     })
                     
@@ -70,10 +71,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 
 	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string) {
 		trace.debug("Queueing build...")
-		var parameters = "";
-        if (fs.exists(parameters)) {
-            parameters = fs.readFileSync(parameters,'utf8');    
-        }
+		var parameters = fs.readFileSync(parameters,'utf8');    
         var build = <buildContracts.Build> {
 			definition: definition,
             priority: 1,
