@@ -71,7 +71,13 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 
 	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string) {
 		trace.debug("Queueing build...")
-		var parameters = fs.readFileSync(parameters,'utf8');    
+		if (fs.existsSync(parameters)) {
+            var parameters = fs.readFileSync(parameters,'utf8');    
+        }
+        else
+        {
+            var parameters = "";
+        }
         var build = <buildContracts.Build> {
 			definition: definition,
             priority: 1,
