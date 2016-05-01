@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters"];
+		return ["project", "definitionId", "definitionName", "parameters","priority"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
@@ -46,10 +46,12 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 				}
 				return definitionPromise.then((definition) => {
                     return this.commandArgs.parameters.val().then((parameters) => {
-                        trace.debug("using file %s for build parameters",parameters);
-                        return this._queueBuild(buildapi, definition, project, parameters);    
-                    })
-                    
+                        return this.commandArgs.priority.val(true).then((priority) =>{
+                            trace.debug("build parameters file : %s",parameters ? parameters: "none");
+                            trace.debug("build queue priority  : %s", priority ? priority: "3")
+                            return this._queueBuild(buildapi, definition, project, parameters, priority);        
+                        });
+                    });
 				});
 			});
 		});
@@ -69,7 +71,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string) {
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -80,8 +82,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
         }
         var build = <buildContracts.Build> {
 			definition: definition,
-            priority: 1,
+            priority: priority ? priority: 3,
             parameters: parameters
+            
 		};
 		return buildapi.queueBuild(build, project);
 	}
