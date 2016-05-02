@@ -84,7 +84,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 			definition: definition,
             priority: priority ? priority: 3,
             parameters: parameters
-            
+           
 		};
 		return buildapi.queueBuild(build, project);
 	}

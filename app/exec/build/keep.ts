@@ -6,27 +6,27 @@ import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 
 export function describe(): string {
-	return "delete a build";
+	return "change build retention policy";
 }
 
-export function getCommand(args: string[]): BuildDelete {
-	return new BuildDelete(args);
+export function getCommand(args: string[]): BuildKeep {
+	return new BuildKeep(args);
 }
 
-export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
+export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
 
-	protected description = "Delete a build.";
+	protected description = "change build retention policy.";
 
 	protected getHelpArgs(): string[] {
 		return ["project", "buildId"];
 	}
 
 	public exec(): Q.Promise<void> {
-		trace.debug("delete-build.exec");
+		trace.debug("keep-build.exec");
 		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
-				return this._deleteBuild(buildapi, buildId, project);
+				return this._keepBuild(buildapi, buildId, project);
 			});
 		});
 
@@ -36,15 +36,15 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 		trace.println();
 	}
 
-	private _deleteBuild(buildapi: buildClient.IQBuildApi, buildId: number, project: string) {
-		trace.info("Deleting build...")
-        buildapi.deleteBuild(buildId,project)
+	private _keepBuild(buildapi: buildClient.IQBuildApi, buildId: number, project: string) {
+		trace.info("Searching for build...")
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
-        build.deleted = true;
-            if (build.deleted) {
-                trace.info("build deleted")
+            if (build.keepForever) {
+                trace.warn("Retention unlocked for %s", build.buildNumber);
+                build.keepForever = false;
             } else {
-                trace.error("failed to delete")  
+                trace.warn("Build %s Retained indefinatly", build.buildNumber);
+                build.keepForever = true;                  
             }
         });
 	}
