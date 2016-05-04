@@ -13,7 +13,7 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 	protected description = "Display build definition details.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId"];
+		return ["project", "definitionId", "definitionName"];
 	}
 
 	public exec(): Q.Promise<buildContracts.DefinitionReference> {
@@ -21,10 +21,23 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val().then((definitionId) => {
-				return buildapi.getDefinition(definitionId,project,null,null);
+                return this.commandArgs.definitionName.val().then((definitionName) => {
+                    if (definitionId){  
+                        return buildapi.getDefinition(definitionId,project,null,null);
+                    } else {
+                        return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
+							if(definitionName && definitions.length > 0) {
+								var definition = definitions[0];
+								return definition;
+							} else {
+								trace.debug("No definition found with name " + definitionName);
+								throw new Error("No definition found with name " + definitionName);
+							}
+						});
+                    }    
+                });
 			});
 		});
-
 	}
 
 	public friendlyOutput(definition: buildContracts.DefinitionReference): void {
@@ -34,10 +47,11 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 
 		trace.println();
 		trace.info("name            : %s", definition.name);
-		trace.info("revision        : %s", definition.revision);
-        trace.info("url             : %s", definition.url ? definition.url :"unknown");
-		trace.info("requested by    : %s", definition.createdDate.toDateString());
+		trace.info("id              : %s", definition.id);
+        trace.info("revision        : %s", definition.revision);
+        trace.info("requested by    : %s", definition.createdDate ? definition.createdDate.toDateString():"unknown");
 		trace.info("queue status    : %s", definition.queueStatus);
-        trace.info("type            : %s", buildContracts.DefinitionType[definition.type]);       
+        trace.info("type            : %s", buildContracts.DefinitionType[definition.type]);
+        trace.info("url             : %s", definition.url ? definition.url :"unknown");       
     }
 }
