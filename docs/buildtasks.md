@@ -87,7 +87,7 @@ Of course, be cautious deleting tasks.
 
 ####Example
 ```bash
-~/$ tfx build tasks delete 4e131b60-5532-4362-95b6-7c67d9841b4f
+~/$ tfx build tasks delete --task-id 4e131b60-5532-4362-95b6-7c67d9841b4f
 Copyright Microsoft Corporation
 
 task: 4e131b60-5532-4362-95b6-7c67d9841b4f deleted successfully!
