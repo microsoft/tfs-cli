@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
@@ -49,7 +49,10 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
                         return this.commandArgs.priority.val(true).then((priority) =>{
                             trace.debug("build parameters file : %s",parameters ? parameters: "none");
                             trace.debug("build queue priority  : %s", priority ? priority: "3")
-                            return this._queueBuild(buildapi, definition, project, parameters, priority);        
+                            	return this.commandArgs.version.val().then((version) => {
+									trace.debug("build source version: %s", version ? version: "Latest")
+									return this._queueBuild(buildapi, definition, project, parameters, priority, version);
+							});        
                         });
                     });
 				});
@@ -71,7 +74,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number) {
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -83,8 +86,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
         var build = <buildContracts.Build> {
 			definition: definition,
             priority: priority ? priority: 3,
-            parameters: parameters
-           
+            parameters: parameters,
+			sourceVersion: version           
 		};
 		return buildapi.queueBuild(build, project);
 	}

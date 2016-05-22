@@ -9,6 +9,7 @@ export interface BuildArguments extends CoreArguments {
 	buildId: args.IntArgument;
     parameters: args.StringArgument;
     priority: args.IntArgument;
+	version: args.StringArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -27,7 +28,8 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("top", "Number of builds", "Maximum number of builds to return.", args.IntArgument, null);
 		this.registerCommandArgument("buildId", "Build ID", "Identifies a particular Build.", args.IntArgument);
         this.registerCommandArgument("parameters", "parameter file path", "Build process Parameters JSON file.", args.StringArgument,null);
-        this.registerCommandArgument("priority", "build queue priority", "Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).", args.IntArgument, null)
+        this.registerCommandArgument("priority", "build queue priority", "Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).", args.IntArgument, null);
+		this.registerCommandArgument("version","Build Sources Version", "the source version for the queued build.",args.StringArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {
