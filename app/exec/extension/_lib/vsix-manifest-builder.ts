@@ -41,7 +41,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".vsixmanifest": "text/xml",
 		".vsomanifest": "application/json",
 		".ps1": "text/ps1",
-		".js": "application/javascript"
+		".js": "application/javascript",
+		".dll": "application/octet-stream"
 	};
 
 	public static manifestType = "vsix";
@@ -413,7 +414,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			let contentTypePromises: Q.Promise<any>[] = [];
 			let extensionlessFiles = [];
 			let uniqueExtensions = _.unique<string>(Object.keys(this.files).map((f) => {
-				let extName = path.extname(f);
+				let extName = path.extname(f).toLocaleLowerCase();
 				if (!extName && !this.files[f].contentType) {
 					trace.warn("File %s does not have an extension, and its content-type is not declared. Defaulting to application/octet-stream.", path.resolve(f));
 					this.files[f].contentType = "application/octet-stream";
