@@ -1,9 +1,9 @@
-import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
+import { IRequestHandler } from "vso-node-api/interfaces/common/VsoBaseInterfaces";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import { repeatStr } from "../lib/common";
 import { TfsConnection } from "../lib/connection";
-import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
+import { WebApi, getBasicHandler, getNtlmHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
@@ -19,20 +19,22 @@ import trace = require("./trace");
 import version = require("./version");
 
 export interface CoreArguments {
-	project: args.StringArgument;
-	root: args.ExistingDirectoriesArgument;
 	authType: args.StringArgument;
-	serviceUrl: args.StringArgument;
-	password: args.SilentStringArgument;
-	token: args.SilentStringArgument;
-	save: args.BooleanArgument;
-	username: args.StringArgument;
-	output: args.StringArgument;
-	json: args.BooleanArgument;
+	domain: args.StringArgument;
 	fiddler: args.BooleanArgument;
-	proxy: args.StringArgument;
 	help: args.BooleanArgument;
+	json: args.BooleanArgument;
 	noPrompt: args.BooleanArgument;
+	output: args.StringArgument;
+	password: args.SilentStringArgument;
+	project: args.StringArgument;
+	proxy: args.StringArgument;
+	root: args.ExistingDirectoriesArgument;
+	save: args.BooleanArgument;
+	serviceUrl: args.StringArgument;
+	token: args.SilentStringArgument;
+	username: args.StringArgument;
+	workstation: args.StringArgument;
 }
 
 export interface Executor<TResult> {
@@ -52,6 +54,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 */
 	constructor(public passedArgs: string[], private serverCommand: boolean = true) {
 		this.setCommandArgs();
+		this.checkInvalidArgs();
 	}
 
 	/**
@@ -120,6 +123,14 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		return this.initialized;
 	}
 
+	private checkInvalidArgs() {
+		this.passedArgs.forEach((arg) => {
+			if (_.startsWith(arg, "--") && !this.commandArgs[arg.substr(2)]) {
+				trace.warn("Unrecognized argument: " + arg + ". Ignoring.");
+			}
+		})
+	}
+
 	private getGroupedArgs(): { [key: string]: string[] } {
 		if (!this.groupedArgs) {
 			let group: { [key: string]: string[] } = {};
@@ -162,7 +173,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected setCommandArgs(): void {
 		this.registerCommandArgument("project", "Project name", null, args.StringArgument);
 		this.registerCommandArgument("root", "Root directory", null, args.ExistingDirectoriesArgument, ".");
-		this.registerCommandArgument("authType", "Authentication Method", "Method of authentication ('pat' or 'basic').", args.StringArgument, "pat");
+		this.registerCommandArgument("authType", "Authentication Method", "Method of authentication ('pat' | 'basic' | 'ntlm').", args.StringArgument, null);
 		this.registerCommandArgument("serviceUrl", "Service URL", "URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.", args.StringArgument);
 		this.registerCommandArgument("password", "Password", "Password to use for basic authentication.", args.SilentStringArgument);
 		this.registerCommandArgument("token", "Personal access token", null, args.SilentStringArgument);
@@ -171,7 +182,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		this.registerCommandArgument("output", "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
 		this.registerCommandArgument("json", "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
 		this.registerCommandArgument("fiddler", "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
-		this.registerCommandArgument("proxy","Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
+		this.registerCommandArgument("proxy", "Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
 		this.registerCommandArgument("help", "Help", "Get help for any command.", args.BooleanArgument, "false");
 		this.registerCommandArgument("noPrompt", "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
@@ -190,15 +201,23 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Else, check the authType - if it is "pat", prompt for a token
 	 * If it is "basic", prompt for username and password.
 	 */
-	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Q.Promise<BasicCredentialHandler> {
+	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Q.Promise<IRequestHandler> {
 		return Q.all([
-			this.commandArgs.authType.val(),
+			this.commandArgs.authType.val(true),
 			this.commandArgs.token.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true)
 		]).spread((authType: string, token: string, username: string, password: string) => {
 			if (username && password) {
-				return getBasicHandler(username, password);
+				return this.commandArgs.authType.val().then<IRequestHandler>((explicitAuthType: string) => {
+					if (explicitAuthType === "ntlm") {
+						return Q.all([this.commandArgs.workstation.val(true), this.commandArgs.domain.val(true)]).spread((workstation: string, domain: string) => {
+							return getNtlmHandler(username, password, workstation, domain);
+						});
+					} else {
+						return getBasicHandler(username, password);
+					}
+				});
 			} else {
 				if (token) {
 					return getBasicHandler("OAuth", token);

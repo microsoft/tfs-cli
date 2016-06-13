@@ -156,7 +156,7 @@ export module LocPrep {
 				vsixRes["displayName"] = displayName;
 				_.set<any, string>(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]", displayName);
 			}
-			if (displayName) {
+			if (description) {
 				vsixRes["description"] = description;
 				_.set<any, string>(vsixManifest, "PackageManifest.Metadata[0].Description[0]._", description);
 			}
