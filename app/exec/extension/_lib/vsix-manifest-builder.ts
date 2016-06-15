@@ -158,6 +158,20 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		});
 	}
 
+	private addBadge(id: string, value: string) {
+		let defaultBadges = [];
+		let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", defaultBadges);
+		if (defaultBadges === existingBadges) {
+			_.set(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", defaultBadges);
+		}
+		existingBadges.push({
+			$: {
+				Link: id,
+				Img_uri: value
+			}
+		});
+	}
+
 	/**
 	 * Given a key/value pair, decide how this effects the manifest
 	 */
@@ -264,6 +278,22 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						} else {
 							trace.warn("'uri' property not found for link: '%s'... ignoring.", linkType);
 						}
+					});
+				}
+				break;
+			case "badges":
+				if (_.isObject(value)) {
+					Object.keys(value).forEach((badgeType) => {
+						let img_url = _.get<string>(value, badgeType + ".image_uri") || _.get<string>(value, badgeType + ".image_url");
+						let url = _.get<string>(value, badgeType + ".uri") || _.get<string>(value, badgeType + ".url");	
+						if (img_url && url) {
+							let badgeTypeCased = _.capitalize(_.camelCase(badgeType));
+							this.addBadge( url, img_url);
+						} else {
+							trace.warn("'image_uri' or 'uri' property not found for badge: '%s'... ignoring.", badgeType);
+						}
+						
+											
 					});
 				}
 				break;
