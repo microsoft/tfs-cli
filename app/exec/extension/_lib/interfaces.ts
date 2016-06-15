@@ -107,6 +107,12 @@ export interface TargetDeclaration {
 	version?: string;
 }
 
+export interface BadgeDeclaration {
+	uri: string;
+	img_uri: string;
+	description: string;
+}
+
 /**
  * Describes the extension's branding in the manifest.
  */

@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "./manifest";
-import { FileDeclaration, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
+import { FileDeclaration, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, BadgeDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
 import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
@@ -158,20 +158,6 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		});
 	}
 
-	private addBadge(id: string, value: string) {
-		let defaultBadges = [];
-		let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", defaultBadges);
-		if (defaultBadges === existingBadges) {
-			_.set(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", defaultBadges);
-		}
-		existingBadges.push({
-			$: {
-				Link: id,
-				Img_uri: value
-			}
-		});
-	}
-
 	/**
 	 * Given a key/value pair, decide how this effects the manifest
 	 */
@@ -282,19 +268,20 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				}
 				break;
 			case "badges":
-				if (_.isObject(value)) {
-					Object.keys(value).forEach((badgeType) => {
-						let img_url = _.get<string>(value, badgeType + ".image_uri") || _.get<string>(value, badgeType + ".image_url");
-						let url = _.get<string>(value, badgeType + ".uri") || _.get<string>(value, badgeType + ".url");	
-						if (img_url && url) {
-							let badgeTypeCased = _.capitalize(_.camelCase(badgeType));
-							this.addBadge( url, img_url);
-						} else {
-							trace.warn("'image_uri' or 'uri' property not found for badge: '%s'... ignoring.", badgeType);
-						}
+				if (_.isArray(value)) {
+					let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", []);
+					value.forEach((badge: BadgeDeclaration) => {
 						
-											
+						let newBadgeAttrs = {
+							Link: badge.uri,
+							Img_uri: badge.img_uri,
+							Description: badge.description
+						};
+						existingBadges.push({
+							$: newBadgeAttrs
+						});
 					});
+					_.set(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", existingBadges);
 				}
 				break;
 			case "branding":
