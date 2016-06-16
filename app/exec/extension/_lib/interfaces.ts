@@ -108,8 +108,8 @@ export interface TargetDeclaration {
 }
 
 export interface BadgeDeclaration {
-	uri: string;
-	img_uri: string;
+	link: string;
+	imgUri: string;
 	description: string;
 }
 

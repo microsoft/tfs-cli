@@ -270,15 +270,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			case "badges":
 				if (_.isArray(value)) {
 					let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", []);
-					value.forEach((badge: BadgeDeclaration) => {
-						
-						let newBadgeAttrs = {
-							Link: badge.uri,
-							Img_uri: badge.img_uri,
-							Description: badge.description
-						};
+					value.forEach((badge: BadgeDeclaration) => {						
 						existingBadges.push({
-							$: newBadgeAttrs
+							$: {
+									Link: badge.link,
+									ImgUri: badge.imgUri,
+									Description: badge.description
+							}
 						});
 					});
 					_.set(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", existingBadges);
