@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "./manifest";
-import { FileDeclaration, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
+import { FileDeclaration, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, BadgeDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
 import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
@@ -265,6 +265,21 @@ export class VsixManifestBuilder extends ManifestBuilder {
 							trace.warn("'uri' property not found for link: '%s'... ignoring.", linkType);
 						}
 					});
+				}
+				break;
+			case "badges":
+				if (_.isArray(value)) {
+					let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", []);
+					value.forEach((badge: BadgeDeclaration) => {						
+						existingBadges.push({
+							$: {
+									Link: badge.link,
+									ImgUri: badge.imgUri,
+									Description: badge.description
+							}
+						});
+					});
+					_.set(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", existingBadges);
 				}
 				break;
 			case "branding":
