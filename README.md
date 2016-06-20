@@ -1,6 +1,6 @@
 # TFS Cross Platform Command Line Interface
 
-[![NPM version](https://badge.fury.io/js/tfx-cli.png)](http://badge.fury.io/js/tfx-cli)
+[![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
 This is a utility to interact with Visual Studio Team Services and Team Foundation Server.  It is cross platform and supported on Windows, OSX and Linux.
 
@@ -71,8 +71,8 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
 ## Troubleshooting
-If you used --save to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
-To see detailed tracing output, you can set a value for the TFX_TRACE environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
+If you used `--save` to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
+To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
 
 <sub>Linux/OSX</sub>
 ```bash
