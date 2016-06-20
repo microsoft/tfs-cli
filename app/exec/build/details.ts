@@ -4,6 +4,7 @@ import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
+import tl = require("vsts-task-lib/task");
 
 export function getCommand(args: string[]): BuildDetails {
 	return new BuildDetails(args);
