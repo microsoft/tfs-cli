@@ -10,6 +10,9 @@ export interface BuildArguments extends CoreArguments {
     parameters: args.StringArgument;
     priority: args.IntArgument;
 	version: args.StringArgument;
+	shelveset: args.StringArgument;
+	poolId: args.IntArgument;
+	agentId: args.IntArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -30,6 +33,9 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
         this.registerCommandArgument("parameters", "parameter file path", "Build process Parameters JSON file.", args.StringArgument,null);
         this.registerCommandArgument("priority", "build queue priority", "Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).", args.IntArgument, null);
 		this.registerCommandArgument("version","Build Sources Version", "the source version for the queued build.",args.StringArgument,null);
+		this.registerCommandArgument("shelveset", "Shelveset to validate", "the shelveset to queue in the build.", args.StringArgument,null );
+		this.registerCommandArgument("poolId", "Agent Pool Id", "Required Agent pool ID For Edit.", args.IntArgument,null);
+		this.registerCommandArgument("agentId", "Agent ID", "Required Agent ID For Edit.", args.IntArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {

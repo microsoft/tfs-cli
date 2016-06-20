@@ -4,6 +4,7 @@ import buildBase = require("./default");
 import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../lib/trace");
+import taskAgentApi = require("vso-node-api/TaskAgentApi");
 
 export function getCommand(args: string[]): Agent {
 	return new Agent(args);
@@ -20,20 +21,18 @@ export class Agent extends buildBase.BuildBase<buildBase.BuildArguments, taskAge
 		trace.debug("agent.exec");
 		var agentapi: agentClient.IQTaskAgentApiBase = this.webApi.getQTaskAgentApi();
 		return this.commandArgs.poolId.val().then((pool) => {
-			trace.info("getting agent pool:	 %s",pool);
+			trace.debug("getting agent pool: %s",pool);
 			return this.commandArgs.agentId.val().then((agent) => {
-				trace.info("getting agent	  : %s", agent);
+				trace.debug("getting agent	  : %s", agent);
 				return agentapi.getAgent(pool,agent,true,true,null);
 			});
 		});
-
 	}
-
+	
 	public friendlyOutput(agent: taskAgentContracts.TaskAgent): void {
 		//if (!agent) {
 		//	throw new Error("no agent / pool supplied");
 		//}
-		
 		trace.println();
 		trace.info("Agent id        : %s", agent.id ? agent.id : "unknown");
 		trace.info("Agent name      : %s", agent.name ? agent.name : "unknown");

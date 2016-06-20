@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority","version"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
@@ -51,7 +51,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
                             trace.debug("build queue priority  : %s", priority ? priority: "3")
                             	return this.commandArgs.version.val().then((version) => {
 									trace.debug("build source version: %s", version ? version: "Latest")
-									return this._queueBuild(buildapi, definition, project, parameters, priority, version);
+									return this.commandArgs.shelveset.val().then((shelveset) => {
+										return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset);
+									});
 							});        
                         });
                     });
@@ -66,15 +68,17 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		}
 
 		trace.println();
-		trace.info("id              : %s", build.id);
-		trace.info("definition name : %s", build.definition ? build.definition.name : "unknown");
-		trace.info("requested by    : %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
-		trace.info("status          : %s", buildContracts.BuildStatus[build.status]);
-		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
+		trace.info("id              	: %s", build.id);
+		trace.info("definition name 	: %s", build.definition ? build.definition.name : "unknown");
+		trace.info("requested by    	: %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
+		trace.info("status          	: %s", buildContracts.BuildStatus[build.status]);
+		trace.info("queue time      	: %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
+		trace.info("version				: %s", build.sourceVersion ? build.sourceVersion : "latest")
+		trace.info("branch / shelveset 	: %s", build.sourceBranch ? build.sourceBranch :"master (no shelveset)")
 	}
 
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string) {
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string, shelveset: string) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -87,7 +91,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 			definition: definition,
             priority: priority ? priority: 3,
             parameters: parameters,
-			sourceVersion: version           
+			sourceVersion: version,
+			sourceBranch: shelveset
 		};
 		return buildapi.queueBuild(build, project);
 	}
