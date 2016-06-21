@@ -52,6 +52,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
                             	return this.commandArgs.version.val().then((version) => {
 									trace.debug("build source version: %s", version ? version: "Latest")
 									return this.commandArgs.shelveset.val().then((shelveset) => {
+                                        trace.debug("shelveset name: %s", shelveset ? shelveset: "none")
                                         return this.commandArgs.demand.val().then((demand) => {
                                             return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demand);
                                     });
@@ -98,6 +99,6 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
             demands: [("%s",demand)]
             
 		};
-		return buildapi.queueBuild(build, project);
+        return buildapi.queueBuild(build, project);       
 	}
 }
