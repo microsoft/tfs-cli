@@ -50,7 +50,7 @@ export class Agent extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent>
 		trace.info("Agent id        	: %s", agent.id ? agent.id : "unknown");
 		trace.info("Agent name      	: %s", agent.name ? agent.name : "unknown");
 		trace.info("Version         	: %s", agent.version ? agent.version : "unknown");
-		trace.info("status          	: %s", agent.status ? agent.status : "unknown");
+		trace.info("status          	: %s", agent.status ? taskAgentContracts.TaskAgentStatus[agent.status] : "unknown");
 		trace.info("enabled		      	: %s", agent.enabled ? agent.enabled : "unknown");
 		if (agent.systemCapabilities){
 			trace.info("System capabilities : ");
