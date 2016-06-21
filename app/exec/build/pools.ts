@@ -6,34 +6,31 @@ import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces
 import trace = require("../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
 
-export function getCommand(args: string[]): Agents {
-	return new Agents(args);
+export function getCommand(args: string[]): Pools {
+	return new Pools(args);
 }
 
-export class Agents extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent> {
+export class Pools extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent> {
 	protected description = "Show task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId"];
+		return [];
 	}
 
-	public exec(): Q.Promise<taskAgentContracts.TaskAgent[]> {
-		trace.debug("agents.exec");
+	public exec(): Q.Promise<taskAgentContracts.TaskAgentPool[]> {
+		trace.debug("pool.exec");
 		var agentapi: agentClient.IQTaskAgentApiBase = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
-		return this.commandArgs.poolId.val().then((pool) => {
-			trace.debug("getting pool  : %s",pool);
-				return agentapi.getAgents(pool);
-			});
+			return agentapi.getAgentPools();
 	}
 	
-	public friendlyOutput(agents: taskAgentContracts.TaskAgent[]): void {
-		if (!agents) {
+	public friendlyOutput(pools: taskAgentContracts.TaskAgentPool[]): void {
+		if (!pools) {
 			throw new Error("pool not supplied or not found");
 		}
-		trace.info("Agents in pool:")
+		trace.info("Pools on server:")
 		trace.println();
-		agents.forEach((agent) => {
-			trace.info("	%s	(%s)	:	%s ", agent.id,agent.version, agent.name);
+		pools.forEach((pool) => {
+			trace.info("	%s	:	%s ", pool.id, pool.name);
 		});
 	}
 }

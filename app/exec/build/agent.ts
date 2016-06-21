@@ -14,7 +14,7 @@ export class Agent extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent>
 	protected description = "Show task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId", "agentId"];
+		return ["poolId", "agentId","userCapabilityKey","userCapabilityValue"];
 	}
 
 	public exec(): Q.Promise<taskAgentContracts.TaskAgent> {
@@ -22,9 +22,22 @@ export class Agent extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent>
 		var agentapi: agentClient.IQTaskAgentApiBase = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 		return this.commandArgs.poolId.val().then((pool) => {
 			trace.debug("getting pool  : %s",pool);
-			return this.commandArgs.agentId.val().then((agent) => {
-				trace.debug("getting agent : %s", agent);
-				return agentapi.getAgent(pool,agent,true,true,null);
+			return this.commandArgs.agentId.val().then((agentid) => {
+				trace.debug("getting agent : %s", agentid);
+				return this.commandArgs.userCapabilityKey.val().then((newkey) => {
+					return this.commandArgs.userCapabilityValue.val().then((value) => {
+						return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
+						var include: boolean = true;
+						if (newkey) {
+								include = false;
+								var capabilities: { [key: string] : string; } = agent.userCapabilities;
+								capabilities[newkey] = value;					
+								agentapi.updateAgentUserCapabilities(capabilities,pool,agentid);
+							};
+							return agentapi.getAgent(pool,agentid,include,include,null);
+						});
+					});
+				});
 			});
 		});
 	}
@@ -39,11 +52,15 @@ export class Agent extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent>
 		trace.info("Version         	: %s", agent.version ? agent.version : "unknown");
 		trace.info("status          	: %s", agent.status ? agent.status : "unknown");
 		trace.info("enabled		      	: %s", agent.enabled ? agent.enabled : "unknown");
-		trace.info("System capabilities : ");
+		if (agent.systemCapabilities){
+			trace.info("System capabilities : ");
+		}
 		for (var key in agent.systemCapabilities) {
  		    	trace.info("	%s : %s",key , agent.systemCapabilities[key]);
 			}
-		trace.info("User capabilities : ");
+		if (agent.userCapabilities) {
+			trace.info("User capabilities : ");	
+		}
 		for (var key in agent.userCapabilities) {
 				trace.info("	%s : %s", key ,agent.userCapabilities[key]);
 		}

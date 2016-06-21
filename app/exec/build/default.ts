@@ -13,6 +13,8 @@ export interface BuildArguments extends CoreArguments {
 	shelveset: args.StringArgument;
 	poolId: args.IntArgument;
 	agentId: args.IntArgument;
+	userCapabilityKey: args.StringArgument;
+	userCapabilityValue: args.StringArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -36,6 +38,8 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("shelveset", "Shelveset to validate", "the shelveset to queue in the build.", args.StringArgument,null );
 		this.registerCommandArgument("poolId", "Agent Pool Id", "Required Agent pool ID For Edit.", args.IntArgument,null);
 		this.registerCommandArgument("agentId", "Agent ID", "Required Agent ID For Edit.", args.IntArgument,null);
+		this.registerCommandArgument("userCapabilityKey", "Capability to add / edit", "Capability to add / edit to the Agent.", args.StringArgument,null);
+		this.registerCommandArgument("userCapabilityValue", "Value to add / edit", "Value to add / edit to the Agent User Capabilities.", args.StringArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {
