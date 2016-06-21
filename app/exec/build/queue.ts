@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demand","demandValue"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
@@ -52,8 +52,10 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
                             	return this.commandArgs.version.val().then((version) => {
 									trace.debug("build source version: %s", version ? version: "Latest")
 									return this.commandArgs.shelveset.val().then((shelveset) => {
-										return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset);
-									});
+                                        return this.commandArgs.demand.val().then((demand) => {
+                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demand);
+                                    });
+							     });
 							});        
                         });
                     });
@@ -78,7 +80,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string, shelveset: string) {
+	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string, shelveset: string, demand :string) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -92,7 +94,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
             priority: priority ? priority: 3,
             parameters: parameters,
 			sourceVersion: version,
-			sourceBranch: shelveset
+			sourceBranch: shelveset,
+            demands: [("%s",demand)]
+            
 		};
 		return buildapi.queueBuild(build, project);
 	}
