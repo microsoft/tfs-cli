@@ -41,7 +41,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("agentId", "Agent ID", "Required Agent ID For Edit.", args.IntArgument,null);
 		this.registerCommandArgument("userCapabilityKey", "Capability to add / edit", "Capability to add / edit to the Agent.", args.StringArgument,null);
 		this.registerCommandArgument("userCapabilityValue", "Value to add / edit", "Value to add / edit to the Agent User Capabilities.", args.StringArgument,null);
-        this.registerCommandArgument("demand","Build demand key","Demand string for Queued Build (<key> / <key> -equals <value>).",args.StringArgument,null);
+        this.registerCommandArgument("demand","Build demand key","Demand string for Queued Build [key / key -equals value.",args.StringArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {

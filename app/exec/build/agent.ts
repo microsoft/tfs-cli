@@ -1,6 +1,6 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
-import agentBase = require("./Tasks/default");
+import agentBase = require("./default");
 import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../lib/trace");
@@ -10,11 +10,11 @@ export function getCommand(args: string[]): Agent {
 	return new Agent(args);
 }
 
-export class Agent extends agentBase.BuildTaskBase<taskAgentContracts.TaskAgent> {
+export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAgentContracts.TaskAgent> {
 	protected description = "Show / Update task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId", "agentId","userCapabilityKey","userCapabilityValue"];
+		return ["poolId","agentId","userCapabilityKey","userCapabilityValue"];
 	}
 
 	public exec(): Q.Promise<taskAgentContracts.TaskAgent> {

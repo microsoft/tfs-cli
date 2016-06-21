@@ -28,11 +28,10 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("taskId", "Task ID", "Identifies a particular Build Task.", args.StringArgument);
 		this.registerCommandArgument("taskPath", "Task path", "Local path to a Build Task.", args.ExistingDirectoriesArgument);
 		this.registerCommandArgument("overwrite", "Overwrite?", "Overwrite existing Build Task.", args.BooleanArgument, "false");
-
 		this.registerCommandArgument("taskName", "Task Name", "Name of the Build Task.", args.StringArgument);
-		this.registerCommandArgument("friendlyName", "Friendly Task Name", null, args.StringArgument);
-		this.registerCommandArgument("description", "Task Description", null, args.StringArgument);
-		this.registerCommandArgument("author", "Task Author", null, args.StringArgument);
+		this.registerCommandArgument("friendlyName", "Friendly Task Name.", null, args.StringArgument);
+		this.registerCommandArgument("description", "Task Description.", null, args.StringArgument);
+		this.registerCommandArgument("author", "Task Author.", null, args.StringArgument);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {
