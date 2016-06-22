@@ -81,7 +81,13 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string, parameters: string, priority: number, version: string, shelveset: string, demand :string) {
+	private _queueBuild(buildapi: buildClient.IQBuildApi,
+						definition: buildContracts.DefinitionReference,
+						project: string, parameters: string, 
+						priority: number, 
+						version: string, 
+						shelveset: string, 
+						demand :string) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -90,13 +96,16 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
         {
             var parameters = "";
         }
-        var build = <buildContracts.Build> {
+        if (demand.indexOf(";") >= 0) {
+			var demandList: string[] = demand.split(";");
+		}
+		var build = <buildContracts.Build> {
 			definition: definition,
             priority: priority ? priority: 3,
             parameters: parameters,
 			sourceVersion: version,
 			sourceBranch: shelveset,
-            demands: [("%s",demand)]
+            demands: demandList ? demandList : [("%s",demand)]
             
 		};
         return buildapi.queueBuild(build, project);       

@@ -47,6 +47,6 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
         trace.info("quality         : %s", build.quality);
         trace.info("reason          : %s", buildContracts.BuildReason[build.reason]);
         trace.info("version         : %s", build.sourceVersion ? build.sourceVersion.replace("C","") : "unknown");
-        trace.info("API URL         : %s", build.url);       
+        trace.info("API URL         : %s", build.url); 
     }
 }
