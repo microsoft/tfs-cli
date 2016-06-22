@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demand"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands"];
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
@@ -53,8 +53,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 									trace.debug("build source version: %s", version ? version: "Latest")
 									return this.commandArgs.shelveset.val().then((shelveset) => {
                                         trace.debug("shelveset name: %s", shelveset ? shelveset: "none")
-                                        return this.commandArgs.demand.val().then((demand) => {
-                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demand);
+                                        return this.commandArgs.demands.val().then((demands) => {
+                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demands);
                                     });
 							     });
 							});        
@@ -87,7 +87,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 						priority: number, 
 						version: string, 
 						shelveset: string, 
-						demand :string) {
+						demands :string) {
 		trace.debug("Queueing build...")
 		if (fs.existsSync(parameters)) {
             var parameters = fs.readFileSync(parameters,'utf8');    
@@ -96,8 +96,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
         {
             var parameters = "";
         }
-        if (demand.indexOf(";") >= 0) {
-			var demandList: string[] = demand.split(";");
+        if (demands.indexOf(";") >= 0) {
+			var demandList: string[] = demands.split(";");
 		}
 		var build = <buildContracts.Build> {
 			definition: definition,
@@ -105,7 +105,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
             parameters: parameters,
 			sourceVersion: version,
 			sourceBranch: shelveset,
-            demands: demandList ? demandList : [("%s",demand)]
+            demands: demandList ? demandList : [("%s",demands)]
             
 		};
         return buildapi.queueBuild(build, project);       
