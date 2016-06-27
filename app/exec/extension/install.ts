@@ -6,8 +6,10 @@ import Q = require("q");
 import trace = require("../../lib/trace");
 import GalleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
 import gallerym = require("vso-node-api/GalleryApi");
+import vstscorem = require("vso-node-api/CoreApi");
 
 const SPS_INSTANCE_TYPE = "951917AC-A960-4999-8464-E3F0AA25B381";
+const MARKETPLACE_INSTANCE_TYPE = "00000029-0000-8888-8000-000000000000";
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, ExtensionInstallResult> {
 	return new ExtensionInstall(args);
@@ -65,7 +67,7 @@ export class ExtensionInstallResult {
 }
 
 export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResult> {
-	protected description = "Install a Visual Studio Services Extension to a list of VSTS Accounts.";
+	protected description = "Install a Visual Studio Services Extension to a list of VSTS Accounts or TFS Project Collections.";
 
 	constructor(passedArgs: string[]) {
 		super(passedArgs);
@@ -73,7 +75,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();
-		this.registerCommandArgument("accounts", "Installation target accounts", "List of accounts where to install the extension.", args.ArrayArgument);
+		this.registerCommandArgument("accounts", "Installation targets", "List of VSTS accounts, or list TFS Project Collections, where to install the extension.", args.ArrayArgument);
 	}
 
 	protected getHelpArgs(): string[] {
@@ -158,9 +160,20 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 				}
 
 				trace.debug("Installation User Id:" + data.authenticatedUser.id);
-				return this._getAccountsByMemberId(data.authenticatedUser.id);
+
+				// Check if we're targeting the public Marketplace
+				if (data.locationServiceData && data.locationServiceData.serviceOwner == MARKETPLACE_INSTANCE_TYPE) {
+					trace.debug("Targeting public Marketplace. Prepare to get accounts for current authenticated user");
+					return this._getAccountsByMemberId(data.authenticatedUser.id).then(accounts => accounts.map(a => <TargetAccount>{ accountId: a.accountId, accountName: a.accountName }));
+				}
+				else {
+					// Assumning a local gallery. Let's read collections
+					trace.debug("Targeting a local gallery. Prepare to get project collections.");
+					const coreApi = this.webApi.getQCoreApi(this.webApi.serverUrl);
+					return coreApi.getProjectCollections().then(collections => collections.map(c => <TargetAccount>{ accountId: c.id, accountName: c.name }));
+				}
 			})
-			.then((userAccounts: Account[]) => {
+			.then((userAccounts: TargetAccount[]) => {
 
 				const getAccountId = (accountName: string): string => {
 					const resolvedAccount = userAccounts.filter(a => a.accountName.toLowerCase() === accountName.toLowerCase());
@@ -180,7 +193,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		const accountReport: AccountInstallReport = new AccountInstallReport(itemId, accountName, accountId);
 
 		if (!accountId) {
-			accountReport.setError(`Cannot install extension into account ${accountName} because is not an acccount for which the installation user is owner or a member of.`);
+			accountReport.setError(`Cannot install extension into ${accountName} because is not a target for which the installation user is owner or a member of.`);
 			return Q.resolve(accountReport);
 		}
 
@@ -204,7 +217,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 					return accountReport;
 				}
 
-				trace.error(`Failed GalleryApi.requestAcquisition for account ${accountName}: ${err}`);
+				trace.error(`Failed GalleryApi.requestAcquisition for ${accountName}: ${err}`);
 				accountReport.setError(err);
 				return accountReport;
 			});
