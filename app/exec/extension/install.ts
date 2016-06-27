@@ -75,7 +75,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();
-		this.registerCommandArgument("accounts", "Installation targets", "List of VSTS accounts, or list TFS Project Collections, where to install the extension.", args.ArrayArgument);
+		this.registerCommandArgument("accounts", "Installation targets", "List of VSTS accounts, or list of TFS Project Collections, where to install the extension.", args.ArrayArgument);
 	}
 
 	protected getHelpArgs(): string[] {
