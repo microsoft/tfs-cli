@@ -42,15 +42,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 					if(ao.length > 0) {
 						agentid = ao[0].id;
 						trace.debug("found, agent id %s for agent name %s",agentid, agentname);
-						return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
-							if (newkey) {
-								include = false;
-								var capabilities: { [key: string] : string; } = agent.userCapabilities;
-								capabilities[newkey] = value;					
-								agentapi.updateAgentUserCapabilities(capabilities,pool,agentid);
-								};
-							return agentapi.getAgent(pool,agentid,include,include,null);
-						});;
+						return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include); 
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
@@ -58,15 +50,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 					}
 				});
 			}
-			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
-			if (newkey) {
-				include = false;
-					var capabilities: { [key: string] : string; } = agent.userCapabilities;
-					capabilities[newkey] = value;					
-					agentapi.updateAgentUserCapabilities(capabilities,pool,agentid);
-					};
-				return agentapi.getAgent(pool,agentid,include,include,null);
-				});	
+			return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include);	
 			});
 		};
 	
@@ -92,5 +76,16 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 		for (var key in agent.userCapabilities) {
 				trace.info("	%s : %s", key ,agent.userCapabilities[key]);
 		}
+	}
+	private _getOrUpdateAgent(agentapi:  agentClient.IQTaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean ) {
+			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
+			if (newkey) {
+				include = false;
+					var capabilities: { [key: string] : string; } = agent.userCapabilities;
+					capabilities[newkey] = value;					
+					agentapi.updateAgentUserCapabilities(capabilities,pool,agentid);
+					};
+				return agentapi.getAgent(pool,agentid,include,include,null);
+				});	
 	}
 }
