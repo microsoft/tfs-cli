@@ -13,6 +13,7 @@ export interface BuildArguments extends CoreArguments {
 	shelveset: args.StringArgument;
 	poolId: args.IntArgument;
 	agentId: args.IntArgument;
+	agentName: args.StringArgument;
 	userCapabilityKey: args.StringArgument;
 	userCapabilityValue: args.StringArgument;
     demands: args.StringArgument;
@@ -38,7 +39,8 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("version","Build Sources Version", "the source version for the queued build.",args.StringArgument,null);
 		this.registerCommandArgument("shelveset", "Shelveset to validate", "the shelveset to queue in the build.", args.StringArgument,null );
 		this.registerCommandArgument("poolId", "Agent Pool Id", "Required Agent pool ID For Edit.", args.IntArgument,null);
-		this.registerCommandArgument("agentId", "Agent ID", "Required Agent ID For Edit.", args.IntArgument,null);
+		this.registerCommandArgument("agentId", "Agent ID", "Required Agent ID.", args.IntArgument,null);
+		this.registerCommandArgument("agentName", "Agent Name", "Required Agent Name.", args.StringArgument,null);
 		this.registerCommandArgument("userCapabilityKey", "Capability to add / edit", "Capability to add / edit to the Agent.", args.StringArgument,null);
 		this.registerCommandArgument("userCapabilityValue", "Value to add / edit", "Value to add / edit to the Agent User Capabilities.", args.StringArgument,null);
         this.registerCommandArgument("demands","Build demand key","Demands string [semi-colon separator] for Queued Build [key / key -equals value].",args.StringArgument,null);
