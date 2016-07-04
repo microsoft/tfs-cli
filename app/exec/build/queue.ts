@@ -54,7 +54,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 									return this.commandArgs.shelveset.val().then((shelveset) => {
                                         trace.debug("shelveset name: %s", shelveset ? shelveset: "none")
                                         return this.commandArgs.demands.val().then((demands) => {
-                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demands);
+											trace.debug("build demands	: %s", demands ? demands: "none")
+                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demands ? demands:"");
                                     });
 							     });
 							});        
@@ -96,9 +97,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
         {
             var parameters = "";
         }
-        if (demands.indexOf(";") >= 0) {
+		if (demands && demands.indexOf(";") >= 0) {
 			var demandList: string[] = demands.split(";");
-		}
+		}	
 		var build = <buildContracts.Build> {
 			definition: definition,
             priority: priority ? priority: 3,
