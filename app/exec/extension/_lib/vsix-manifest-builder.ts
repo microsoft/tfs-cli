@@ -267,6 +267,21 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					});
 				}
 				break;
+			case "repository":
+				if (_.isObject(value)) {					
+						const {type, url} = value;
+						if (!type) {
+							throw new Error("Repository must have a 'type' property.");
+						}
+						if (type !== "git") {
+							throw new Error("Currently 'git' is the only supported repository type.");
+						}
+						if (!url) {
+							throw new Error("Repository must contain a 'url' property.");
+						}
+						this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url);
+				}
+				break;
 			case "badges":
 				if (_.isArray(value)) {
 					let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", []);
