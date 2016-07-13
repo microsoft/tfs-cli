@@ -82,20 +82,25 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	private _getOrUpdateAgent(agentapi:  agentClient.IQTaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
 			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
 			trace.debug("disable request: %s",disable);
-			if (disable == "true") {
-					include = false;
-					trace.debug("agent status (enabled): %s",agent.enabled);
-					agent.enabled = false;
-					agentapi.updateAgent(agent,pool,agentid);
-					trace.debug("agent status (enabled): %s",agent.enabled);
+			if (disable) {
+				if (disable == "true") {
+						include = false;
+						trace.debug("agent status (enabled): %s",agent.enabled);
+						agent.enabled = false;
+						agentapi.updateAgent(agent,pool,agentid);
+						trace.debug("agent status (enabled): %s",agent.enabled);
+					}
+				if (disable == "false") {
+						include = false;
+						trace.debug("agent status (enabled): %s",agent.enabled);
+						agent.enabled = true;
+						agentapi.updateAgent(agent,pool,agentid);
+						trace.debug("agent status (enabled): %s",agent.enabled);
+					}
+				if (disable != "true" && disable != "false") {
+					trace.error("allowed values are [true] or [false]!")		
 				}
-			if (disable == "false") {
-					include = false;
-					trace.debug("agent status (enabled): %s",agent.enabled);
-					agent.enabled = true;
-					agentapi.updateAgent(agent,pool,agentid);
-					trace.debug("agent status (enabled): %s",agent.enabled);
-				}
+			}
 			if (newkey) {
 				include = false;
 					var capabilities: { [key: string] : string; } = agent.userCapabilities;
