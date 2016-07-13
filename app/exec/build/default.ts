@@ -17,6 +17,7 @@ export interface BuildArguments extends CoreArguments {
 	userCapabilityKey: args.StringArgument;
 	userCapabilityValue: args.StringArgument;
     demands: args.StringArgument;
+	disable: args.StringArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -44,6 +45,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("userCapabilityKey", "Capability to add / edit", "Capability to add / edit to the Agent.", args.StringArgument,null);
 		this.registerCommandArgument("userCapabilityValue", "Value to add / edit", "Value to add / edit to the Agent User Capabilities.", args.StringArgument,null);
         this.registerCommandArgument("demands","Build demand key","Demands string [semi-colon separator] for Queued Build [key / key -equals value].",args.StringArgument,null);
+		this.registerCommandArgument("disable","disable / enable agent","Update the agent status.",args.StringArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {

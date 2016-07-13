@@ -15,7 +15,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	protected description = "Show / Update task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId","agentId", "agentName","userCapabilityKey","userCapabilityValue"];
+		return ["poolId","agentId", "agentName","userCapabilityKey","userCapabilityValue","disable"];
 	}
 
 	public exec(): Q.Promise<taskAgentContracts.TaskAgent> {
@@ -26,8 +26,9 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 			this.commandArgs.agentName.val(),
 			this.commandArgs.poolId.val(),
 			this.commandArgs.userCapabilityKey.val(),
-			this.commandArgs.userCapabilityValue.val()
-		]).spread((agentid, agentname, pool, newkey, value) => {
+			this.commandArgs.userCapabilityValue.val(),
+			this.commandArgs.disable.val()
+		]).spread((agentid, agentname, pool, newkey, value, disable) => {
 			var agents: number[] = null;
 			trace.debug("getting pool  : %s",pool);
 			trace.debug("getting agent (id) : %s", agentid);
@@ -42,7 +43,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 					if(ao.length > 0) {
 						agentid = ao[0].id;
 						trace.debug("found, agent id %s for agent name %s",agentid, agentname);
-						return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include); 
+						return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include,disable); 
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
@@ -50,7 +51,8 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 					}
 				});
 			}
-			return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include);	
+			trace.debug("disable request: %s",disable);
+			return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include,disable);	
 			});
 		};
 	
@@ -77,8 +79,23 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				trace.info("	%s : %s", key ,agent.userCapabilities[key]);
 		}
 	}
-	private _getOrUpdateAgent(agentapi:  agentClient.IQTaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean ) {
+	private _getOrUpdateAgent(agentapi:  agentClient.IQTaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
 			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
+			trace.debug("disable request: %s",disable);
+			if (disable == "true") {
+					include = false;
+					trace.debug("agent status (enabled): %s",agent.enabled);
+					agent.enabled = false;
+					agentapi.updateAgent(agent,pool,agentid);
+					trace.debug("agent status (enabled): %s",agent.enabled);
+				}
+			if (disable == "false") {
+					include = false;
+					trace.debug("agent status (enabled): %s",agent.enabled);
+					agent.enabled = true;
+					agentapi.updateAgent(agent,pool,agentid);
+					trace.debug("agent status (enabled): %s",agent.enabled);
+				}
 			if (newkey) {
 				include = false;
 					var capabilities: { [key: string] : string; } = agent.userCapabilities;
