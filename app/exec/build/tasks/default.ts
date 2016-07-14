@@ -12,6 +12,7 @@ export interface TaskArguments extends buildBase.BuildArguments {
 	friendlyName: args.StringArgument;
 	description: args.StringArgument;
 	author: args.StringArgument;
+	taskVersion :args.StringArgument;
 }
 
 export function getCommand(args: string[]): BuildTaskBase<void> {
@@ -32,6 +33,7 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("friendlyName", "Friendly Task Name.", null, args.StringArgument);
 		this.registerCommandArgument("description", "Task Description.", null, args.StringArgument);
 		this.registerCommandArgument("author", "Task Author.", null, args.StringArgument);
+		this.registerCommandArgument("taskVersion", "Task Version", "Build Task version.", args.StringArgument);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {
