@@ -27,7 +27,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 			return this.commandArgs.taskVersion.val().then((Version) =>{
 				let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
 				return agentApi.getTaskContentZip(Id,Version).then((task) => {
-						task.pipe(fs.createWriteStream("task.zip"));
+						task.pipe(fs.createWriteStream(Id+"-"+Version+".zip"));
 						trace.info('Downloading ... ');
 						return <agentContracts.TaskDefinition>{
 							id: Id
