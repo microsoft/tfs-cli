@@ -20,6 +20,8 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 
 	protected getHelpArgs(): string[] {
 		return ["taskId","taskVersion"];
+		// TO DO: input task name and resolve id
+		// TO DO: no veriosn input and resolve latest id
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition> {
@@ -28,6 +30,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 				let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
 				return agentApi.getTaskContentZip(Id,Version).then((task) => {
 						task.pipe(fs.createWriteStream(Id+"-"+Version+".zip"));
+						// TO DO: check archive integrity and throw error verion of id not found 
 						trace.info('Downloading ... ');
 						return <agentContracts.TaskDefinition>{
 							id: Id
