@@ -8,7 +8,6 @@ import Q = require('q');
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
-import stream = require('ts-stream');
 
 export function getCommand(args: string[]): BuildTaskUpload {
 	return new BuildTaskUpload(args);
@@ -30,7 +29,6 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 				return agentApi.getTaskContentZip(Id,Version).then((task) => {
 						task.pipe(fs.createWriteStream("task.zip"));
 						trace.info('Downloading ... ');
-						let archive = archiver('zip');
 						return <agentContracts.TaskDefinition>{
 							id: Id
 						};
