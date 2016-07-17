@@ -13,6 +13,7 @@ export interface TaskArguments extends buildBase.BuildArguments {
 	description: args.StringArgument;
 	author: args.StringArgument;
 	taskVersion :args.StringArgument;
+	filter :args.StringArgument;
 }
 
 export function getCommand(args: string[]): BuildTaskBase<void> {
@@ -34,6 +35,7 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("description", "Task Description.", null, args.StringArgument);
 		this.registerCommandArgument("author", "Task Author.", null, args.StringArgument);
 		this.registerCommandArgument("taskVersion", "Task Version", "Build Task version.", args.StringArgument,null);
+		this.registerCommandArgument("filter", "name filter", "Filter list by name match case.", args.StringArgument,null);
 	}
 
 	public exec(cmd?: any): Q.Promise<any> {

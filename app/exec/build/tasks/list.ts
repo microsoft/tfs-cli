@@ -13,7 +13,7 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 	protected description = "Get a list of build tasks";
 
 	protected getHelpArgs(): string[] {
-		return ["all"];
+		return ["all","filter"];
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition[]> {
@@ -23,13 +23,25 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 		return agentapi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
 			trace.debug("Retrieved " + tasks.length + " build tasks from server.");
 			return this.commandArgs.all.val().then((all) => {
-				if (all) {
-					trace.debug("Listing all build tasks.");
-					return tasks;
-				} else {
-					trace.debug("Filtering build tasks to give only the latest versions.");
-					return this._getNewestTasks(tasks);
-				}
+				return this.commandArgs.filter.val().then((Filter) =>{
+					var filteredtasks;
+					if (Filter) {
+						filteredtasks = tasks.filter(function _filterTasks(item) {
+							return item.name.indexOf(Filter) >= 0;
+						})
+						trace.info("Filtering tasks containing: %s", Filter)	
+					}
+					if (filteredtasks) {
+						tasks = filteredtasks	
+					}
+					if (all) {
+						trace.debug("Listing all build tasks.");
+						return tasks;
+					} else {
+						trace.debug("Filtering build tasks to give only the latest versions.");
+						return this._getNewestTasks(tasks);
+					}
+				});
 			});
 		});
 	}

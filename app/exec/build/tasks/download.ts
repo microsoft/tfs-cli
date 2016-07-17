@@ -28,6 +28,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 			}
 			return this.commandArgs.taskVersion.val().then((Version) =>{
 				let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
+				trace.info("retriving tasks from the server ...")
 				return agentApi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
 					var taskDictionary = this._getNewestTasks(tasks);
 					return this.commandArgs.taskName.val().then((Name) => {
@@ -40,6 +41,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 									}
 								}
 							});
+							trace.info("found %s with version %s ...",Name,Version);
 						}
 						else
 						{
@@ -50,7 +52,8 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 										Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
 									}
 								}
-							});	
+							});
+							trace.info("found %s with version %s ...",Name,Version);	
 						}
 						return agentApi.getTaskContentZip(Id,Version).then((task) => {
 							var archiveName = Name+"-"+Version+".zip";
