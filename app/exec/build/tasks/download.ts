@@ -1,6 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
 import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
-import archiver = require('archiver');
 import args = require("../../../lib/arguments");
 import fs = require('fs');
 import path = require('path');
@@ -9,39 +8,120 @@ import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
 
-export function getCommand(args: string[]): BuildTaskUpload {
-	return new BuildTaskUpload(args);
+export function getCommand(args: string[]): BuildTaskDownload {
+	return new BuildTaskDownload(args);
 }
 
 var c_taskJsonFile: string = 'task.json';
 
-export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
+export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
 	protected description = "Download a Build Task.";
 
 	protected getHelpArgs(): string[] {
-		return ["taskId","taskVersion"];
-		// TO DO: input task name and resolve id
-		// TO DO: no veriosn input and resolve latest id
+		return ["taskId","taskVersion","taskName"];
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskId.val().then((Id) => {
+			if (!Id) {
+				Id = "";
+			}
 			return this.commandArgs.taskVersion.val().then((Version) =>{
 				let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
-				return agentApi.getTaskContentZip(Id,Version).then((task) => {
-						task.pipe(fs.createWriteStream(Id+"-"+Version+".zip"));
-						// TO DO: check archive integrity and throw error verion of id not found 
-						trace.info('Downloading ... ');
-						return <agentContracts.TaskDefinition>{
-							id: Id
-						};
+				return agentApi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
+					var taskDictionary = this._getNewestTasks(tasks);
+					return this.commandArgs.taskName.val().then((Name) => {
+						if (!Id) {
+							taskDictionary.forEach(element => {
+								if (element.name == Name) {
+									Id = element.id;
+									if (!Version) {
+										Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+									}
+								}
+							});
+						}
+						else
+						{
+							taskDictionary.forEach(element => {
+								if (element.id == Id) {
+									Name = element.name;
+									if (!Version) {
+										Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+									}
+								}
+							});	
+						}
+						return agentApi.getTaskContentZip(Id,Version).then((task) => {
+							var archiveName = Name+"-"+Version+".zip";
+							task.pipe(fs.createWriteStream(archiveName)); 
+							trace.info('Downloading ... ');
+							return <agentContracts.TaskDefinition>{
+								id: Id,
+								name: Name,							
+							};
+						});
 					});
 				});
 			});	
+		});
 		}
 
 	public friendlyOutput(task: agentContracts.TaskDefinition): void {
-		trace.println();
-		trace.success('[%s] Downloaded successfully!', task.id);
+		trace.success('[%s] Downloaded successfully!', task.name);
+	}
+	
+	private _getNewestTasks(allTasks: agentContracts.TaskDefinition[]): agentContracts.TaskDefinition[] {
+		var taskDictionary: { [id: string]: agentContracts.TaskDefinition; } = {};
+		for (var i = 0; i < allTasks.length; i++) {
+			var currTask: agentContracts.TaskDefinition = allTasks[i];
+			if(taskDictionary[currTask.id])
+			{
+				var newVersion: TaskVersion = new TaskVersion(currTask.version);
+				var knownVersion: TaskVersion = new TaskVersion(taskDictionary[currTask.id].version);
+				trace.debug("Found additional version of " + currTask.name + " and comparing to the previously encountered version.");
+				if (this._compareTaskVersion(newVersion, knownVersion) > 0) {
+					trace.debug("Found newer version of " + currTask.name + ".  Previous: " + knownVersion.toString() + "; New: " + newVersion.toString());
+					taskDictionary[currTask.id] = currTask;
+				}
+			}
+			else {
+				trace.debug("Found task " + currTask.name);
+				taskDictionary[currTask.id] = currTask;
+			}
+		}
+		var newestTasks: agentContracts.TaskDefinition[] = [];
+		for(var id in taskDictionary) {
+			newestTasks.push(taskDictionary[id]);
+		}
+		return newestTasks;
+	}
+	
+	private _compareTaskVersion(version1: TaskVersion, version2: TaskVersion): number {
+		if(version1.major != version2.major) {
+			return version1.major - version2.major;
+		}
+		if(version1.minor != version2.minor) {
+			return version1.minor - version2.minor;
+		}
+		if(version1.patch != version2.patch) {
+			return version1.patch - version2.patch;
+		}
+		return 0;
+	}
+}
+class TaskVersion {
+	major: number;
+	minor: number;
+	patch: number;
+
+	constructor(versionData: any) {
+		this.major = versionData.major || 0;
+		this.minor = versionData.minor || 0;
+		this.patch = versionData.patch || 0;
+	}
+
+	public toString(): string {
+		return this.major + "." + this.minor + "." + this.patch;
 	}
 }
