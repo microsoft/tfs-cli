@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+#set -e
 
 # based on https://github.com/JFrogDev/project-examples/blob/master/bash-example/deploy-file.sh
 
