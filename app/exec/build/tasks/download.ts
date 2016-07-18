@@ -55,10 +55,14 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 							});
 							trace.info("found %s with version %s ...",Name,Version);	
 						}
+						if (!Id && !Version) {
+							var error = ("error: No Tasks found with this name ["+Name+"]");
+							throw(error);
+						}
 						return agentApi.getTaskContentZip(Id,Version).then((task) => {
 							var archiveName = Name+"-"+Version+".zip";
-							task.pipe(fs.createWriteStream(archiveName)); 
 							trace.info('Downloading ... ');
+							task.pipe(fs.createWriteStream(archiveName)); 
 							return <agentContracts.TaskDefinition>{
 								id: Id,
 								name: Name,							
