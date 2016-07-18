@@ -82,13 +82,12 @@ uploadUrl="$BASEURL/${GROUP//[.]//}/$ARTIFACT/$VERSION/${ARTIFACT}-${VERSION}.${
 
 printf "File: %s\nMD5: %s\nSHA1: %s\nUpload URL: %s\n" "$FILE" "$md5Value" "$sha1Value" "$uploadUrl"
 
-##$ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
-STATUSCODE=$(sudo curl --progress-bar -i -X PUT -u $A_USER:$A_PASSWD \
+STATUSCODE=$(curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
  -H "X-Checksum-Md5: $md5Value" \
  -H "X-Checksum-Sha1: $sha1Value" \
  -T "$FILE" \
  --output /dev/stderr --write-out "%{http_code}" \
- "$uploadUrl" ||:)
+ "$uploadUrl"||:)
 
 fail_if '[[ "$STATUSCODE" -ne "201" ]]' "Upload failed: http status $STATUSCODE"
 
