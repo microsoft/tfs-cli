@@ -72,8 +72,6 @@ fail_if '[[ -z "$EXT" ]]' 'missing EXT'
 fail_if '[[ -z "$ARTIFACTORY_USER" ]]' 'missing ARTIFACTORY_USER'
 fail_if '[[ -z "$ARTIFACTORY_PASSWD" ]]' 'missing ARTIFACTORY_PASSWD'
 
-#http://chefperc01.iil.intel.com:8081/artifactory/libs-release-local/GROUP/ARTIFACT/VERSION/
-
 
 md5Value="`md5sum "$FILE"`"
 md5Value="${md5Value:0:32}"
@@ -84,7 +82,8 @@ uploadUrl="$BASEURL/${GROUP//[.]//}/$ARTIFACT/$VERSION/${ARTIFACT}-${VERSION}.${
 
 printf "File: %s\nMD5: %s\nSHA1: %s\nUpload URL: %s\n" "$FILE" "$md5Value" "$sha1Value" "$uploadUrl"
 
-STATUSCODE=$(sudo curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
+##$ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
+STATUSCODE=$(sudo curl --progress-bar -i -X PUT -u $A_USER:$A_PASSWD \
  -H "X-Checksum-Md5: $md5Value" \
  -H "X-Checksum-Sha1: $sha1Value" \
  -T "$FILE" \
