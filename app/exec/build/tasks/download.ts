@@ -18,7 +18,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 	protected description = "Download a Build Task.";
 
 	protected getHelpArgs(): string[] {
-		return ["taskId","taskVersion","taskName"];
+		return ["taskId","taskVersion","name"];
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition> {
@@ -31,7 +31,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 				trace.info("retriving tasks from the server ...")
 				return agentApi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
 					var taskDictionary = this._getNewestTasks(tasks);
-					return this.commandArgs.taskName.val().then((Name) => {
+					return this.commandArgs.name.val().then((Name) => {
 						if (!Id) {
 							taskDictionary.forEach(element => {
 								if (element.name == Name) {
