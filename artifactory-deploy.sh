@@ -1,6 +1,8 @@
 #!/bin/bash
-
-#set -e
+echo $VERSION
+echo $ARTIFACTORYUSER
+echo $ARTIFACTORYPASSWD
+set -e
 
 # based on https://github.com/JFrogDev/project-examples/blob/master/bash-example/deploy-file.sh
 
