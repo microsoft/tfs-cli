@@ -2,6 +2,14 @@
 
 set -e
 
+export VERSION=$(cat package.json|grep version|sed s/\"version\"\:\ \"//g|sed s/\"\,//g|sed s/\ //g)
+echo $VERSION > ./version.txt
+mkdir -p tfx-cli
+cp -r node_modules tfx-cli/
+cp -r _build tfx-cli/
+zip -r tfx-cli.zip ./tfx-cli/
+rm -rf ./tfx-cli/
+
 # based on https://github.com/JFrogDev/project-examples/blob/master/bash-example/deploy-file.sh
 
 usage () {
@@ -33,14 +41,12 @@ fail_if() {
 }
 
 
-while getopts ":g:a:v:d:f:e:u:p:h" opt; do
+while getopts ":g:a:d:f:e:u:p:h" opt; do
   case $opt in
     g)
         GROUP=$OPTARG;;
     a)
         ARTIFACT=$OPTARG;;
-    v)
-        VERSION=$OPTARG;;
     d)
         BASEURL=$OPTARG;;
     f)
