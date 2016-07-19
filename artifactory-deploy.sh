@@ -78,7 +78,7 @@ md5Value="${md5Value:0:32}"
 sha1Value="`sha1sum "$FILE"`"
 sha1Value="${sha1Value:0:40}"
 
-uploadUrl="$BASEURL/${GROUP//[.]//}/$ARTIFACT/$VERSION/${ARTIFACT}-${VERSION}.${EXT}"
+uploadUrl="$BASEURL/${GROUP//[.]//}/$ARTIFACT/"$VERSION"/${ARTIFACT}-${VERSION}.${EXT}"
 
 printf "File: %s\nMD5: %s\nSHA1: %s\nUpload URL: %s\n" "$FILE" "$md5Value" "$sha1Value" "$uploadUrl"
 
