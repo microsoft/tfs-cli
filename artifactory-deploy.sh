@@ -9,6 +9,7 @@ cp -r node_modules tfx-cli/
 cp -r _build tfx-cli/
 zip -r tfx-cli.zip ./tfx-cli/
 rm -rf ./tfx-cli/
+touch ./upload.log
 
 # based on https://github.com/JFrogDev/project-examples/blob/master/bash-example/deploy-file.sh
 
@@ -92,7 +93,7 @@ STATUSCODE=$(sudo curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTOR
  -H "X-Checksum-Md5: $md5Value" \
  -H "X-Checksum-Sha1: $sha1Value" \
  -T "$FILE" \
- --output /dev/stderr --write-out "%{http_code}" \
+ --output ./upload.log --write-out "%{http_code}" \
  "$uploadUrl"||:)
 
 fail_if '[[ "$STATUSCODE" -ne "201" ]]' "Upload failed: http status $STATUSCODE"
