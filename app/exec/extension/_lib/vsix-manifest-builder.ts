@@ -41,7 +41,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".vsixmanifest": "text/xml",
 		".vsomanifest": "application/json",
 		".ps1": "text/ps1",
-		".js": "application/javascript"
+		".js": "application/javascript",
+		".css": "text/css"
 	};
 
 	public static manifestType = "vsix";
