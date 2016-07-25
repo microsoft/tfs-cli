@@ -1,41 +1,34 @@
 {
-	"version": "0.1.0",
-	// List of configurations. Add new configurations or edit existing ones.
+	"version": "0.2.0",
 	"configurations": [
 		{
-			// Name of configuration; appears in the launch configuration drop down menu.
-			"name": "Launch ./_build/app/tfx-cli.js",
-			// Type of configuration.
+			"name": "Launch",
 			"type": "node",
-			// Workspace relative or absolute path to the program.
-			"program": "./app/tfx-cli.ts",
-			// Automatically stop program after launch.
-			"stopOnEntry": true,
-			// Command line arguments passed to the program.
+			"request": "launch",
+			"program": "${workspaceRoot}/app/app.ts",
+			"stopOnEntry": false,
 			"args": [],
-			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
-			"cwd": ".",
-			// Workspace relative or absolute path to the runtime executable to be used. Default is the runtime executable on the PATH.
+			"cwd": "${workspaceRoot}",
 			"runtimeExecutable": null,
-			// Optional arguments passed to the runtime executable.
-			"runtimeArgs": ["--nolazy"],
-			// Environment variables passed to the program.
+			"runtimeArgs": [
+				"--nolazy"
+			],
 			"env": {
 				"NODE_ENV": "development"
 			},
-			// Use JavaScript source maps (if they exist).
+			"externalConsole": false,
 			"sourceMaps": true,
-			// If JavaScript source maps are enabled, the generated code is expected in this directory.
-			"outDir": "./_build/app"
+			"outDir": "${workspaceRoot}/_build"
 		},
 		{
 			"name": "Attach",
 			"type": "node",
-			// TCP/IP address. Default is "localhost".
-			"address": "localhost",
-			// Port to attach to.
+			"request": "attach",
 			"port": 5858,
-			"sourceMaps": false
+			"sourceMaps": false,
+			"outDir": null,
+			"localRoot": "${workspaceRoot}",
+			"remoteRoot": null
 		}
 	]
 }

@@ -118,7 +118,7 @@ declare module 'vso-node-api/interfaces/common/VsoBaseInterfaces' {
 	}
 	export interface IRequestHandler {
 	    prepareRequest(options: any): void;
-	    canHandleAuthentication(headers: any): boolean;
+	    canHandleAuthentication(res: IHttpResponse): boolean;
 	    handleAuthentication(httpClient: any, protocol: any, options: any, objs: any, finalCallback: any): void;
 	}
 	export interface IHttpResponse {
@@ -18230,7 +18230,7 @@ declare module 'vso-node-api/handlers/apiversion' {
 	    apiVersion: string;
 	    constructor(apiVersion: string);
 	    prepareRequest(options: any): void;
-	    canHandleAuthentication(headers: any): boolean;
+	    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean;
 	    handleAuthentication(httpClient: any, protocol: any, options: any, objs: any, finalCallback: any): void;
 	}
 
@@ -18243,7 +18243,7 @@ declare module 'vso-node-api/handlers/basiccreds' {
 	    password: string;
 	    constructor(username: string, password: string);
 	    prepareRequest(options: any): void;
-	    canHandleAuthentication(headers: any): boolean;
+	    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean;
 	    handleAuthentication(httpClient: any, protocol: any, options: any, objs: any, finalCallback: any): void;
 	}
 
@@ -18255,7 +18255,7 @@ declare module 'vso-node-api/handlers/bearertoken' {
 	    token: string;
 	    constructor(token: string);
 	    prepareRequest(options: any): void;
-	    canHandleAuthentication(headers: any): boolean;
+	    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean;
 	    handleAuthentication(httpClient: any, protocol: any, options: any, objs: any, finalCallback: any): void;
 	}
 
@@ -18270,7 +18270,7 @@ declare module 'vso-node-api/handlers/ntlm' {
 	    domain: string;
 	    constructor(username: string, password: string, domain?: string, workstation?: string);
 	    prepareRequest(options: any): void;
-	    canHandleAuthentication(headers: any): boolean;
+	    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean;
 	    handleAuthentication(httpClient: any, protocol: any, options: any, objs: any, finalCallback: any): void;
 	    private sendType1Message(httpClient, protocol, options, objs, keepaliveAgent, callback);
 	    private sendType3Message(httpClient, protocol, options, objs, keepaliveAgent, res, callback);

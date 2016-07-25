@@ -125,7 +125,8 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 	private checkInvalidArgs() {
 		this.passedArgs.forEach((arg) => {
-			if (_.startsWith(arg, "--") && !this.commandArgs[arg.substr(2)]) {
+			// console.log(Object.keys(this.commandArgs).join(","));
+			if (_.startsWith(arg, "--") && !this.commandArgs[_.camelCase(arg.substr(2))]) {
 				trace.warn("Unrecognized argument: " + arg + ". Ignoring.");
 			}
 		})
@@ -246,14 +247,19 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 							}
 						}
 					}).catch(() => {
-						if (authType.toLowerCase() === "pat") {
+						const normalizedAuthType = authType && authType.toLowerCase();
+						if (normalizedAuthType === "pat") {
 							return this.commandArgs.token.val().then((token) => {
 								return getBasicHandler("OAuth", token);
 							});
-						} else if (authType.toLowerCase() === "basic") {
+						} else if (["basic", "ntlm"].indexOf(normalizedAuthType) >= 0) {
 							return this.commandArgs.username.val().then((username) => {
 								return this.commandArgs.password.val().then((password) => {
-									return getBasicHandler(username, password);
+									if (normalizedAuthType === "basic") {
+										return getBasicHandler(username, password);
+									} else {
+										return getNtlmHandler(username, password);
+									}
 								});
 							});
 						} else {
