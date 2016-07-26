@@ -26,7 +26,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
         super.setCommandArgs();
 
         this.registerCommandArgument("definitionId", "Build Definition ID", "Identifies a build definition.", args.IntArgument, null);
-        this.registerCommandArgument("definitionPath", "Definition Path", "Local path to a Build Definition.", args.FilePathsArgument);
+        this.registerCommandArgument("definitionPath", "Definition Path", "Local path to a Build Definition.", args.FilePathsArgument,null);
         this.registerCommandArgument("overwrite", "Overwrite?", "Overwrite existing Build Definition.", args.BooleanArgument, "false");
     }
 
@@ -42,6 +42,9 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
             trace.debug("Retrieving build definition %s...", definitionId);
 
             return api.getDefinition(definitionId, project).then((definition) => {
+                if (!definitionPath) {
+                    definitionPath = definition.name + '-' + definition.id + '.json';
+                }
                 if (fs.existsSync(definitionPath.toString()) && !overwrite) {
                     return <any>Q.reject(new Error("Build definition file already exists"));
                 }
