@@ -13,13 +13,14 @@ export interface ExportDefinitionArguments extends CoreArguments {
     definitionId: args.IntArgument
     definitionPath: args.StringArgument
     overwrite: args.BooleanArgument
+    revision: args.IntArgument
 }
 
 export class ExportDefinition extends TfCommand<ExportDefinitionArguments, buildContracts.DefinitionReference> {
     protected description = "Export a build definition to a local file";
 
     protected getHelpArgs(): string[] {
-        return ["project", "definitionId", "definitionPath", "overwrite"];
+        return ["project", "definitionId", "definitionPath", "overwrite","revision"];
     }
 
     protected setCommandArgs(): void {
@@ -28,6 +29,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
         this.registerCommandArgument("definitionId", "Build Definition ID", "Identifies a build definition.", args.IntArgument, null);
         this.registerCommandArgument("definitionPath", "Definition Path", "Local path to a Build Definition.", args.FilePathsArgument,null);
         this.registerCommandArgument("overwrite", "Overwrite?", "Overwrite existing Build Definition.", args.BooleanArgument, "false");
+        this.registerCommandArgument("revision", "Revision", "Get specific definition revision.", args.IntArgument, null);
     }
 
     public exec(): Q.Promise<buildContracts.DefinitionReference> {
@@ -38,12 +40,12 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
             this.commandArgs.definitionId.val(),
             this.commandArgs.definitionPath.val(),
             this.commandArgs.overwrite.val(),
-        ]).spread((project, definitionId, definitionPath, overwrite) => {
+            this.commandArgs.revision.val()
+        ]).spread((project, definitionId, definitionPath, overwrite, revision) => {
             trace.debug("Retrieving build definition %s...", definitionId);
-
-            return api.getDefinition(definitionId, project).then((definition) => {
+            return api.getDefinition(definitionId, project, revision).then((definition) => {
                 if (!definitionPath) {
-                    definitionPath = definition.name + '-' + definition.id + '.json';
+                    definitionPath = definition.name + '-' + definition.id + '-' + definition.revision + '.json';                   
                 }
                 if (fs.existsSync(definitionPath.toString()) && !overwrite) {
                     return <any>Q.reject(new Error("Build definition file already exists"));
