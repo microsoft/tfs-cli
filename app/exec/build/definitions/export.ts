@@ -16,7 +16,7 @@ export interface ExportDefinitionArguments extends CoreArguments {
 }
 
 export class ExportDefinition extends TfCommand<ExportDefinitionArguments, buildContracts.DefinitionReference> {
-    protected description = "Export a build definition";
+    protected description = "Export a build definition to a local file";
 
     protected getHelpArgs(): string[] {
         return ["project", "definitionId", "definitionPath", "overwrite"];
