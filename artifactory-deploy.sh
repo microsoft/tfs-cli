@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -e
+set -e #exit at every exit code different from "0"
 
 export VERSION=$(cat package.json|grep version|sed s/\"version\"\:\ \"//g|sed s/\"\,//g|sed s/\ //g)
 echo $VERSION > ./version.txt
