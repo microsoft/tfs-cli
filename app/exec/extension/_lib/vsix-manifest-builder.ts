@@ -41,7 +41,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".vsixmanifest": "text/xml",
 		".vsomanifest": "application/json",
 		".ps1": "text/ps1",
-		".js": "application/javascript"
+		".js": "application/javascript",
+		".css": "text/css"
 	};
 
 	public static manifestType = "vsix";
@@ -265,6 +266,21 @@ export class VsixManifestBuilder extends ManifestBuilder {
 							trace.warn("'uri' property not found for link: '%s'... ignoring.", linkType);
 						}
 					});
+				}
+				break;
+			case "repository":
+				if (_.isObject(value)) {					
+						const {type, url} = value;
+						if (!type) {
+							throw new Error("Repository must have a 'type' property.");
+						}
+						if (type !== "git") {
+							throw new Error("Currently 'git' is the only supported repository type.");
+						}
+						if (!url) {
+							throw new Error("Repository must contain a 'url' property.");
+						}
+						this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url);
 				}
 				break;
 			case "badges":
