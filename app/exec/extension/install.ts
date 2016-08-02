@@ -67,7 +67,7 @@ export class ExtensionInstallResult {
 }
 
 export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResult> {
-	protected description = "Install a Visual Studio Services Extension to a list of VSTS Accounts or TFS Project Collections.";
+	protected description = "Install an extension to one or more Team Services accounts or TFS team project collections.";
 
 	constructor(passedArgs: string[]) {
 		super(passedArgs);
@@ -75,7 +75,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();
-		this.registerCommandArgument("accounts", "Installation targets", "List of VSTS accounts, or list of TFS Project Collections, where to install the extension.", args.ArrayArgument);
+		this.registerCommandArgument("accounts", "Installation targets", "List of Team Services accounts or TFS team project collections.", args.ArrayArgument);
 	}
 
 	protected getHelpArgs(): string[] {
