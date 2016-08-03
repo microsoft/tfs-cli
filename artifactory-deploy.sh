@@ -88,7 +88,7 @@ uploadUrl="$BASEURL/${GROUP//[.]//}/$ARTIFACT/"$VERSION"/${ARTIFACT}-${VERSION}.
 
 printf "File: %s\nVersion: %s\nMD5: %s\nSHA1: %s\nUpload URL: %s\n" "$FILE" "$VERSION" "$md5Value" "$sha1Value" "$uploadUrl"
 
-STATUSCODE=$(sudo curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
+STATUSCODE=$(curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PASSWD \
  -H "X-Checksum-Md5: $md5Value" \
  -H "X-Checksum-Sha1: $sha1Value" \
  -T "$FILE" \
