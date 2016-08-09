@@ -45,6 +45,12 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".css": "text/css"
 	};
 
+	private static BEST_GUESS_CONTENT_TYPES: { [fileName: string]: string } = {
+		"README": "text/plain",
+		"LICENSE": "text/plain",
+		"AUTHORS": "text/plain"
+	};
+
 	public static manifestType = "vsix";
 
 	/**
@@ -439,19 +445,32 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		};
 		let windows = /^win/.test(process.platform);
 		let contentTypePromise;
+		const showWarningForExtensionMap: { [ext: string]: boolean } = {};
 		if (windows) {
 			// On windows, check HKCR to get the content type of the file based on the extension
 			let contentTypePromises: Q.Promise<any>[] = [];
 			let extensionlessFiles = [];
 			let uniqueExtensions = _.unique<string>(Object.keys(this.files).map((f) => {
 				let extName = path.extname(f);
-				if (!extName && !this.files[f].contentType) {
+				const filename = path.basename(f);
+
+				// Look in the best guess table. Or, default to text/plain if the file starts with a "."
+				const bestGuess = VsixManifestBuilder.BEST_GUESS_CONTENT_TYPES[filename.toUpperCase()] || (filename[0] === "." ? "text/plain" : null);
+				if (!extName && !this.files[f].contentType && this.files[f].addressable && !bestGuess) {
 					trace.warn("File %s does not have an extension, and its content-type is not declared. Defaulting to application/octet-stream.", path.resolve(f));
 					this.files[f].contentType = "application/octet-stream";
+				} else if (bestGuess) {
+					this.files[f].contentType = bestGuess;
 				}
 				if (this.files[f].contentType) {
 					// If there is an override for this file, ignore its extension
 					return "";
+				}
+
+				// Later, we will show warnings for extensions with unknown content types if there
+				// was at least one file with this extension that was addressable.
+				if (!showWarningForExtensionMap[extName] && this.files[f].addressable) {
+					showWarningForExtensionMap[extName] = true;
 				}
 				return extName;
 			}));
@@ -480,7 +499,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					}
 					return contentType;
 				}).catch((err) => {
-					trace.warn("Could not determine content type for extension %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", ext);
+					if (showWarningForExtensionMap[ext]) {
+						trace.warn("Could not determine content type for extension %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", ext);
+					}
 					return "application/octet-stream";
 				}).then((contentType) => {
 					contentTypes.Types.Default.push({
@@ -547,7 +568,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 								if (stderr) {
 									reject(stderr.toString("utf8"));
 								} else {
-									trace.warn("Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", fileName);
+									if (this.files[fileName].addressable) {
+										trace.warn("Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", fileName);
+									}
 									this.files[fileName].contentType = "application/octet-stream";
 								}
 							}
