@@ -31,4 +31,5 @@ node_modules
 
 # VS Code Settings
 .settings
+.vscode
 *_sample.json
