@@ -126,6 +126,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
 			case "galleryflags":
 			case "categories":
 			case "files":
+			case "githubflavoredmarkdown":
 				break;
 			default:
 				if (key.substr(0, 2) !== "__") {
