@@ -130,6 +130,11 @@ export interface MergeSettings {
 	 */
 	root: string;
 
+	/*
+	 * List of paths to manifest files
+	 */
+	manifests: string[];
+
 	/**
 	 * List of globs for searching for partial manifests
 	 */

@@ -44,7 +44,7 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["root", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot"];
+		return ["root", "manifests", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot"];
 	}
 
 	public exec(): Q.Promise<CreationResult> {

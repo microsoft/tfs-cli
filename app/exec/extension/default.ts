@@ -19,6 +19,7 @@ export class ManifestJsonArgument extends args.JsonArgument<any> {}
 export interface ExtensionArguments extends CoreArguments {
 	extensionId: args.StringArgument;
 	publisher: args.StringArgument;
+	manifests: args.ArrayArgument;
 	manifestGlobs: args.ArrayArgument;
 	outputPath: args.StringArgument;
 	override: ManifestJsonArgument;
@@ -49,12 +50,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("extensionId", "Extension ID", "Use this as the extension ID instead of what is specified in the manifest.", args.StringArgument);
 		this.registerCommandArgument("publisher", "Publisher name", "Use this as the publisher ID instead of what is specified in the manifest.", args.StringArgument);
 		this.registerCommandArgument("serviceUrl", "Market URL", "URL to the VSS Marketplace.", args.StringArgument, "https://marketplace.visualstudio.com");
-		this.registerCommandArgument("manifestGlobs", "Manifest globs", "List of globs to find manifests.", args.ArrayArgument, "vss-extension.json");
+		this.registerCommandArgument("manifests", "Manifests", "List of individual manifest files (space separated).", args.ArrayArgument, "vss-extension.json");
+		this.registerCommandArgument("manifestGlobs", "Manifest globs", "List of globs to find manifests (space separated).", args.ArrayArgument, null);
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument("override", "Overrides JSON", "JSON string which is merged into the manifests, overriding any values.", ManifestJsonArgument, "{}");
 		this.registerCommandArgument("overridesFile", "Overrides JSON file", "Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.", args.ReadableFilePathsArgument, null);
-		this.registerCommandArgument("shareWith", "Share with", "List of VSTS Accounts with which to share the extension.", args.ArrayArgument, null);
-		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSTS Accounts with which to un-share the extension.", args.ArrayArgument, null);
+		this.registerCommandArgument("shareWith", "Share with", "List of VSTS Accounts with which to share the extension (space separated).", args.ArrayArgument, null);
+		this.registerCommandArgument("unshareWith", "Un-share with", "List of VSTS Accounts with which to un-share the extension (space separated).", args.ArrayArgument, null);
 		this.registerCommandArgument("vsix", "VSIX path", "Path to an existing VSIX (to publish or query for).", args.ReadableFilePathsArgument);
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("locRoot", "Localization root", "Root of localization hierarchy (see README for more info).", args.ExistingDirectoriesArgument, null);
@@ -65,13 +67,14 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	protected getMergeSettings(): Q.Promise<MergeSettings> {
 		return Q.all([
 			this.commandArgs.root.val(),
+			this.commandArgs.manifests.val(),
 			this.commandArgs.manifestGlobs.val(),
 			this.commandArgs.override.val(),
 			this.commandArgs.overridesFile.val(),
 			this.commandArgs.bypassValidation.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true)
-		]).spread<MergeSettings>((root: string[], manifestGlob: string[], override: any, overridesFile: string[], bypassValidation: boolean, publisher: string, extensionId: String) => {
+		]).spread<MergeSettings>((root: string[], manifests: string[], manifestGlob: string[], override: any, overridesFile: string[], bypassValidation: boolean, publisher: string, extensionId: String) => {
 			if (publisher) {
 				_.set(override, "publisher", publisher);
 			}
@@ -100,6 +103,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				_.merge(mergedOverrides, contentJSON, override);
 				return {
 					root: root[0],
+					manifests: manifests,
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,
 					bypassValidation: bypassValidation

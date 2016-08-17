@@ -39,23 +39,34 @@ export class Merger {
 	private gatherManifests(): Q.Promise<string[]> {
 		trace.debug('merger.gatherManifests');
 
-		const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
+		if (this.settings.manifestGlobs && this.settings.manifestGlobs.length > 0) {
+			const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
 
-		trace.debug('merger.gatherManifestsFromGlob');
-		const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
+			trace.debug('merger.gatherManifestsFromGlob');
+			const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
 
-		return Q.all(promises)
-			.then(results => _.unique(_.flatten<string>(results)))
-			.then(results => {
-				if (results.length > 0) {
-					trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
-					results.forEach(path => trace.debug(path));
-				} else {
-					throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
-				}
+			return Q.all(promises)
+				.then(results => _.unique(_.flatten<string>(results)))
+				.then(results => {
+					if (results.length > 0) {
+						trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
+						results.forEach(path => trace.debug(path));
+					} else {
+						throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
+					}
 
-				return results;
-			});
+					return results;
+				});
+		} else {
+			const manifests = this.settings.manifests
+			if (!manifests || manifests.length === 0) {
+				return Q.reject<string[]>("No manifests specified.");
+			}
+			this.settings.manifests = _.unique(manifests).map(m => path.resolve(m));
+			trace.debug("Merging %s manifest%s from the following paths: ", manifests.length.toString(), manifests.length === 1 ? "" : "s");
+			manifests.forEach(path => trace.debug(path));
+			return Q.resolve(this.settings.manifests);
+		}
 	}
 
 	/**

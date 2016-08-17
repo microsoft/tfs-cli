@@ -11,7 +11,8 @@ To package your extension, type `tfx extension create` from the root of your ext
 
 ```
   --root               Root directory.
-  --manifest-globs     List of globs to find manifests.
+  --manifests          List of individual manifest files (space-separated).
+  --manifest-globs     List of globs to find manifests (space-separated).
   --override           JSON string which is merged into the manifests, overriding any values.
   --bypass-validation  Bypass local validation.
   --publisher          Use this as the publisher ID instead of what is specified in the manifest.
