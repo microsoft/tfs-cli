@@ -18,11 +18,11 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 	protected description = "Download a Build Task.";
 
 	protected getHelpArgs(): string[] {
-		return ["taskId","taskVersion","name"];
+		return ["id","taskVersion","name"];
 	}
 
 	public exec(): Q.Promise<agentContracts.TaskDefinition> {
-		return this.commandArgs.taskId.val().then((Id) => {
+		return this.commandArgs.id.val().then((Id) => {
 			if (!Id) {
 				Id = "";
 			}
