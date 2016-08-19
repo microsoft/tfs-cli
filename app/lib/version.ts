@@ -19,7 +19,7 @@ export class SemanticVersion {
 	public static parse(version: string): SemanticVersion {
 		try {
 			let spl = version.split(".").map(v => parseInt(v));
-			if (spl.length === 3) {
+			if (spl.length === 3 && !spl.some(e => isNaN(e))) {
 				return new SemanticVersion(spl[0], spl[1], spl[2]);
 			} else {
 				throw "";

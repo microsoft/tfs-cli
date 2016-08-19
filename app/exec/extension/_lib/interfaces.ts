@@ -149,6 +149,11 @@ export interface MergeSettings {
 	 * True to bypass validation during packaging.
 	 */
 	bypassValidation: boolean;
+
+	/**
+	 * True to rev the version of the extension before packaging.
+	 */
+	revVersion: boolean;
 }
 
 export interface PackageSettings {

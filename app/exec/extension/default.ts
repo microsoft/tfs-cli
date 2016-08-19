@@ -32,6 +32,7 @@ export interface ExtensionArguments extends CoreArguments {
 	displayName: args.StringArgument;
 	description: args.StringArgument;
 	accounts: args.ArrayArgument;
+	revVersion: args.BooleanArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
@@ -62,6 +63,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("locRoot", "Localization root", "Root of localization hierarchy (see README for more info).", args.ExistingDirectoriesArgument, null);
 		this.registerCommandArgument("displayName", "Display name", null, args.StringArgument);
 		this.registerCommandArgument("description", "Description", "Description of the Publisher.", args.StringArgument);
+		this.registerCommandArgument("revVersion", "Rev version", "Rev the patch-version of the extension and save the result.", args.BooleanArgument, "false");
 	}
 
 	protected getMergeSettings(): Q.Promise<MergeSettings> {
@@ -71,10 +73,11 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.manifestGlobs.val(),
 			this.commandArgs.override.val(),
 			this.commandArgs.overridesFile.val(),
+			this.commandArgs.revVersion.val(),
 			this.commandArgs.bypassValidation.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true)
-		]).spread<MergeSettings>((root: string[], manifests: string[], manifestGlob: string[], override: any, overridesFile: string[], bypassValidation: boolean, publisher: string, extensionId: String) => {
+		]).spread<MergeSettings>((root: string[], manifests: string[], manifestGlob: string[], override: any, overridesFile: string[], revVersion: boolean, bypassValidation: boolean, publisher: string, extensionId: String) => {
 			if (publisher) {
 				_.set(override, "publisher", publisher);
 			}
@@ -106,7 +109,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 					manifests: manifests,
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,
-					bypassValidation: bypassValidation
+					bypassValidation: bypassValidation,
+					revVersion: revVersion
 				};
 			});
 		});

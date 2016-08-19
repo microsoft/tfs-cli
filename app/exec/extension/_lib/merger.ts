@@ -7,10 +7,13 @@ import { FileDeclaration, MergeSettings, PackageFiles, ResourceSet, TargetDeclar
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
+import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
 import path = require("path");
 import Q = require("q");
-import trace = require('../../../lib/trace');
+import qfs = require("../../../lib/qfs");
+import trace = require("../../../lib/trace");
+import version = require("../../../lib/version");
 
 /**
  * Combines the vsix and vso manifests into one object
@@ -110,8 +113,32 @@ export class Merger {
 				});
 				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
 				this.manifestBuilders = this.extensionComposer.getBuilders();
-				
+				let updateVersionPromise = Q.resolve<void>(null);
 				partials.forEach((partial, partialIndex) => {
+					// Rev the version if necessary
+					if (this.settings.revVersion) {
+						if (partial["version"] && partial.__origin) {
+							try {
+								const semver = version.SemanticVersion.parse(partial["version"]);
+								const newVersion = new version.SemanticVersion(semver.major, semver.minor, semver.patch + 1);
+								const newVersionString = newVersion.toString();
+								partial["version"] = newVersionString;
+								updateVersionPromise = qfs.readFile(partial.__origin, "utf8").then(versionPartial => {
+									try {
+										const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+										return qfs.writeFile(partial.__origin, newPartial);
+									}
+									catch (e) {
+										trace.warn("Failed to lex partial as JSON to update the version. Skipping version rev...");
+									}
+								});
+							}
+							catch (e) {
+								trace.warn("Could not parse %s as a semantic version (major.minor.patch). Skipping version rev...", partial["version"]);
+							}
+						}
+					}
+
 					// Transform asset paths to be relative to the root of all manifests, verify assets
 					if (_.isArray(partial["files"])) {
 						(<Array<FileDeclaration>>partial["files"]).forEach((asset) => {
@@ -174,7 +201,7 @@ export class Merger {
 				let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
 
 				// Finalize each builder
-				return Q.all(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders))).then(() => {
+				return Q.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders)))).then(() => {
 					// Let the composer do validation
 					return this.extensionComposer.validate(components).then((validationResult) => {
 						if (validationResult.length === 0 || this.settings.bypassValidation) {

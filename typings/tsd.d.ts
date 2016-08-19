@@ -22,3 +22,4 @@
 /// <reference path="archiver/archiver.d.ts" />
 /// <reference path="read/read.d.ts" />
 /// <reference path="copy-paste/copy-paste.d.ts" />
+/// <reference path="json-in-place/json-in-place.d.ts" />
