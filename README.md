@@ -6,16 +6,14 @@ Command utility for interacting with Microsoft Team Foundation Server and Visual
 
 ## Setup
 
-### Install
-
 First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
 
-#### Linux/OSX
+### Linux/OSX
 ```bash
 sudo npm install -g tfx-cli
 ```
 
-#### Windows
+### Windows
 ```bash
 npm install -g tfx-cli
 ```
