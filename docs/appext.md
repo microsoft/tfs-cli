@@ -2,6 +2,10 @@
 
 Package, publish, and manage Team Services and Team Foundation Server extensions. To learn more, see an [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).
 
+## Get started
+
+To learn more about TFX, its pre-reqs and how to install, see the [readme](../readme.md)
+
 ## Package an extension
 
 ### Usage
