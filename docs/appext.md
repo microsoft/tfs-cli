@@ -1,4 +1,4 @@
-# Extensions
+# TFX extension commands
 
 Package, publish, and manage Team Services and Team Foundation Server extensions. To learn more, see an [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).
 
