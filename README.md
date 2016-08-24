@@ -42,6 +42,10 @@ tfx <command> --help
 
 To avoid providing credentials with every command, you can login once. Currently supported credential types: Personal Access Tokens and basic auth credentials.
 
+> NTLM support is under consideration
+
+> Warning! Using this feature will store your login credentials on disk in plain text.
+
 #### Personal access token
 
 Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
@@ -50,18 +54,19 @@ Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/usin
 ~$ tfx login
 Copyright Microsoft Corporation
 
-> Service URL: https://marketplace.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
-> Personal access token: 
+> Service URL: {url}
+> Personal access token: xxxxxxxxxxxx
 Logged in successfully
 ```
+
+Examples of valid URLs are:
+
+* `https://marketplace.visualstudio.com` 
+* `https://youraccount.visualstudio.com/DefaultCollection`
 
 #### Basic auth
 
 You can alternatively use basic auth by passing `--auth-type basic` (see [Configuring Basic Auth](docs/configureBasicAuth.md)).
-
-> NTLM support is under consideration
-
-> Warning! Using this feature will store your login credentials on disk in plain text.
 
 ### Settings cache
 
