@@ -4,7 +4,7 @@ Package, publish, and manage Team Services and Team Foundation Server extensions
 
 ## Get started
 
-To learn more about TFX, its pre-reqs and how to install, see the [readme](../readme.md)
+To learn more about TFX, its pre-reqs and how to install, see the [readme](../README.md)
 
 ## Package an extension
 
