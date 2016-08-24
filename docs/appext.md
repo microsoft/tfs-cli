@@ -69,9 +69,9 @@ tfx extension publish --publisher mypublisher --manifest-globs myextension.json 
 * `tfx extension share`: Share an extension with an account.
 * `tfx extension unshare`: Unshare an extension with an account.
 
-For full details, run:
+For more details on a specific command, run:
 
-```
-tfx extension --help
+```bash
+tfx extension {command} --help
 ```
 
