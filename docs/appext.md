@@ -1,6 +1,6 @@
 # Extensions
 
-Package, publish, and manage Team Services and Team Foundation Server extnesions.
+Package, publish, and manage Team Services and Team Foundation Server extensions. To learn more, see an [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).
 
 ## Package an extension
 
@@ -22,17 +22,15 @@ Package, publish, and manage Team Services and Team Foundation Server extnesions
 * `--output-path`: Path to write the VSIX.
 * `--loc-root`: Root of localization hierarchy (see README for more info).
 
-### For more information
-
-See the [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).You will use this tool when you are ready to package and publish your Extension.
-
-This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://www.visualstudio.com/en-us/integrate/extensions/develop/manifest)
-
 ### Examples
 
 ```
 tfx extension create --publisher mypublisher --manifest-globs myextension.json
 ```
+
+### Tips
+
+1. This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://www.visualstudio.com/en-us/integrate/extensions/develop/manifest)
 
 ## Publish an extension
 
@@ -41,13 +39,6 @@ tfx extension create --publisher mypublisher --manifest-globs myextension.json
 ```
 tfx extension publish
 ```
-
-### Tips
-
-* By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
-* If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-* When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
-
 
 ### Arguments
 
@@ -61,6 +52,14 @@ In addition to all of the `extension create` options, the following options are 
 ```
 tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
 ```
+
+### Tips
+
+1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
+2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
+3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
+
+
 
 ## Other commands
 
