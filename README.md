@@ -1,18 +1,16 @@
-# TFS Cross Platform Command Line Interface
+# Cross-platform CLI for Team Foundation Server and Visual Studio Team Services
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
-This is a utility to interact with Visual Studio Team Services and Team Foundation Server.  It is cross platform and supported on Windows, OS X, and Linux.
+Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
 
 ## Setup
 
-### Pre-reqs
-
-* [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
-
 ### Install
 
-#### Linux
+First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
+
+#### Linux/OSX
 ```bash
 sudo npm install -g tfx-cli
 ```
@@ -103,7 +101,6 @@ If you used `--save` to set a default value for an option, you may need to overr
 To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem (and will certainly help if logging an issue).
 
 ### Linux/OSX
-
 ```bash
 export TFX_TRACE=1
 ```
@@ -113,7 +110,7 @@ export TFX_TRACE=1
 set TFX_TRACE=1
 ```
 
-<sub>PowerShell</sub>
+### PowerShell
 ```bash
 $env:TFX_TRACE=1
 ```
