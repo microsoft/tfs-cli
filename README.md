@@ -1,50 +1,75 @@
-# TFS Cross Platform Command Line Interface
+# Cross-platform CLI for Team Foundation Server and Visual Studio Team Services
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
-This is a utility to interact with Visual Studio Team Services and Team Foundation Server.  It is cross platform and supported on Windows, OSX and Linux.
+Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
 
 ## Setup
-### Tooling
-This app requires [NodeJS](http://nodejs.org) 4.0.x or later and npm (included with the NodeJS installer).
 
-### Install
+First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
+
+### Linux/OSX
 ```bash
 sudo npm install -g tfx-cli
 ```
-<sub>Note: Windows does not need sudo</sub>
 
-## Help
-Just type `tfx` to see a list of commands.    
-For help with an individual command, use `tfx <command> --help`.    
-![tfs-cli](docs/help-screen.png "TFS cross platform command line")    
-Help info is dynamically generated, so it should always be the most up-to-date authority.
+### Windows
+```bash
+npm install -g tfx-cli
+```
 
-## Command Documentation
-[Build Tasks](docs/buildtasks.md): Create, list, upload and delete your Build Tasks
+## Commands
 
-[Marketplace Extensions](docs/appext.md): Manage your Visual Studio Marketplace Extensions
+To see a list of commands:
+```
+tfx
+```
 
-[Builds](docs/builds.md): Manage your Builds
+For help with an individual command:
+```
+tfx <command> --help
+```
 
-## Login
-To avoid providing credentials in every command, you can login once.
-Currently supported credential types are Personal Access Tokens and basic auth.
-[Create a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it in the login command.
+> Help info is dynamically generated, so it should always be the most up-to-date authority.
+
+### Command sets
+
+* `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
+* `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
+* `tfx extension` ([extensions](docs/appext.md)): Package, manage, publisher Team Foundation Server / Team Services extensions
+
+### Login
+
+To avoid providing credentials with every command, you can login once. Currently supported credential types: Personal Access Tokens and basic auth credentials.
+
+> NTLM support is under consideration
+
+> Warning! Using this feature will store your login credentials on disk in plain text.
+
+#### Personal access token
+
+Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
+
 ```bash
 ~$ tfx login
 Copyright Microsoft Corporation
 
-> Service URL: https://marketplace.visualstudio.com (for extensions) https://youraccount.visualstudio.com/DefaultCollection (other)
-> Personal access token: 
+> Service URL: {url}
+> Personal access token: xxxxxxxxxxxx
 Logged in successfully
 ```
 
-You can alternatively use basic auth by passing `--auth-type basic` (read [Configuring Basic Auth](docs/configureBasicAuth.md)).  NTLM will come soon.
+Examples of valid URLs are:
 
-Note: Using this feature will store your login credentials on disk in plain text.
+* `https://marketplace.visualstudio.com` 
+* `https://youraccount.visualstudio.com/DefaultCollection`
 
-## Settings Cache
+#### Basic auth
+
+You can alternatively use basic auth by passing `--auth-type basic` (see [Configuring Basic Auth](docs/configureBasicAuth.md)).
+
+### Settings cache
+
 To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag.
 
 ```bash
@@ -70,28 +95,30 @@ status          : NotStarted
 queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
-## Troubleshooting
 If you used `--save` to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
-To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem.  It will certainly help if logging an issue.
 
-<sub>Linux/OSX</sub>
+### Troubleshooting
+
+To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem (and will certainly help if logging an issue).
+
+### Linux/OSX
 ```bash
 export TFX_TRACE=1
 ```
 
-<sub>Windows</sub>
+### Windows
 ```bash
 set TFX_TRACE=1
 ```
 
-<sub>PowerShell</sub>
+### PowerShell
 ```bash
 $env:TFX_TRACE=1
 ```
 
 ## Contributing
 
-We take contributions and fixes via Pull Request.  [Read here](docs/contributions.md) for the details.
+We take contributions and fixes via Pull Request. [Read here](docs/contributions.md) for the details.
 
 ## Code of Conduct
 
