@@ -4,7 +4,7 @@ Package, publish, and manage Team Services and Team Foundation Server extnesions
 
 ## Package an extension
 
-### Basic usage
+### Usage
 
 `tfx extension create`
 
@@ -36,41 +36,43 @@ tfx extension create --publisher mypublisher --manifest-globs myextension.json
 
 ## Publish an extension
 
-When you're ready to push your Extension to the Visual Studio Marketplace, you can use the `publish` command. By default, `publish` will first package your extension using the same mechanism as `tfx extension create`. Therefore, all the options available in `create` are available to `publish`.
+### Usage
 
-When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
-
-In addition to all of the `extension create` options, the following options are available for `publish`:
 ```
-Arguments:
-  --vsix               Path to an existing VSIX (to publish or query for).
-  --share-with         List of VSTS accounts with which to share the extension.
-
-Global server command arguments:
-  --auth-type    Method of authentication ('pat' or 'basic').
-  --username     Username to use for basic authentication.
-  --password     Password to use for basic authentication.
-  --token        Personal access token.
-  --service-url  URL to the VSS Marketplace.
+tfx extension publish
 ```
 
-Note: If an Extension with the same ID already exists for your Publisher, the command will attempt to **update** that extension.
+### Tips
+
+* By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
+* If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
+* When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
+
+
+### Arguments
+
+In addition to all of the `extension create` options, the following options are available for `extension publish`:
+
+* `--vsix`: Path to an existing VSIX (to publish or query for).
+* `--share-with`: List of accounts (VSTS) with which to share the extension.
 
 ### Example
+
 ```
-C:\myextension>tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
-
-Copyright Microsoft Corporation
-Checking if this extension is already published
-It is, update the extension
-Waiting for server to validate extension package...
-Sharing extension with myaccount.
-
-=== Completed operation: publish extension ===
- - Packaging: C:\myextension\mypublisher.myextension-0.1.0.vsix
- - Publishing: success
- - Sharing: shared with myaccount
+tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
 ```
 
-## Other Extension commands
-To see a list of all Extensions commands, type `tfx extension --help`.
+## Other commands
+
+* `tfx extension publisher`: Commands for creating and managing publishers.
+* `tfx extension install`: Install a Visual Studio Services Extension to a list of VSTS Accounts.
+* `tfx extension show`: Show information about a published extension.
+* `tfx extension share`: Share an extension with an account.
+* `tfx extension unshare`: Unshare an extension with an account.
+
+For full detials, run:
+
+```
+tfx extension --help
+```
+
