@@ -24,9 +24,21 @@ Package, publish, and manage Team Services and Team Foundation Server extensions
 
 ### Examples
 
+#### Package for a different publisher 
+
 ```
 tfx extension create --publisher mypublisher --manifest-globs myextension.json
 ```
+
+#### Increment (rev) the patch segment of the extension version
+
+For example, assume the extension's version is currently `0.4.0`
+
+```
+tfx extension create --rev-version
+```
+
+The version included in the packaged .VSIX and in the source manifest file is now `0.4.1`.
 
 ### Tips
 
