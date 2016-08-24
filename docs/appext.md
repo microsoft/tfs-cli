@@ -1,32 +1,41 @@
 # Extensions
 
-You can manage your Visual Studio Marketplace Extensions with tfx.
+Package, publish, and manage Team Services and Team Foundation Server extnesions.
 
-## Create An Extension Package
-For information about creating an Extension for the Visual Studio Marketplace, visit the [Extensions Overview documentation](https://www.visualstudio.com/integrate/extensions/overview). You will use this tool when you are ready to package and publish your Extension.
+## Package an extension
 
-This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://www.visualstudio.com/en-us/integrate/extensions/develop/manifest) for more information about how to author an Extension Manifest.
+### Basic usage
 
-To package your extension, type `tfx extension create` from the root of your extension folder. Additionally, you may specify any of the following options:
+`tfx extension create`
 
-```
-  --root               Root directory.
-  --manifests          List of individual manifest files (space-separated).
-  --manifest-globs     List of globs to find manifests (space-separated).
-  --override           JSON string which is merged into the manifests, overriding any values.
-  --bypass-validation  Bypass local validation.
-  --publisher          Use this as the publisher ID instead of what is specified in the manifest.
-  --extension-id       Use this as the extension ID instead of what is specified in the manifest.
-  --output-path        Path to write the VSIX.
-```
-You can also view this help by typing `tfx extension create --help`.
+### Arguments
 
-### Example
+* `--root`: Root directory.
+* `--manifests`: List of individual manifest files (space separated).
+* `--manifest-globs`: List of globs to find manifests (space separated).
+* `--override`: JSON string which is merged into the manifests, overriding any values.
+* `--overrides-file`: Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.
+* `--rev-version`: Rev the patch-version of the extension and save the result.
+* `--bypass-validation`: Bypass local validation.
+* `--publisher`: Use this as the publisher ID instead of what is specified in the manifest.
+* `--extension-id`: Use this as the extension ID instead of what is specified in the manifest.
+* `--output-path`: Path to write the VSIX.
+* `--loc-root`: Root of localization hierarchy (see README for more info).
+
+### For more information
+
+See the [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).You will use this tool when you are ready to package and publish your Extension.
+
+This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://www.visualstudio.com/en-us/integrate/extensions/develop/manifest)
+
+### Examples
+
 ```
 tfx extension create --publisher mypublisher --manifest-globs myextension.json
 ```
 
-## Publish An Extension
+## Publish an extension
+
 When you're ready to push your Extension to the Visual Studio Marketplace, you can use the `publish` command. By default, `publish` will first package your extension using the same mechanism as `tfx extension create`. Therefore, all the options available in `create` are available to `publish`.
 
 When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
