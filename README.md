@@ -18,7 +18,7 @@ sudo npm install -g tfx-cli
 npm install -g tfx-cli
 ```
 
-## Usage
+## Commands
 
 To see a list of commands:
 ```
@@ -32,7 +32,7 @@ tfx <command> --help
 
 > Help info is dynamically generated, so it should always be the most up-to-date authority.
 
-### Commands
+### Command sets
 
 * `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
 * `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
@@ -92,7 +92,7 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 
 If you used `--save` to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
 
-## Troubleshooting
+### Troubleshooting
 
 To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem (and will certainly help if logging an issue).
 
