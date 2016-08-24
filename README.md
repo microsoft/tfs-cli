@@ -40,11 +40,9 @@ tfx <command> --help
 
 ### Login
 
-To avoid providing credentials with every command, you can login once.
+To avoid providing credentials with every command, you can login once. Currently supported credential types: Personal Access Tokens and basic auth credentials.
 
-Currently supported credential types: Personal Access Tokens and basic auth credentials.
-
-#### Using a personal access token
+#### Personal access token
 
 Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
 
@@ -115,7 +113,7 @@ $env:TFX_TRACE=1
 
 ## Contributing
 
-We take contributions and fixes via Pull Request.  [Read here](docs/contributions.md) for the details.
+We take contributions and fixes via Pull Request. [Read here](docs/contributions.md) for the details.
 
 ## Code of Conduct
 
