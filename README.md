@@ -34,9 +34,9 @@ tfx <command> --help
 
 ### Commands
 
-* `tfx build` [Builds](docs/builds.md): Queue, view, and get details for builds
-* `tfx build tasks` [Build tasks](docs/buildtasks.md): Create, list, upload and delete build tasks
-* `tfx extension` [Extensions](docs/appext.md)`: Package, manage, publisher Team Foundation Server / Team Services extensions
+* `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
+* `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
+* `tfx extension` ([extensions](docs/appext.md)): Package, manage, publisher Team Foundation Server / Team Services extensions
 
 ### Login
 
