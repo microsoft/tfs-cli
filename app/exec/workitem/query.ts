@@ -13,7 +13,7 @@ export function getCommand(args: string[]): WorkItemQuery {
 }
 
 export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]> {
-	protected description = "Get a list of workitems given query";
+	protected description = "Get a list of Work Items given a query";
 
 	protected getHelpArgs(): string[] {
 		return ["project", "query"];
@@ -22,7 +22,7 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 	public exec(): Q.Promise<witContracts.WorkItem[]> {
 		var witApi: witClient.IQWorkItemTrackingApi = this.webApi.getQWorkItemTrackingApi();
 
-		return this.commandArgs.project.val().then((projectName) => {
+		return this.commandArgs.project.val(true).then((projectName) => {
 			return this.commandArgs.query.val().then((query) => {
 				let wiql: witContracts.Wiql = { query: query };
 				return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then((result) => {
