@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "description": "CLI for Visual Studio Team Services and Team Foundation Server",
   "repository": {
     "type": "git",
