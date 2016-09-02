@@ -3,7 +3,7 @@ import common = require("./lib/common");
 import errHandler = require("./lib/errorhandler");
 import loader = require("./lib/loader");
 import path = require("path");
-import Q = require("q");
+
 
 // Set app root
 common.APP_ROOT = __dirname;

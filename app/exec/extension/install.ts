@@ -80,12 +80,14 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		return ["publisher", "extensionId", "vsix", "accounts"];
 	}
 
-	public exec(): Q.Promise<ExtensionInstallResult> {
+	public exec(): Promise<ExtensionInstallResult> {
 		// Read extension info from arguments
 		return this._getExtensionInfo()
 			.then(extInfo => {
 				const itemId = `${extInfo.publisher}.${extInfo.id}`;
-				const galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+				const galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+				
+				
 
 				// Read accounts from arguments and resolve them to get its accountIds
 				return this.commandArgs.accounts.val()
@@ -95,7 +97,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 					.then(accounts => {
 						// Install extension in each account
 						const installations = [...accounts].map(account => this._installExtension(galleryApi, itemId, account.accountId, account.accountName));
-						return Q.all(installations);
+						return Promise.all(installations);
 					})
 					.then(targetReports => {
 						// Process installation results. We reject if exists at least one that was not installed successfully
@@ -124,16 +126,17 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 	}
 
-	private _getExtensionInfo(): Q.Promise<extInfo.CoreExtInfo> {
+	private _getExtensionInfo(): Promise<extInfo.CoreExtInfo> {
 		return this.commandArgs.vsix.val(true).then((vsixPath) => {
-			let extInfoPromise: Q.Promise<extInfo.CoreExtInfo>;
+			let extInfoPromise: Promise<extInfo.CoreExtInfo>;
 			if (vsixPath !== null) {
 				extInfoPromise = extInfo.getExtInfo(vsixPath[0], null, null);
 			} else {
-				extInfoPromise = Q.all([
+				extInfoPromise = Promise.all([
 					this.commandArgs.publisher.val(),
 					this.commandArgs.extensionId.val()]
-				).spread<extInfo.CoreExtInfo>((publisher, extension) => {
+				).then<extInfo.CoreExtInfo>((values) => {
+					const [publisher, extension] = values;
 					return extInfo.getExtInfo(null, extension, publisher);
 				});
 			}
@@ -142,7 +145,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		});
 	}
 
-	private _resolveInstallationAccounts(galleryApi: gallerym.IQGalleryApi, accounts: string[]): Q.Promise<TargetAccount[]> {
+	private _resolveInstallationAccounts(galleryApi: gallerym.IGalleryApi, accounts: string[]): Promise<TargetAccount[]> {
 		if (!accounts || accounts.length === 0) {
 			return Q.resolve([]);
 		}
@@ -151,32 +154,29 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 		// Use connectionData service to determine userId
 		trace.debug("Connecting to service to get user");
-		galleryApi.connect()
-			.then((data: any) => {
-				if (!data || !data.authenticatedUser || !data.authenticatedUser.id) {
-					throw new Error("Cannot determine authenticated user in order to resolve accounts for which is an owner or a member of.");
-				}
+		galleryApi.connect().then((data: any) => {
+			if (!data || !data.authenticatedUser || !data.authenticatedUser.id) {
+				throw new Error("Cannot determine authenticated user in order to resolve accounts for which is an owner or a member of.");
+			}
 
-				trace.debug("Installation User Id:" + data.authenticatedUser.id);
-				return this._getAccountsByMemberId(data.authenticatedUser.id);
-			})
-			.then((userAccounts: Account[]) => {
+			trace.debug("Installation User Id:" + data.authenticatedUser.id);
+			return this._getAccountsByMemberId(data.authenticatedUser.id);
+		}).then((userAccounts: Account[]) => {
 
-				const getAccountId = (accountName: string): string => {
-					const resolvedAccount = userAccounts.filter(a => a.accountName.toLowerCase() === accountName.toLowerCase());
-					return resolvedAccount && resolvedAccount.length > 0 ? resolvedAccount[0].accountId : undefined;
-				};
+			const getAccountId = (accountName: string): string => {
+				const resolvedAccount = userAccounts.filter(a => a.accountName.toLowerCase() === accountName.toLowerCase());
+				return resolvedAccount && resolvedAccount.length > 0 ? resolvedAccount[0].accountId : undefined;
+			};
 
-				return result.resolve(accounts.map(accountName => { return <TargetAccount>{ accountId: getAccountId(accountName), accountName: accountName }; }));
-			})
-			.fail(err => {
-				result.reject(err);
-			});
+			return result.resolve(accounts.map(accountName => { return <TargetAccount>{ accountId: getAccountId(accountName), accountName: accountName }; }));
+		}).catch(err => {
+			result.reject(err);
+		});
 
 		return result.promise;
 	}
 
-	private _installExtension(galleryApi: gallerym.IQGalleryApi, itemId: string, accountId: string, accountName: string): Q.Promise<AccountInstallReport> {
+	private _installExtension(galleryApi: gallerym.IGalleryApi, itemId: string, accountId: string, accountName: string): Promise<AccountInstallReport> {
 		const accountReport: AccountInstallReport = new AccountInstallReport(itemId, accountName, accountId);
 
 		if (!accountId) {
@@ -190,24 +190,22 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 			itemId: itemId,
 			operationType: GalleryInterfaces.AcquisitionOperationType.Install,
 			targets: [accountId]
-		})
-			.then(report => {
-				trace.debug(`Succeeded GalleryApi.requestAcquisition in ${accountName}: ${report}`);
-				accountReport.installed = true;
+		}).then(report => {
+			trace.debug(`Succeeded GalleryApi.requestAcquisition in ${accountName}: ${report}`);
+			accountReport.installed = true;
+			return accountReport;
+		}).catch((err) => {
+			// Ignore error 'AlreadyInstalled'
+			if (this._isAlreadyInstalledError(err)) {
+				trace.debug(`Succeeded GalleryApi.requestAcquisition in ${accountName}: Already installed`);
+				accountReport.setInstalled("Extension already installed");
 				return accountReport;
-			})
-			.fail((err) => {
-				// Ignore error 'AlreadyInstalled'
-				if (this._isAlreadyInstalledError(err)) {
-					trace.debug(`Succeeded GalleryApi.requestAcquisition in ${accountName}: Already installed`);
-					accountReport.setInstalled("Extension already installed");
-					return accountReport;
-				}
+			}
 
-				trace.error(`Failed GalleryApi.requestAcquisition for account ${accountName}: ${err}`);
-				accountReport.setError(err);
-				return accountReport;
-			});
+			trace.error(`Failed GalleryApi.requestAcquisition for account ${accountName}: ${err}`);
+			accountReport.setError(err);
+			return accountReport;
+		});
 	}
 
 	private _isAlreadyInstalledError(err): boolean {
@@ -215,7 +213,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		return err.statusCode === 409;
 	}
 
-	private _getAccountsByMemberId(userId: string): Q.Promise<Account[]> {
+	private _getAccountsByMemberId(userId: string): Promise<Account[]> {
 		trace.debug("Getting Accounts to user:" + userId);
 		return this._getAccountsServiceBaseUrl()
 			.then(accountsBaseUrl => {
@@ -230,7 +228,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 	 * @param  {string} serviceUrl
 	 * @returns string
 	 */
-	private _getAccountsServiceBaseUrl(): Q.Promise<string> {
+	private _getAccountsServiceBaseUrl(): Promise<string> {
 		trace.debug("Resolving SPS URL");
 		const locationsApi = new LocationsApi(this.webApi.serverUrl, [this.webApi.authHandler]);
 		return locationsApi.getServiceDefinition("LocationService2", SPS_INSTANCE_TYPE)
@@ -247,7 +245,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 /**
  * ------------------------------------------
- * VSTS APIs NOT PROVIDED YET BY VSO-NODE-API
+ * VSTS APIs NOT PROVIDED YET BY vso-node-api
  *-------------------------------------------
  *
  */
@@ -257,7 +255,7 @@ import { ClientApiBase } from  "vso-node-api/ClientApiBases";
 
 /**
  * --------------
- *  ACCOUNTS API (TODO: REMOVE IT AS SOON AS IT IS INCLUDED IN VSO-NODE-API)
+ *  ACCOUNTS API (TODO: REMOVE IT AS SOON AS IT IS INCLUDED IN vso-node-api)
  * --------------
  */
 
@@ -352,7 +350,7 @@ class AccountsApi extends ClientApiBase {
 		memberId?: string,
 		includeOwner?: boolean,
 		properties?: string,
-		includeDisabledAccounts?: boolean): Q.Promise<Account[]> {
+		includeDisabledAccounts?: boolean): Promise<Account[]> {
 		const deferred = Q.defer<Account[]>();
 
 		const onResult = (err: any, statusCode: number, accounts: Account[]) => {
@@ -392,7 +390,7 @@ class AccountsApi extends ClientApiBase {
 
 /**
  * ---------------
- *  LOCATIONS API (TODO: REMOVE IT AS SOON AS IT IS INCLUDED IN VSO-NODE-API)
+ *  LOCATIONS API (TODO: REMOVE IT AS SOON AS IT IS INCLUDED IN vso-node-api)
  * ---------------
  */
 
@@ -457,7 +455,7 @@ class LocationsApi extends ClientApiBase {
 		super(baseUrl, handlers, "tfx-cli");
 	}
 
-	public getServiceDefinition(serviceType: string, identifier: string): Q.Promise<ServiceDefinition> {
+	public getServiceDefinition(serviceType: string, identifier: string): Promise<ServiceDefinition> {
 		const deferred = Q.defer<ServiceDefinition>();
 
 		const onResult = (err: any, statusCode: number, serviceDefinition: ServiceDefinition) => {

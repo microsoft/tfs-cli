@@ -7,11 +7,11 @@
  * If value is a Q promise, returns the promise.
  * If value is a promise from another library it is coerced into a Q promise (where possible).
  */
-declare function Q<T>(promise: Q.IPromise<T>): Q.Promise<T>;
+declare function Q<T>(promise: Q.IPromise<T>): Promise<T>;
 /**
  * If value is not a promise, returns a promise that is fulfilled with value.
  */
-declare function Q<T>(value: T): Q.Promise<T>;
+declare function Q<T>(value: T): Promise<T>;
 
 declare module Q {
     interface IPromise<T> {

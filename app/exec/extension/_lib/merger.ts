@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+
 
 import { ManifestBuilder } from "./manifest";
 import { ComposerFactory } from "./extension-composer-factory";
@@ -39,7 +39,7 @@ export class Merger {
 		this.manifestBuilders = [];
 	}
 
-	private gatherManifests(): Q.Promise<string[]> {
+	private gatherManifests(): Promise<string[]> {
 		trace.debug('merger.gatherManifests');
 
 		if (this.settings.manifestGlobs && this.settings.manifestGlobs.length > 0) {
@@ -48,8 +48,8 @@ export class Merger {
 			trace.debug('merger.gatherManifestsFromGlob');
 			const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
 
-			return Q.all(promises)
-				.then(results => _.unique(_.flatten<string>(results)))
+			return Promise.all(promises)
+				.then(results => _.uniq(_.flatten<string>(results)))
 				.then(results => {
 					if (results.length > 0) {
 						trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
@@ -65,7 +65,7 @@ export class Merger {
 			if (!manifests || manifests.length === 0) {
 				return Q.reject<string[]>("No manifests specified.");
 			}
-			this.settings.manifests = _.unique(manifests).map(m => path.resolve(m));
+			this.settings.manifests = _.uniq(manifests).map(m => path.resolve(m));
 			trace.debug("Merging %s manifest%s from the following paths: ", manifests.length.toString(), manifests.length === 1 ? "" : "s");
 			manifests.forEach(path => trace.debug(path));
 			return Q.resolve(this.settings.manifests);
@@ -76,12 +76,12 @@ export class Merger {
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
 	 * @return Q.Promise<SplitManifest> An object containing the two manifests
 	 */
-	public merge(): Q.Promise<VsixComponents> {
+	public merge(): Promise<VsixComponents> {
 		trace.debug('merger.merge')
 
 		return this.gatherManifests().then(files => {
 			let overridesProvided = false;
-			let manifestPromises: Q.Promise<any>[] = [];
+			let manifestPromises: Promise<any>[] = [];
 			files.forEach((file) => {
 				manifestPromises.push(Q.nfcall<any>(fs.readFile, file, "utf8").then((data) => {
 					let jsonData = data.replace(/^\uFEFF/, '');
@@ -103,7 +103,7 @@ export class Merger {
 				manifestPromises.push(Q.resolve(this.settings.overrides));
 			}
 
-			return Q.all(manifestPromises).then(partials => {
+			return Promise.all(manifestPromises).then(partials => {
 				// Determine the targets so we can construct the builders
 				let targets: TargetDeclaration[] = [];
 				partials.forEach((partial) => {
@@ -113,7 +113,7 @@ export class Merger {
 				});
 				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
 				this.manifestBuilders = this.extensionComposer.getBuilders();
-				let updateVersionPromise = Q.resolve<void>(null);
+				let updateVersionPromise = Promise.resolve<void>(null);
 				partials.forEach((partial, partialIndex) => {
 					// Rev the version if necessary
 					if (this.settings.revVersion) {
@@ -201,7 +201,7 @@ export class Merger {
 				let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
 
 				// Finalize each builder
-				return Q.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders)))).then(() => {
+				return Promise.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders)))).then(() => {
 					// Let the composer do validation
 					return this.extensionComposer.validate(components).then((validationResult) => {
 						if (validationResult.length === 0 || this.settings.bypassValidation) {

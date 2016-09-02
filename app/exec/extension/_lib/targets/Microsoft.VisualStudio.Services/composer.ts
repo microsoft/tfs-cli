@@ -9,7 +9,7 @@ export class VSSExtensionComposer extends ExtensionComposer {
 		return super.getBuilders().concat([new VsoManifestBuilder(this.settings.root)]);
 	}
 	
-	public validate(components: VsixComponents): Q.Promise<string[]> {
+	public validate(components: VsixComponents): Promise<string[]> {
 		return super.validate(components).then((result) => {
 			let data = components.builders.filter(b => b.getType() === VsoManifestBuilder.manifestType)[0].getData();
 			if (data.contributions.length === 0 && data.contributionTypes.length === 0) {

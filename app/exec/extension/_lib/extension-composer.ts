@@ -5,6 +5,7 @@ import { VsixComponents } from "./merger";
 import _ = require("lodash");
 import Q = require("q");
 
+
 export abstract class ExtensionComposer {
 	constructor(protected settings: MergeSettings) { }
 	
@@ -15,7 +16,7 @@ export abstract class ExtensionComposer {
 	/**
 	 * Return a string[] of validation errors
 	 */
-	public validate(components: VsixComponents): Q.Promise<string[]> {		
+	public validate(components: VsixComponents): Promise<string[]> {		
 		// Take the validators and run each's method against the vsix manifest's data
 		let errorMessages = Object.keys(ExtensionComposer.vsixValidators).map(path => ExtensionComposer.vsixValidators[path](_.get(components.builders.filter(b => b.getType() === VsixManifestBuilder.manifestType)[0].getData(), path))).filter(r => !!r);
 		
@@ -54,7 +55,7 @@ export abstract class ExtensionComposer {
 		},
 		"PackageManifest.Assets[0].Asset": (value) => {
 			let usedAssetTypes = {};
-			if (_.isArray(value)) {
+			if (_.isArray<any>(value)) {
 				for (let i = 0; i < value.length; ++i) {
 					let asset = value[i].$;
 					if (asset) {

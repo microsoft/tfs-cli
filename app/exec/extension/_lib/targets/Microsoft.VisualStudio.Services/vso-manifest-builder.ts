@@ -2,7 +2,7 @@ import { ManifestBuilder } from "../../manifest"
 import { PackageFiles } from "../../interfaces"
 import _ = require("lodash");
 import os = require("os");
-import Q = require("q");
+
 import stream = require("stream");
 
 export class VsoManifestBuilder extends ManifestBuilder {
@@ -26,7 +26,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
 		return "application/json";
 	}
 
-	public finalize(files: PackageFiles): Q.Promise<void> {
+	public finalize(files: PackageFiles): Promise<void> {
 		// Ensure some default values are set
 		if (!this.data.contributions) {
 			this.data.contributions = [];
@@ -40,7 +40,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
 		if (!this.data.manifestVersion) {
 			this.data.manifestVersion = 1;
 		}
-		return Q.resolve<void>(null);
+		return Promise.resolve<void>(null);
 	}
 
 	/**

@@ -3,9 +3,9 @@
 // Definitions by: Jeff May <https://github.com/jeffmay>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
-/// <reference path="../node/node.d.ts" />
-/// <reference path="./node-uuid-base.d.ts" />
-/// <reference path="./node-uuid-cjs.d.ts" />
+
+
+
 
 /**
  * Definitions for use in node environment

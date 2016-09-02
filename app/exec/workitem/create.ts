@@ -18,18 +18,18 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
-	public exec(): Q.Promise<witContracts.WorkItem> {
-		var witapi = this.webApi.getQWorkItemTrackingApi();
+	public exec(): Promise<witContracts.WorkItem> {
+		var witapi = this.webApi.getWorkItemTrackingApi();
 
-		return Q.all([
+		return Promise.all([
 			this.commandArgs.workItemType.val(),
 			this.commandArgs.project.val(),
 			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
 			this.commandArgs.values.val(true)
-		]).spread((wiType, project, title, assignedTo, description, values) => {
-
+		]).then((promiseValues) => {
+			const [wiType, project, title, assignedTo, description, values] = promiseValues;
 			if(!title && !assignedTo && !description && (!values || Object.keys(values).length <= 0)) {
 				return Q.reject<witContracts.WorkItem>("At least one field value must be specified.");
 			}

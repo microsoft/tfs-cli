@@ -1,7 +1,7 @@
-/// <reference path="../../typings/tsd.d.ts" />
+
 
 import path = require("path");
-import Q = require("q");
+
 import qfs = require("./qfs");
 import qread = require("./qread");
 
@@ -76,7 +76,7 @@ export class FileOutputter implements Outputter {
 	 * User has the option during confirmations to change path, in which the above process happens again.
 	 * Once we have the file, check that we have write access. If not, ask for a new file name and re-do all of the above.
 	 */
-	private confirmPath(outPath: string, confirmRelative: boolean = false): Q.Promise<string> {
+	private confirmPath(outPath: string, confirmRelative: boolean = false): Promise<string> {
 		let absPath = path.resolve(outPath);
 		return qfs.exists(absPath).then((exists) => {
 			if (!exists && (!confirmRelative || path.isAbsolute(outPath))) {
@@ -120,7 +120,7 @@ export class FileOutputter implements Outputter {
 	/**
 	 * Write the given string of data to the file
 	 */
-	public processOutput(data: string): Q.Promise<void> {
+	public processOutput(data: string): Promise<void> {
 		return this.confirmPath(this.outputPath).then((confirmed) => {
 			let dataPromise = Q.resolve(data);
 			if (this.overwriteSetting === FileOverwriteOption.Append) {

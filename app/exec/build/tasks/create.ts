@@ -2,7 +2,7 @@ import { TfCommand } from "../../../lib/tfcommand";
 import check = require("validator");
 import common = require("../../../lib/common");
 import fs = require("fs");
-import Q = require("q");
+
 import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
@@ -44,15 +44,16 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Q.Promise<TaskCreateResult> {
+	public exec(): Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
-		return Q.all([
+		return Promise.all([
 			this.commandArgs.taskName.val(),
 			this.commandArgs.friendlyName.val(),
 			this.commandArgs.description.val(),
 			this.commandArgs.author.val(),
-		]).spread((taskName, friendlyName, description, author) => {
+		]).then((values) => {
+			const [taskName, friendlyName, description, author] = values;
 			if (!taskName || !check.isAlphanumeric(taskName)) {
 				throw new Error("name is a required alphanumeric string with no spaces");
 			}

@@ -21,12 +21,12 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		return ["project", "definitionId", "definitionName"];
 	}
 
-	public exec(): Q.Promise<buildContracts.Build> {
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+	public exec(): Promise<buildContracts.Build> {
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val(true).then((definitionId) => {
-				let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
+				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
 					definitionPromise = buildapi.getDefinition(definitionId, project);
 				} else {
@@ -64,7 +64,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
 	}
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi, definition: buildContracts.DefinitionReference, project: string) {
+	private _queueBuild(buildapi: buildClient.IBuildApi, definition: buildContracts.DefinitionReference, project: string) {
 		trace.debug("Queueing build...")
 		var build = <buildContracts.Build> {
 			definition: definition

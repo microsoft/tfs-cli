@@ -1,4 +1,4 @@
-/// <reference path="../../typings/tsd.d.ts" />
+
 
 import _ = require('lodash');
 import cm = require('./common');
@@ -22,7 +22,7 @@ export class DiskCache {
 		return path.join(storeFolder, '.' + name);
 	}
 
-	public itemExists(store: string, name: string): Q.Promise<boolean> {
+	public itemExists(store: string, name: string): Promise<boolean> {
 		var defer = Q.defer<boolean>();
 
 		fs.exists(this.getFilePath(store, name), (exists: boolean) => {
@@ -32,7 +32,7 @@ export class DiskCache {
 		return <Q.Promise<boolean>>defer.promise;
 	}
 
-	public getItem(store: string, name: string): Q.Promise<string> {
+	public getItem(store: string, name: string): Promise<string> {
 		trace.debug('cache.getItem');
 		var defer = Q.defer<string>();
 		var fp = this.getFilePath(store, name);
@@ -52,7 +52,7 @@ export class DiskCache {
 		return <Q.Promise<string>>defer.promise;
 	}
 
-	public setItem(store: string, name: string, data:string): Q.Promise<void> {
+	public setItem(store: string, name: string, data:string): Promise<void> {
 		trace.debug('cache.setItem');
 		var defer = Q.defer<void>();
 		var fp = this.getFilePath(store, name);
@@ -70,7 +70,7 @@ export class DiskCache {
 		return <Q.Promise<void>>defer.promise;
 	}
 
-	public deleteItem(store: string, name: string): Q.Promise<void> {
+	public deleteItem(store: string, name: string): Promise<void> {
 		return Q.Promise<void>((resolve, reject) => {
 			fs.unlink(this.getFilePath(store, name), (err) => {
 				if (err) {
@@ -83,7 +83,7 @@ export class DiskCache {
 	}
 }
 
-export function parseSettingsFile(settingsPath: string, noWarn: boolean): Q.Promise<cm.IStringIndexer> {
+export function parseSettingsFile(settingsPath: string, noWarn: boolean): Promise<cm.IStringIndexer> {
 	trace.debug("diskcache.parseSettings");
 	trace.debug("reading settings from %s", settingsPath);
 	return Q.Promise<cm.IStringIndexer>((resolve, reject, notify) => {

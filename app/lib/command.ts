@@ -1,7 +1,7 @@
 import common = require("./common");
 import fs = require("./qfs");
 import path = require("path");
-import Q = require("q");
+
 
 export interface TFXCommand {
 	execPath: string[];
@@ -13,7 +13,7 @@ export interface CommandHierarchy {
 	[command: string]: CommandHierarchy;
 }
 
-export function getCommand(): Q.Promise<TFXCommand> {
+export function getCommand(): Promise<TFXCommand> {
 	let args = process.argv.slice(2);
 	return getCommandHierarchy(path.resolve(common.APP_ROOT, "exec")).then((hierarchy) => {
 		let execPath: string[] = [];
@@ -39,7 +39,7 @@ export function getCommand(): Q.Promise<TFXCommand> {
 	});
 }
 
-function getCommandHierarchy(root: string): Q.Promise<CommandHierarchy> {
+function getCommandHierarchy(root: string): Promise<CommandHierarchy> {
 	let hierarchy: CommandHierarchy = { };
 	return fs.readdir(root).then((files) => {
 		let filePromises = [];
@@ -62,7 +62,7 @@ function getCommandHierarchy(root: string): Q.Promise<CommandHierarchy> {
 			});
 			filePromises.push(promise);
 		});
-		return Q.all(filePromises).then(() => {
+		return Promise.all(filePromises).then(() => {
 			return hierarchy;
 		});
 	});

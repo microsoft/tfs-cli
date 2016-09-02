@@ -382,7 +382,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * --Ensures an <Asset> entry is added for each file as appropriate
 	 * --Builds the [Content_Types].xml file
 	 */
-	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Q.Promise<void> {
+	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Promise<void> {
 		// Default installation target to VSS if not provided (and log warning)
 		let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
 		if (!(_.isArray(installationTarget) && installationTarget.length > 0)) {
@@ -436,7 +436,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * This xml contains a <Default> entry for each different file extension
 	 * found in the package, mapping it to the appropriate MIME type.
 	 */
-	private genContentTypesXml(builders: ManifestBuilder[]): Q.Promise<string> {
+	private genContentTypesXml(builders: ManifestBuilder[]): Promise<string> {
 		let typeMap = VsixManifestBuilder.CONTENT_TYPE_MAP;
 		trace.debug("Generating [Content_Types].xml");
 		let contentTypes: any = {
@@ -453,9 +453,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		const showWarningForExtensionMap: { [ext: string]: boolean } = {};
 		if (windows) {
 			// On windows, check HKCR to get the content type of the file based on the extension
-			let contentTypePromises: Q.Promise<any>[] = [];
+			let contentTypePromises: Promise<any>[] = [];
 			let extensionlessFiles = [];
-			let uniqueExtensions = _.unique<string>(Object.keys(this.files).map((f) => {
+			let uniqueExtensions = _.uniq<string>(Object.keys(this.files).map((f) => {
 				let extName = path.extname(f);
 				const filename = path.basename(f);
 
@@ -496,7 +496,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					hive: winreg.HKCR,
 					key: "\\" + ext.toLowerCase()
 				});
-				let regPromise = Q.ninvoke(hkcrKey, "get", "Content Type").then((type: WinregValue) => {
+				let regPromise = Q.ninvoke(hkcrKey, "get", "Content Type").then((type: winreg.RegistryItem) => {
 					trace.debug("Found content type for %s: %s.", ext, type.value);
 					let contentType = "application/octet-stream";
 					if (type) {
@@ -518,7 +518,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				});
 				contentTypePromises.push(regPromise);
 			});
-			contentTypePromise = Q.all(contentTypePromises);
+			contentTypePromise = Promise.all(contentTypePromises);
 		} else {
 			// If not on windows, run the file --mime-type command to use magic to get the content type.
 			// If the file has an extension, rev a hit counter for that extension and the extension
@@ -527,7 +527,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			// (tracked by the hit counter), create an <Override> element.
 			// Finally, add a <Default> element for each extension mapped to the most common type.
 
-			let contentTypePromises: Q.Promise<any>[] = [];
+			let contentTypePromises: Promise<any>[] = [];
 			let extTypeCounter: {[ext: string]: {[type: string]: string[]}} = {};
 			Object.keys(this.files).filter((fileName) => {
 				return !this.files[fileName].contentType;
@@ -551,8 +551,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 							if (err) {
 								reject(err);
 							}
-							let stdoutStr = stdout.toString("utf8");
-							let magicMime = _.trimRight(stdoutStr.substr(stdoutStr.lastIndexOf(" ") + 1), "\n");
+							let magicMime = _.trimEnd(stdout.substr(stdout.lastIndexOf(" ") + 1), "\n");
 							trace.debug("Magic mime type for %s is %s.", fileName, magicMime);
 							if (magicMime) {
 								if (extension) {
@@ -571,7 +570,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 								}
 							} else {
 								if (stderr) {
-									reject(stderr.toString("utf8"));
+									reject(stderr);
 								} else {
 									if (this.files[fileName].addressable) {
 										trace.warn("Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", fileName);
@@ -587,7 +586,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				});
 				contentTypePromises.push(mimePromise);
 			});
-			contentTypePromise = Q.all(contentTypePromises).then(() => {
+			contentTypePromise = Promise.all(contentTypePromises).then(() => {
 				Object.keys(extTypeCounter).forEach((ext) => {
 					let hitCounts = extTypeCounter[ext];
 					let bestMatch = maxKey<string[]>(hitCounts, (i => i.length));

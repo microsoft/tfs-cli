@@ -19,15 +19,16 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 		return ["publisher", "displayName", "description"];
 	}
 
-	public exec(): Q.Promise<galleryInterfaces.Publisher> {
+	public exec(): Promise<galleryInterfaces.Publisher> {
 
-		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 
-		return Q.all([
+		return Promise.all([
 			this.commandArgs.publisher.val(),
 			this.commandArgs.displayName.val(),
 			this.commandArgs.description.val()
-		]).spread<galleryInterfaces.Publisher>((publisherName: string, displayName: string, description: string) => {
+		]).then<galleryInterfaces.Publisher>((values) => {
+			const [publisherName, displayName, description] = values;
 			return galleryApi.createPublisher(<galleryInterfaces.Publisher>{
 				publisherName: publisherName,
 				displayName: displayName,

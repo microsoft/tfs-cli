@@ -19,8 +19,8 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 		return ["project", "query"];
 	}
 
-	public exec(): Q.Promise<witContracts.WorkItem[]> {
-		var witApi: witClient.IQWorkItemTrackingApi = this.webApi.getQWorkItemTrackingApi();
+	public exec(): Promise<witContracts.WorkItem[]> {
+		var witApi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
 
 		return this.commandArgs.project.val(true).then((projectName) => {
 			return this.commandArgs.query.val().then((query) => {

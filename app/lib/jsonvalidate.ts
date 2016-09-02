@@ -11,7 +11,7 @@ var trace = require('./trace');
  * @return the parsed json file
  * @throws InvalidDirectoryException if json file doesn't exist, InvalidJsonException on failed parse or *first* invalid field in json
 */
-export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): Q.Promise<any> {
+export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): Promise<any> {
 	trace.debug('Validating task json...');
 	var deferred = Q.defer<any>();
 	var jsonMissingErrorMsg: string = jsonMissingErrorMessage || 'specified json file does not exist.'

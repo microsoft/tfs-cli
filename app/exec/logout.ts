@@ -5,7 +5,7 @@ import args = require("../lib/arguments");
 import common = require("../lib/common");
 import credStore = require("../lib/credstore");
 import path = require("path");
-import Q = require("q");
+
 import trace = require("../lib/trace");
 
 export function getCommand(args: string[]): Reset {
@@ -20,11 +20,11 @@ export class Reset extends TfCommand<CoreArguments, void> {
 		super(args, false);
 	}
 
-	public exec(): Q.Promise<void> {
-		return Q.resolve<void>(null);
+	public exec(): Promise<void> {
+		return Promise.resolve<void>(null);
 	}
 	
-	public dispose(): Q.Promise<void> {
+	public dispose(): Promise<void> {
 		let diskCache = new DiskCache("tfx");
 		return diskCache.itemExists("cache", "connection").then((isCachedConnection) => {
 			if (isCachedConnection) {
@@ -34,14 +34,14 @@ export class Reset extends TfCommand<CoreArguments, void> {
 						if (isCredential) {
 							return store.clearCredential(cachedConnection, "allusers");
 						} else {
-							return Q.resolve<void>(null);
+							return Promise.resolve<void>(null);
 						}
 					});
 				}).then(() => {
 					return diskCache.deleteItem("cache", "connection");
 				})
 			} else {
-				return Q.resolve<void>(null);
+				return Promise.resolve<void>(null);
 			}
 		});
 	}

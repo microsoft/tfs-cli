@@ -6,9 +6,8 @@ import { GalleryBase, CoreExtInfo } from "./_lib/publish";
 import { readFile } from "../../lib/qfs";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
-import trace = require("../../lib/trace");
-
 import Q = require("q");
+import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): TfCommand<ExtensionArguments, void> {
 	return new ExtensionBase<void>(args);
@@ -66,8 +65,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("revVersion", "Rev version", "Rev the patch-version of the extension and save the result.", args.BooleanArgument, "false");
 	}
 
-	protected getMergeSettings(): Q.Promise<MergeSettings> {
-		return Q.all([
+	protected getMergeSettings(): Promise<MergeSettings> {
+		return Promise.all([
 			this.commandArgs.root.val(),
 			this.commandArgs.manifests.val(),
 			this.commandArgs.manifestGlobs.val(),
@@ -77,14 +76,15 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.bypassValidation.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true)
-		]).spread<MergeSettings>((root: string[], manifests: string[], manifestGlob: string[], override: any, overridesFile: string[], revVersion: boolean, bypassValidation: boolean, publisher: string, extensionId: String) => {
+		]).then<MergeSettings>((values) => {
+			const [root, manifests, manifestGlob, override, overridesFile, revVersion, bypassValidation, publisher, extensionId] = values;
 			if (publisher) {
 				_.set(override, "publisher", publisher);
 			}
 			if (extensionId) {
 				_.set(override, "extensionid", extensionId);
 			}
-			let overrideFileContent = Q.resolve("");
+			let overrideFileContent: Promise<string> = Q.resolve("");
 			if (overridesFile && overridesFile.length > 0) {
 				overrideFileContent = readFile(overridesFile[0], "utf-8");
 			}
@@ -116,31 +116,34 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		});
 	}
 
-	protected getPackageSettings(): Q.Promise<PackageSettings> {
-		return Q.all<string | string[]>([
+	protected getPackageSettings(): Promise<PackageSettings> {
+		return Promise.all<string | string[]>([
 			this.commandArgs.outputPath.val(),
 			this.commandArgs.locRoot.val()
-		]).spread<PackageSettings>((outputPath: string, locRoot: string[]) => {
+		]).then<PackageSettings>((values) => {
+			const [outputPath, locRoot] = values;
 			return {
-				outputPath: outputPath,
+				outputPath: outputPath as string,
 				locRoot: locRoot && locRoot[0]
 			};
 		});
 	}
 
-	protected identifyExtension(): Q.Promise<CoreExtInfo> {
+	protected identifyExtension(): Promise<CoreExtInfo> {
 		return this.commandArgs.vsix.val(true).then((result) => {
 			let vsixPath = _.isArray(result) ? result[0] : null;
-			let infoPromise: Q.Promise<CoreExtInfo>;
+			let infoPromise: Promise<CoreExtInfo>;
 			if (!vsixPath) {
-				infoPromise = Q.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).spread((publisher: string, extensionId: string) => {
+				infoPromise = Promise.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).then((values) => {
+					const [publisher, extensionId] = values;
 					return GalleryBase.getExtInfo({ extensionId: extensionId, publisher: publisher });
 				});
 			} else {
-				infoPromise = Q.all([
+				infoPromise = Promise.all([
 					this.commandArgs.publisher.val(true),
-					this.commandArgs.extensionId.val(true)]).spread((publisher, extensionId) => {
-
+					this.commandArgs.extensionId.val(true)
+				]).then((values) => {
+					const [publisher, extensionId] = values;
 					return GalleryBase.getExtInfo({ vsixPath: vsixPath, publisher: publisher, extensionId: extensionId });
 				});
 			}
@@ -148,15 +151,16 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		});
 	}
 
-	protected getPublishSettings(): Q.Promise<PublishSettings> {
-		return Q.all<any>([
+	protected getPublishSettings(): Promise<PublishSettings> {
+		return Promise.all<any>([
 			this.commandArgs.serviceUrl.val(),
 			this.commandArgs.vsix.val(true),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true),
 			this.commandArgs.shareWith.val()
-		]).spread<PublishSettings>((marketUrl: string, vsix: string[], publisher: string, extensionId: string, shareWith: string[]) => {
-			let vsixPath: string = _.isArray(vsix) ? vsix[0] : null;
+		]).then<PublishSettings>((values) => {
+			const [marketUrl, vsix, publisher, extensionId, shareWith] = values;
+			let vsixPath: string = _.isArray<string>(vsix) ? vsix[0] : null;
 			return {
 				galleryUrl: marketUrl,
 				vsixPath: vsixPath,
@@ -167,7 +171,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		});
 	}
 
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }

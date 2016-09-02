@@ -17,8 +17,8 @@ export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 		return ["workItemId"];
 	}
 
-	public exec(): Q.Promise<witContracts.WorkItem> {
-		var witapi: witClient.IQWorkItemTrackingApi = this.webApi.getQWorkItemTrackingApi();
+	public exec(): Promise<witContracts.WorkItem> {
+		var witapi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
 		return this.commandArgs.workItemId.val().then((workItemId) => {
 			return witapi.getWorkItem(workItemId)
 		});

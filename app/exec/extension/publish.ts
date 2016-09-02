@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/tsd.d.ts" />
+
 
 import { CreationResult, createExtension } from "./create";
 import { Merger } from "./_lib/merger";
@@ -49,11 +49,11 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 			"vsix", "shareWith"];
 	}
 
-	public exec(): Q.Promise<ExtensionPublishResult> {
-		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+	public exec(): Promise<ExtensionPublishResult> {
+		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 		let result = <ExtensionPublishResult>{};
 		return this.getPublishSettings().then((publishSettings) => {
-			let extensionCreatePromise: Q.Promise<string>;
+			let extensionCreatePromise: Promise<string>;
 			if (publishSettings.vsixPath) {
 				result.packaged = null;
 				extensionCreatePromise = Q.resolve(publishSettings.vsixPath);

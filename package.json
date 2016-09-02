@@ -6,15 +6,29 @@
     "type": "git",
     "url": "https://github.com/Microsoft/tfs-cli"
   },
-  "main": "./_build/app/tfx-cli.js",
+  "main": "./_build/tfx-cli.js",
   "preferGlobal": true,
   "bin": {
-    "tfx": "./_build/app/tfx-cli.js"
+    "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "test": "gulp test"
+    "clean": "rimraf _build",
+    "prebuild": "npm run clean",
+    "build": "tsc -p . && ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json"
   },
   "dependencies": {
+    "@types/colors": "^0.6.31",
+    "@types/copy-paste": "^1.1.29",
+    "@types/glob": "^5.0.29",
+    "@types/jszip": "0.0.30",
+    "@types/lodash": "^4.14.34",
+    "@types/mkdirp": "^0.3.28",
+    "@types/node": "^6.0.38",
+    "@types/node-uuid": "0.0.27",
+    "@types/shelljs": "^0.3.30",
+    "@types/validator": "^4.5.27",
+    "@types/winreg": "^1.2.29",
+    "@types/xml2js": "0.0.27",
     "app-root-path": "1.0.0",
     "archiver": "0.14.4",
     "async": "^1.4.0",
@@ -24,7 +38,7 @@
     "inquirer": "0.8.5",
     "json-in-place": "^1.0.1",
     "jszip": "2.5.0",
-    "lodash": "3.9.3",
+    "lodash": "^4.15.0",
     "minimist": "^1.1.2",
     "mkdirp": "^0.5.1",
     "node-uuid": "^1.4.3",
@@ -38,7 +52,7 @@
     "tmp": "0.0.26",
     "tracer": "0.7.4",
     "validator": "^3.43.0",
-    "vso-node-api": "^3.0.0",
+    "vso-node-api": "file:../vsts-node-api/_build",
     "winreg": "0.0.12",
     "xml2js": "^0.4.16"
   },
@@ -50,7 +64,9 @@
     "gulp-tsb": "^1.10.2",
     "minimatch": "^2.0.8",
     "mocha": "^2.2.5",
-    "typescript": "^1.8.9"
+    "ncp": "^2.0.0",
+    "rimraf": "^2.5.4",
+    "typescript": "^2.0.2"
   },
   "author": "",
   "license": "MIT"
