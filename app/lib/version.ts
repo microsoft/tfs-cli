@@ -2,6 +2,7 @@ import common = require("./common");
 import path = require("path");
 import Q = require("q");
 
+
 export class SemanticVersion {
 	
 	constructor(public major: number, public minor: number, public patch: number) {
@@ -19,7 +20,7 @@ export class SemanticVersion {
 	public static parse(version: string): SemanticVersion {
 		try {
 			let spl = version.split(".").map(v => parseInt(v));
-			if (spl.length === 3) {
+			if (spl.length === 3 && !spl.some(e => isNaN(e))) {
 				return new SemanticVersion(spl[0], spl[1], spl[2]);
 			} else {
 				throw "";
@@ -64,7 +65,7 @@ export class SemanticVersion {
 	}
 }
 
-export function getTfxVersion(): Q.Promise<SemanticVersion> {
+export function getTfxVersion(): Promise<SemanticVersion> {
 	let packageJson = require(path.join(common.APP_ROOT, "package.json"));
 	return Q.resolve(SemanticVersion.parse(packageJson.version));
 }

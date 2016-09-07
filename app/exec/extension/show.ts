@@ -18,8 +18,8 @@ export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.Publis
 		return ["publisher", "extensionId", "vsix"];
 	}
 
-	public exec(): Q.Promise<galleryContracts.PublishedExtension> {
-		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+	public exec(): Promise<galleryContracts.PublishedExtension> {
+		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return this.identifyExtension().then((extInfo) => {
 			let sharingMgr = new publishUtils.SharingManager({ }, galleryApi, extInfo);

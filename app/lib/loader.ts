@@ -16,11 +16,11 @@ export interface CommandFactory {
  * @param {string[]} args: args to pass to the command factory to instantiate the TfCommand
  * @return {Q.Promise<TfCommand>} Promise that is resolved with the module's command
  */
-export function load(execPath: string[], args): Q.Promise<TfCommand<any, any>> {
+export function load(execPath: string[], args): Promise<TfCommand<any, any>> {
 	trace.debug('loader.load');
 	let commandModulePath = path.resolve(common.APP_ROOT, "exec", execPath.join("/"));
 	return qfs.exists(commandModulePath).then((exists) => {
-		let resolveDefaultPromise = Q.resolve(commandModulePath);
+		let resolveDefaultPromise = Promise.resolve(commandModulePath);
 		if (exists) {
 			// If this extensionless path exists, it should be a directory.
 			// If the path doesn't exist, for now we assume that a file with a .js extension
@@ -47,7 +47,7 @@ export function load(execPath: string[], args): Q.Promise<TfCommand<any, any>> {
 				if (!commandModule.getCommand) {
 					throw new Error("Command modules must export a function, getCommand, that takes no arguments and returns an instance of TfCommand")
 				}
-				return common.promisify(commandModule.getCommand(args));
+				return Promise.resolve(commandModule.getCommand(args));
 			});
 		});
 	});

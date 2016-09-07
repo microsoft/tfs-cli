@@ -130,6 +130,11 @@ export interface MergeSettings {
 	 */
 	root: string;
 
+	/*
+	 * List of paths to manifest files
+	 */
+	manifests: string[];
+
 	/**
 	 * List of globs for searching for partial manifests
 	 */
@@ -144,6 +149,11 @@ export interface MergeSettings {
 	 * True to bypass validation during packaging.
 	 */
 	bypassValidation: boolean;
+
+	/**
+	 * True to rev the version of the extension before packaging.
+	 */
+	revVersion: boolean;
 }
 
 export interface PackageSettings {

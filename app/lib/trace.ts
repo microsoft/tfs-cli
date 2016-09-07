@@ -1,4 +1,4 @@
-/// <reference path="../../typings/tsd.d.ts" />
+
 
 import colors = require("colors");
 import os = require('os');

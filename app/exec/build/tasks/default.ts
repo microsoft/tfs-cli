@@ -1,7 +1,7 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import buildBase = require("../default");
-import Q = require("q");
+import Q = require('q');
 
 export interface TaskArguments extends buildBase.BuildArguments {
 	all: args.BooleanArgument;

@@ -36,13 +36,13 @@ export interface CoreArguments {
 }
 
 export interface Executor<TResult> {
-	(cmd?: command.TFXCommand): Q.Promise<TResult>;
+	(cmd?: command.TFXCommand): Promise<TResult>;
 }
 
 export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected commandArgs: TArguments = <TArguments>{};
 	private groupedArgs: { [key: string]: string[] };
-	private initialized: Q.Promise<Executor<any>>;
+	private initialized: Promise<Executor<any>>;
 	protected webApi: WebApi;
 	protected description: string = "A suite of command line tools to interact with Visual Studio Team Services.";
 	public connection: TfsConnection;
@@ -58,11 +58,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Returns a promise that is resolved when this command is initialized and
 	 * ready to be executed.
 	 */
-	public ensureInitialized(): Q.Promise<Executor<any>> {
+	public ensureInitialized(): Promise<Executor<any>> {
 		return this.initialized || this.initialize();
 	}
 
-	protected initialize(): Q.Promise<Executor<any>> {
+	protected initialize(): Promise<Executor<any>> {
 		this.initialized = this.commandArgs.help.val().then((needHelp) => {
 			if (needHelp) {
 				return this.run.bind(this, this.getHelp.bind(this));
@@ -90,9 +90,9 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"] && common.EXEC_PATH.join("") !== "login") {
 							let diskCache = new DiskCache("tfx");
 							return diskCache.itemExists("cache", "connection").then((isConnection) => {
-								let connectionUrlPromise: Q.Promise<string>;
+								let connectionUrlPromise: Promise<string>;
 								if (!isConnection) {
-									connectionUrlPromise = Q.resolve<string>(null);
+									connectionUrlPromise = Promise.resolve<string>(null);
 								} else {
 									connectionUrlPromise = diskCache.getItem("cache", "connection");
 								}
@@ -103,11 +103,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 								});
 							});
 						} else {
-							return Q.resolve<void>(null);
+							return Promise.resolve<void>(null);
 						}
 					});
 				}).then(() => {
-					let apiPromise = Q.resolve<any>(null);
+					let apiPromise = Promise.resolve<any>(null);
 					if (this.serverCommand) {
 						apiPromise = this.getWebApi().then(_ => {});
 					}
@@ -190,13 +190,14 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Else, check the authType - if it is "pat", prompt for a token
 	 * If it is "basic", prompt for username and password.
 	 */
-	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Q.Promise<BasicCredentialHandler> {
-		return Q.all([
+	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
+		return Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true)
-		]).spread((authType: string, token: string, username: string, password: string) => {
+		]).then((values) => {
+			const [authType, token, username, password] = values;
 			if (username && password) {
 				return getBasicHandler(username, password);
 			} else {
@@ -246,7 +247,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		});
 	}
 
-	public getWebApi(): Q.Promise<WebApi> {
+	public getWebApi(): Promise<WebApi> {
 		return this.commandArgs.serviceUrl.val().then((url) => {
 			return this.getCredentials(url).then((handler) => {
 				this.connection = new TfsConnection(url);
@@ -256,7 +257,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		});
 	}
 
-	public run(main: (cmd?: command.TFXCommand) => Q.Promise<any>, cmd?: command.TFXCommand): Q.Promise<void> {
+	public run(main: (cmd?: command.TFXCommand) => Promise<any>, cmd?: command.TFXCommand): Promise<void> {
 		return main(cmd).then((result) => {
 			return this.output(result).then(() => {
 				return this.dispose();
@@ -268,18 +269,18 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * exec does some work and resolves to some kind of output. This method may
 	 * log/trace during execution, but produces one single output in the end.
 	 */
-	protected abstract exec(): Q.Promise<TResult>;
+	protected abstract exec(): Promise<TResult>;
 
 	/**
 	 * Should be called after exec. In here we will write settings to fs if necessary.
 	 */
-	public dispose(): Q.Promise<void> {
+	public dispose(): Promise<void> {
 		let newToCache = {};
 		return this.commandArgs.save.val().then((shouldSave) => {
 			if (shouldSave) {
 				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
 					common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
-				let getValuePromises: Q.Promise<void>[] = [];
+				let getValuePromises: Promise<void>[] = [];
 				Object.keys(this.commandArgs).forEach((arg) => {
 					let argObj = <args.Argument<any>>this.commandArgs[arg];
 					if (!argObj.hasDefaultValue) {
@@ -292,7 +293,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						getValuePromises.push(pr);
 					}
 				});
-				return Q.all(getValuePromises).then(() => {
+				return Promise.all(getValuePromises).then(() => {
 					return args.getOptionsCache().then((existingCache) => {
 						// custom shallow-ish merge of cache properties.
 						let newInThisCommand = _.get(newToCache, cacheKey);
@@ -308,7 +309,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					});
 				});
 			} else {
-				return Q.resolve<void>(null);
+				return Promise.resolve<void>(null);
 			}
 		});
 	}
@@ -316,7 +317,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	/**
 	 * Gets help (as a string) for the given command
 	 */
-	public getHelp(cmd: command.TFXCommand): Q.Promise<string> {		
+	public getHelp(cmd: command.TFXCommand): Promise<string> {		
 		this.commandArgs.output.setValue("help");
 		let result = eol;
 		result += ["                        fTfs         ",
@@ -396,7 +397,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				cyan(" and ") +
 				yellow("command groups") +
 				cyan(" in " + ["tfx"].concat(cmd.execPath).join(" / ") + ":") + eol;
-			let commandDescriptionPromises: Q.Promise<void>[] = [];
+			let commandDescriptionPromises: Promise<void>[] = [];
 			Object.keys(continuedHierarchy).forEach((command) => {
 				if (command === "default") {
 					return;
@@ -410,7 +411,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				});
 				commandDescriptionPromises.push(pr);
 			});
-			return Q.all(commandDescriptionPromises).then(() => {
+			return Promise.all(commandDescriptionPromises).then(() => {
 				result += eol + eol + gray("For help with an individual command, type ") + resetColors("tfx " + cmd.execPath.join(" ") + " <command> --help") + eol;
 			}).then(() => {
 				return result;
@@ -421,7 +422,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	/**
 	 * Display a copyright banner.
 	 */
-	public showBanner(): Q.Promise<void> {
+	public showBanner(): Promise<void> {
 		return this.commandArgs.json.val(true).then((useJson) => {
 			if (useJson) {
 				this.commandArgs.output.setValue("json");
@@ -442,7 +443,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	/**
 	 * Takes data and pipes it to the appropriate output mechanism
 	 */
-	public output(data: any): Q.Promise<void> {
+	public output(data: any): Promise<void> {
 		return this.commandArgs.output.val().then((outputDestination) => {
 			switch(outputDestination.toLowerCase()) {
 				case "friendly":
@@ -468,7 +469,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						}
 					});
 			}
-			return Q.resolve<void>(null);
+			return Promise.resolve<void>(null);
 		});
 	}
 

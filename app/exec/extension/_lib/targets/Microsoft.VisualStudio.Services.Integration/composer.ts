@@ -5,7 +5,7 @@ import { VsixManifestBuilder } from "../../vsix-manifest-builder";
 import _ = require("lodash");
 
 export class VSSIntegrationComposer extends ExtensionComposer {
-	public validate(components: VsixComponents): Q.Promise<string[]> {
+	public validate(components: VsixComponents): Promise<string[]> {
 		return super.validate(components).then((result) => {
 			let vsixData = components.builders.filter(b => b.getType() === VsixManifestBuilder.manifestType)[0].getData();
 			

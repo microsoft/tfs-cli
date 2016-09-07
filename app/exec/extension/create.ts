@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/tsd.d.ts" />
+
 
 import { Merger } from "./_lib/merger";
 import { VsixManifestBuilder } from "./_lib/vsix-manifest-builder";
@@ -19,7 +19,7 @@ export interface CreationResult {
 	publisher: string;
 }
 
-export function createExtension(mergeSettings: MergeSettings, packageSettings: PackageSettings): Q.Promise<CreationResult> {
+export function createExtension(mergeSettings: MergeSettings, packageSettings: PackageSettings): Promise<CreationResult> {
 	return new Merger(mergeSettings).merge().then((components) => {
 		return new VsixWriter(packageSettings, components).writeVsix().then((outPath) => {
 			let vsixBuilders = components.builders.filter(b => b.getType() === VsixManifestBuilder.manifestType);
@@ -44,10 +44,10 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["root", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot"];
+		return ["root", "manifests", "manifestGlobs", "override", "overridesFile", "revVersion", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot"];
 	}
 
-	public exec(): Q.Promise<CreationResult> {
+	public exec(): Promise<CreationResult> {
 		return this.getMergeSettings().then((mergeSettings) => {
 			return this.getPackageSettings().then((packageSettings) => {
 				return createExtension(mergeSettings, packageSettings);

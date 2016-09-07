@@ -22,7 +22,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		return ["taskPath", "overwrite"];
 	}
 
-	public exec(): Q.Promise<agentContracts.TaskDefinition> {
+	public exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then((taskPaths) => {
 			let taskPath = taskPaths[0];
 			return this.commandArgs.overwrite.val().then((overwrite) => {
@@ -39,7 +39,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					});
 					archive.directory(path.resolve(taskPath), false);
 
-					let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
+					let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 
 					archive.finalize();
 					return agentApi.uploadTaskDefinition(null, archive, taskJson.id, overwrite).then((task) => {

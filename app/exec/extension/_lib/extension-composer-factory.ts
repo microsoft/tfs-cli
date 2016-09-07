@@ -8,7 +8,7 @@ import { VSSExtensionComposer } from "./targets/Microsoft.VisualStudio.Services/
 import { VSSIntegrationComposer } from "./targets/Microsoft.VisualStudio.Services.Integration/composer";
 import { VSOfferComposer } from "./targets/Microsoft.VisualStudio.Offer/composer";
 import _ = require("lodash");
-import Q = require("q");
+
 import trace = require("../../../lib/trace");
 
 export class ComposerFactory {
@@ -54,7 +54,7 @@ export class ComposerFactory {
 				}, []);
 			};
 			PolyComposer.prototype.validate = (components: VsixComponents) => {
-				return Q.all<string[]>(composers.reduce((p, c) => {
+				return Promise.all<string[]>(composers.reduce((p, c) => {
 					return p.concat(c.validate(components));
 				}, [])).then((multi) => {
 					// flatten

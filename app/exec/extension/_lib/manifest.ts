@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+
 
 import { PackageFiles, FileDeclaration, ResourcesFile } from "./interfaces";
 import { cleanAssetPath, forwardSlashesPath, removeMetaKeys, toZipItemName } from "./utils";
@@ -6,7 +6,7 @@ import _ = require("lodash");
 import common = require("../../../lib/common");
 import os = require("os");
 import path = require("path");
-import Q = require("q");
+
 import stream = require("stream");
 import trace = require('../../../lib/trace');
 
@@ -47,8 +47,8 @@ export abstract class ManifestBuilder {
 	/**
 	 * Called just before the package is written to make any final adjustments.
 	 */
-	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Q.Promise<void> {
-		return Q.resolve<void>(null);
+	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Promise<void> {
+		return Promise.resolve<void>(null);
 	}
 
 	/**

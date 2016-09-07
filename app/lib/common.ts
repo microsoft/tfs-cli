@@ -1,5 +1,4 @@
 import fs = require("fs");
-import Q = require("q");
 
 export let APP_ROOT: string;
 export let NO_PROMPT: boolean;
@@ -11,17 +10,6 @@ export interface IOptions { [name: string]: string }
 
 export function endsWith(str: string, end:string): boolean {
 	return str.slice(-end.length) == end;
-}
-
-/**
- * Ensure a value is a promise of type T.
- */
-export function promisify<T>(val: T | Q.Promise<T>): Q.Promise<T> {
-	if (val && typeof (<Q.Promise<T>>val).then === "function") {
-		return <Q.Promise<T>>val;
-	} else {
-		return Q.resolve<T>(<T>val);
-	}
 }
 
 /**

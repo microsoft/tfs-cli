@@ -21,8 +21,8 @@ export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<
 	protected getArgs(): string[] {
 		return ["publisher"];
 	}
-	public exec(): Q.Promise<DeletePublisherResult> {
-		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+	public exec(): Promise<DeletePublisherResult> {
+		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 		return this.commandArgs.publisher.val().then((publisherName) => {
 			return galleryApi.deletePublisher(publisherName).then(() => {
 				return <DeletePublisherResult>{

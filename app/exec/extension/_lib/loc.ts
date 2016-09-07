@@ -38,13 +38,15 @@ export module LocPrep {
 		return locDocument;
 	}
 
+	
+
 	/**
 	 * If the resjsonPath setting is set...
 	 * Check if the path exists. If it does, check if it's a directory.
 	 * If it's a directory, write to path + extension.resjson
 	 * All other cases just write to path.
 	 */
-	export function writeResourceFile(fullResjsonPath: string, resources: ResourcesFile): Q.Promise<void> {
+	export function writeResourceFile(fullResjsonPath: string, resources: ResourcesFile): Promise<void> {
 		return Q.Promise<boolean>((resolve, reject, notify) => {
 			fs.exists(fullResjsonPath, (exists) => {
 				resolve(exists);

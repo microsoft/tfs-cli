@@ -4,7 +4,7 @@ import common = require("../lib/common");
 import { DiskCache } from "../lib/diskcache";
 import qfs = require("./qfs");
 import path = require("path");
-import Q = require("q");
+
 import qread = require("./qread");
 import trace = require("../lib/trace");
 
@@ -16,7 +16,7 @@ import trace = require("../lib/trace");
 export abstract class Argument<T> {
 	public silent: boolean = false;
 	protected assignedValue: T;
-	protected initializePromise: Q.Promise<void>;
+	protected initializePromise: Promise<void>;
 	protected givenValue: string[];
 
 	constructor(
@@ -48,8 +48,8 @@ export abstract class Argument<T> {
 	 * Promise is resolved after any values that need parsing are parsed,
 	 * and there are no more calls to the cache.
 	 */
-	protected initialize(): Q.Promise<void> {
-		let initPromise = Q.resolve<void>(null);
+	protected initialize(): Promise<void> {
+		let initPromise = Promise.resolve<void>(null);
 		if (this.assignedValue === undefined && (this.hasDefaultValue || this.givenValue === undefined)) {
 			initPromise = getOptionsCache().then((cache) => {
 				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
@@ -97,7 +97,7 @@ export abstract class Argument<T> {
 	 */
 	public setValue(value: T): void {
 		this.assignedValue = value;
-		this.initializePromise = Q.resolve<void>(null);
+		this.initializePromise = Promise.resolve<void>(null);
 	}
 
 	/**
@@ -105,10 +105,10 @@ export abstract class Argument<T> {
 	 * been passed in, prompt the user. The resulting promise is resolved
 	 * when a value is available.
 	 */
-	public val(noPrompt: boolean = false): Q.Promise<T> {
+	public val(noPrompt: boolean = false): Promise<T> {
 		return this.initializePromise.then(() => {
 			if (this.assignedValue !== undefined) {
-				return Q.resolve(this.assignedValue);
+				return Promise.resolve(this.assignedValue);
 			} else {
 				if (!noPrompt) {
 					if (common.NO_PROMPT) {
@@ -131,7 +131,7 @@ export abstract class Argument<T> {
 						});
 					});
 				} else {
-					return Q.resolve<T>(null);
+					return Promise.resolve<T>(null);
 				}
 			}
 		});
@@ -142,7 +142,7 @@ export abstract class Argument<T> {
 	 * be implemented by the type of argument to do the conversion
 	 * from the given string  array to the argument's concrete type.
 	 */
-	protected abstract getValue(argParams: string[]): Q.Promise<T>;
+	protected abstract getValue(argParams: string[]): Promise<T>;
 }
 
 /**
@@ -152,9 +152,9 @@ export class ArrayArgument extends Argument<string[]> {
 	protected getValue(argParams: string[]) {
 		if (argParams.length === 1) {
 			let stripped = argParams[0].replace(/(^\[)|(\]$)/g, "");
-			return Q.resolve(stripped.split(",").map(s => s.trim()));
+			return Promise.resolve(stripped.split(",").map(s => s.trim()));
 		} else {
-			return Q.resolve(argParams);
+			return Promise.resolve(argParams);
 		}
 	}
 }
@@ -165,7 +165,7 @@ export class ArrayArgument extends Argument<string[]> {
  */
 export class FilePathsArgument extends Argument<string[]> {
 	protected getValue(argParams: string[]) {
-		return Q.resolve(argParams.map(p => path.resolve(p)));
+		return Promise.resolve(argParams.map(p => path.resolve(p)));
 	}
 }
 
@@ -175,7 +175,7 @@ export class FilePathsArgument extends Argument<string[]> {
 export class ExistingFilePathsArgument extends FilePathsArgument {
 	protected getValue(argParams: string[]) {
 		return super.getValue(argParams).then((paths) => {
-			let existencePromises: Q.Promise<string>[] = [];
+			let existencePromises: Promise<string>[] = [];
 			paths.forEach((p) => {
 				let promise = qfs.exists(p).then((exists) => {
 					if (!exists) {
@@ -186,7 +186,7 @@ export class ExistingFilePathsArgument extends FilePathsArgument {
 				});
 				existencePromises.push(promise);
 			});
-			return Q.all(existencePromises);
+			return Promise.all(existencePromises);
 		});
 	}
 }
@@ -199,7 +199,7 @@ export class ExistingFilePathsArgument extends FilePathsArgument {
 export class WritableFilePathsArgument extends FilePathsArgument {
 	protected getValue(argParams: string[]) {
 		return super.getValue(argParams).then((paths) => {
-			let canWritePromises: Q.Promise<string>[] = [];
+			let canWritePromises: Promise<string>[] = [];
 			paths.forEach((p) => {
 				let promise = qfs.canWriteTo(p).then((canWrite) => {
 					if (canWrite) {
@@ -210,7 +210,7 @@ export class WritableFilePathsArgument extends FilePathsArgument {
 				});
 				canWritePromises.push(promise);
 			});
-			return Q.all(canWritePromises);
+			return Promise.all(canWritePromises);
 		});
 	}
 }
@@ -221,7 +221,7 @@ export class WritableFilePathsArgument extends FilePathsArgument {
 export class ReadableFilePathsArgument extends ExistingFilePathsArgument {
 	protected getValue(argParams: string[]) {
 		return super.getValue(argParams).then((paths) => {
-			let canReadPromises: Q.Promise<string>[] = [];
+			let canReadPromises: Promise<string>[] = [];
 			paths.forEach((p) => {
 				let promise = qfs.fileAccess(p, qfs.R_OK).then((canRead) => {
 					if (canRead) {
@@ -232,7 +232,7 @@ export class ReadableFilePathsArgument extends ExistingFilePathsArgument {
 				});
 				canReadPromises.push(promise);
 			});
-			return Q.all(canReadPromises);
+			return Promise.all(canReadPromises);
 		});
 	}
 }
@@ -243,7 +243,7 @@ export class ReadableFilePathsArgument extends ExistingFilePathsArgument {
 export class ExistingDirectoriesArgument extends ExistingFilePathsArgument {
 	protected getValue(argParams: string[]) {
 		return super.getValue(argParams).then((paths) => {
-			let isDirectoryPromises: Q.Promise<string>[] = [];
+			let isDirectoryPromises: Promise<string>[] = [];
 			paths.forEach((p) => {
 				let promise = qfs.lstat(p).then((stats) => {
 					if (stats.isDirectory()) {
@@ -254,7 +254,7 @@ export class ExistingDirectoriesArgument extends ExistingFilePathsArgument {
 				});
 				isDirectoryPromises.push(promise);
 			});
-			return Q.all(isDirectoryPromises);
+			return Promise.all(isDirectoryPromises);
 		});
 	}
 }
@@ -266,12 +266,12 @@ export class BooleanArgument extends Argument<boolean> {
 	/**
 	 * If a value is given, parse it and cache the value.
 	 */
-	protected initialize(): Q.Promise<void> {
-		this.initializePromise = Q.resolve<void>(null);
+	protected initialize(): Promise<void> {
+		this.initializePromise = Promise.resolve<void>(null);
 		if (this.givenValue !== undefined) {
 			if (this.givenValue === null) {
 				this.assignedValue = false;
-				this.initializePromise = Q.resolve<void>(null);
+				this.initializePromise = Promise.resolve<void>(null);
 			} else {
 				this.initializePromise = this.getValue(this.givenValue).then((result) => {
 					this.assignedValue = result;
@@ -288,15 +288,15 @@ export class BooleanArgument extends Argument<boolean> {
 		if (argParams.length === 1) {
 			let yes = ["true", "1", "yes", "y"].indexOf(argParams[0].toLowerCase()) >= 0;
 			if (yes) {
-				return Q.resolve(true);
+				return Promise.resolve(true);
 			}
 			let no = ["false", "0", "no", "n"].indexOf(argParams[0].toLowerCase()) >= 0;
 			if (no) {
-				return Q.resolve(false);
+				return Promise.resolve(false);
 			}
 			throw new Error("'" + argParams[0] + "' is not a recognized Boolean value.");
 		} else if (argParams.length === 0) {
-			return Q.resolve(true);
+			return Promise.resolve(true);
 		} else {
 			throw new Error("Multiple values provided for Boolean Argument " + this.name + ".");
 		}
@@ -313,7 +313,7 @@ export class IntArgument extends Argument<number> {
 			if (isNaN(parseResult)) {
 				throw new Error("Could not parse int argument " + this.name + ".");
 			}
-			return Q.resolve(parseResult);
+			return Promise.resolve(parseResult);
 		} else if (argParams.length === 0) {
 			throw new Error("No number provided for Int Argument " + this.name + ".");
 		} else {
@@ -332,7 +332,7 @@ export class FloatArgument extends Argument<number> {
 			if (isNaN(parseResult)) {
 				throw new Error("Could not parse float argument " + this.name + ".");
 			}
-			return Q.resolve(parseResult);
+			return Promise.resolve(parseResult);
 		} else if (argParams.length === 0) {
 			throw new Error("No number provided for Float Argument " + this.name + ".");
 		} else {
@@ -349,7 +349,7 @@ export class FloatArgument extends Argument<number> {
 export class JsonArgument<T> extends Argument<T> {
 	protected getValue(argParams: string[]) {
 		try {
-			return Q.resolve(<T>JSON.parse(argParams.join(" ")));
+			return Promise.resolve(<T>JSON.parse(argParams.join(" ")));
 		} catch (parseError) {
 			let info: string = parseError.stack || parseError.message;
 			throw new Error("Failed to parse JSON argument " + this.name + ". Info: " + info);
@@ -363,7 +363,7 @@ export class JsonArgument<T> extends Argument<T> {
  */
 export class StringArgument extends Argument<string> {
 	protected getValue(argParams: string[]) {
-		return Q.resolve(argParams.join(" "));
+		return Promise.resolve(argParams.join(" "));
 	}
 }
 
@@ -376,10 +376,10 @@ export class SilentStringArgument extends StringArgument {
 	public silent = true;
 }
 
-export function getOptionsCache(): Q.Promise<any> {
+export function getOptionsCache(): Promise<any> {
 	let cache = new DiskCache("tfx");
 	return cache.itemExists("cache", "command-options").then((cacheExists) => {
-		let existingCache = Q.resolve("{}");
+		let existingCache = Promise.resolve("{}");
 		if (cacheExists) {
 			existingCache = cache.getItem("cache", "command-options");
 		}

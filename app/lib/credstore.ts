@@ -16,10 +16,10 @@ export function getCredentialStore(appName: string): ICredentialStore {
 export interface ICredentialStore {
 	appName: string;
 
-	credentialExists(service: string, user: string): Q.Promise<boolean>;
-	getCredential(service: string, user: string): Q.Promise<string>;
-	storeCredential(service: string, user: string, password: string): Q.Promise<void>;
-	clearCredential(service: string, user: string): Q.Promise<void>;
+	credentialExists(service: string, user: string): Promise<boolean>;
+	getCredential(service: string, user: string): Promise<string>;
+	storeCredential(service: string, user: string, password: string): Promise<void>;
+	clearCredential(service: string, user: string): Promise<void>;
 }
 
 class FileStore {
@@ -31,19 +31,19 @@ class FileStore {
 		return service;
 	}
 
-	public credentialExists(service: string, user: string): Q.Promise<boolean> {
+	public credentialExists(service: string, user: string): Promise<boolean> {
 		return cache.itemExists(this.escapeService(service), user);
 	}
 
-	public getCredential(service: string, user: string): Q.Promise<string> {
+	public getCredential(service: string, user: string): Promise<string> {
 		return cache.getItem(this.escapeService(service), user);
 	}
 
-	public storeCredential(service: string, user: string, password: string): Q.Promise<void> {
+	public storeCredential(service: string, user: string, password: string): Promise<void> {
 		return cache.setItem(this.escapeService(service), user, password);
 	}
 
-	public clearCredential(service: string, user: string): Q.Promise<void> {
+	public clearCredential(service: string, user: string): Promise<void> {
 		return cache.deleteItem(this.escapeService(service), user);
 	}
 }

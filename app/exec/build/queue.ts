@@ -5,6 +5,7 @@ import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 import fs = require('fs');
+import Q = require('q');
 
 export function describe(): string {
 	return "queue a build";
@@ -80,7 +81,6 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		trace.info("version				: %s", build.sourceVersion ? build.sourceVersion : "latest")
 		trace.info("branch / shelveset 	: %s", build.sourceBranch ? build.sourceBranch :"master (no shelveset)")
 	}
-
 
 	private _queueBuild(buildapi: buildClient.IQBuildApi,
 						definition: buildContracts.DefinitionReference,

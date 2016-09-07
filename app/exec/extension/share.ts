@@ -21,25 +21,26 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 		return ["publisher", "extensionId", "vsix", "shareWith"];
 	}
 
-	public exec(): Q.Promise<string[]> {
-		let galleryApi = this.webApi.getQGalleryApi(this.webApi.serverUrl);
+	public exec(): Promise<string[]> {
+		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return this.commandArgs.vsix.val(true).then((vsixPath) => {
-			let extInfoPromise: Q.Promise<extInfo.CoreExtInfo>;
+			let extInfoPromise: Promise<extInfo.CoreExtInfo>;
 			if (vsixPath !== null) {
 				extInfoPromise = extInfo.getExtInfo(vsixPath[0], null, null);
 			} else {
-				extInfoPromise = Q.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).spread<extInfo.CoreExtInfo>((publisher, extension) => {
+				extInfoPromise = Promise.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).then<extInfo.CoreExtInfo>((values) => {
+					const [publisher, extension] = values;
 					return extInfo.getExtInfo(null, extension, publisher);
 				});
 			}
 			return extInfoPromise.then((extInfo) => {
 				return this.commandArgs.shareWith.val().then((shareWith) => {
-					let sharePromises: Q.Promise<void>[] = [];
+					let sharePromises: Promise<void>[] = [];
 					shareWith.forEach((account) => {
 						sharePromises.push(galleryApi.shareExtension(extInfo.publisher, extInfo.id, account));
 					});
-					return Q.all(sharePromises).then(() => { return shareWith; });
+					return Promise.all(sharePromises).then(() => { return shareWith; });
 				});
 			});
 		});

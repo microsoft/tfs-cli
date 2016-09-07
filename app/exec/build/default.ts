@@ -1,5 +1,6 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
+import Q = require('q');
 
 export interface BuildArguments extends CoreArguments {
 	definitionId: args.IntArgument,

@@ -16,9 +16,9 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		return ["project", "buildId"];
 	}
 
-	public exec(): Q.Promise<buildContracts.Build> {
+	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-show.exec");
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return buildapi.getBuild(buildId, project);

@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+
 
 import _ = require('lodash');
 import Q = require('q');
@@ -14,9 +14,9 @@ export interface CoreExtInfo {
 	published?: boolean;
 }
 
-export function getExtInfo(vsixPath: string, extensionId: string, publisherName: string, cachedInfo?: CoreExtInfo): Q.Promise<CoreExtInfo> {
+export function getExtInfo(vsixPath: string, extensionId: string, publisherName: string, cachedInfo?: CoreExtInfo): Promise<CoreExtInfo> {
 	trace.debug('extensioninfo.getExtInfo');
-	var vsixInfoPromise: Q.Promise<CoreExtInfo>;
+	var vsixInfoPromise: Promise<CoreExtInfo>;
 	if(cachedInfo) {
 		return Q.resolve(cachedInfo);
 	}

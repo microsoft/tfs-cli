@@ -16,7 +16,7 @@ export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 		super(args, false);
 	}
 
-	public exec(): Q.Promise<version.SemanticVersion> {
+	public exec(): Promise<version.SemanticVersion> {
 		trace.debug("version.exec");
 		return version.getTfxVersion();
 	}

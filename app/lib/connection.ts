@@ -1,5 +1,5 @@
 import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
-import Q = require("q");
+
 import url = require("url");
 import apim = require("vso-node-api/WebApi");
 import apibasem = require("vso-node-api/interfaces/common/VsoBaseInterfaces");

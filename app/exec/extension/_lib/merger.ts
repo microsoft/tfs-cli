@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+
 
 import { ManifestBuilder } from "./manifest";
 import { ComposerFactory } from "./extension-composer-factory";
@@ -7,10 +7,13 @@ import { FileDeclaration, MergeSettings, PackageFiles, ResourceSet, TargetDeclar
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
+import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
 import path = require("path");
 import Q = require("q");
-import trace = require('../../../lib/trace');
+import qfs = require("../../../lib/qfs");
+import trace = require("../../../lib/trace");
+import version = require("../../../lib/version");
 
 /**
  * Combines the vsix and vso manifests into one object
@@ -36,38 +39,49 @@ export class Merger {
 		this.manifestBuilders = [];
 	}
 
-	private gatherManifests(): Q.Promise<string[]> {
+	private gatherManifests(): Promise<string[]> {
 		trace.debug('merger.gatherManifests');
 
-		const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
+		if (this.settings.manifestGlobs && this.settings.manifestGlobs.length > 0) {
+			const globs = this.settings.manifestGlobs.map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
 
-		trace.debug('merger.gatherManifestsFromGlob');
-		const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
+			trace.debug('merger.gatherManifestsFromGlob');
+			const promises = globs.map(pattern => Q.nfcall<string[]>(glob, pattern));
 
-		return Q.all(promises)
-			.then(results => _.unique(_.flatten<string>(results)))
-			.then(results => {
-				if (results.length > 0) {
-					trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
-					results.forEach(path => trace.debug(path));
-				} else {
-					throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
-				}
+			return Promise.all(promises)
+				.then(results => _.uniq(_.flatten<string>(results)))
+				.then(results => {
+					if (results.length > 0) {
+						trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
+						results.forEach(path => trace.debug(path));
+					} else {
+						throw new Error("No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"));
+					}
 
-				return results;
-			});
+					return results;
+				});
+		} else {
+			const manifests = this.settings.manifests
+			if (!manifests || manifests.length === 0) {
+				return Q.reject<string[]>("No manifests specified.");
+			}
+			this.settings.manifests = _.uniq(manifests).map(m => path.resolve(m));
+			trace.debug("Merging %s manifest%s from the following paths: ", manifests.length.toString(), manifests.length === 1 ? "" : "s");
+			manifests.forEach(path => trace.debug(path));
+			return Q.resolve(this.settings.manifests);
+		}
 	}
 
 	/**
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
 	 * @return Q.Promise<SplitManifest> An object containing the two manifests
 	 */
-	public merge(): Q.Promise<VsixComponents> {
+	public merge(): Promise<VsixComponents> {
 		trace.debug('merger.merge')
 
 		return this.gatherManifests().then(files => {
 			let overridesProvided = false;
-			let manifestPromises: Q.Promise<any>[] = [];
+			let manifestPromises: Promise<any>[] = [];
 			files.forEach((file) => {
 				manifestPromises.push(Q.nfcall<any>(fs.readFile, file, "utf8").then((data) => {
 					let jsonData = data.replace(/^\uFEFF/, '');
@@ -89,7 +103,7 @@ export class Merger {
 				manifestPromises.push(Q.resolve(this.settings.overrides));
 			}
 
-			return Q.all(manifestPromises).then(partials => {
+			return Promise.all(manifestPromises).then(partials => {
 				// Determine the targets so we can construct the builders
 				let targets: TargetDeclaration[] = [];
 				partials.forEach((partial) => {
@@ -99,8 +113,32 @@ export class Merger {
 				});
 				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
 				this.manifestBuilders = this.extensionComposer.getBuilders();
-				
+				let updateVersionPromise = Promise.resolve<void>(null);
 				partials.forEach((partial, partialIndex) => {
+					// Rev the version if necessary
+					if (this.settings.revVersion) {
+						if (partial["version"] && partial.__origin) {
+							try {
+								const semver = version.SemanticVersion.parse(partial["version"]);
+								const newVersion = new version.SemanticVersion(semver.major, semver.minor, semver.patch + 1);
+								const newVersionString = newVersion.toString();
+								partial["version"] = newVersionString;
+								updateVersionPromise = qfs.readFile(partial.__origin, "utf8").then(versionPartial => {
+									try {
+										const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+										return qfs.writeFile(partial.__origin, newPartial);
+									}
+									catch (e) {
+										trace.warn("Failed to lex partial as JSON to update the version. Skipping version rev...");
+									}
+								});
+							}
+							catch (e) {
+								trace.warn("Could not parse %s as a semantic version (major.minor.patch). Skipping version rev...", partial["version"]);
+							}
+						}
+					}
+
 					// Transform asset paths to be relative to the root of all manifests, verify assets
 					if (_.isArray(partial["files"])) {
 						(<Array<FileDeclaration>>partial["files"]).forEach((asset) => {
@@ -163,7 +201,7 @@ export class Merger {
 				let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
 
 				// Finalize each builder
-				return Q.all(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders))).then(() => {
+				return Promise.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders)))).then(() => {
 					// Let the composer do validation
 					return this.extensionComposer.validate(components).then((validationResult) => {
 						if (validationResult.length === 0 || this.settings.bypassValidation) {

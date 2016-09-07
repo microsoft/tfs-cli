@@ -1,4 +1,4 @@
-import { IQGalleryApi } from "vso-node-api/GalleryApi";
+import { IGalleryApi } from "vso-node-api/GalleryApi";
 import { PublishSettings } from "./interfaces";
 import _ = require("lodash");
 import colors = require("colors");
@@ -19,13 +19,13 @@ export interface CoreExtInfo {
 }
 
 export class GalleryBase {
-	private vsixInfoPromise: Q.Promise<CoreExtInfo>;
+	private vsixInfoPromise: Promise<CoreExtInfo>;
 
 	/**
 	 * Constructor
 	 * @param PublishSettings
 	 */
-	constructor(protected settings: PublishSettings, protected galleryClient: IQGalleryApi, extInfo?: CoreExtInfo) {
+	constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi, extInfo?: CoreExtInfo) {
 		if (extInfo) {
 			this.vsixInfoPromise = Q.resolve(extInfo);
 		}
@@ -38,7 +38,7 @@ export class GalleryBase {
 		// }
 	}
 
-	protected getExtInfo(): Q.Promise<CoreExtInfo> {
+	protected getExtInfo(): Promise<CoreExtInfo> {
 		if (!this.vsixInfoPromise) {
 			this.vsixInfoPromise = GalleryBase.getExtInfo({
 				extensionId: this.settings.extensionId,
@@ -48,8 +48,8 @@ export class GalleryBase {
 		return this.vsixInfoPromise;
 	}
 
-	public static getExtInfo(info: {extensionId?: string, publisher?: string, vsixPath?: string}): Q.Promise<CoreExtInfo> {
-		let promise: Q.Promise<CoreExtInfo>;
+	public static getExtInfo(info: {extensionId?: string, publisher?: string, vsixPath?: string}): Promise<CoreExtInfo> {
+		let promise: Promise<CoreExtInfo>;
 		if (info.extensionId && info.publisher) {
 			promise = Q.resolve({id: info.extensionId, publisher: info.publisher, version: null});
 		} else {
@@ -95,7 +95,7 @@ export class PublisherManager extends GalleryBase {
 	 * Constructor
 	 * @param PublishSettings
 	 */
-	constructor(protected settings: PublishSettings, protected galleryClient: IQGalleryApi) {
+	constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi) {
 		super(settings, galleryClient);
 	}
 
@@ -106,7 +106,7 @@ export class PublisherManager extends GalleryBase {
 	 * @param string Publisher description
 	 * @return Q.Promise that is resolved when publisher is created
 	 */
-	public createPublisher(name: string, displayName: string, description: string): Q.Promise<any> {
+	public createPublisher(name: string, displayName: string, description: string): Promise<any> {
 		return this.galleryClient.createPublisher(<GalleryInterfaces.Publisher>{
 			publisherName: name,
 			displayName: displayName,
@@ -120,34 +120,34 @@ export class PublisherManager extends GalleryBase {
 	 * @param string Publisher's unique name
 	 * @return Q.promise that is resolved when publisher is deleted
 	 */
-	public deletePublisher(name: string): Q.Promise<any> {
+	public deletePublisher(name: string): Promise<any> {
 		return this.galleryClient.deletePublisher(name).catch(errHandler.httpErr);
 	}
 }
 
 export class SharingManager extends GalleryBase {
 
-	private id: Q.Promise<string>;
-	private publisher: Q.Promise<string>;
+	private id: Promise<string>;
+	private publisher: Promise<string>;
 
-	public shareWith(accounts: string[]): Q.Promise<any> {
+	public shareWith(accounts: string[]): Promise<any> {
 		return this.getExtInfo().then((extInfo) => {
-			return Q.all(accounts.map((account) => {
+			return Promise.all(accounts.map((account) => {
 				trace.info("Sharing extension with %s.", account);
 				return this.galleryClient.shareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
 			}));
 		});
 	}
 
-	public unshareWith(accounts: string[]): Q.Promise<any> {
+	public unshareWith(accounts: string[]): Promise<any> {
 		return this.getExtInfo().then((extInfo) => {
-			return Q.all(accounts.map((account) => {
+			return Promise.all(accounts.map((account) => {
 				return this.galleryClient.unshareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
 			}));
 		});
 	}
 
-	public unshareWithAll(): Q.Promise<any> {
+	public unshareWithAll(): Promise<any> {
 		return this.getSharedWithAccounts().then((accounts) => {
 			return this.unshareWith(accounts);
 		});
@@ -159,7 +159,7 @@ export class SharingManager extends GalleryBase {
 		});
 	}
 
-	public getExtensionInfo(): Q.Promise<GalleryInterfaces.PublishedExtension> {
+	public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.getExtInfo().then((extInfo) => {
 			return this.galleryClient.getExtension(
 				extInfo.publisher,
@@ -183,7 +183,7 @@ export class PackagePublisher extends GalleryBase {
 	private static validationInterval = 1000;
 	private static validationRetries = 50;
 
-	private checkVsixPublished(): Q.Promise<CoreExtInfo> {
+	private checkVsixPublished(): Promise<CoreExtInfo> {
 		return this.getExtInfo().then((extInfo) => {
 			return this.galleryClient.getExtension(extInfo.publisher, extInfo.id).then((ext) => {
 				if (ext) {
@@ -200,7 +200,7 @@ export class PackagePublisher extends GalleryBase {
 	 * @param string path to a VSIX extension to publish
 	 * @return Q.Promise that is resolved when publish is complete
 	 */
-	public publish(): Q.Promise<GalleryInterfaces.PublishedExtension> {
+	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
 
 		let extPackage: GalleryInterfaces.ExtensionPackage = {
 			extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64")
@@ -227,7 +227,7 @@ export class PackagePublisher extends GalleryBase {
 		});
 	}
 
-	private createOrUpdateExtension(extPackage: GalleryInterfaces.ExtensionPackage): Q.Promise<GalleryInterfaces.PublishedExtension> {
+	private createOrUpdateExtension(extPackage: GalleryInterfaces.ExtensionPackage): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then((extInfo) => {
 			let publishPromise;
 			if (extInfo && extInfo.published) {
@@ -243,14 +243,16 @@ export class PackagePublisher extends GalleryBase {
 		})
 	}
 
-	public waitForValidation(version?: string, interval = PackagePublisher.validationInterval, retries = PackagePublisher.validationRetries): Q.Promise<string> {
+	public waitForValidation(version?: string, interval = PackagePublisher.validationInterval, retries = PackagePublisher.validationRetries): Promise<string> {
 		if (retries === 0) {
 			throw "Validation timed out. There may be a problem validating your extension. Please try again later.";
 		} else if (retries === 25) {
 			trace.info("This is taking longer than usual. Hold tight...");
 		}
 		trace.debug("Polling for validation (%s retries remaining).", retries.toString());
-		return Q.delay(this.getValidationStatus(version), interval).then((status) => {
+
+		// Compiler nonsense below. Sorry.
+		return (<Promise<string>><any>(Q.delay(this.getValidationStatus(version), interval))).then((status) => {
 			trace.debug("--Retrieved validation status: %s", status);
 			if (status === PackagePublisher.validationPending) {
 				return this.waitForValidation(version, interval, retries - 1);
@@ -260,7 +262,7 @@ export class PackagePublisher extends GalleryBase {
 		});
 	}
 
-	public getValidationStatus(version?: string): Q.Promise<string> {
+	public getValidationStatus(version?: string): Promise<string> {
 		return this.getExtInfo().then((extInfo) => {
 			return this.galleryClient.getExtension(extInfo.publisher, extInfo.id, extInfo.version, GalleryInterfaces.ExtensionQueryFlags.IncludeVersions).then((ext) => {
 				if (!ext || ext.versions.length === 0) {

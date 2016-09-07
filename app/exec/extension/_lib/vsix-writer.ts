@@ -93,14 +93,14 @@ export class VsixWriter {
 	/**
 	 * Write a vsix package to the given file name
 	 */
-	public writeVsix(): Q.Promise<string> {
+	public writeVsix(): Promise<string> {
 		let outputPath = this.getOutputPath(this.settings.outputPath);
 		let vsix = new zip();
 
-		let builderPromises: Q.Promise<void>[] = [];
+		let builderPromises: Promise<void>[] = [];
 		this.manifestBuilders.forEach((builder) => {
 			// Avoid the error EMFILE: too many open files
-			const addPackageFilesBatch = (paths: string[], numBatch: number, batchSize: number, deferred?: Q.Deferred<void>): Q.Promise<void> => {
+			const addPackageFilesBatch = (paths: string[], numBatch: number, batchSize: number, deferred?: Q.Deferred<void>): Promise<void> => {
 				deferred = deferred || Q.defer<void>();
 				
 				let readFilePromises = [];
@@ -121,11 +121,11 @@ export class VsixWriter {
 						readFilePromises.push(readFilePromise);
 					} else {
 						vsix.file(itemName, builder.files[path].content);
-						readFilePromises.push(Q.resolve<void>(null));
+						readFilePromises.push(Promise.resolve<void>(null));
 					}
 				}
 				
-				Q.all(readFilePromises).then(function() {
+				Promise.all(readFilePromises).then(function() {
 					if (end < paths.length) {
 						// Next batch
 						addPackageFilesBatch(paths, numBatch + 1, batchSize, deferred);
@@ -133,7 +133,7 @@ export class VsixWriter {
 						deferred.resolve(null);
 					}
 					
-				}).fail(function (err) {
+				}).catch(function (err) {
 					deferred.reject(err);
 				});
 				
@@ -147,7 +147,7 @@ export class VsixWriter {
 			});
 			builderPromises.push(builderPromise);
 		});
-		return Q.all(builderPromises).then(() => {
+		return Promise.all(builderPromises).then(() => {
 			return this.addResourceStrings(vsix);
 		}).then(() => {
 			trace.debug("Writing vsix to: %s", outputPath);
@@ -168,11 +168,11 @@ export class VsixWriter {
 	 * resources.resjson into one file per manifest. Add
 	 * each to the vsix archive as F/<manifest_loc_path> and F/Extension.vsixlangpack
 	 */
-	private addResourceStrings(vsix: zip): Q.Promise<void[]> {
+	private addResourceStrings(vsix: zip): Promise<void[]> {
 		// Make sure locRoot is set, that it refers to a directory, and
 		// iterate each subdirectory of that.
 		if (!this.settings.locRoot) {
-			return Q.resolve<void[]>(null);
+			return Promise.resolve<void[]>(null);
 		}
 		let stringsPath = path.resolve(this.settings.locRoot);
 		return Q.Promise((resolve, reject, notify) => {
@@ -191,10 +191,10 @@ export class VsixWriter {
 			}
 		}).then<void[]>((stringsFolderExists) => {
 			if (!stringsFolderExists) {
-				return Q.resolve<void[]>(null);
+				return Promise.resolve<void[]>(null);
 			}
-			return Q.nfcall(fs.readdir, stringsPath).then((files: string[]) => {
-				let promises: Q.Promise<void>[] = [];
+			return <Promise<void[]>><any>Q.nfcall(fs.readdir, stringsPath).then((files: string[]) => {
+				let promises: Promise<void>[] = [];
 				files.forEach((languageTag) => {
 					var filePath = path.join(stringsPath, languageTag);
 					let promise = Q.nfcall(fs.lstat, filePath).then((fileStats: fs.Stats) => {
@@ -228,14 +228,14 @@ export class VsixWriter {
 									//     vsix.file(toZipItemName(languageTag + "/Extension.vsixlangpack"), vsixLangPackStr);
 									// });
 								} else {
-									return Q.resolve<void>(null);
+									return Promise.resolve<void>(null);
 								}
 							});
 						}
 					});
 					promises.push(promise);
 				});
-				return Q.all(promises);
+				return Promise.all(promises);
 			});
 		});
 	}

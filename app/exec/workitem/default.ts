@@ -43,7 +43,7 @@ export class WorkItemBase<T> extends TfCommand<WorkItemArguments, T> {
 		this.registerCommandArgument("values", "Work Item Values", "Mapping from field reference name to value to set on the workitem. (E.g. {\"system.assignedto\": \"Some Name\"})", WorkItemValuesJsonArgument, "{}");
 	}
 	
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }
@@ -61,7 +61,7 @@ export function friendlyOutput(data: witContracts.WorkItem[]): void {
         trace.info("System.Id:          " + workItem.id);
         trace.info("System.Rev:         " + workItem.rev);
         Object.keys(workItem.fields).forEach((arg) => {
-            if(!_.contains(fieldsToIgnore, arg)) {
+            if(!_.includes(fieldsToIgnore, arg)) {
                 trace.info(arg + ":        " + workItem.fields[arg]);
             }   
         });
