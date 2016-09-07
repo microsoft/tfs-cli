@@ -30,8 +30,15 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 			}).then((webApi) => {
 				let agentApi = webApi.getTaskAgentApi();
 				return Q.Promise<LoginResult>((resolve, reject) => {
-
-					return agentApi.connect().then((obj) => {						let tfxCredStore = getCredentialStore("tfx");
+					agentApi.connect((err, statusCode, obj) => {
+						if (statusCode && statusCode === 401) {
+							trace.debug("Connection failed: invalid credentials.");
+							reject("Invalid credentials.");
+						} else if (err) {
+							trace.debug("Connection failed.");
+							reject("Connection failed. Check your internet connection & collection URL." + os.EOL + "Message: " + err.message);
+						}
+						let tfxCredStore = getCredentialStore("tfx");
 						let tfxCache = new DiskCache("tfx");
 						let credString;
 						if (authHandler.username === "OAuth") {
@@ -40,16 +47,12 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 							credString = "basic:" + authHandler.username + ":" + authHandler.password;
 						}
 						return tfxCredStore.storeCredential(collectionUrl, "allusers", credString).then(() => {
-							return tfxCache.setItem("cache", "connection", collectionUrl);
+							return tfxCache.setItem("cache", "connection", collectionUrl).then(() => {
+								resolve({
+									success: true
+								});
+							});
 						});
-					}).catch((err) => {
-						if (err && err.statusCode && err.statusCode === 401) {
-							trace.debug("Connection failed: invalid credentials.");
-							throw "Invalid credentials.";
-						} else if (err) {
-							trace.debug("Connection failed.");
-							throw "Connection failed. Check your internet connection & collection URL." + os.EOL + "Message: " + err.message;
-						}
 					});
 				});
 			});
