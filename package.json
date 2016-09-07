@@ -52,7 +52,7 @@
     "tmp": "0.0.26",
     "tracer": "0.7.4",
     "validator": "^3.43.0",
-    "vso-node-api": "file:../vsts-node-api/_build",
+    "vso-node-api": "^5.0.0",
     "winreg": "0.0.12",
     "xml2js": "^0.4.16"
   },
