@@ -5,6 +5,7 @@ import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
+import Q = require('q');
 
 export function getCommand(args: string[]): Pools {
 	return new Pools(args);
