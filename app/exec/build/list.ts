@@ -3,7 +3,7 @@ import args = require("../../lib/arguments");
 import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
-
+import Q = require('q');
 import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): BuildGetList {
@@ -17,11 +17,11 @@ export class BuildGetList extends buildBase.BuildBase<buildBase.BuildArguments, 
 		return ["definitionId", "definitionName", "status", "top", "project"];
 	}
 
-	public exec(): Promise<buildContracts.Build[]> {
+	public exec(): Q.Promise<buildContracts.Build[]> {
 		trace.debug("build-list.exec");
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 
-		return Promise.all<number | string>([
+		return Q.Promise.all<number | string>([
 			this.commandArgs.project.val(),
 			this.commandArgs.definitionId.val(),
 			this.commandArgs.definitionName.val(),

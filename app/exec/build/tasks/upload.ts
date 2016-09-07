@@ -22,7 +22,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		return ["taskPath", "overwrite"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition> {
+	public exec(): Q.Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then((taskPaths) => {
 			let taskPath = taskPaths[0];
 			return this.commandArgs.overwrite.val().then((overwrite) => {

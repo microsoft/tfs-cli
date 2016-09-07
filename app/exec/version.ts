@@ -1,6 +1,7 @@
 import { TfCommand, CoreArguments } from "../lib/tfcommand";
 import version = require("../lib/version");
 import trace = require("../lib/trace");
+import Q= require('q');
 
 export function getCommand(args: string[]): TfCommand<CoreArguments, version.SemanticVersion> {
 	return new Version(args);
@@ -16,7 +17,7 @@ export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 		super(args, false);
 	}
 
-	public exec(): Promise<version.SemanticVersion> {
+	public exec(): Q.Promise<version.SemanticVersion> {
 		trace.debug("version.exec");
 		return version.getTfxVersion();
 	}

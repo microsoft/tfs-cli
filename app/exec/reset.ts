@@ -4,8 +4,8 @@ import { EOL as eol } from "os";
 import args = require("../lib/arguments");
 import common = require("../lib/common");
 import path = require("path");
-
 import trace = require("../lib/trace");
+import Q = require('q');
 
 export function getCommand(args: string[]): Reset {
 	return new Reset(args);
@@ -28,11 +28,11 @@ export class Reset extends TfCommand<ResetArgs, void> {
 		this.registerCommandArgument("all", "All directories", "Pass this option to reset saved options for all directories.", args.BooleanArgument, "false");
 	}
 
-	public exec(): Promise<void> {
-		return Promise.resolve<void>(null);
+	public exec(): Q.Promise<void> {
+		return Q.Promise.resolve<void>(null);
 	}
 	
-	public dispose(): Promise<void> {
+	public dispose(): Q.Promise<void> {
 		let currentPath = path.resolve();
 		return this.commandArgs.all.val().then((allSettings) => {
 			return args.getOptionsCache().then((existingCache) => {
@@ -40,7 +40,7 @@ export class Reset extends TfCommand<ResetArgs, void> {
 					existingCache[currentPath] = {};
 					return new DiskCache("tfx").setItem("cache", "command-options", allSettings ? "" : JSON.stringify(existingCache, null, 4).replace(/\n/g, eol));
 				} else {
-					return Promise.resolve<void>(null);
+					return Q.Promise.resolve<void>(null);
 				}
 			});
 		});
