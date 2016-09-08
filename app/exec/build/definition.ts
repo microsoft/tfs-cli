@@ -20,7 +20,7 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 
 	public exec(): Q.Promise<buildContracts.DefinitionReference> {
 		trace.debug("build-definition.exec");
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val().then((definitionId) => {
                 return this.commandArgs.definitionName.val().then((definitionName) => {

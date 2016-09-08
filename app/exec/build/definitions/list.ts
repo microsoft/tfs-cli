@@ -17,7 +17,7 @@ export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.Def
     }
 
     public exec(): Q.Promise<buildContracts.DefinitionReference[]> {
-        var api = this.webApi.getQBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
         trace.debug("Searching for build definitions...");
 
         return Q.all<number | string>([

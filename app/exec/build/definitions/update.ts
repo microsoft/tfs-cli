@@ -29,7 +29,7 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
     }
 
     public exec(): Q.Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getQBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
         return Q.all<number | string | boolean>([
             this.commandArgs.project.val(),
