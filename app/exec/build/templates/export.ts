@@ -31,7 +31,7 @@ export class ExportTemplate extends TfCommand<ExportTemplateArguments, buildCont
     }
 
     public exec(): Q.Promise<buildContracts.BuildDefinitionTemplate> {
-        var api = this.webApi.getQBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
         return Q.all<number | string | boolean>([
             this.commandArgs.project.val(),
