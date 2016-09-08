@@ -20,7 +20,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 
 	public exec(): Q.Promise<taskAgentContracts.TaskAgent> {
 		trace.debug("agent.exec");
-		var agentapi: agentClient.IQTaskAgentApiBase = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
+		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 		return Q.all<number | string>([
 			this.commandArgs.agentId.val(),
 			this.commandArgs.agentName.val(),
@@ -79,7 +79,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				trace.info("	%s : %s", key ,agent.userCapabilities[key]);
 		}
 	}
-	private _getOrUpdateAgent(agentapi:  agentClient.IQTaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
+	private _getOrUpdateAgent(agentapi:  agentClient.ITaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
 			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
 			trace.debug("disable request: %s",disable);
 			if (disable) {

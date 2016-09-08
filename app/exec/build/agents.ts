@@ -20,7 +20,7 @@ export class Agents extends agentBase.BuildBase<agentBase.BuildArguments, taskAg
 
 	public exec(): Q.Promise<taskAgentContracts.TaskAgent[]> {
 		trace.debug("agents.exec");
-		var agentapi: agentClient.IQTaskAgentApiBase = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
+		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 		return this.commandArgs.poolId.val().then((pool) => {
 			trace.debug("getting pool  : %s",pool);
 				return agentapi.getAgents(pool);
