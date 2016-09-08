@@ -24,7 +24,7 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 
 	public exec(): Q.Promise<void> {
 		trace.debug("delete-build.exec");
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return this._deleteBuild(buildapi, buildId, project);
@@ -37,7 +37,7 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 		trace.println();
 	}
 
-	private _deleteBuild(buildapi: buildClient.IQBuildApi, buildId: number, project: string) {
+	private _deleteBuild(buildapi: buildClient.IBuildApi, buildId: number, project: string) {
 		trace.info("Deleting build...")
         buildapi.deleteBuild(buildId,project)
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {

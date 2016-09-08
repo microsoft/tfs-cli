@@ -24,7 +24,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 	public exec(): Q.Promise<buildContracts.Build> {
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
         return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val(true).then((definitionId) => {
 				let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
@@ -82,7 +82,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		trace.info("branch / shelveset 	: %s", build.sourceBranch ? build.sourceBranch :"master (no shelveset)")
 	}
 
-	private _queueBuild(buildapi: buildClient.IQBuildApi,
+	private _queueBuild(buildapi: buildClient.IBuildApi,
 						definition: buildContracts.DefinitionReference,
 						project: string, parameters: string, 
 						priority: number, 

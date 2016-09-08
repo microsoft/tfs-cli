@@ -20,7 +20,7 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
 
 	public exec(): Q.Promise<buildContracts.Build> {
 		trace.debug("build-details.exec");
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return buildapi.getBuild(buildId, project);

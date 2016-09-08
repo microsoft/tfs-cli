@@ -24,7 +24,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 
 	public exec(): Q.Promise<void> {
 		trace.debug("keep-build.exec");
-		var buildapi: buildClient.IQBuildApi = this.webApi.getQBuildApi();
+		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return this._keepBuild(buildapi, buildId, project);
@@ -37,7 +37,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		trace.println();
 	}
 
-	private _keepBuild(buildapi: buildClient.IQBuildApi, buildId: number, project: string) {
+	private _keepBuild(buildapi: buildClient.IBuildApi, buildId: number, project: string) {
 		trace.info("Searching for build...")
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
             if (build.keepForever) {
