@@ -17,7 +17,7 @@ export class ListTemplates extends TfCommand<CoreArguments, buildContracts.Build
     }
 
     public exec(): Q.Promise<buildContracts.BuildDefinitionTemplate[]> {
-        var api = this.webApi.getQBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
         trace.debug("Searching for build templates...");
 
         return Q.all<number | string>([

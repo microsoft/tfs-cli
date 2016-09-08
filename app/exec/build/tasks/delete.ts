@@ -3,6 +3,7 @@ import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import args = require("../../../lib/arguments");
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
+import Q = require('q');
 
 export function getCommand(args: string[]): BuildTaskDelete {
 	return new BuildTaskDelete(args);
@@ -15,7 +16,7 @@ export class BuildTaskDelete extends tasksBase.BuildTaskBase<agentContracts.Task
 		return ["taskId"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition> {
+	public exec(): Q.Promise<agentContracts.TaskDefinition> {
 		let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		return this.commandArgs.taskId.val().then((taskId) => {
 			return agentApi.getTaskDefinitions(taskId).then((tasks) => {

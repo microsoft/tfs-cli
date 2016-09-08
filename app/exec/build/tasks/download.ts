@@ -27,7 +27,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 				Id = "";
 			}
 			return this.commandArgs.taskVersion.val().then((Version) =>{
-				let agentApi = this.webApi.getQTaskAgentApi(this.connection.getCollectionUrl());
+				let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 				trace.info("retriving tasks from the server ...")
 				return agentApi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
 					var taskDictionary = this._getNewestTasks(tasks);

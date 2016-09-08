@@ -8,6 +8,7 @@ import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
 import uuid = require("node-uuid");
+import Q = require('q');
 
 export interface TaskCreateResult {
 	taskPath: string;
@@ -44,10 +45,10 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Promise<TaskCreateResult> {
+	public exec(): Q.Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
-		return Promise.all([
+		return Q.Promise.all([
 			this.commandArgs.taskName.val(),
 			this.commandArgs.friendlyName.val(),
 			this.commandArgs.description.val(),
