@@ -20,7 +20,7 @@ export interface LoginResult {
  */
 export class Login extends TfCommand<CoreArguments, LoginResult> {
 	protected description = "Login and cache credentials using a PAT or basic auth.";
-	public exec(): Q.Promise<LoginResult> {
+	public exec(): Promise<LoginResult> {
 		trace.debug('Login.exec');
 		let authHandler;
 		return this.commandArgs.serviceUrl.val().then((collectionUrl) => {
