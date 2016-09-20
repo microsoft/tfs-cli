@@ -1,6 +1,6 @@
 
 
-import { PackageFiles, FileDeclaration, ResourcesFile } from "./interfaces";
+import { PackageFiles, FileDeclaration, LocalizedResources, ResourcesFile } from "./interfaces";
 import { cleanAssetPath, forwardSlashesPath, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import common = require("../../../lib/common");
@@ -12,8 +12,9 @@ import trace = require('../../../lib/trace');
 
 export abstract class ManifestBuilder {
 	protected packageFiles: PackageFiles = { };
-    protected lcPartNames: {[filename: string]: string} = { };
+	protected lcPartNames: {[filename: string]: string} = { };
 	protected data: any = { };
+	private static resourcePrefix = "resource:";
 
 	constructor(private extRoot: string) { }
 
@@ -47,7 +48,7 @@ export abstract class ManifestBuilder {
 	/**
 	 * Called just before the package is written to make any final adjustments.
 	 */
-	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Promise<void> {
+	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
 		return Promise.resolve<void>(null);
 	}
 
@@ -71,35 +72,42 @@ export abstract class ManifestBuilder {
 	 * Gets the contents of the file that will serve as localization for this asset.
 	 * Default implementation returns JSON with all strings replaced given by the translations/defaults objects.
 	 */
-	public getLocResult(translations: ResourcesFile, defaults: ResourcesFile): string {
-		return JSON.stringify(this._getLocResult(this.expandResourceFile(translations), this.expandResourceFile(defaults)), null, 4);
+	public getLocResult(translations: ResourcesFile, defaults: ResourcesFile): FileDeclaration[] {
+		return [{
+			partName: this.getPath(),
+			path: null,
+			content: JSON.stringify(this._getLocResult(this.expandResourceFile(translations), this.expandResourceFile(defaults)), null, 4)
+		}];
 	}
 
-	private _getLocResult(translations: any, defaults: any, locData = {}, currentPath = "") {
-		let currentData = currentPath ? _.get(this.data, currentPath) : this.data;
+	private _getLocResult(translations: any, defaults: any, locData = {}, currentPath: string[] = []) {
 
-		// CurrentData should be guaranteed to be
+		// deep iterate through this.data. If the value is a string that starts with
+		// resource:, use the key to look in translations and defaults to find the real string.
+		// Do the replacement
 
-		// This magically works for arrays too, just go with it.
-		Object.keys(currentData).forEach((key) => {
-			let nextPath = currentPath + "." + key;
-			if (_.isString(currentData[key])) {
-				let translation = _.get(translations, nextPath);
-				if (translation !== undefined) {
-					_.set(locData, nextPath, translation);
+		let currentData = currentPath.length > 0 ? _.get(this.data, currentPath) : this.data;
+		Object.keys(currentData).forEach(key => {
+			const val = currentData[key];
+			if (typeof val === "string" && val.substr(0, ManifestBuilder.resourcePrefix.length) === ManifestBuilder.resourcePrefix) {
+				const locKey = val.substr(ManifestBuilder.resourcePrefix.length);
+				const localized = _.get(translations, locKey) || _.get(defaults, locKey);
+				if (localized) {
+					_.set(locData, currentPath.concat(key), localized);
 				} else {
-					let defaultString = _.get(defaults, nextPath);
-					if (defaultString !== undefined) {
-						_.set(locData, nextPath, defaultString);
-					} else {
-						throw "Couldn't find a default string - this is definitely a bug.";
-					}
+					throw new Error("Could not find translation or default value for resource " + locKey);
 				}
-			} else if (_.isObject(currentData[key])) {
-				this._getLocResult(translations, defaults, locData, nextPath);
 			} else {
-				// must be a number of boolean
-				_.set(locData, nextPath, currentData[key]);
+				if (typeof val === "object") {
+					if (_.isArray(val)) {
+						_.set(locData, currentPath.concat(key), []);
+					} else {
+						_.set(locData, currentPath.concat(key), {});
+					}
+					this._getLocResult(translations, defaults, locData, currentPath.concat(key));
+				} else {
+					_.set(locData, currentPath.concat(key), val);
+				}
 			}
 		});
 		return locData;
@@ -177,7 +185,7 @@ export abstract class ManifestBuilder {
 			file.partName = "/" + path.relative(this.extRoot, file.path);
 		}
 		if (!file.partName) {
-			throw "Every file must have a path specified name.";
+			throw new Error("Every file must have a path specified name.");
 		}
 
 		file.partName = forwardSlashesPath(file.partName);
@@ -208,11 +216,13 @@ export abstract class ManifestBuilder {
 				this.packageFiles[file.path || common.newGuid()] = file;
 				this.lcPartNames[file.partName.toLowerCase()] = file.partName;
 			} else {
-				throw "All files in the package must have a case-insensitive unique filename. Trying to add " + file.partName + ", but " + existPartName + " was already added to the package.";
+				throw new Error("All files in the package must have a case-insensitive unique filename. Trying to add " + file.partName + ", but " + existPartName + " was already added to the package.");
 			}
 		}
 		if (file.contentType && this.packageFiles[file.path]) {
 			this.packageFiles[file.path].contentType = file.contentType;
 		}
+
+		return file;
 	}
 }

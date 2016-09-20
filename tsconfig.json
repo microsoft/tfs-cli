@@ -4,7 +4,7 @@
 		"target": "es5",
 		"moduleResolution": "node",
 		"declaration": false,
-		"sourceMap": false,
+		"sourceMap": true,
 		"newLine": "LF",
 		"lib": ["es5", "es2015", "es6"],
 		"outDir": "_build"

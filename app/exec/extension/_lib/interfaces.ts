@@ -15,8 +15,8 @@ export interface PackageFiles {
 }
 
 /**
-* Describes a file in a manifest
-*/
+ * Describes a file in a manifest
+ */
 export interface FileDeclaration {
 	/**
 	 * The type of this asset (Type attribute in the vsixmanifest's <Asset> entry)
@@ -154,6 +154,11 @@ export interface MergeSettings {
 	 * True to rev the version of the extension before packaging.
 	 */
 	revVersion: boolean;
+
+	/**
+	 * Path to the root of localized resource files
+	 */
+	locRoot: string;
 }
 
 export interface PackageSettings {
@@ -166,7 +171,6 @@ export interface PackageSettings {
 	 * Path to the root of localized resource files
 	 */
 	locRoot: string;
-
 }
 
 export interface PublishSettings {
@@ -220,6 +224,11 @@ export interface VsixLanguagePack {
 export interface ResourceSet {
 	manifestResources: { [manifestType: string]: ResourcesFile};
 	combined: ResourcesFile;
+}
+
+export interface LocalizedResources { 
+	[languageTag: string]: ResourcesFile;
+	defaults: ResourcesFile;
 }
 
 /*** Types for VSIX Manifest ****/

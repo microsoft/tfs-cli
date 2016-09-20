@@ -21,12 +21,12 @@ export function getCommand(): Promise<TFXCommand> {
 		let currentHierarchy = hierarchy;
 		let inArgs = false;
 		args.forEach((arg) => {
-			if (currentHierarchy && currentHierarchy[arg] !== undefined) {
-				currentHierarchy = currentHierarchy[arg];
-				execPath.push(arg);
-			} else if (arg.substr(0, 2) === "--" || inArgs) {
+			if (arg.substr(0, 2) === "--" || inArgs) {
 				commandArgs.push(arg);
 				inArgs = true;
+			} else if ((currentHierarchy && currentHierarchy[arg] !== undefined)) {
+				currentHierarchy = currentHierarchy[arg];
+				execPath.push(arg);
 			} else {
 				throw "Command '" + arg + "' not found. For help, type tfx " + execPath.join(" ") + " --help";
 			}
@@ -44,7 +44,7 @@ function getCommandHierarchy(root: string): Promise<CommandHierarchy> {
 	return fs.readdir(root).then((files) => {
 		let filePromises = [];
 		files.forEach((file) => {
-			if (file.substr(0, 1) === "_") {
+			if (file.startsWith("_") || file.endsWith(".map")) {
 				return;
 			}
 			let fullPath = path.resolve(root, file);

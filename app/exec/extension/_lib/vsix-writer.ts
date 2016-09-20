@@ -53,17 +53,18 @@ export class VsixWriter {
 	 * Otherwise, try to determine if outPath is a directory (checking for a . in the filename)
 	 * If it is, generate an automatic filename in the given outpath
 	 * Otherwise, outPath doesn't change.
+	 * If filename is generated automatically, use fileExt as the extension
 	 */
-	private getOutputPath(outPath: string): string {
+	public getOutputPath(outPath: string, fileExt: string = "vsix"): string {
 		// Find the vsix manifest, if it exists
 		let vsixBuilders = this.manifestBuilders.filter(b => b.getType() === VsixManifestBuilder.manifestType);
-		let autoName = "extension.vsix";
+		let autoName = "extension." + fileExt;
 		if (vsixBuilders.length === 1) {
 			let vsixManifest = vsixBuilders[0].getData();
 			let pub = _.get(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
 			let ns = _.get(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Id");
 			let version = _.get(vsixManifest, "PackageManifest.Metadata[0].Identity[0].$.Version");
-			autoName = pub + "." + ns + "-" + version + ".vsix";
+			autoName = `${pub}.${ns}-${version}.${fileExt}`;
 		}
 
 		if (outPath === "{auto}") {
@@ -148,8 +149,6 @@ export class VsixWriter {
 			builderPromises.push(builderPromise);
 		});
 		return Promise.all(builderPromises).then(() => {
-			return this.addResourceStrings(vsix);
-		}).then(() => {
 			trace.debug("Writing vsix to: %s", outputPath);
 
 			return Q.nfcall(mkdirp, path.dirname(outputPath)).then(() => {
@@ -175,6 +174,8 @@ export class VsixWriter {
 			return Promise.resolve<void[]>(null);
 		}
 		let stringsPath = path.resolve(this.settings.locRoot);
+
+		// Check that --loc-root exists and is a directory.
 		return Q.Promise((resolve, reject, notify) => {
 			fs.exists(stringsPath, (exists) => {
 				resolve(exists);
@@ -189,16 +190,21 @@ export class VsixWriter {
 			} else {
 				return Q.resolve(false);
 			}
-		}).then<void[]>((stringsFolderExists) => {
+		}).then<void[]>((stringsFolderExists) => {1
 			if (!stringsFolderExists) {
 				return Promise.resolve<void[]>(null);
 			}
+
+			// stringsPath exists and is a directory - read it.
 			return <Promise<void[]>><any>Q.nfcall(fs.readdir, stringsPath).then((files: string[]) => {
 				let promises: Promise<void>[] = [];
 				files.forEach((languageTag) => {
 					var filePath = path.join(stringsPath, languageTag);
 					let promise = Q.nfcall(fs.lstat, filePath).then((fileStats: fs.Stats) => {
 						if (fileStats.isDirectory()) {
+
+							// We're under a language tag directory within locRoot. Look for
+							// resources.resjson and use that to generate manfiest files
 							let resourcePath = path.join(filePath, "resources.resjson");
 							return Q.Promise<boolean>((resolve, reject, notify) => {
 								fs.exists(resourcePath, (exists) => {
@@ -207,26 +213,36 @@ export class VsixWriter {
 							}).then<void>((exists: boolean) => {
 								if (exists) {
 									// A resources.resjson file exists in <locRoot>/<language_tag>/
-									// return Q.nfcall<string>(fs.readFile, resourcePath, "utf8").then<void>((contents: string) => {
-									//     let resourcesObj = JSON.parse(contents);
-									//     let locGen = new LocPrep.LocKeyGenerator(null, null);
-									//     let splitRes = locGen.splitIntoVsoAndVsixResourceObjs(resourcesObj);
-									//     let locManifestPath = languageTag + "/" + VsixWriter.VSO_MANIFEST_FILENAME;
-									//     vsix.file(toZipItemName(locManifestPath), this.getVsoManifestString(splitRes.vsoResources));
-									//     this.vsixManifest.PackageManifest.Assets[0].Asset.push({
-									//         "$": {
-									//             Lang: languageTag,
-									//             Type: "Microsoft.VisualStudio.Services.Manifest",
-									//             Path: locManifestPath,
-									//             Addressable: "true",
-									//             "d:Source": "File"
-									//         }
-									//     });
+									return Q.nfcall<string>(fs.readFile, resourcePath, "utf8").then<void>((contents: string) => {
+										let resourcesObj = JSON.parse(contents);
 
-									//     let builder = new xml.Builder(VsixWriter.DEFAULT_XML_BUILDER_SETTINGS);
-									//     let vsixLangPackStr = builder.buildObject(splitRes.vsixResources);
-									//     vsix.file(toZipItemName(languageTag + "/Extension.vsixlangpack"), vsixLangPackStr);
-									// });
+										// For each language, go through each builder and generate its
+										// localized resources.
+										this.manifestBuilders.forEach(builder => {
+											const locFiles = builder.getLocResult(resourcesObj, null);
+											locFiles.forEach(locFile => {
+
+											});
+										});
+
+										let locGen = new LocPrep.LocKeyGenerator(null);
+										// let splitRes = locGen.splitIntoVsoAndVsixResourceObjs(resourcesObj);
+										// let locManifestPath = languageTag + "/" + VsixWriter.VSO_MANIFEST_FILENAME;
+										// vsix.file(toZipItemName(locManifestPath), this.getVsoManifestString(splitRes.vsoResources));
+										// this.vsixManifest.PackageManifest.Assets[0].Asset.push({
+										// 	"$": {
+										// 		Lang: languageTag,
+										// 		Type: "Microsoft.VisualStudio.Services.Manifest",
+										// 		Path: locManifestPath,
+										// 		Addressable: "true",
+										// 		"d:Source": "File"
+										// 	}
+										// });
+
+										// let builder = new xml.Builder(VsixWriter.DEFAULT_XML_BUILDER_SETTINGS);
+										// let vsixLangPackStr = builder.buildObject(splitRes.vsixResources);
+										// vsix.file(toZipItemName(languageTag + "/Extension.vsixlangpack"), vsixLangPackStr);
+									});
 								} else {
 									return Promise.resolve<void>(null);
 								}

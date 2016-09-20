@@ -5,10 +5,10 @@ import Q = require("q");
 
 // This is an fs lib that uses Q instead of callbacks.
 
-export var W_OK = fs.W_OK;
-export var R_OK = fs.R_OK;
-export var X_OK = fs.X_OK;
-export var F_OK = fs.F_OK;
+export var W_OK = fs.constants ? fs.constants.W_OK : (fs as any).W_OK; // back-compat
+export var R_OK = fs.constants ? fs.constants.R_OK : (fs as any).R_OK; // back-compat
+export var X_OK = fs.constants ? fs.constants.X_OK : (fs as any).X_OK; // back-compat
+export var F_OK = fs.constants ? fs.constants.F_OK : (fs as any).F_OK; // back-compat
 
 export function readdir(path: string): Promise<string[]> {
 	return Q.nfcall<string[]>(fs.readdir, path);
@@ -63,7 +63,7 @@ export function fileAccess(path: string, mode: number = F_OK): Promise<boolean> 
 export function canWriteTo(path: string): Promise<boolean> {
 	return exists(path).then((exists) => {
 		if (exists) {
-			return fileAccess(path, fs.W_OK);
+			return fileAccess(path, W_OK);
 		} else {
 			return true;
 		}

@@ -1,41 +1,87 @@
 {
-	"version": "0.1.0",
-	// List of configurations. Add new configurations or edit existing ones.
-	"configurations": [
-		{
-			// Name of configuration; appears in the launch configuration drop down menu.
-			"name": "Launch ./_build/app/tfx-cli.js",
-			// Type of configuration.
-			"type": "node",
-			// Workspace relative or absolute path to the program.
-			"program": "${workspaceRoot}/_build/app/tfx-cli.js",
-			// Automatically stop program after launch.
-			"stopOnEntry": true,
-			// Command line arguments passed to the program.
-			"args": ["workitem", "update", "--work-item-id", "11", "--values", "{\"title\":\"hello\"}"],
-			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
-			"cwd": "${workspaceRoot}",
-			// Workspace relative or absolute path to the runtime executable to be used. Default is the runtime executable on the PATH.
-			"runtimeExecutable": null,
-			// Optional arguments passed to the runtime executable.
-			"runtimeArgs": ["--nolazy"],
-			// Environment variables passed to the program.
-			"env": {
-				"NODE_ENV": "development"
-			},
-			// Use JavaScript source maps (if they exist).
-			"sourceMaps": true,
-			// If JavaScript source maps are enabled, the generated code is expected in this directory.
-			"outDir": "${workspaceRoot}/_build/app"
-		},
-		{
-			"name": "Attach",
-			"type": "node",
-			// TCP/IP address. Default is "localhost".
-			"address": "localhost",
-			// Port to attach to.
-			"port": 5858,
-			"sourceMaps": false
-		}
-	]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Extension Create",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/app/app.ts",
+            "stopOnEntry": false,
+            "args": [
+                "extension", 
+                "create", 
+                "--loc-root", 
+                "C:\\vso\\obj\\Debug.AnyCPU\\Vssf.WebPlatform\\MS.VS.Extension.WebPlatform\\resjson",
+                "--manifests",
+                "vss-web.json",
+                "--override",
+                "{\"version\": \"0.0.1\"}"
+            ],
+            "cwd": "C:\\vso\\src\\Vssf\\WebPlatform\\ExtensionPackages\\WebPlatform",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "TFX_TRACE": "1"
+            },
+            "console": "internalConsole",
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/_build"
+        },
+        {
+            "name": "Resources Create",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/app/app.ts",
+            "stopOnEntry": false,
+            "args": [
+                "extension", 
+                "resources",
+                "create",
+                "--manifests",
+                "vss-web.json",
+                "--override",
+                "{\"version\": \"0.0.1\"}"
+            ],
+            "cwd": "C:\\vso\\src\\Vssf\\WebPlatform\\ExtensionPackages\\WebPlatform",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "TFX_TRACE": "1"
+            },
+            "console": "internalConsole",
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/_build"
+        },
+        {
+            "name": "HelpScreen",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/app/app.ts",
+            "stopOnEntry": false,
+            "args": [
+                
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "TFX_TRACE": "1"
+            },
+            "console": "internalConsole",
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/_build"
+        }
+    ]
 }

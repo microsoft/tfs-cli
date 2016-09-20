@@ -12,29 +12,12 @@ Install Dev Dependencies from root of repo:
 
 ## Build
 
-We build the product using gulp.  Just type `gulp` in the root of the repo.
+We build the product using npm.  Just type `npm run build` in the root of the repo.
 
 This builds the product in the _build/app directory
 
 ```bash
-~/Projects/tfs-cli$ gulp
-[16:26:47] Using gulpfile ~/Projects/tfs-cli/gulpfile.js
-[16:26:47] Starting 'clean'...
-[16:26:47] Finished 'clean' after 16 ms
-[16:26:47] Starting 'compileApp'...
-[16:26:47] Starting 'compileTests'...
-[16:26:47] Starting 'resources'...
-[16:26:47] Finished 'resources' after 39 ms
-[16:26:47] Starting 'copy'...
-[16:26:47] Finished 'copy' after 15 ms
-[16:26:47] Compiling TypeScript files using tsc version 1.5.3
-[16:26:47] Compiling TypeScript files using tsc version 1.5.3
-[16:26:49] Finished 'compileTests' after 2.06 s
-[16:26:49] Finished 'compileApp' after 2.87 s
-[16:26:49] Starting 'build'...
-[16:26:49] Finished 'build' after 16 μs
-[16:26:49] Starting 'default'...
-[16:26:49] Finished 'default' after 3.56 μs
+C:\tfs-cli>npm run build
 ```
 
 ## Install for Verification

@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "./manifest";
-import { FileDeclaration, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, BadgeDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
+import { FileDeclaration, LocalizedResources, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, BadgeDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
 import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
@@ -81,9 +81,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	/**
 	 * Gets the contents of the vsixLangPack file for this manifest
 	 */
-	public getLocResult(translations: ResourcesFile, defaults: ResourcesFile): string {
+	public getLocResult(translations: ResourcesFile, defaults: ResourcesFile): FileDeclaration[] {
 		let langPack = this.generateVsixLangPack(translations, defaults);
-		return jsonToXml(langPack);
+		return [{
+			partName: "Extension.vsixlangpack",
+			path: null,
+			content: jsonToXml(langPack)
+		}];
 	}
 
 	private generateVsixLangPack(translations: ResourcesFile, defaults: ResourcesFile): VsixLanguagePack {
@@ -93,9 +97,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					Version: "1.0.0",
 					xmlns: "http://schemas.microsoft.com/developer/vsx-schema-lp/2010"
 				},
-				LocalizedName: [translations["displayName"] || defaults["displayName"]],
-				LocalizedDescription: [translations["description"] || defaults["description"]],
-				LocalizedReleaseNotes: [translations["releaseNotes"] || defaults["releaseNotes"]],
+				LocalizedName: [translations["displayName"] || defaults["displayName"] || null],
+				LocalizedDescription: [translations["description"] || defaults["description"] || null],
+				LocalizedReleaseNotes: [translations["releaseNotes"] || defaults["releaseNotes"] || null],
 				License: [null],
 				MoreInfoUrl: [null]
 			}
@@ -372,6 +376,21 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	}
 
 	/**
+	 * The JSON structure is fairly exotic since the result is an XML file, 
+	 * so change those exotic keys to easy-to-read ones.
+	 */
+	public getLocKeyPath(path: string): string {
+		switch (path) {
+			case "PackageManifest.Metadata.0.Description.0._":
+				return "description";
+			case "PackageManifest.Metadata.0.DisplayName.0" :
+				return "displayName";
+			default :
+				return path;
+		}
+	}
+
+	/**
 	 * Get the publisher this vsixmanifest goes to
 	 */
 	public getExtensionPublisher() {
@@ -382,7 +401,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * --Ensures an <Asset> entry is added for each file as appropriate
 	 * --Builds the [Content_Types].xml file
 	 */
-	public finalize(files: PackageFiles, builders: ManifestBuilder[]): Promise<void> {
+	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
 		// Default installation target to VSS if not provided (and log warning)
 		let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
 		if (!(_.isArray(installationTarget) && installationTarget.length > 0)) {
@@ -394,6 +413,32 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					}
 				}
 			]);
+		}
+		
+		if (resourceData) {
+			Object.keys(resourceData).forEach(languageTag => {
+				if (languageTag === "defaults") {
+					return;
+				}
+				builders.forEach(builder => {
+					const locResult = builder.getLocResult(resourceData[languageTag], resourceData.defaults);
+					locResult.forEach(lr => {
+						lr.lang = languageTag;
+						lr.partName = `${languageTag}/${lr.partName}`;
+						if (lr.partName.indexOf("vsixlangpack") === -1) {
+							lr.assetType = builder.getType();
+							lr.addressable = true;
+						} else {
+							lr.addressable = false;
+						}
+						
+						const file = this.addFile(lr);
+						if (file.assetType) {
+							this.addAssetToManifest(file.partName, file.assetType, file.addressable, file.lang);
+						}
+					});
+				});
+			});
 		}
 		
 		Object.keys(files).forEach((fileName) => {
@@ -413,16 +458,18 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			}
 		});
 
+
 		// The vsixmanifest will be responsible for generating the [Content_Types].xml file
 		// Obviously this is kind of strange, but hey ho.
 		return this.genContentTypesXml(builders).then((result) => {
-			this.addFile({
+			this.addAsset({
 				path: null,
 				content: result,
 				partName: "/[Content_Types].xml"
 			});
 		});
 	}
+
 
 	/**
 	 * Gets the string representation (XML) of this manifest
@@ -456,7 +503,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			let contentTypePromises: Promise<any>[] = [];
 			let extensionlessFiles = [];
 			let uniqueExtensions = _.uniq<string>(Object.keys(this.files).map((f) => {
-				let extName = path.extname(f);
+				let extName = path.extname(f) || path.extname(this.files[f].partName);
 				const filename = path.basename(f);
 
 				// Look in the best guess table. Or, default to text/plain if the file starts with a "."
