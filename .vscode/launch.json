@@ -8,14 +8,22 @@
             "program": "${workspaceRoot}/app/app.ts",
             "stopOnEntry": false,
             "args": [
-                "extension", 
-                "create", 
-                "--loc-root", 
-                "C:\\vso\\obj\\Debug.AnyCPU\\Vssf.WebPlatform\\MS.VS.Extension.WebPlatform\\resjson",
-                "--manifests",
-                "vss-web.json",
-                "--override",
-                "{\"version\": \"0.0.1\"}"
+
+                "extension", "create", "--output-path", "C:\\vso\\bin\\Debug.AnyCPU\\Tfs.Service\\Microsoft.TeamFoundation.Extension.Code.vsix",
+                "--manifests", "C:\\vso\\src\\Tfs\\Service\\SourceControl\\ExtensionPackages\\Code\\vss-code.json",
+                "--root", "C:\\vso\\src\\Tfs\\Service\\SourceControl\\ExtensionPackages\\Code\\",
+                "--loc-root", "C:\\vso\\obj\\Debug.AnyCPU\\Tfs.Service\\MS.TF.Extension.Code\\resjson\\",
+                "--override", "{\"version\": \"15.107.446016688\"}"
+
+                // "extension", 
+                // "create", 
+                // // "--loc-root", 
+                // // "C:\\vso\\obj\\Debug.AnyCPU\\Vssf.WebPlatform\\MS.VS.Extension.WebPlatform\\resjson",
+                // "--manifests",
+                // "vss-charts.json",
+                // "vss-web.json",
+                // "--override",
+                // "{\"version\": \"0.0.1\"}"
             ],
             "cwd": "C:\\vso\\src\\Vssf\\WebPlatform\\ExtensionPackages\\WebPlatform",
             "preLaunchTask": null,

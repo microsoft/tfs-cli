@@ -144,7 +144,7 @@ export class VsixWriter {
 			// Add the package files in batches
 			let builderPromise = addPackageFilesBatch(Object.keys(builder.files), 0, VsixWriter.VSIX_ADD_FILES_BATCH_SIZE).then(() => {
 				// Add the manifest itself
-				vsix.file(toZipItemName(builder.getPath()), builder.getResult());
+				vsix.file(toZipItemName(builder.getPath()), builder.getResult(this.resources.combined));
 			});
 			builderPromises.push(builderPromise);
 		});

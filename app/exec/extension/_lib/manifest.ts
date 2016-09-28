@@ -64,8 +64,9 @@ export abstract class ManifestBuilder {
 	/**
 	 * Write this manifest to a stream.
 	 */
-	public getResult(): string {
-		return JSON.stringify(removeMetaKeys(this.data), null, 4).replace(/\n/g, os.EOL);
+	public getResult(resources?: ResourcesFile): string {
+		const resultData = resources ? this._getLocResult(resources, resources) : this.data;
+		return JSON.stringify(removeMetaKeys(resultData), null, 4).replace(/\n/g, os.EOL);
 	}
 
 	/**
@@ -88,6 +89,10 @@ export abstract class ManifestBuilder {
 
 		let currentData = currentPath.length > 0 ? _.get(this.data, currentPath) : this.data;
 		Object.keys(currentData).forEach(key => {
+			// Ignore localization comments
+			if (key.startsWith("_") && key.endsWith(".comment")) {
+				return;
+			}
 			const val = currentData[key];
 			if (typeof val === "string" && val.substr(0, ManifestBuilder.resourcePrefix.length) === ManifestBuilder.resourcePrefix) {
 				const locKey = val.substr(ManifestBuilder.resourcePrefix.length);
@@ -98,7 +103,7 @@ export abstract class ManifestBuilder {
 					throw new Error("Could not find translation or default value for resource " + locKey);
 				}
 			} else {
-				if (typeof val === "object") {
+				if (typeof val === "object" && val !== null) {
 					if (_.isArray(val)) {
 						_.set(locData, currentPath.concat(key), []);
 					} else {
