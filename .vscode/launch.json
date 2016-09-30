@@ -9,11 +9,7 @@
             "stopOnEntry": false,
             "args": [
 
-                "extension", "create", "--output-path", "C:\\vso\\bin\\Debug.AnyCPU\\Tfs.Service\\Microsoft.TeamFoundation.Extension.Code.vsix",
-                "--manifests", "C:\\vso\\src\\Tfs\\Service\\SourceControl\\ExtensionPackages\\Code\\vss-code.json",
-                "--root", "C:\\vso\\src\\Tfs\\Service\\SourceControl\\ExtensionPackages\\Code\\",
-                "--loc-root", "C:\\vso\\obj\\Debug.AnyCPU\\Tfs.Service\\MS.TF.Extension.Code\\resjson\\",
-                "--override", "{\"version\": \"15.107.446016688\"}"
+                "extension", "create", "--overrides-file", "../configs/release.json", "--manifest-globs", "vss-extension-release.json", "--no-prompt", "--json"
 
                 // "extension", 
                 // "create", 
@@ -25,7 +21,7 @@
                 // "--override",
                 // "{\"version\": \"0.0.1\"}"
             ],
-            "cwd": "C:\\vso\\src\\Vssf\\WebPlatform\\ExtensionPackages\\WebPlatform",
+            "cwd": "C:\\dev\\MultiValueControlExtension\\dist",
             "preLaunchTask": null,
             "runtimeExecutable": null,
             "runtimeArgs": [
