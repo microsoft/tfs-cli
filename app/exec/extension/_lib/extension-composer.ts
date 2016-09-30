@@ -108,7 +108,8 @@ export abstract class ExtensionComposer {
 			if (_.isArray(value) && value.length > 0) {
 				return null;
 			}
-			return "Your manifest must include at least one 'target'.";
+			// We check for InstallationTarget in extension-composer-factory for now. This might change in the future.
+			return null; //"Your manifest must include at least one 'target'.";
 		}
 	};
 }

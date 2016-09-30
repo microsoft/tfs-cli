@@ -404,16 +404,6 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
 		// Default installation target to VSS if not provided (and log warning)
 		let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
-		if (!(_.isArray(installationTarget) && installationTarget.length > 0)) {
-			trace.warn("No 'target' provided. Defaulting to Microsoft.VisualStudio.Services.");
-			_.set(this.data, "PackageManifest.Installation[0].InstallationTarget", [
-				{
-					$: {
-						Id: "Microsoft.VisualStudio.Services"
-					}
-				}
-			]);
-		}
 		
 		if (resourceData) {
 			Object.keys(resourceData).forEach(languageTag => {
