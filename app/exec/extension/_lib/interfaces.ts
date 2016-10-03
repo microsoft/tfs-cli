@@ -109,7 +109,9 @@ export interface TargetDeclaration {
 
 export interface BadgeDeclaration {
 	link: string;
+	href: string;
 	imgUri: string;
+	uri: string;
 	description: string;
 }
 
