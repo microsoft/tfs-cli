@@ -61,12 +61,16 @@ export abstract class ManifestBuilder {
 		return path;
 	}
 
+	protected prepResult(resources?: ResourcesFile): any {
+		const resultData = resources ? this._getLocResult(resources, resources) : this.data;
+		return removeMetaKeys(resultData);
+	}
+
 	/**
-	 * Write this manifest to a stream.
+	 * Generate the manifest as a string.
 	 */
 	public getResult(resources?: ResourcesFile): string {
-		const resultData = resources ? this._getLocResult(resources, resources) : this.data;
-		return JSON.stringify(removeMetaKeys(resultData), null, 4).replace(/\n/g, os.EOL);
+		return JSON.stringify(this.prepResult(resources), null, 4).replace(/\n/g, os.EOL);
 	}
 
 	/**
