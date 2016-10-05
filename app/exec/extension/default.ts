@@ -104,7 +104,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				} catch (e) {
 					throw new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
 				}
-				contentJSON["__origin"] = overridesFile[0];
+				contentJSON["__origin"] = overridesFile ? overridesFile[0] : "";
 				_.merge(mergedOverrides, contentJSON, override);
 				return {
 					root: root[0],

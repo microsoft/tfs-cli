@@ -13,10 +13,8 @@
   },
   "scripts": {
     "clean": "rimraf _build",
-    "prebuild": "npm run clean",
     "build": "tsc -p .",
-    "postbuild": "npm run copy",
-    "copy": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json",
+    "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json",
     "prepublish": "npm run build"
   },
   "dependencies": {

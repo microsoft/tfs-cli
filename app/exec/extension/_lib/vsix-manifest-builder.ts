@@ -464,8 +464,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	/**
 	 * Gets the string representation (XML) of this manifest
 	 */
-	public getResult(): string {
-		return jsonToXml(removeMetaKeys(this.data)).replace(/\n/g, os.EOL);
+	public getResult(resources?: ResourcesFile): string {
+		return jsonToXml(this.prepResult(resources)).replace(/\n/g, os.EOL);
 	}
 
 	/**
