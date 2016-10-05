@@ -109,11 +109,9 @@ export module LocPrep {
 		public generateLocalizationKeys(): ResourceSet {
 			this.initStringObjs();
 			this.manifestBuilders.forEach((builder) => {
-				if (builder.getType() !== VsixManifestBuilder.manifestType) {
-					this.jsonReplaceWithKeysAndGenerateDefaultStrings(builder);
-				}
+				this.jsonReplaceWithKeysAndGenerateDefaultStrings(builder);
 			});
-			this.vsixGenerateDefaultStrings();
+
 			return {
 				manifestResources: this.resourceFileMap,
 				combined: this.generateCombinedResourceFile()
@@ -148,27 +146,6 @@ export module LocPrep {
 			return str;
 		}
 
-		private vsixGenerateDefaultStrings(): void {
-			let vsixManifest = this.vsixManifestBuilder.getData();
-			let displayName = this.removeI18nPrefix(_.get<string>(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]"));
-			let description = this.removeI18nPrefix(_.get<string>(vsixManifest, "PackageManifest.Metadata[0].Description[0]._"));
-			let releaseNotes = this.removeI18nPrefix(_.get<string>(vsixManifest, "PackageManifest.Metadata[0].ReleaseNotes[0]"));
-			let vsixRes: ResourcesFile = {};
-			if (displayName) {
-				vsixRes["displayName"] = displayName;
-				_.set<any, string>(vsixManifest, "PackageManifest.Metadata[0].DisplayName[0]", displayName);
-			}
-			if (displayName) {
-				vsixRes["description"] = description;
-				_.set<any, string>(vsixManifest, "PackageManifest.Metadata[0].Description[0]._", description);
-			}
-			if (releaseNotes) {
-				vsixRes["releaseNotes"] = releaseNotes;
-				_.set<any, string>(vsixManifest, "PackageManifest.Metadata[0].ReleaseNotes[0]", releaseNotes);
-			}
-			this.resourceFileMap[this.vsixManifestBuilder.getType()] = vsixRes;
-		}
-
 		private jsonReplaceWithKeysAndGenerateDefaultStrings(builder: ManifestBuilder, json: any = null, path: string = ""): void {
 			if (!json) {
 				json = builder.getData();
@@ -176,13 +153,10 @@ export module LocPrep {
 			for (let key in json) {
 				let val = json[key];
 				if (_.isObject(val)) {
-					let nextPath = builder.getLocKeyPath(path + key + ".");
-					while (_.endsWith(nextPath, ".")) {
-						nextPath = nextPath.substr(0, nextPath.length - 1);
-					}
+					let nextPath = path + key + ".";
 					this.jsonReplaceWithKeysAndGenerateDefaultStrings(builder, val, nextPath);
 				} else if (_.isString(val) && _.startsWith(val, LocKeyGenerator.I18N_PREFIX)) {
-					this.addResource(builder.getType(), key, path + key, json)
+					this.addResource(builder.getType(), key, builder.getLocKeyPath(path + key), json)
 				}
 			}
 		}

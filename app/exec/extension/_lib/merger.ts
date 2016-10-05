@@ -1,9 +1,7 @@
-
-
 import { ManifestBuilder } from "./manifest";
 import { ComposerFactory } from "./extension-composer-factory";
 import { ExtensionComposer } from "./extension-composer";
-import { FileDeclaration, MergeSettings, PackageFiles, ResourceSet, TargetDeclaration } from "./interfaces";
+import { FileDeclaration, LocalizedResources, MergeSettings, PackageFiles, ResourceSet, ResourcesFile, TargetDeclaration } from "./interfaces";
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
@@ -192,26 +190,105 @@ export class Merger {
 				let locPrepper = new loc.LocPrep.LocKeyGenerator(this.manifestBuilders);
 				let resources = locPrepper.generateLocalizationKeys();
 
-				// Build up a master file list
-				let packageFiles: PackageFiles = {};
-				this.manifestBuilders.forEach((builder) => {
-					_.assign(packageFiles, builder.files);
-				});
+				// Build up resource data by reading the translations from disk
+				return this.buildResourcesData().then(resourceData => {
+					if (resourceData) {
+						resourceData["defaults"] = resources.combined;
+					}
 
-				let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
+					// Build up a master file list
+					let packageFiles: PackageFiles = {};
+					this.manifestBuilders.forEach((builder) => {
+						_.assign(packageFiles, builder.files);
+					});
 
-				// Finalize each builder
-				return Promise.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, this.manifestBuilders)))).then(() => {
-					// Let the composer do validation
-					return this.extensionComposer.validate(components).then((validationResult) => {
-						if (validationResult.length === 0 || this.settings.bypassValidation) {
-							return components;
-						} else {
-							throw new Error("There were errors with your extension. Address the following and re-run the tool.\n" + validationResult);
-						}
+					let components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
+					
+					// Finalize each builder
+					return Promise.all([updateVersionPromise].concat(this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders)))).then(() => {
+						// Let the composer do validation
+						return this.extensionComposer.validate(components).then((validationResult) => {
+							if (validationResult.length === 0 || this.settings.bypassValidation) {
+								return components;
+							} else {
+								throw new Error("There were errors with your extension. Address the following and re-run the tool.\n" + validationResult);
+							}
+						});
 					});
 				});
 			});
+		});
+	}
+
+	/**
+	 * For each folder F under the localization folder (--loc-root),
+	 * look for a resources.resjson file within F. If it exists, split the
+	 * resources.resjson into one file per manifest. Add
+	 * each to the vsix archive as F/<manifest_loc_path> and F/Extension.vsixlangpack
+	 */
+	private buildResourcesData(): Promise<LocalizedResources> {
+
+		// Make sure locRoot is set, that it refers to a directory, and
+		// iterate each subdirectory of that.
+		if (!this.settings.locRoot) {
+			return Promise.resolve<void[]>(null);
+		}
+		let stringsPath = path.resolve(this.settings.locRoot);
+
+		const data: LocalizedResources = {defaults: null};
+
+		// Check that --loc-root exists and is a directory.
+		return Q.Promise((resolve, reject, notify) => {
+			fs.exists(stringsPath, (exists) => {
+				resolve(exists);
+			});
+		}).then<boolean>((exists) => {
+			if (exists) {
+				return Q.nfcall(fs.lstat, stringsPath).then((stats: fs.Stats) => {
+					if (stats.isDirectory()) {
+						return true;
+					}
+				});
+			} else {
+				return Q.resolve(false);
+			}
+		}).then<void[]>((stringsFolderExists) => {
+			if (!stringsFolderExists) {
+				return Promise.resolve<void[]>(null);
+			}
+
+			// stringsPath exists and is a directory - read it.
+			return <Promise<void[]>><any>Q.nfcall(fs.readdir, stringsPath).then((files: string[]) => {
+				let promises: Promise<void>[] = [];
+				files.forEach((languageTag) => {
+					var filePath = path.join(stringsPath, languageTag);
+					let promise = Q.nfcall(fs.lstat, filePath).then((fileStats: fs.Stats) => {
+						if (fileStats.isDirectory()) {
+
+							// We're under a language tag directory within locRoot. Look for
+							// resources.resjson and use that to generate manfiest files
+							let resourcePath = path.join(filePath, "resources.resjson");
+							return Q.Promise<boolean>((resolve, reject, notify) => {
+								fs.exists(resourcePath, (exists) => {
+									resolve(exists);
+								});
+							}).then<void>((exists: boolean) => {
+								if (exists) {
+									// A resources.resjson file exists in <locRoot>/<language_tag>/
+									return Q.nfcall<string>(fs.readFile, resourcePath, "utf8").then<void>((contents: string) => {
+										let resourcesObj = JSON.parse(contents);
+										data[languageTag] = resourcesObj;
+									});
+								}
+							});
+						}
+					});
+					promises.push(promise);
+				});
+				return Promise.all(promises);
+			});
+		}).then(() => {
+			return data;
 		});
 	}
 

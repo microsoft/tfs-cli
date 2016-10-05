@@ -4,7 +4,6 @@ import errHandler = require("./lib/errorhandler");
 import loader = require("./lib/loader");
 import path = require("path");
 
-
 // Set app root
 common.APP_ROOT = __dirname;
 

@@ -1,5 +1,3 @@
-
-
 import { Merger } from "./_lib/merger";
 import { VsixManifestBuilder } from "./_lib/vsix-manifest-builder";
 import { MergeSettings, PackageSettings } from "./_lib/interfaces";

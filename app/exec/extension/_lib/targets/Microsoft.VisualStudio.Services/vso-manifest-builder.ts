@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "../../manifest"
-import { PackageFiles } from "../../interfaces"
+import { LocalizedResources, PackageFiles } from "../../interfaces"
 import _ = require("lodash");
 import os = require("os");
 
@@ -26,7 +26,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
 		return "application/json";
 	}
 
-	public finalize(files: PackageFiles): Promise<void> {
+	public finalize(files: PackageFiles, resourceData: LocalizedResources): Promise<void> {
 		// Ensure some default values are set
 		if (!this.data.contributions) {
 			this.data.contributions = [];
@@ -53,10 +53,14 @@ export class VsoManifestBuilder extends ManifestBuilder {
 		if (pathParts && pathParts.length >= 2) {
 			let cIndex = parseInt(pathParts[1]);
 			if (pathParts[0] === "contributions" && !isNaN(cIndex) && this.data.contributions[cIndex] && this.data.contributions[cIndex].id) {
-				return "contributions" + this.data.contributions[cIndex].id;
+				return _.trimEnd("contributions." + this.data.contributions[cIndex].id + "." + pathParts.slice(2).join("."));
+			} else if (pathParts[0] === "contributionTypes" && !isNaN(cIndex) && this.data.contributionTypes[cIndex] && this.data.contributionTypes[cIndex].id) {
+				return _.trimEnd("contributionTypes." + this.data.contributionTypes[cIndex].id + "." + pathParts.slice(2).join("."));
 			} else {
 				return path;
 			}
+		} else {
+			return path;
 		}
 	}
 

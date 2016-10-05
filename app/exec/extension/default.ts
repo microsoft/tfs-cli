@@ -68,6 +68,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	protected getMergeSettings(): Promise<MergeSettings> {
 		return Promise.all([
 			this.commandArgs.root.val(),
+			this.commandArgs.locRoot.val(),
 			this.commandArgs.manifests.val(),
 			this.commandArgs.manifestGlobs.val(),
 			this.commandArgs.override.val(),
@@ -77,7 +78,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true)
 		]).then<MergeSettings>((values) => {
-			const [root, manifests, manifestGlob, override, overridesFile, revVersion, bypassValidation, publisher, extensionId] = values;
+			const [root, locRoot, manifests, manifestGlob, override, overridesFile, revVersion, bypassValidation, publisher, extensionId] = values;
 			if (publisher) {
 				_.set(override, "publisher", publisher);
 			}
@@ -97,15 +98,17 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 					}
 				}
 				let mergedOverrides = {};
-				let contentJSON = "";
+				let contentJSON = {};
 				try {
 					contentJSON = JSON.parse(content);
 				} catch (e) {
-					throw "Could not parse contents of " + overridesFile[0] + " as JSON. \n" + e;
+					throw new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
 				}
+				contentJSON["__origin"] = overridesFile[0];
 				_.merge(mergedOverrides, contentJSON, override);
 				return {
 					root: root[0],
+					locRoot: locRoot && locRoot[0],
 					manifests: manifests,
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,

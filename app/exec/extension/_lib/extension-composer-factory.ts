@@ -1,4 +1,5 @@
 import { ManifestBuilder } from "./manifest";
+import { EOL } from "os";
 import { ExtensionComposer } from "./extension-composer";
 import { MergeSettings, TargetDeclaration } from "./interfaces";
 import { VsixComponents } from "./merger";
@@ -29,16 +30,15 @@ export class ComposerFactory {
 					composers.push(new VSOfferComposer(settings));
 					break;
 				default :
-					trace.warn("'" + target.id + "' is not a recognized target. Defualting to Microsoft.VisualStudio.Services.");
+					if (!settings.bypassValidation) {
+						throw new Error("'" + target.id + "' is not a recognized target. Valid targets are 'Microsoft.VisualStudio.Services', 'Microsoft.VisualStudio.Services.Integration', 'Microsoft.VisualStudio.Offer'");
+					}
 					break;
 			}
 		});
-		if (composers.length === 0) {
-			if (targets.length === 0) {
-				throw "No recognized targets found. Ensure that your manifest includes a target property. E.g. \"targets\":[{\"id\":\"Microsoft.VisualStudio.Services\"}],...";
-			} else {
-				composers.push(new VSSExtensionComposer(settings));
-			}
+		if (composers.length === 0 && targets.length === 0) {
+			trace.warn(`No recognized targets found. Ensure that your manifest includes a target property. E.g. "targets":[{"id":"Microsoft.VisualStudio.Services"}],...${EOL}Defaulting to Microsoft.VisualStudio.Services`);
+			composers.push(new VSSExtensionComposer(settings));
 		}
 		
 		// Build a new type of composer on the fly that is the

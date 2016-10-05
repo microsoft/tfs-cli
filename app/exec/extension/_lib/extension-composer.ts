@@ -63,10 +63,10 @@ export abstract class ExtensionComposer {
 							return "All 'files' must include a 'path'.";
 						}
 						if (asset.Type && asset.Addressable) {
-							if (usedAssetTypes[asset.Type]) {
+							if (usedAssetTypes[asset.Type + "|" + asset.lang]) {
 								return "Cannot have multiple 'addressable' files with the same 'assetType'.\nFile1: " + usedAssetTypes[asset.Type] + ", File 2: " + asset.Path + " (asset type: " + asset.Type + ")";
 							} else {
-								usedAssetTypes[asset.Type] = asset.Path;
+								usedAssetTypes[asset.Type + "|" + asset.Lang] = asset.Path;
 							}
 						}
 					}
@@ -108,7 +108,8 @@ export abstract class ExtensionComposer {
 			if (_.isArray(value) && value.length > 0) {
 				return null;
 			}
-			return "Your manifest must include at least one 'target'.";
+			// We check for InstallationTarget in extension-composer-factory for now. This might change in the future.
+			return null; //"Your manifest must include at least one 'target'.";
 		}
 	};
 }
