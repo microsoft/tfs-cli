@@ -51,9 +51,9 @@ export class ComposerFactory {
 				this.settings = settings;
 			}
 			PolyComposer.prototype.getBuilders = () => {
-				return composers.reduce((p, c) => {
+				return _.uniqWith(composers.reduce((p, c) => {
 					return p.concat(c.getBuilders());
-				}, []);
+				}, []), (b1: ManifestBuilder, b2: ManifestBuilder) => b1.getType() === b2.getType());
 			};
 			PolyComposer.prototype.validate = (components: VsixComponents) => {
 				return Promise.all<string[]>(composers.reduce((p, c) => {
