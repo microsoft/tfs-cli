@@ -21,9 +21,11 @@ export class ComposerFactory {
 			switch (target.id) {
 				case "Microsoft.VisualStudio.Services" :
 				case "Microsoft.VisualStudio.Services.Cloud" :
+				case "Microsoft.TeamFoundation.Server" :
 					composers.push(new VSSExtensionComposer(settings));
 					break;
 				case "Microsoft.VisualStudio.Services.Integration" : 
+				case "Microsoft.TeamFoundation.Server.Integration" :
 					composers.push(new VSSIntegrationComposer(settings));
 					break;
 				case "Microsoft.VisualStudio.Offer" :
