@@ -18,44 +18,15 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
+	public exec(): Q.Promise<witContracts.WorkItem> {
 		var witapi = this.webApi.getWorkItemTrackingApi();
 
-		return Promise.all([
+		return Q.Promise.all([
 			this.commandArgs.workItemType.val(),
 			this.commandArgs.project.val(),
 			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
-			this.commandArgs.project.val()
-		]).spread((wiType, assignedTo, title, description, project) => {
-			var patchDoc: vssCoreContracts.JsonPatchOperation[]  = [];
-			patchDoc.push({
-				op: vssCoreContracts.Operation.Add,
-				path: "/fields/System.Title",
-				value: title,
-				from: null
-			});
-
-			if (assignedTo) {
-				patchDoc.push({
-					op: vssCoreContracts.Operation.Add,
-					path: "/fields/System.AssignedTo",
-					value: assignedTo,
-					from: null
-				});
-			}
-
-			if (description) {
-				patchDoc.push({
-					op: vssCoreContracts.Operation.Add,
-					path: "/fields/System.Description",
-					value: description,
-					from: null
-				});
-			}
-            // TODO: Check why this is failing in Feature Create
-			return witapi.updateWorkItemTemplate(null, <vssCoreContracts.JsonPatchDocument>patchDoc, project, wiType);
 			this.commandArgs.values.val(true)
 		]).then((promiseValues) => {
 			const [wiType, project, title, assignedTo, description, values] = promiseValues;
