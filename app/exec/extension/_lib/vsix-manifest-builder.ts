@@ -280,17 +280,25 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "repository":
 				if (_.isObject(value)) {					
-						const {type, url} = value;
+						let type = value.type;
+						let url = value.url;
+						let uri = value.uri;
 						if (!type) {
 							throw new Error("Repository must have a 'type' property.");
 						}
 						if (type !== "git") {
 							throw new Error("Currently 'git' is the only supported repository type.");
 						}
-						if (!url) {
-							throw new Error("Repository must contain a 'url' property.");
+						if (!url && !uri) {
+							throw new Error("Repository must contain anyone of 'url' or 'uri' properties.");
 						}
-						this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url);
+						if(url){
+							this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url);							
+						}
+						else if(uri){
+							this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", uri);
+
+						}
 				}
 				break;
 			case "badges":
@@ -299,8 +307,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					value.forEach((badge: BadgeDeclaration) => {						
 						existingBadges.push({
 							$: {
-									Link: badge.link,
-									ImgUri: badge.imgUri,
+									Link: badge.link || badge.href,
+									ImgUri: badge.imgUri || badge.uri,
 									Description: badge.description
 							}
 						});
