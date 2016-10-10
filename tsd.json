@@ -12,7 +12,7 @@
       "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
     },
     "colors/colors.d.ts": {
-      "commit": "b83eea746f8583a6c9956c19d8b553f2b66ce577"
+      "commit": "a11d013885ea072e6dba017ec5181eaf1ee152db"
     },
     "glob/glob.d.ts": {
       "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
@@ -27,7 +27,7 @@
       "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
     },
     "lodash/lodash.d.ts": {
-      "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
+      "commit": "a11d013885ea072e6dba017ec5181eaf1ee152db"
     },
     "tmp/tmp.d.ts": {
       "commit": "066819c65ff561ca109955e0b725c253e243f0a2"
@@ -67,6 +67,12 @@
     },
     "read/read.d.ts": {
       "commit": "0dd29bf8253536ae24e61c109524e924ea510046"
+    },
+    "requirejs/require.d.ts": {
+      "commit": "a11d013885ea072e6dba017ec5181eaf1ee152db"
+    },
+    "copy-paste/copy-paste.d.ts": {
+      "commit": "f9351fd6d2154b3822444c54e687f1b102827eac"
     }
   }
 }

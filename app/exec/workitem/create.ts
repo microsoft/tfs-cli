@@ -30,7 +30,7 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		]).then((promiseValues) => {
 			const [wiType, project, title, assignedTo, description, values] = promiseValues;
 			if(!title && !assignedTo && !description && (!values || Object.keys(values).length <= 0)) {
-				return Q.reject<witContracts.WorkItem>("At least one field value must be specified.");
+				return Promise.reject<witContracts.WorkItem>("At least one field value must be specified.");
 			}
 
             var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
