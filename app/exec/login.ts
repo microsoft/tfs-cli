@@ -4,6 +4,7 @@ import { getCredentialStore } from "../lib/credstore";
 import colors = require("colors");
 import os = require('os');
 import trace = require('../lib/trace');
+import Q = require('q');
 
 export function getCommand(args: string[]): Login {
 	// this just offers description for help and to offer sub commands
@@ -19,7 +20,7 @@ export interface LoginResult {
  */
 export class Login extends TfCommand<CoreArguments, LoginResult> {
 	protected description = "Login and cache credentials using a PAT or basic auth.";
-	public exec(): Promise<LoginResult> {
+	public exec(): Q.Promise<LoginResult> {
 		trace.debug('Login.exec');
 		let authHandler;
 		return this.commandArgs.serviceUrl.val().then((collectionUrl) => {
