@@ -17,6 +17,7 @@ import Q = require("q");
 import qfs = require("./qfs");
 import trace = require("./trace");
 import version = require("./version");
+import console = require('console');
 
 export interface CoreArguments {
 	project: args.StringArgument;
