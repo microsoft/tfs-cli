@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import Q = require("q");
 import fs = require("fs");
 
 export function getCommand(args: string[]): ExportTemplate {
@@ -30,24 +29,28 @@ export class ExportTemplate extends TfCommand<ExportTemplateArguments, buildCont
         this.registerCommandArgument("overwrite", "Overwrite?", "Overwrite existing Build Template.", args.BooleanArgument, "false");
     }
 
-    public exec(): Q.Promise<buildContracts.BuildDefinitionTemplate> {
+    public exec(): Promise<buildContracts.BuildDefinitionTemplate> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
-        return Q.all<number | string | boolean>([
+        return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
             this.commandArgs.templateId.val(),
             this.commandArgs.templatePath.val(),
             this.commandArgs.overwrite.val(),
-        ]).spread((project, templateId, templatePath, overwrite, revision) => {
+        ]).then((values) => {
+            const [project, templateId, templatePath, overwrite, revision] = values;
             trace.debug("Retrieving build template %s...", templateId);
-            return api.getTemplate(project, templateId).then((template) => {
+            return api.getTemplate(project as string, templateId as string).then((template) => {
+                var tempPath = "";
                 if (!templatePath) {
-                    templatePath = template.name + '-' + template.id + '.json';                   
+                    tempPath = template.name + '-' + template.id + '.json';                   
+                } else {
+                    tempPath = templatePath as string;
                 }
-                if (fs.existsSync(templatePath.toString()) && !overwrite) {
-                    return <any>Q.reject(new Error("Build template file already exists"));
+                if (fs.existsSync(tempPath.toString()) && !overwrite) {
+                    return <any>Promise.reject(new Error("Build template file already exists"));
                 }
-                fs.writeFileSync(templatePath.toString(), JSON.stringify(template, null, '  '));
+                fs.writeFileSync(tempPath.toString(), JSON.stringify(template, null, '  '));
                 return template;
             });
         });

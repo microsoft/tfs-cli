@@ -5,7 +5,6 @@ import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
-import Q = require("q");
 
 export function getCommand(args: string[]): Agent {
 	return new Agent(args);
@@ -18,32 +17,34 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 		return ["poolId","agentId", "agentName","userCapabilityKey","userCapabilityValue","disable"];
 	}
 
-	public exec(): Q.Promise<taskAgentContracts.TaskAgent> {
+	public exec(): Promise<taskAgentContracts.TaskAgent> {
 		trace.debug("agent.exec");
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
-		return Q.all<number | string>([
+		return Promise.all<number | string>([
 			this.commandArgs.agentId.val(),
 			this.commandArgs.agentName.val(),
 			this.commandArgs.poolId.val(),
 			this.commandArgs.userCapabilityKey.val(),
 			this.commandArgs.userCapabilityValue.val(),
 			this.commandArgs.disable.val()
-		]).spread((agentid, agentname, pool, newkey, value, disable) => {
+		]).then((values) => {
+			const [agentid, agentname, pool, newkey, value, disable] = values;
 			var agents: number[] = null;
 			trace.debug("getting pool  : %s",pool);
 			trace.debug("getting agent (id) : %s", agentid);
 			trace.debug("getting agent (name) : %s", agentname);
 			var include: boolean = true;
 			if (agentid) {
-				agents = [agentid];
+				agents = [agentid as number];
 			}
 			else if(agentname) {
 				trace.debug("No agent Id provided, checking for agent with name " + agentname);
-				return agentapi.getAgents(pool, agentname).then((ao: taskAgentContracts.TaskAgent[]) => {
+				return agentapi.getAgents(pool as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
 					if(ao.length > 0) {
-						agentid = ao[0].id;
-						trace.debug("found, agent id %s for agent name %s",agentid, agentname);
-						return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include,disable); 
+						var aid = ao[0].id;
+						var an = ao[0].name;
+						trace.debug("found, agent id %s for agent name %s",aid, an);
+						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string); 
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
@@ -52,7 +53,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				});
 			}
 			trace.debug("disable request: %s",disable);
-			return this._getOrUpdateAgent(agentapi, pool,agentid,newkey,value,include,disable);	
+			return this._getOrUpdateAgent(agentapi, pool as number,agentid as number,newkey as string,value as string,include,disable as string);	
 			});
 		};
 	

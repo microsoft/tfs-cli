@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import Q = require("q");
 import fs = require("fs");
 
 export function getCommand(args: string[]): ExportDefinition {
@@ -32,25 +31,29 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
         this.registerCommandArgument("revision", "Revision", "Get specific definition revision.", args.IntArgument, null);
     }
 
-    public exec(): Q.Promise<buildContracts.DefinitionReference> {
+    public exec(): Promise<buildContracts.DefinitionReference> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
-        return Q.all<number | string | boolean>([
+        return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
             this.commandArgs.definitionId.val(),
             this.commandArgs.definitionPath.val(),
             this.commandArgs.overwrite.val(),
             this.commandArgs.revision.val()
-        ]).spread((project, definitionId, definitionPath, overwrite, revision) => {
+        ]).then((values) => {
+            const [project, definitionId, definitionPath, overwrite, revision] = values;
             trace.debug("Retrieving build definition %s...", definitionId);
-            return api.getDefinition(definitionId, project, revision).then((definition) => {
+            return api.getDefinition(definitionId as number, project as string, revision as number).then((definition) => {
+                var defpath = "";
                 if (!definitionPath) {
-                    definitionPath = definition.name + '-' + definition.id + '-' + definition.revision + '.json';                   
+                    defpath = definition.name + '-' + definition.id + '-' + definition.revision + '.json';                   
+                } else {
+                    defpath = definitionPath as string;
                 }
-                if (fs.existsSync(definitionPath.toString()) && !overwrite) {
-                    return <any>Q.reject(new Error("Build definition file already exists"));
+                if (fs.existsSync(defpath) && !overwrite) {
+                    return <any>Promise.reject(new Error("Build definition file already exists"));
                 }
-                fs.writeFileSync(definitionPath.toString(), JSON.stringify(definition, null, '  '));
+                fs.writeFileSync(defpath, JSON.stringify(definition, null, '  '));
                 return definition;
             });
         });

@@ -11,7 +11,7 @@ export class HelpCommand extends TfCommand <CoreArguments, void> {
 		super.setCommandArgs();
 	}
 
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }

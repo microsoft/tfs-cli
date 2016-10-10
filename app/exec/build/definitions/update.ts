@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import Q = require("q");
 import fs = require("fs");
 
 export function getCommand(args: string[]): UpdateDefinition {
@@ -28,25 +27,25 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
         this.registerCommandArgument("definitionPath", "Definition Path", "Local path to a Build Definition.", args.ExistingFilePathsArgument);
     }
 
-    public exec(): Q.Promise<buildContracts.DefinitionReference> {
+    public exec(): Promise<buildContracts.DefinitionReference> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
-        return Q.all<number | string | boolean>([
+        return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
             this.commandArgs.definitionId.val(),
             this.commandArgs.definitionPath.val(),
-        ]).spread((project, definitionId, definitionPath) => {
-            
+        ]).then((values) => {
+            const [project, definitionId, definitionPath] = values;
             // Get the current definition so we can grab the revision id
             trace.debug("Retrieving build definition %s...", definitionId);
-            return api.getDefinition(definitionId, project).then(currentDefinition => {
+            return api.getDefinition(definitionId as number, project as string).then(currentDefinition => {
                 trace.debug("Reading build definition from %s...", definitionPath.toString());
                 let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
                 definition.id = currentDefinition.id;
                 definition.revision = currentDefinition.revision;
 
                 trace.debug("Updating build definition %s...", definitionId);
-                return api.updateDefinition(definition, definitionId, project).then((definition) => {
+                return api.updateDefinition(definition, definitionId as number, project as string).then((definition) => {
                     return definition;
                 });
             })

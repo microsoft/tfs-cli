@@ -2,8 +2,7 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import Q = require("q");
-import fs = require("fs");
+import fs = require('fs');
 
 export function getCommand(args: string[]): CreateDefinition {
     return new CreateDefinition(args);
@@ -28,19 +27,20 @@ export class CreateDefinition extends TfCommand<CreateDefinitionArguments, build
         this.registerCommandArgument("definitionPath", "Definition path", "Local path to a Build Definition.", args.ExistingFilePathsArgument);
     }
 
-    public exec(): Q.Promise<buildContracts.DefinitionReference> {
+    public exec(): Promise<buildContracts.DefinitionReference> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
-        return Q.all<number | string | boolean>([
+        return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
             this.commandArgs.name.val(),
             this.commandArgs.definitionPath.val(),
-        ]).spread((project, name, definitionPath) => {
+        ]).then((values) => {
+            const [project, name, definitionPath] = values;
             let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
-            definition.name = name;
+            definition.name = name as string;
 
             trace.debug("Updating build definition %s...", name);
-            return api.createDefinition(definition, project).then((definition) => {
+            return api.createDefinition(definition, project as string).then((definition) => {
                 return definition;
             });
         });

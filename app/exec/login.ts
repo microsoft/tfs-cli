@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../lib/tfcommand";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import colors = require("colors");
-import Q = require('q');
 import os = require('os');
 import trace = require('../lib/trace');
 

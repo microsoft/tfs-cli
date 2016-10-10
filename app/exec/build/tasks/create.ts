@@ -2,13 +2,12 @@ import { TfCommand } from "../../../lib/tfcommand";
 import check = require("validator");
 import common = require("../../../lib/common");
 import fs = require("fs");
-
 import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
 import uuid = require("node-uuid");
-import Q = require('q');
+
 
 export interface TaskCreateResult {
 	taskPath: string;
@@ -45,10 +44,10 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Q.Promise<TaskCreateResult> {
+	public exec(): Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
-		return Q.Promise.all([
+		return Promise.all([
 			this.commandArgs.taskName.val(),
 			this.commandArgs.friendlyName.val(),
 			this.commandArgs.description.val(),

@@ -1,6 +1,5 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
-import Q = require('q');
 
 export interface BuildArguments extends CoreArguments {
 	definitionId: args.IntArgument,
@@ -49,7 +48,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("disable","disable / enable agent","Update the agent status.",args.StringArgument,null);
 	}
 
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }

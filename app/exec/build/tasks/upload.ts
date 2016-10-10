@@ -4,7 +4,6 @@ import archiver = require('archiver');
 import args = require("../../../lib/arguments");
 import fs = require('fs');
 import path = require('path');
-import Q = require('q');
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
@@ -22,7 +21,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		return ["taskPath", "overwrite"];
 	}
 
-	public exec(): Q.Promise<agentContracts.TaskDefinition> {
+	public exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then((taskPaths) => {
 			let taskPath = taskPaths[0];
 			return this.commandArgs.overwrite.val().then((overwrite) => {

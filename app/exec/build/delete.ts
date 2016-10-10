@@ -4,7 +4,6 @@ import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
-import Q = require('q'); 
 
 export function describe(): string {
 	return "delete a build";
@@ -22,7 +21,7 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 		return ["project", "buildId"];
 	}
 
-	public exec(): Q.Promise<void> {
+	public exec(): Promise<void> {
 		trace.debug("delete-build.exec");
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {

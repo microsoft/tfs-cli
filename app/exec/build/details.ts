@@ -4,8 +4,6 @@ import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
-import tl = require("vsts-task-lib/task");
-import Q = require('q');
 
 export function getCommand(args: string[]): BuildDetails {
 	return new BuildDetails(args);
@@ -18,7 +16,7 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
 		return ["project", "buildId"];
 	}
 
-	public exec(): Q.Promise<buildContracts.Build> {
+	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-details.exec");
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {

@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import Q = require("q");
 import fs = require("fs");
 
 export function getCommand(args: string[]): DeleteDefinition {
@@ -26,16 +25,16 @@ export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, build
         this.registerCommandArgument("definitionId", "Build Definition ID", "Identifies a build definition.", args.IntArgument, null);
     }
 
-    public exec(): Q.Promise<buildContracts.DefinitionReference> {
+    public exec(): Promise<buildContracts.DefinitionReference> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
 
-        return Q.all<number | string | boolean>([
+        return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
             this.commandArgs.definitionId.val(),
-        ]).spread((project, definitionId) => {
-
+        ]).then((values) => {
+            const [project, definitionId] = values;
             trace.debug("Deleting build definition %s...", definitionId);
-            return api.deleteDefinition(definitionId, project).then((definition) => {
+            return api.deleteDefinition(definitionId as number, project as string).then((definition) => {
                 return <buildContracts.DefinitionReference>{ id: definitionId }
             });
         });

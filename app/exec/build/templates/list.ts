@@ -16,13 +16,11 @@ export class ListTemplates extends TfCommand<CoreArguments, buildContracts.Build
         return ["project"];
     }
 
-    public exec(): Q.Promise<buildContracts.BuildDefinitionTemplate[]> {
+    public exec(): Promise<buildContracts.BuildDefinitionTemplate[]> {
         var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
         trace.debug("Searching for build templates...");
 
-        return Q.all<number | string>([
-            this.commandArgs.project.val()
-        ]).spread((project) => {
+        return this.commandArgs.project.val().then((project) => {
             return api.getTemplates(project).then((templates) => {
                 trace.debug("Retrieved " + templates.length + " build templates from server.");
                 return templates;

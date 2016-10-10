@@ -11,7 +11,7 @@ export class DefaultCommand extends TfCommand<any, void> {
 		super(passedArgs, false);
 	}
 
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }

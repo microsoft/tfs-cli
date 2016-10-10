@@ -1,7 +1,6 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import buildBase = require("../default");
-import Q = require('q');
 
 export interface TaskArguments extends buildBase.BuildArguments {
 	all: args.BooleanArgument;
@@ -42,7 +41,7 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("id", "Task ID", "Identifies a particular Build Task.", args.StringArgument,null);
 	}
 
-	public exec(cmd?: any): Q.Promise<any> {
+	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
 }

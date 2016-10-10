@@ -5,7 +5,6 @@ import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 import fs = require('fs');
-import Q = require('q');
 
 export function describe(): string {
 	return "queue a build";
@@ -23,11 +22,11 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands"];
 	}
 
-	public exec(): Q.Promise<buildContracts.Build> {
+	public exec(): Promise<buildContracts.Build> {
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
         return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val(true).then((definitionId) => {
-				let definitionPromise: Q.Promise<buildContracts.DefinitionReference>;
+				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
 					definitionPromise = buildapi.getDefinition(definitionId, project);
 				} else {

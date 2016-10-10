@@ -5,7 +5,6 @@ import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
-import Q = require('q');
 
 export function getCommand(args: string[]): Agents {
 	return new Agents(args);
@@ -18,7 +17,7 @@ export class Agents extends agentBase.BuildBase<agentBase.BuildArguments, taskAg
 		return ["poolId"];
 	}
 
-	public exec(): Q.Promise<taskAgentContracts.TaskAgent[]> {
+	public exec(): Promise<taskAgentContracts.TaskAgent[]> {
 		trace.debug("agents.exec");
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 		return this.commandArgs.poolId.val().then((pool) => {

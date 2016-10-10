@@ -1,7 +1,6 @@
 import { EOL as eol } from "os";
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
-import Q = require("q");
 import trace = require("../../lib/trace");
 import witBase = require("./default");
 import witClient = require("vso-node-api/WorkItemTrackingApi");
@@ -18,10 +17,10 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
-	public exec(): Q.Promise<witContracts.WorkItem> {
+	public exec(): Promise<witContracts.WorkItem> {
 		var witapi = this.webApi.getWorkItemTrackingApi();
 
-		return Q.Promise.all([
+		return Promise.all([
 			this.commandArgs.workItemType.val(),
 			this.commandArgs.project.val(),
 			this.commandArgs.title.val(true),

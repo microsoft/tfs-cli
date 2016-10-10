@@ -21,11 +21,11 @@ export class Reset extends TfCommand<CoreArguments, void> {
 		super(args, false);
 	}
 
-	public exec(): Q.Promise<void> {
-		return Q.Promise.resolve<void>(null);
+	public exec(): Promise<void> {
+		return Promise.resolve<void>(null);
 	}
 	
-	public dispose(): Q.Promise<void> {
+	public dispose(): Promise<void> {
 		let diskCache = new DiskCache("tfx");
 		return diskCache.itemExists("cache", "connection").then((isCachedConnection) => {
 			if (isCachedConnection) {
@@ -35,14 +35,14 @@ export class Reset extends TfCommand<CoreArguments, void> {
 						if (isCredential) {
 							return store.clearCredential(cachedConnection, "allusers");
 						} else {
-							return Q.Promise.resolve<void>(null);
+							return Promise.resolve<void>(null);
 						}
 					});
 				}).then(() => {
 					return diskCache.deleteItem("cache", "connection");
 				})
 			} else {
-				return Q.Promise.resolve<void>(null);
+				return Promise.resolve<void>(null);
 			}
 		});
 	}

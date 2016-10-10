@@ -3,7 +3,6 @@ import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
 import args = require("../../../lib/arguments");
 import fs = require('fs');
 import path = require('path');
-import Q = require('q');
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
@@ -21,7 +20,7 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 		return ["id","taskVersion","name"];
 	}
 
-	public exec(): Q.Promise<agentContracts.TaskDefinition> {
+	public exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.id.val().then((Id) => {
 			if (!Id) {
 				Id = "";
