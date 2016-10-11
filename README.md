@@ -126,9 +126,14 @@ We take contributions and fixes via Pull Request. [Read here](docs/contributions
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Manual installation (from sources)
-refer to installation for your OS
-clone the repository
-run: "npm run build" from the repository root
+* refer to installation for your OS (and follow the installation steps).
+* clone the repository.
+* to compile the sources run:
+```bash 
+npm run build `(from the repository root)`
+```
+`link the executable`
+
 ### Linux (bash)
 ```bash
 sudo ln -s <repository root>\app.js /usr/bin/tfx
@@ -145,6 +150,7 @@ replace the content of `%appdata%\npm\tfx.cmd` with the following:
 )
 ```
 ### additional node modules
+`install the following modules (this may need to happen befor compilation)`
 ```bash
 npm install archiver colors graceful-fs gulp-filter gulp-mocha gulp-tsb gulp-util is-utf8 pug jszip node-uuid prompt q readable-stream ts-promise typescript unique-stream user-home validator vso-node-api xml2js del os-homedir copy-paste shelljs lodash minimatch@3.0.2 pretty-hrtime liftoff tildify interpret v8flags minimist onecolor winreg glob json-in-place mkdirp
 ```
