@@ -49,8 +49,8 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 		trace.info("name            : %s", definition.name);
 		trace.info("id              : %s", definition.id);
         trace.info("revision        : %s", definition.revision);
-        trace.info("requested by    : %s", definition.createdDate ? definition.createdDate.toDateString():"unknown");
-		trace.info("queue status    : %s", definition.queueStatus);
+        trace.info("Created Date    : %s", definition.createdDate ? definition.createdDate.toDateString():"unknown");
+		trace.info("Queue Status	: %s", definition.queueStatus ? buildContracts.DefinitionQueueStatus[definition.queueStatus]: buildContracts.DefinitionQueueStatus[0])
         trace.info("type            : %s", buildContracts.DefinitionType[definition.type]);
         trace.info("url             : %s", definition.url ? definition.url :"unknown");       
     }
