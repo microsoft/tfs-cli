@@ -21,7 +21,7 @@ AND
 build definition TestDefinition (current status is: Disabled)
 setting definition TestDefinition to Paused
 
-Build Definition TestDefinition  successfully!
+Build Definition TestDefinition Paused successfully!
 ```
 
 ## definition
@@ -130,7 +130,7 @@ create a new Build definition from Json file.
 --name <string>            - Required, Name of the Build Definition.
 
 ```
-###Example
+####Example
 ```bash
 ~$ tfx build definitions create --project MyProject --definition-path ./TestDefinition-1-123.json --name NewBuildDefinition
 Copyright Microsoft Corporation
@@ -144,10 +144,11 @@ type          : Build
 
 delete a build definition.
 
-#### Options
+####Options
 ```txt
 --project <string>			- Required, Project name.
 --definition-id <number>	- Required, Identifies a build definition.
+```
 
 ####Example
 ```bash
