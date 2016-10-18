@@ -21,9 +21,11 @@ export class ComposerFactory {
 			switch (target.id) {
 				case "Microsoft.VisualStudio.Services" :
 				case "Microsoft.VisualStudio.Services.Cloud" :
+				case "Microsoft.TeamFoundation.Server" :
 					composers.push(new VSSExtensionComposer(settings));
 					break;
 				case "Microsoft.VisualStudio.Services.Integration" : 
+				case "Microsoft.TeamFoundation.Server.Integration" :
 					composers.push(new VSSIntegrationComposer(settings));
 					break;
 				case "Microsoft.VisualStudio.Offer" :
@@ -49,9 +51,9 @@ export class ComposerFactory {
 				this.settings = settings;
 			}
 			PolyComposer.prototype.getBuilders = () => {
-				return composers.reduce((p, c) => {
+				return _.uniqWith(composers.reduce((p, c) => {
 					return p.concat(c.getBuilders());
-				}, []);
+				}, []), (b1: ManifestBuilder, b2: ManifestBuilder) => b1.getType() === b2.getType());
 			};
 			PolyComposer.prototype.validate = (components: VsixComponents) => {
 				return Promise.all<string[]>(composers.reduce((p, c) => {

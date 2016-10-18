@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "./manifest";
-import { FileDeclaration, LocalizedResources, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, BadgeDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
+import { FileDeclaration, LocalizedResources, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
 import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
@@ -280,27 +280,27 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "repository":
 				if (_.isObject(value)) {					
-						const {type, url} = value;
+						const {type, url, uri} = value;
 						if (!type) {
 							throw new Error("Repository must have a 'type' property.");
 						}
 						if (type !== "git") {
 							throw new Error("Currently 'git' is the only supported repository type.");
 						}
-						if (!url) {
+						if (!url && !uri) {
 							throw new Error("Repository must contain a 'url' property.");
 						}
-						this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url);
+						this.addProperty("Microsoft.VisualStudio.Services.Links.GitHub", url || uri);
 				}
 				break;
 			case "badges":
 				if (_.isArray(value)) {
 					let existingBadges = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Badges[0].Badge", []);
-					value.forEach((badge: BadgeDeclaration) => {						
+					value.forEach((badge: {link?: string, imgUri?: string, description?: string, href?: string, uri?: string}) => {						
 						existingBadges.push({
 							$: {
-									Link: badge.link,
-									ImgUri: badge.imgUri,
+									Link: badge.link || badge.href,
+									ImgUri: badge.imgUri || badge.uri,
 									Description: badge.description
 							}
 						});
