@@ -131,6 +131,8 @@ export class VsoManifestBuilder extends ManifestBuilder {
 			case "categories":
 			case "files":
 			case "githubflavoredmarkdown":
+			case "resourceproperties":
+			case "showpricingcalculator":
 				break;
 			default:
 				if (key.substr(0, 2) !== "__") {

@@ -329,6 +329,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					throw "Value for gitHubFlavoredMarkdown is invalid. Only boolean values are allowed.";
 				}
 				this.addProperty("Microsoft.VisualStudio.Services.GitHubFlavoredMarkdown", value.toString());
+				break;
 			case "public":
 				if (typeof value === "boolean") {
 					let flags = _.get(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(" ");
@@ -364,6 +365,38 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						this.addAsset(asset);
 					});
 				}
+				break;
+			case "resourceproperties":
+				if(_.isObject(value)) {
+					const {name, unitsName, targetLinkText, targetLink, quantityHelpText} = value;
+					if (name) {
+						this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud.Name", name);
+					} 
+					else {
+						throw new Error("resourceProperties must have a 'name' property.");
+					}
+					if (unitsName) {
+						this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud.UnitsName", unitsName);
+					} 
+					else {
+						throw new Error("resourceProperties must have a 'unitsName' property.");
+					}
+					if(targetLinkText) {
+						this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud.TargetLinkText", targetLinkText);
+					}
+					if(targetLink) {
+						this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud.TargetLink", targetLink);
+					}
+					if(quantityHelpText) {
+						this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud.QuantityHelpText", quantityHelpText);
+					}
+				}
+				break;
+			case "showpricingcalculator":
+				if (typeof value !== "boolean") {
+					throw "Value for showPricingCalculator is invalid. Only boolean values are allowed.";
+				}
+				this.addProperty("Microsoft.VisualStudio.Services.Content.Pricing.PriceCalculator", value.toString());
 				break;
 		}
 	}

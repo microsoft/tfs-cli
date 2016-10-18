@@ -107,6 +107,14 @@ export class Merger {
 				partials.forEach((partial) => {
 					if (_.isArray(partial["targets"])) {
 						targets = targets.concat(partial["targets"]);
+
+						if(targets.length > 0) {
+							targets.forEach((target) => {
+								if(target.id === "Microsoft.VisualStudio.Services.Resource.Cloud" && !partial["resourceProperties"]) {
+									throw new Error("\"resourceProperties\" must be present for extension having target Microsoft.VisualStudio.Services.Resource.Cloud");
+								}
+							});
+						}
 					}
 				});
 				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
