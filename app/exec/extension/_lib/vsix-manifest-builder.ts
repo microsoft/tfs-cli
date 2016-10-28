@@ -42,7 +42,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".vsomanifest": "application/json",
 		".ps1": "text/ps1",
 		".js": "application/javascript",
-		".css": "text/css"
+		".css": "text/css",
+		".map": "application/json"
 	};
 
 	private static BEST_GUESS_CONTENT_TYPES: { [fileName: string]: string } = {

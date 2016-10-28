@@ -13,7 +13,7 @@ export function println() {
 }
 
 export function error(msg: any, ...replacements: printable[]): void {
-	log('', msg, colors.bgRed, replacements, console.error);
+	log('error: ', msg, colors.bgRed, replacements, console.error);
 }
 
 export function success(msg: any, ...replacements: printable[]): void {
@@ -27,7 +27,7 @@ export function info(msg: any, ...replacements: printable[]): void {
 }
 
 export function warn(msg: any, ...replacements: printable[]): void {
-	log('', msg, colors.bgYellow.black, replacements);
+	log('warning: ', msg, colors.bgYellow.black, replacements);
 }
 
 export function debugArea(msg: any, area: string) {

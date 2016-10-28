@@ -4,6 +4,7 @@ import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
 import { GalleryBase, CoreExtInfo } from "./_lib/publish";
 import { readFile } from "../../lib/qfs";
+import * as path from "path";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
 import Q = require("q");
@@ -104,7 +105,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				} catch (e) {
 					throw new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
 				}
-				contentJSON["__origin"] = overridesFile ? overridesFile[0] : "";
+				contentJSON["__origin"] = overridesFile ? overridesFile[0] : path.join(root[0], "_override.json");
 				_.merge(mergedOverrides, contentJSON, override);
 				return {
 					root: root[0],
