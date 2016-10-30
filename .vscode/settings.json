@@ -7,5 +7,6 @@
         "**/.DS_Store": true,
         "tmp/": true
     },
-    "editor.insertSpaces": false
+	"editor.insertSpaces": false,
+	"typescript.check.workspaceVersion": false
 }
