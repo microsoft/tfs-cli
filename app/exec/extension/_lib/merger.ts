@@ -63,7 +63,7 @@ export class Merger {
 			if (!manifests || manifests.length === 0) {
 				return Q.reject<string[]>("No manifests specified.");
 			}
-			this.settings.manifests = _.uniq(manifests).map(m => path.resolve(m));
+			this.settings.manifests = _.uniq(manifests).map(p => path.isAbsolute(p) ? p : path.join(this.settings.root, p));
 			trace.debug("Merging %s manifest%s from the following paths: ", manifests.length.toString(), manifests.length === 1 ? "" : "s");
 			manifests.forEach(path => trace.debug(path));
 			return Q.resolve(this.settings.manifests);
