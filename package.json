@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.3.38",
+  "version": "0.3.39",
   "description": "CLI for Visual Studio Team Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   "scripts": {
     "clean": "rimraf _build",
     "build": "tsc -p .",
-    "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json",
+    "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "prepublish": "npm run build"
   },
   "dependencies": {
