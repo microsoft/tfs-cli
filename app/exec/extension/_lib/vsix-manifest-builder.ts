@@ -29,23 +29,24 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * List of known file types to use in the [Content_Types].xml file in the VSIX package.
 	 */
 	private static CONTENT_TYPE_MAP: {[key: string]: string} = {
+		".bat": "application/bat",
+		".css": "text/css",
+		".gif": "image/gif",
+		".hbs": "text/x-handlebars-template",
+		".jpeg": "image/jpeg",
+		".jpg": "image/jpeg",
+		".js": "application/javascript",
+		".json": "application/json",
+		".map": "application/json",
 		".md": "text/markdown",
 		".pdf": "application/pdf",
 		".png": "image/png",
-		".jpeg": "image/jpeg",
-		".jpg": "image/jpeg",
-		".gif": "image/gif",
-		".bat": "application/bat",
-		".json": "application/json",
+		".ps1": "text/ps1",
+		".scss": "text/plain",
+		".ts": "text/plain",
 		".vsixlangpack": "text/xml",
 		".vsixmanifest": "text/xml",
-		".vsomanifest": "application/json",
-		".ps1": "text/ps1",
-		".js": "application/javascript",
-		".css": "text/css",
-		".scss": "text/plain",
-		".map": "application/json",
-		".ts": "text/plain"
+		".vsomanifest": "application/json"
 	};
 
 	private static BEST_GUESS_CONTENT_TYPES: { [fileName: string]: string } = {
