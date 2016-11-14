@@ -14,6 +14,7 @@ export function getCommand(args: string[]): WorkItemQuery {
 
 export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]> {
 	protected description = "Get a list of Work Items given a query";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["project", "query"];

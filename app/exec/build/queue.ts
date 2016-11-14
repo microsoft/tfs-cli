@@ -16,6 +16,7 @@ export function getCommand(args: string[]): BuildQueue {
 export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
 
 	protected description = "Queue a build.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["project", "definitionId", "definitionName"];

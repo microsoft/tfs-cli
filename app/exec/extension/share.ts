@@ -12,6 +12,8 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 
 export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 	protected description = "Share a Visual Studio Services Extension with VSTS Accounts.";
+	protected serverCommand = true;
+	
 	constructor(passedArgs: string[]) {
 		super(passedArgs);
 		this.registerCommandArgument("shareWith", "Share with", "List of accounts with which to share the extension.", args.ArrayArgument);

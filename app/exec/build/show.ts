@@ -11,6 +11,7 @@ export function getCommand(args: string[]): BuildShow {
 
 export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
 	protected description = "Show build details.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["project", "buildId"];

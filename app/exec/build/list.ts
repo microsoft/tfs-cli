@@ -12,6 +12,7 @@ export function getCommand(args: string[]): BuildGetList {
 
 export class BuildGetList extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build[]> {
 	protected description = "Get a list of builds.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["definitionId", "definitionName", "status", "top", "project"];

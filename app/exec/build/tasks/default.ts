@@ -20,6 +20,7 @@ export function getCommand(args: string[]): BuildTaskBase<void> {
 
 export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 	protected description = "Commands for managing Build Tasks.";
+	protected serverCommand = false;
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();

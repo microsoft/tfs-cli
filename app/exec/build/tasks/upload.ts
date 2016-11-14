@@ -17,6 +17,7 @@ var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
 	protected description = "Upload a Build Task.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["taskPath", "overwrite"];

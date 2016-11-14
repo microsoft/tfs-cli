@@ -13,6 +13,7 @@ export function getCommand(args: string[]): WorkItemCreate {
 
 export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> {
 	protected description = "Create a Work Item.";
+	protected serverCommand = true;
 	
 	protected getHelpArgs(): string[] {
 		return ["workItemType", "title", "assignedTo", "description", "project", "values"];

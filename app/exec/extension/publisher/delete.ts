@@ -1,4 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
+import args = require("../../../lib/arguments");
 import cm = require('../../../lib/common');
 import extBase = require("../default");
 import extPubBase = require("./default");
@@ -17,10 +18,18 @@ export interface DeletePublisherResult {
 }
 
 export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<DeletePublisherResult> {
-	protected description = "Delete a Visual Studio Services Market publisher.";
-	protected getArgs(): string[] {
+	protected description = "Delete a Visual Studio Services Market publisher";
+	protected serverCommand = true;
+
+	protected getHelpArgs(): string[] {
 		return ["publisher"];
 	}
+
+	protected setCommandArgs(): void {
+		super.setCommandArgs();
+		this.registerCommandArgument("publisher", "Publisher ID", "ID of Publisher to delete.", args.StringArgument);
+	}
+
 	public exec(): Promise<DeletePublisherResult> {
 		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 		return this.commandArgs.publisher.val().then((publisherName) => {

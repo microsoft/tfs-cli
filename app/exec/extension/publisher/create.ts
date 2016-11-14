@@ -1,4 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
+import args = require("../../../lib/arguments");
 import cm = require('../../../lib/common');
 import extBase = require("../default");
 import extPubBase = require("./default");
@@ -14,9 +15,15 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 
 export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<galleryInterfaces.Publisher> {
 	protected description = "Create a Visual Studio Services Market publisher";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["publisher", "displayName", "description"];
+	}
+
+	protected setCommandArgs(): void {
+		super.setCommandArgs();
+		this.registerCommandArgument("publisher", "Publisher ID", "Use this as the publisher ID.", args.StringArgument);
 	}
 
 	public exec(): Promise<galleryInterfaces.Publisher> {

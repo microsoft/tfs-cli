@@ -18,9 +18,10 @@ export interface ResetArgs extends CoreArguments {
 export class Reset extends TfCommand<ResetArgs, void> {
 	protected description = "Reset any saved options to their defaults.";
 	protected getHelpArgs() {return ["all"];}
+	protected serverCommand = false;
 	
 	constructor(args: string[]) {
-		super(args, false);
+		super(args);
 	}
 	
 	protected setCommandArgs(): void {

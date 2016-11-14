@@ -11,9 +11,10 @@ export function getCommand(args: string[]): TfCommand<CoreArguments, version.Sem
 export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 	protected description = "Output the version of this tool.";
 	protected getHelpArgs() {return [];}
+	protected serverCommand = false;
 	
 	constructor(args: string[]) {
-		super(args, false);
+		super(args);
 	}
 
 	public exec(): Promise<version.SemanticVersion> {

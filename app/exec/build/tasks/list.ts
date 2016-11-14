@@ -11,6 +11,7 @@ export function getCommand(args: string[]): BuildTaskList {
 export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition[]> {
 
 	protected description = "Get a list of build tasks";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["all"];

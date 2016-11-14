@@ -16,9 +16,10 @@ export interface GenResourcesResult {
 
 export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourcesResult> {
 	protected description = "Create a vsix package for an extension.";
+	protected serverCommand = false;
 
 	constructor(passedArgs: string[]) {
-		super(passedArgs, false);
+		super(passedArgs);
 	}
 
 	protected getHelpArgs(): string[] {

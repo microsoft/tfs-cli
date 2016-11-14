@@ -47,10 +47,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected description: string = "A suite of command line tools to interact with Visual Studio Team Services.";
 	public connection: TfsConnection;
 
+	protected abstract serverCommand;
+
 	/**
 	 * @param serverCommand True to initialize the WebApi object during init phase.
 	 */
-	constructor(public passedArgs: string[], private serverCommand: boolean = true) {
+	constructor(public passedArgs: string[]) {
 		this.setCommandArgs();
 	}
 
