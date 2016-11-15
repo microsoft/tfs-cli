@@ -9,7 +9,7 @@ export function getCommand(args: string[]): ListTemplates {
 }
 
 export class ListTemplates extends TfCommand<CoreArguments, buildContracts.BuildDefinitionTemplate[]> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Get a list of build templates";
 
     protected getHelpArgs(): string[] {

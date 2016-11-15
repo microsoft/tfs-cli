@@ -15,7 +15,7 @@ export interface ExportTemplateArguments extends CoreArguments {
 }
 
 export class ExportTemplate extends TfCommand<ExportTemplateArguments, buildContracts.BuildDefinitionTemplate> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Export a build template to a local file";
 
     protected getHelpArgs(): string[] {
