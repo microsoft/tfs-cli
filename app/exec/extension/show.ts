@@ -13,6 +13,7 @@ export function getCommand(args: string[]): extBase.ExtensionBase<galleryContrac
 
 export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.PublishedExtension> {
 	protected description = "Show info about a published Visual Studio Services Extension.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["publisher", "extensionId", "vsix"];

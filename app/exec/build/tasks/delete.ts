@@ -10,6 +10,7 @@ export function getCommand(args: string[]): BuildTaskDelete {
 
 export class BuildTaskDelete extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
 	protected description = "Delete a Build Task.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["taskId"];

@@ -30,6 +30,7 @@ export function getCommand(args: string[]): TfCommand<WorkItemArguments, void> {
 
 export class WorkItemBase<T> extends TfCommand<WorkItemArguments, T> {
 	protected description = "Commands for managing Work Items.";
+    protected serverCommand = false;
 	
 	protected setCommandArgs(): void {
 		super.setCommandArgs();

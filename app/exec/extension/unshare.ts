@@ -14,6 +14,8 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 
 export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 	protected description = "Unshare a Visual Studio Services Extension with VSTS Accounts.";
+	protected serverCommand = true;
+	
 	constructor(passedArgs: string[]) {
 		super(passedArgs);
 

@@ -74,6 +74,7 @@ export interface ExtensionInstallResult {
 
 export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResult> {
 	protected description = "Install a Visual Studio Services Extension to a list of VSTS Accounts.";
+	protected serverCommand = true;
 
 	constructor(passedArgs: string[]) {
 		super(passedArgs);

@@ -26,6 +26,7 @@ export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
 
 export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCommand<TArguments, TResult> {
 	protected description = "Commands for managing Builds.";
+	protected serverCommand = false;
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();

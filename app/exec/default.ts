@@ -7,8 +7,10 @@ export function getCommand(args: string[]): TfCommand<any, void> {
 }
 
 export class DefaultCommand extends TfCommand<any, void> {
+	protected serverCommand = false;
+
 	constructor(passedArgs: string[]) {
-		super(passedArgs, false);
+		super(passedArgs);
 	}
 
 	public exec(cmd?: any): Promise<any> {

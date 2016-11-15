@@ -12,6 +12,7 @@ export function getCommand(args: string[]): WorkItemShow {
 
 export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 	protected description = "Show Work Item details.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["workItemId"];

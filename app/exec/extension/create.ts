@@ -36,9 +36,10 @@ export function createExtension(mergeSettings: MergeSettings, packageSettings: P
 
 export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 	protected description = "Create a vsix package for an extension.";
+	protected serverCommand = false;
 
 	constructor(passedArgs: string[]) {
-		super(passedArgs, false);
+		super(passedArgs);
 	}
 
 	protected getHelpArgs(): string[] {

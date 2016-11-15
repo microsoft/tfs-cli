@@ -16,9 +16,10 @@ export function getCommand(args: string[]): Reset {
 export class Reset extends TfCommand<CoreArguments, void> {
 	protected description = "Log out and clear cached credential.";
 	protected getHelpArgs() {return [];}
+	protected serverCommand = false;
 	
 	constructor(args: string[]) {
-		super(args, false);
+		super(args);
 	}
 
 	public exec(): Promise<void> {

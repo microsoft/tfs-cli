@@ -37,9 +37,10 @@ export interface ExtensionArguments extends CoreArguments {
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	protected description = "Commands to package, publish, and manage Extensions for Visual Studio Team Services.";
+	protected serverCommand = false;
 
-	constructor(passedArgs: string[], serverCommand: boolean = true) {
-		super(passedArgs, serverCommand);
+	constructor(passedArgs: string[]) {
+		super(passedArgs);
 	}
 
 	protected getHelpArgs(): string[] {

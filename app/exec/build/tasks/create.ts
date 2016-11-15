@@ -35,9 +35,10 @@ export function getCommand(args: string[]): TaskCreate {
 
 export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 	protected description = "Create files for new Build Task";
+	protected serverCommand = false;
 	
 	constructor(args: string[]) {
-		super(args, false);
+		super(args);
 	}
 
 	protected getHelpArgs(): string[] {

@@ -43,6 +43,7 @@ export interface ExtensionPublishResult {
 
 export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResult> {
 	protected description = "Publish a Visual Studio Marketplace Extension.";
+	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["root", "manifests", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot",
