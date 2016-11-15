@@ -10,8 +10,8 @@ export function getCommand(args: string[]): BuildDetails {
 }
 
 export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
+    protected serverCommand = true;
 	protected description = "Display extended build details.";
-
 	protected getHelpArgs(): string[] {
 		return ["project", "buildId"];
 	}

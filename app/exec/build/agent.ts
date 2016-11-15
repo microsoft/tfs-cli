@@ -11,6 +11,7 @@ export function getCommand(args: string[]): Agent {
 }
 
 export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAgentContracts.TaskAgent> {
+    protected serverCommand = true;
 	protected description = "Show / Update task agent details.";
 
 	protected getHelpArgs(): string[] {

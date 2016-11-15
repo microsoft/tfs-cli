@@ -14,6 +14,7 @@ export function getCommand(args: string[]): BuildTaskDownload {
 var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
+    protected serverCommand = true;
 	protected description = "Download a Build Task.";
 
 	protected getHelpArgs(): string[] {

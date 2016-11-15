@@ -14,7 +14,7 @@ export function getCommand(args: string[]): BuildKeep {
 }
 
 export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-
+    protected serverCommand = true;
 	protected description = "change build retention policy.";
 
 	protected getHelpArgs(): string[] {

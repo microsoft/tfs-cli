@@ -14,7 +14,7 @@ export function getCommand(args: string[]): BuildDelete {
 }
 
 export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-
+    protected serverCommand = true;
 	protected description = "Delete a build.";
 
 	protected getHelpArgs(): string[] {
