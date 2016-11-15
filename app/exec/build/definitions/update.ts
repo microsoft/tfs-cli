@@ -14,7 +14,7 @@ export interface UpdateDefinitionArguments extends CoreArguments {
 }
 
 export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, buildContracts.DefinitionReference> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Update build definition";
     protected getHelpArgs(): string[] {
         return ["project", "definitionId", "definitionPath"];
@@ -28,7 +28,7 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
     }
 
     public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),

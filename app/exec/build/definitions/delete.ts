@@ -13,7 +13,7 @@ export interface DeleteDefinitionArguments extends CoreArguments {
 }
 
 export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, buildContracts.DefinitionReference> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Delete a build definition";
 
     protected getHelpArgs(): string[] {
@@ -27,7 +27,7 @@ export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, build
     }
 
     public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),

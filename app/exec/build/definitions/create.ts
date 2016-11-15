@@ -14,7 +14,7 @@ export interface CreateDefinitionArguments extends CoreArguments {
 }
 
 export class CreateDefinition extends TfCommand<CreateDefinitionArguments, buildContracts.DefinitionReference> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Create a build definition";
 
     protected getHelpArgs(): string[] {
@@ -29,7 +29,7 @@ export class CreateDefinition extends TfCommand<CreateDefinitionArguments, build
     }
 
     public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),

@@ -1,5 +1,6 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildClient = require("vso-node-api/BuildApi");
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 
@@ -8,7 +9,7 @@ export function getCommand(args: string[]): ListDefinitions {
 }
 
 export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.DefinitionReference[]> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Get a list of build definitions";
 
     protected getHelpArgs(): string[] {
@@ -16,7 +17,7 @@ export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.Def
     }
 
     public exec(): Promise<buildContracts.DefinitionReference[]> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api: buildClient.IBuildApi = this.webApi.getBuildApi(this.connection.getCollectionUrl());
         trace.debug("Searching for build definitions...");
 
         return this.commandArgs.project.val().then((project) => {

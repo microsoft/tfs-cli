@@ -16,7 +16,7 @@ export interface ExportDefinitionArguments extends CoreArguments {
 }
 
 export class ExportDefinition extends TfCommand<ExportDefinitionArguments, buildContracts.DefinitionReference> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Export a build definition to a local file";
 
     protected getHelpArgs(): string[] {
@@ -33,7 +33,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
     }
 
     public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),

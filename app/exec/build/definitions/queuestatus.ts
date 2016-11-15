@@ -14,7 +14,7 @@ export interface DefinitionQueueStatusArguments extends CoreArguments {
 }
 
 export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArguments, buildContracts.DefinitionReference> {
-    protected serverCommand = false;
+    protected serverCommand = true;
     protected description = "Manage a build definition queue status";
 
     protected getHelpArgs(): string[] {
@@ -28,7 +28,7 @@ export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArgume
     }
 
     public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
