@@ -8,7 +8,7 @@ export function getCommand(args: string[]): ListDefinitions {
 }
 
 export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.DefinitionReference[]> {
-
+    protected serverCommand = false;
     protected description = "Get a list of build definitions";
 
     protected getHelpArgs(): string[] {

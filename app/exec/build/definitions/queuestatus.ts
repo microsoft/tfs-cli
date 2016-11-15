@@ -14,6 +14,7 @@ export interface DefinitionQueueStatusArguments extends CoreArguments {
 }
 
 export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArguments, buildContracts.DefinitionReference> {
+    protected serverCommand = false;
     protected description = "Manage a build definition queue status";
 
     protected getHelpArgs(): string[] {

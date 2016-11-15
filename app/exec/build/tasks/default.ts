@@ -2,6 +2,7 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import buildBase = require("../default");
 
+
 export interface TaskArguments extends buildBase.BuildArguments {
 	all: args.BooleanArgument;
 	taskId: args.StringArgument;
@@ -23,6 +24,7 @@ export function getCommand(args: string[]): BuildTaskBase<void> {
 
 export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 	protected description = "Commands for managing Build Tasks.";
+	protected serverCommand = false;
 
 	protected setCommandArgs(): void {
 		super.setCommandArgs();

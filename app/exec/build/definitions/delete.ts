@@ -13,6 +13,7 @@ export interface DeleteDefinitionArguments extends CoreArguments {
 }
 
 export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, buildContracts.DefinitionReference> {
+    protected serverCommand = false;
     protected description = "Delete a build definition";
 
     protected getHelpArgs(): string[] {

@@ -14,8 +14,8 @@ export interface UpdateDefinitionArguments extends CoreArguments {
 }
 
 export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, buildContracts.DefinitionReference> {
+    protected serverCommand = false;
     protected description = "Update build definition";
-
     protected getHelpArgs(): string[] {
         return ["project", "definitionId", "definitionPath"];
     }

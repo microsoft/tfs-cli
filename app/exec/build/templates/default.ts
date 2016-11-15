@@ -5,6 +5,7 @@ export function getCommand(args: string[]): HelpCommand {
 }
 
 export class HelpCommand extends TfCommand <CoreArguments, void> {
+	protected serverCommand = false;
 	protected description = "Commands for managing Build templates.";
 
 	protected setCommandArgs(): void {

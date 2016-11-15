@@ -14,6 +14,7 @@ export interface CreateDefinitionArguments extends CoreArguments {
 }
 
 export class CreateDefinition extends TfCommand<CreateDefinitionArguments, buildContracts.DefinitionReference> {
+    protected serverCommand = false;
     protected description = "Create a build definition";
 
     protected getHelpArgs(): string[] {
