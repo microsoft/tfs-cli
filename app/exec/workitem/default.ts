@@ -55,7 +55,7 @@ export function friendlyOutput(data: witContracts.WorkItem[]): void {
         throw new Error("no results");
     }
     
-    let fieldsToIgnore = ["System.AreaLevel1", "System.IterationId", "System.IterationLevel1", "System.ExternalLinkCount", "System.AreaLevel1"];
+    let fieldsToIgnore = ["System.Id", "System.AreaLevel1", "System.IterationId", "System.IterationLevel1", "System.ExternalLinkCount", "System.AreaLevel1"];
     
     data.forEach((workItem) => {
         trace.info(eol);

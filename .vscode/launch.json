@@ -2,6 +2,29 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "WorkItem Query",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/app/app.ts",
+            "stopOnEntry": false,
+            "args": [
+                "workitem", "query", "--query", "select * from workitemlinks where [source].[system.assignedto] = @me and [target].[system.assignedto] <> @me"
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "TFX_TRACE": "1"
+            },
+            "console": "internalConsole",
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/_build"
+        },
+        {
             "name": "Extension Create",
             "type": "node",
             "request": "launch",
