@@ -31,6 +31,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	private static CONTENT_TYPE_MAP: {[key: string]: string} = {
 		".bat": "application/bat",
 		".css": "text/css",
+		".eot": "application/vnd.ms-fontobject",
 		".gif": "image/gif",
 		".hbs": "text/x-handlebars-template",
 		".jpeg": "image/jpeg",
@@ -43,10 +44,12 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".png": "image/png",
 		".ps1": "text/ps1",
 		".scss": "text/plain",
+		".svg": "image/svg+xml"
 		".ts": "text/plain",
 		".vsixlangpack": "text/xml",
 		".vsixmanifest": "text/xml",
-		".vsomanifest": "application/json"
+		".vsomanifest": "application/json",
+		".woff": "application/font-woff",
 	};
 
 	private static BEST_GUESS_CONTENT_TYPES: { [fileName: string]: string } = {
