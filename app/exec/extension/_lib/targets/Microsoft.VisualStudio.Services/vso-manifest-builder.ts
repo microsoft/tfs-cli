@@ -14,7 +14,6 @@ export class VsoManifestBuilder extends ManifestBuilder {
 	}
 
 	public static manifestType = "Microsoft.VisualStudio.Services.Manifest";
-
 	/**
 	 * Explains the type of manifest builder
 	 */
@@ -65,7 +64,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
 	}
 
 	public processKey(key: string, value: any, override: boolean): void {
-		switch(key.toLowerCase()) {
+		switch (key.toLowerCase()) {
 			case "eventcallbacks":
 				if (_.isObject(value)) {
 					this.singleValueProperty("eventCallbacks", value, key, override);
