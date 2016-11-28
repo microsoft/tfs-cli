@@ -36,7 +36,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("status", "Build Status", "Build status filter.", args.StringArgument, null);
 		this.registerCommandArgument("top", "Number of builds", "Maximum number of builds to return.", args.IntArgument, null);
 		this.registerCommandArgument("buildId", "Build ID", "Identifies a particular Build.", args.IntArgument);
-        this.registerCommandArgument("parameters", "parameter file path", "Build process Parameters JSON file.", args.StringArgument,null);
+        this.registerCommandArgument("parameters", "parameter file path or JSON string ", "Build process Parameters JSON file / string.", args.StringArgument,null);
         this.registerCommandArgument("priority", "build queue priority", "Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).", args.IntArgument, null);
 		this.registerCommandArgument("version","Build Sources Version", "the source version for the queued build.",args.StringArgument,null);
 		this.registerCommandArgument("shelveset", "Shelveset to validate", "the shelveset to queue in the build.", args.StringArgument,null );
