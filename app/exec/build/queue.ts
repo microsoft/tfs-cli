@@ -93,10 +93,10 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		if (parameters){
 			if (fs.existsSync(parameters)) {
 				var parameters = fs.readFileSync(parameters,'utf8');
-				trace.info("trying to get parameters from path: %s", parameters);	    
+				trace.debug("trying to get parameters from path: %s", parameters);	    
 			}
 			else {
-				trace.info("failed to get parameters from path, assuming parameters are JSON string: %s", parameters);
+				trace.debug("failed to get parameters from path, assuming parameters are JSON string: %s", parameters);
 			}
 		}
 		
