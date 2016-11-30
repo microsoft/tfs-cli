@@ -46,7 +46,7 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 					let fieldRefs = result.columns.map(val => val.referenceName)
                     
                     fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
-					return witApi.getWorkItems(workItemIds, fieldRefs);
+					return workItemIds.length > 0 ? witApi.getWorkItems(workItemIds, fieldRefs) : [];
 				});
 			});
 		});
