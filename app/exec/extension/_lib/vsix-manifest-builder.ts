@@ -576,7 +576,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			Object.keys(this.files).filter((fileName) => {
 				return !this.files[fileName].contentType;
 			}).forEach((fileName) => {
-				let extension = path.extname(fileName);
+				let extension = path.extname(fileName).toLowerCase();
 				let mimePromise;
 				if (typeMap[extension]) {
 					if (!extTypeCounter[extension]) {
