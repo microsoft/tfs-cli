@@ -44,7 +44,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".png": "image/png",
 		".ps1": "text/ps1",
 		".scss": "text/plain",
-		".svg": "image/svg+xml"
+		".svg": "image/svg+xml",
 		".ts": "text/plain",
 		".vsixlangpack": "text/xml",
 		".vsixmanifest": "text/xml",
@@ -521,24 +521,24 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				if (!showWarningForExtensionMap[extName] && this.files[f].addressable) {
 					showWarningForExtensionMap[extName] = true;
 				}
-				return extName;
+				return extName.toLowerCase();
 			}));
 			uniqueExtensions.forEach((ext) => {
 				if (!ext.trim()) {
 					return;
 				}
-				if (typeMap[ext.toLowerCase()]) {
+				if (typeMap[ext]) {
 					contentTypes.Types.Default.push({
 						$: {
 							Extension: ext,
-							ContentType: typeMap[ext.toLowerCase()]
+							ContentType: typeMap[ext]
 						}
 					});
 					return;
 				}
 				let hkcrKey = new winreg({
 					hive: winreg.HKCR,
-					key: "\\" + ext.toLowerCase()
+					key: "\\" + ext
 				});
 				let regPromise = Q.ninvoke(hkcrKey, "get", "Content Type").then((type: winreg.RegistryItem) => {
 					trace.debug("Found content type for %s: %s.", ext, type.value);
