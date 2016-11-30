@@ -94,7 +94,7 @@ STATUSCODE=$(curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PAS
  -T "$FILE" \
  --output ./upload.log --write-out "%{http_code}" \
  "$uploadUrl"||:)
-
+## comment test
 fail_if '[[ "$STATUSCODE" -ne "201" ]]' "Upload failed: http status $STATUSCODE"
 
 echo "Upload successfull!"
