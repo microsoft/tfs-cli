@@ -114,14 +114,6 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	}
 
 	/**
-	 * Add an asset: add a file to the vsix package and if there is an assetType on the
-	 * file, add an <Asset> entry in the vsixmanifest.
-	 */
-	private addAsset(file: FileDeclaration) {
-		this.addFile(file);
-	}
-
-	/**
 	 * Add an <Asset> entry to the vsixmanifest.
 	 */
 	private addAssetToManifest(assetPath: string, type: string | string[], addressable: boolean = false, lang: string = null): void {
@@ -204,9 +196,10 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					let fileDecl: FileDeclaration = {
 						path: value[key],
 						addressable: true,
+						auto: true,
 						assetType: "Microsoft.VisualStudio.Services.Icons." + iconType
 					};
-					this.addAsset(fileDecl);
+					this.addFile(fileDecl, true);
 				});
 				break;
 			case "screenshots":
@@ -216,10 +209,11 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						let fileDecl: FileDeclaration = {
 							path: screenshot.path,
 							addressable: true,
+							auto: true,
 							assetType: "Microsoft.VisualStudio.Services.Screenshots." + (++screenshotIndex),
 							contentType: screenshot.contentType
 						};
-						this.addAsset(fileDecl);
+						this.addFile(fileDecl, true);
 					});
 				}
 				break;
@@ -230,12 +224,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						let fileDecl: FileDeclaration = {
 							path: value[key].path,
 							addressable: true,
+							auto: true,
 							assetType: "Microsoft.VisualStudio.Services.Content." + contentKey
 						};
 						if (value[key].contentType) {
 							fileDecl.contentType = value[key].contentType;
 						}
-						this.addAsset(fileDecl);
+						this.addFile(fileDecl, true);
 					} else {
 						trace.warn("Did not find 'path' property for content item '%s'. Ignoring.", key);
 					}
@@ -246,10 +241,11 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					let fileDecl: FileDeclaration = {
 						path: value.path,
 						addressable: true,
+						auto: true,
 						assetType: "Microsoft.VisualStudio.Services.Content.Details",
 						contentType: value.contentType
 					};
-					this.addAsset(fileDecl);
+					this.addFile(fileDecl, true);
 				}
 				break;
 			case "targets":
@@ -368,7 +364,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			case "files":
 				if (_.isArray(value)) {
 					value.forEach((asset: FileDeclaration) => {
-						this.addAsset(asset);
+						this.addFile(asset);
 					});
 				}
 				break;
@@ -409,60 +405,62 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * --Builds the [Content_Types].xml file
 	 */
 	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
-		// Default installation target to VSS if not provided (and log warning)
-		let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
-		
-		if (resourceData) {
-			Object.keys(resourceData).forEach(languageTag => {
-				if (languageTag === "defaults") {
-					return;
-				}
-				builders.forEach(builder => {
-					const locResult = builder.getLocResult(resourceData[languageTag], resourceData.defaults);
-					locResult.forEach(lr => {
-						lr.lang = languageTag;
-						lr.partName = `${languageTag}/${lr.partName}`;
-						if (lr.partName.indexOf("vsixlangpack") === -1) {
-							lr.assetType = builder.getType();
-							lr.addressable = true;
-						} else {
-							lr.addressable = false;
-						}
-						
-						const file = this.addFile(lr);
-						if (file.assetType) {
-							this.addAssetToManifest(file.partName, file.assetType, file.addressable, file.lang);
-						}
+		return super.finalize(files, resourceData, builders).then(() => {
+			// Default installation target to VSS if not provided (and log warning)
+			let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
+			
+			if (resourceData) {
+				Object.keys(resourceData).forEach(languageTag => {
+					if (languageTag === "defaults") {
+						return;
+					}
+					builders.forEach(builder => {
+						const locResult = builder.getLocResult(resourceData[languageTag], resourceData.defaults);
+						locResult.forEach(lr => {
+							lr.lang = languageTag;
+							lr.partName = `${languageTag}/${lr.partName}`;
+							if (lr.partName.indexOf("vsixlangpack") === -1) {
+								lr.assetType = builder.getType();
+								lr.addressable = true;
+							} else {
+								lr.addressable = false;
+							}
+							
+							const file = this.addFile(lr);
+							if (file.assetType) {
+								this.addAssetToManifest(file.partName, file.assetType, file.addressable, file.lang);
+							}
+						});
 					});
 				});
+			}
+			
+			Object.keys(files).forEach((fileName) => {
+				let file = files[fileName];
+
+				// Add all assets to manifest except the vsixmanifest (duh)
+				if (file.assetType && file.path !== this.getPath()) {
+					this.addAssetToManifest(file.partName, file.assetType, file.addressable, file.lang);
+				}
 			});
-		}
-		
-		Object.keys(files).forEach((fileName) => {
-			let file = files[fileName];
 
-			// Add all assets to manifest except the vsixmanifest (duh)
-			if (file.assetType && file.path !== this.getPath()) {
-				this.addAssetToManifest(file.partName, file.assetType, file.addressable, file.lang);
-			}
-		});
-
-		// Add the manifests as assets.
-		builders.forEach((builder) => {
-			let builderType = builder.getType();
-			if (builderType != VsixManifestBuilder.manifestType) {
-				this.addAssetToManifest(builder.getPath(), builder.getType(), true);
-			}
-		});
+			// Add the manifests as assets.
+			builders.forEach((builder) => {
+				let builderType = builder.getType();
+				if (builderType != VsixManifestBuilder.manifestType) {
+					this.addAssetToManifest(builder.getPath(), builder.getType(), true);
+				}
+			});
 
 
-		// The vsixmanifest will be responsible for generating the [Content_Types].xml file
-		// Obviously this is kind of strange, but hey ho.
-		return this.genContentTypesXml(builders).then((result) => {
-			this.addAsset({
-				path: null,
-				content: result,
-				partName: "/[Content_Types].xml"
+			// The vsixmanifest will be responsible for generating the [Content_Types].xml file
+			// Obviously this is kind of strange, but hey ho.
+			return this.genContentTypesXml(builders).then((result) => {
+				this.addFile({
+					path: null,
+					content: result,
+					partName: "/[Content_Types].xml"
+				});
 			});
 		});
 	}
