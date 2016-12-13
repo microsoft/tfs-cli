@@ -47,6 +47,11 @@ export interface FileDeclaration {
 	partName?: string;
 
 	/**
+	 * Alias to partName 
+	 */
+	packagePath?: string;
+
+	/**
 	 * Language of this asset, if any
 	 */
 	lang?: string;

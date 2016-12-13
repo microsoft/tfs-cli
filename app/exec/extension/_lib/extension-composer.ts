@@ -64,7 +64,7 @@ export abstract class ExtensionComposer {
 						}
 						if (asset.Type && asset.Addressable) {
 							if (usedAssetTypes[asset.Type + "|" + asset.lang]) {
-								return "Cannot have multiple 'addressable' files with the same 'assetType'.\nFile1: " + usedAssetTypes[asset.Type] + ", File 2: " + asset.Path + " (asset type: " + asset.Type + ")";
+								return "Cannot have multiple 'addressable' files with the same 'assetType'.\nFile1: " + usedAssetTypes[asset.Type + "|" + asset.lang] + ", File 2: " + asset.Path + " (asset type: " + asset.Type + ")";
 							} else {
 								usedAssetTypes[asset.Type + "|" + asset.Lang] = asset.Path;
 							}

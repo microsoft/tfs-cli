@@ -2,6 +2,7 @@ import { ManifestBuilder } from "./manifest";
 import { ComposerFactory } from "./extension-composer-factory";
 import { ExtensionComposer } from "./extension-composer";
 import { FileDeclaration, LocalizedResources, MergeSettings, PackageFiles, ResourceSet, ResourcesFile, TargetDeclaration } from "./interfaces";
+import { forwardSlashesPath, toZipItemName } from "./utils";
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
@@ -168,7 +169,7 @@ export class Merger {
 							let fileDecl: FileDeclaration = partial["files"][i];
 							let fsPath = path.join(this.settings.root, fileDecl.path);
 							if (fs.lstatSync(fsPath).isDirectory()) {
-								Array.prototype.splice.apply(partial["files"], (<any[]>[i, 1]).concat(this.pathToFileDeclarations(fsPath, this.settings.root, fileDecl.addressable)));
+								Array.prototype.splice.apply(partial["files"], (<any[]>[i, 1]).concat(this.pathToFileDeclarations(fsPath, this.settings.root, fileDecl)));
 							}
 						}
 					}
@@ -296,17 +297,27 @@ export class Merger {
 	 * Recursively converts a given path to a flat list of FileDeclaration
 	 * @TODO: Async.
 	 */
-	private pathToFileDeclarations(fsPath: string, root: string, addressable: boolean): FileDeclaration[] {
+	private pathToFileDeclarations(fsPath: string, root: string, fileDecl: FileDeclaration): FileDeclaration[] {
 		let files: FileDeclaration[] = [];
 		if (fs.lstatSync(fsPath).isDirectory()) {
 			trace.debug("Path '%s` is a directory. Adding all contained files (recursive).", fsPath);
 			fs.readdirSync(fsPath).forEach((dirChildPath) => {
 				trace.debug("-- %s", dirChildPath);
-				files = files.concat(this.pathToFileDeclarations(path.join(fsPath, dirChildPath), root, addressable));
+				files = files.concat(this.pathToFileDeclarations(path.join(fsPath, dirChildPath), root, fileDecl));
 			});
 		} else {
 			let relativePath = path.relative(root, fsPath);
-			files.push({path: relativePath, partName: "/" + relativePath, auto: true, addressable: addressable});
+			let partName = "/" + relativePath;
+			if (fileDecl.partName || fileDecl.packagePath) {
+				partName = toZipItemName(forwardSlashesPath(_.trimEnd(fileDecl.partName || fileDecl.packagePath, "/") + relativePath.substr(fileDecl.path.length)));
+			}
+			
+			files.push({
+				path: relativePath, 
+				partName: partName, 
+				auto: true, 
+				addressable: fileDecl.addressable
+			});
 		}
 		return files;
 	}

@@ -15,6 +15,7 @@ export abstract class ManifestBuilder {
 	protected lcPartNames: {[filename: string]: string} = { };
 	protected data: any = { };
 	private static resourcePrefix = "resource:";
+	private deferredFiles: FileDeclaration[] = [];
 
 	constructor(private extRoot: string) { }
 
@@ -49,6 +50,14 @@ export abstract class ManifestBuilder {
 	 * Called just before the package is written to make any final adjustments.
 	 */
 	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
+		this.deferredFiles.forEach(f => {
+			this.addFile(f, false);
+			if (f.path && !files[f.path]) {
+				files[f.path] = f;
+			} else if (!f.path) {
+				files[common.newGuid()] = f;
+			}
+		});
 		return Promise.resolve<void>(null);
 	}
 
@@ -184,7 +193,15 @@ export abstract class ManifestBuilder {
 	/**
 	 * Add a file to the vsix package
 	 */
-	protected addFile(file: FileDeclaration) {
+	protected addFile(file: FileDeclaration, defer: boolean = false) {
+		if (defer) {
+			this.deferredFiles.push(file);
+			return file;
+		}
+		if (!file.partName && file.packagePath) {
+			file.partName = file.packagePath;
+		}
+
 		if (typeof file.assetType === "string") {
 			file.assetType = [<string>file.assetType];
 		}

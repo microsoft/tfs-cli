@@ -25,21 +25,22 @@ export class VsoManifestBuilder extends ManifestBuilder {
 		return "application/json";
 	}
 
-	public finalize(files: PackageFiles, resourceData: LocalizedResources): Promise<void> {
-		// Ensure some default values are set
-		if (!this.data.contributions) {
-			this.data.contributions = [];
-		}
-		if (!this.data.scopes) {
-			this.data.scopes = [];
-		}
-		if (!this.data.contributionTypes) {
-			this.data.contributionTypes = [];
-		}
-		if (!this.data.manifestVersion) {
-			this.data.manifestVersion = 1;
-		}
-		return Promise.resolve<void>(null);
+	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
+		return super.finalize(files, resourceData, builders).then(() => {
+			// Ensure some default values are set
+			if (!this.data.contributions) {
+				this.data.contributions = [];
+			}
+			if (!this.data.scopes) {
+				this.data.scopes = [];
+			}
+			if (!this.data.contributionTypes) {
+				this.data.contributionTypes = [];
+			}
+			if (!this.data.manifestVersion) {
+				this.data.manifestVersion = 1;
+			}
+		});
 	}
 
 	/**
