@@ -40,18 +40,18 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 			}
 			else if(agentname) {
 				trace.debug("No agent Id provided, checking for agent with name " + agentname);
-				var ao: taskAgentContracts.TaskAgent[] = null;
-				agentapi.getAgents(pool as number, agentname as string,true,null,null,null,(err: any, statusCode: number, ao:taskAgentContracts.TaskAgent[]) => ao)
-				if(ao.length > 0) {
-					var aid = ao[0].id;
-					var an = ao[0].name;
-					trace.debug("found, agent id %s for agent name %s",aid, an);
-					return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string); 
-				}
-				else {
-					trace.debug("No agents found with name " + agentname);
-					throw new Error("No agents found with name " + agentname);
-				}
+				return agentapi.getAgents(pool as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
+					if(ao.length > 0) {
+						var aid = ao[0].id;
+						var an = ao[0].name;
+						trace.debug("found, agent id %s for agent name %s",aid, an);
+						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string); 
+					}
+					else {
+						trace.debug("No agents found with name " + agentname);
+						throw new Error("No agents found with name " + agentname);
+					}
+				});
 			}
 			trace.debug("disable request: %s",disable);
 			return this._getOrUpdateAgent(agentapi, pool as number,agentid as number,newkey as string,value as string,include,disable as string);	
@@ -82,22 +82,21 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 		}
 	}
 	private _getOrUpdateAgent(agentapi:  agentClient.ITaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
-			var agent:taskAgentContracts.TaskAgent;
-			agentapi.getAgent(pool,agentid,true,true,null,(err: any, statusCode: number, agent:taskAgentContracts.TaskAgent) => agent);
+			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
 			trace.debug("disable request: %s",disable);
 			if (disable) {
 				if (disable == "true") {
 						include = false;
 						trace.debug("agent status (enabled): %s",agent.enabled);
 						agent.enabled = false;
-						agentapi.updateAgent(agent,pool,agentid,(err: any, statusCode: number, agent:taskAgentContracts.TaskAgent) => agent);
+						agentapi.updateAgent(agent,pool,agentid);
 						trace.debug("agent status (enabled): %s",agent.enabled);
 					}
 				if (disable == "false") {
 						include = false;
 						trace.debug("agent status (enabled): %s",agent.enabled);
 						agent.enabled = true;
-						agentapi.updateAgent(agent,pool,agentid,(err: any, statusCode: number, agent:taskAgentContracts.TaskAgent) => agent);
+						agentapi.updateAgent(agent,pool,agentid);
 						trace.debug("agent status (enabled): %s",agent.enabled);
 					}
 				if (disable != "true" && disable != "false") {
@@ -108,9 +107,9 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				include = false;
 					var capabilities: { [key: string] : string; } = agent.userCapabilities;
 					capabilities[newkey] = value;					
-					agentapi.updateAgentUserCapabilities(capabilities,pool,agentid,(err: any, statusCode: number, agent:taskAgentContracts.TaskAgent) => agent);
+					agentapi.updateAgentUserCapabilities(capabilities,pool,agentid);
 					};
-				agentapi.getAgent(pool,agentid,include,include,null,(err: any, statusCode: number, agent:taskAgentContracts.TaskAgent) => agent);	
-				return agent;
+				return agentapi.getAgent(pool,agentid,include,include,null);
+				});	
 	}
 }
