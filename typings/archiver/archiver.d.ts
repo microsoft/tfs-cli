@@ -1,7 +1,7 @@
 // Type definitions for archiver v0.15.0
 // Project: https://github.com/archiverjs/node-archiver
 // Definitions by: Esri <https://github.com/archiverjs/node-archiver>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+// Definitions: https://github.com/borisyankov/DefinitelyTyped
 
 /* =================== USAGE ===================
 
@@ -13,18 +13,18 @@
 
  =============================================== */
 
-/// <reference path="../node/node.d.ts" />
+
 declare module "archiver" {
     import * as FS from 'fs';
-    import * as STREAM from 'stream';
+    import * as Stream from "stream";
     
     interface nameInterface {
         name?: string;
     }
         
-    interface Archiver extends STREAM.Transform {
+    interface Archiver extends Stream.Transform {
         pipe(writeStream: FS.WriteStream): void;
-        append(source: FS.ReadStream | Buffer | string, name: nameInterface): void;
+        append(readStream: FS.ReadStream, name: nameInterface): void;
         finalize(): void;
         directory(dirpath: string, destpath?: string | boolean, data?: any)
     }

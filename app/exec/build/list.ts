@@ -71,6 +71,6 @@ export class BuildGetList extends buildBase.BuildBase<buildBase.BuildArguments, 
 
 	private _getBuilds(buildapi: buildClient.IBuildApi, project: string, definitions: number[], status: string, top: number) {
 		// I promise that this was as painful to write as it is to read
-		return buildapi.getBuilds(project, definitions, null, null, null, null, null, null, buildContracts.BuildStatus[status], null, null, null, top, null, null, null, null, null, null, null, null);
+		return buildapi.getBuilds(project, definitions, null, null, null, null, null, null, buildContracts.BuildStatus[status], null, null, null, top, null, null, null, null, null, null);
 	}
 }

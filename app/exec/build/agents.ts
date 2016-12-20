@@ -22,7 +22,7 @@ export class Agents extends agentBase.BuildBase<agentBase.BuildArguments, taskAg
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 		return this.commandArgs.poolId.val().then((pool) => {
 			trace.debug("getting pool  : %s",pool);
-				return agentapi.getAgents(pool);
+				return agentapi.getAgents(pool,"",true,null,null,null,(err: any, statusCode: number, ao:taskAgentContracts.TaskAgent[]) => ao);
 			});
 	}
 	

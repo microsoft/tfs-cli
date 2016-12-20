@@ -20,7 +20,9 @@ export class Pools extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	public exec(): Promise<taskAgentContracts.TaskAgentPool[]> {
 		trace.debug("pool.exec");
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
-			return agentapi.getAgentPools();
+		var pools: taskAgentContracts.TaskAgentPool[] = null;
+		agentapi.getAgentPools(null,null,(err: any,statusCode: number, pools: taskAgentContracts.TaskAgentPool[]) => pools);
+		return Promise.resolve(pools);
 	}
 	
 	public friendlyOutput(pools: taskAgentContracts.TaskAgentPool[]): void {
