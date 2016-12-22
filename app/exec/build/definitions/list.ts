@@ -38,10 +38,7 @@ export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.Def
         }
 
         data.forEach((definition) => {
-            trace.println();
-            trace.info('id            : %s', definition.id);
-            trace.info('name          : %s', definition.name);
-            trace.info('type          : %s', definition.type == buildContracts.DefinitionType.Xaml ? "Xaml" : "Build");
+            trace.info('%s: %s: %s%s',definition.type == buildContracts.DefinitionType.Xaml ? "Xaml" : "Build", definition.id,definition.name,definition.draftOf ? " - (Draft of: " + definition.draftOf.id +")":"");
         });
     }
 }
