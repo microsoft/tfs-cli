@@ -19,7 +19,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	protected description = "Queue a build.";
 	protected serverCommand = true;
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands", "wait"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands", "wait","timeout"];
 	}
 
 	public exec(): Promise<buildContracts.Build> {
