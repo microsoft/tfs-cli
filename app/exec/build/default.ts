@@ -18,6 +18,8 @@ export interface BuildArguments extends CoreArguments {
 	userCapabilityValue: args.StringArgument;
     demands: args.StringArgument;
 	disable: args.StringArgument;
+	wait: args.BooleanArgument;
+	timeout: args.IntArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -47,6 +49,8 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("userCapabilityValue", "Value to add / edit", "Value to add / edit to the Agent User Capabilities.", args.StringArgument,null);
         this.registerCommandArgument("demands","Build demand key","Demands string [semi-colon separator] for Queued Build [key / key -equals value].",args.StringArgument,null);
 		this.registerCommandArgument("disable","disable / enable agent","Update the agent status.",args.StringArgument,null);
+		this.registerCommandArgument("wait","wait for the build","wait for the triggered build",args.BooleanArgument,"false");
+		this.registerCommandArgument("timeout","max time to wait","Maximum time to wait for the build to complete (in seconds).",args.IntArgument,"0");
 	}
 
 	public exec(cmd?: any): Promise<any> {

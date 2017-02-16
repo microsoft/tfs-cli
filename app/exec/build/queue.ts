@@ -18,9 +18,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 
 	protected description = "Queue a build.";
 	protected serverCommand = true;
-
 	protected getHelpArgs(): string[] {
-		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands"];
+		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands", "wait"];
 	}
 
 	public exec(): Promise<buildContracts.Build> {
@@ -56,8 +55,13 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
                                         trace.debug("shelveset name: %s", shelveset ? shelveset: "none")
                                         return this.commandArgs.demands.val().then((demands) => {
 											trace.debug("build demands	: %s", demands ? demands: "none")
-                                            return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demands ? demands:"");
-                                    });
+                                            return this.commandArgs.wait.val().then((wait) => {
+												return this.commandArgs.timeout.val().then((timeout) => {
+													return this._queueBuild(buildapi, definition, project, parameters, priority, version, shelveset,demands ? demands:"",wait,timeout as number);
+												});
+												
+										 });	
+                                     });
 							     });
 							});        
                         });
@@ -88,7 +92,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 						priority: number, 
 						version: string, 
 						shelveset: string, 
-						demands :string) {
+						demands :string,
+						wait:boolean,
+						timeout: number) {
 		trace.debug("Queueing build...")
 		if (parameters){
 			if (fs.existsSync(parameters)) {
@@ -112,6 +118,39 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
             demands: demandList ? demandList : [("%s",demands)]
             
 		};
-        return buildapi.queueBuild(build, project);       
+        if (!wait){
+			return buildapi.queueBuild(build, project);
+		} else {
+			
+			return buildapi.queueBuild(build, project).then((queuedBuild) => {
+				trace.info("waiting for build %s to complete",queuedBuild.buildNumber);
+					var counter: number = 0;
+					var time = setInterval(function(){
+						counter++;
+						return buildapi.updateBuild(queuedBuild,queuedBuild.id).then((updatedQueuedBuild) =>{
+							if (updatedQueuedBuild.status == buildContracts.BuildStatus.Completed || (timeout != 0 && counter >= timeout)) {
+								if (updatedQueuedBuild.status != buildContracts.BuildStatus.Completed){
+									trace.println();
+									trace.warn("stopped waiting for build to complete, due to timeout expiration (%s Seconds)",timeout)
+									process.exitCode = 5;
+								} else {
+									trace.println();
+									
+									if (updatedQueuedBuild.result == buildContracts.BuildResult.Succeeded){
+										trace.info("build %s Completed Successfully in %s Seconds",updatedQueuedBuild.buildNumber,counter); 
+									} else {
+										trace.warn("build %s Completed in %s Seconds with result %s",updatedQueuedBuild.buildNumber,counter,buildContracts.BuildResult[updatedQueuedBuild.result]);
+										process.exitCode = 1; 
+									}
+								}								
+								clearInterval(time);
+							} else {
+								process.stdout.write(".");
+							}
+						});
+					},1000);
+				return queuedBuild;	
+			});
+		}
 	}
 }
