@@ -596,37 +596,38 @@ export class VsixManifestBuilder extends ManifestBuilder {
 								} else {
 									this.files[fileName].contentType = "application/octet-stream";
 								}
-							}
-							if (typeof stdout === "string") {
-								let magicMime = _.trimEnd(stdout.substr(stdout.lastIndexOf(" ") + 1), "\n");
-								trace.debug("Magic mime type for %s is %s.", fileName, magicMime);
-								if (magicMime) {
-									if (extension) {
-										if (!extTypeCounter[extension]) {
-											extTypeCounter[extension] = {};
-										}
-										let hitCounters = extTypeCounter[extension];
-										if (!hitCounters[magicMime]) {
-											hitCounters[magicMime] = [];
-										}
-										hitCounters[magicMime].push(fileName);
-									} else {
-										if (!this.files[fileName].contentType) {
-											this.files[fileName].contentType = magicMime;
-										}
-									}
-								} else {
-									if (stderr) {
-										if (this.files[fileName].addressable) {
-											reject(stderr);
+							} else {
+								if (typeof stdout === "string") {
+									let magicMime = _.trimEnd(stdout.substr(stdout.lastIndexOf(" ") + 1), "\n");
+									trace.debug("Magic mime type for %s is %s.", fileName, magicMime);
+									if (magicMime) {
+										if (extension) {
+											if (!extTypeCounter[extension]) {
+												extTypeCounter[extension] = {};
+											}
+											let hitCounters = extTypeCounter[extension];
+											if (!hitCounters[magicMime]) {
+												hitCounters[magicMime] = [];
+											}
+											hitCounters[magicMime].push(fileName);
 										} else {
+											if (!this.files[fileName].contentType) {
+												this.files[fileName].contentType = magicMime;
+											}
+										}
+									} else {
+										if (stderr) {
+											if (this.files[fileName].addressable) {
+												reject(stderr);
+											} else {
+												this.files[fileName].contentType = "application/octet-stream";
+											}
+										} else {
+											if (this.files[fileName].addressable) {
+												trace.warn("Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", fileName);
+											}
 											this.files[fileName].contentType = "application/octet-stream";
 										}
-									} else {
-										if (this.files[fileName].addressable) {
-											trace.warn("Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.", fileName);
-										}
-										this.files[fileName].contentType = "application/octet-stream";
 									}
 								}
 							}
