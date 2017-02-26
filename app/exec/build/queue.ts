@@ -84,6 +84,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		trace.info("queue time      	: %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
 		trace.info("version			: %s", build.sourceVersion ? build.sourceVersion : "latest")
 		trace.info("branch / shelveset 	: %s", build.sourceBranch ? build.sourceBranch :"master (no shelveset)")
+		trace.println();
 	}
 
 	private _queueBuild(buildapi: buildClient.IBuildApi,
@@ -125,6 +126,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 			return buildapi.queueBuild(build, project).then((queuedBuild) => {
 				trace.info("waiting for build %s to complete",queuedBuild.buildNumber);
 					var counter: number = 0;
+					var currentOperation:string ;
 					var time = setInterval(function(){
 						counter++;
 						return buildapi.updateBuild(queuedBuild,queuedBuild.id).then((updatedQueuedBuild) =>{
@@ -134,18 +136,30 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 									trace.warn("stopped waiting for build to complete, due to timeout expiration (%s Seconds)",timeout)
 									process.exitCode = 5;
 								} else {
-									trace.println();
-									
 									if (updatedQueuedBuild.result == buildContracts.BuildResult.Succeeded){
-										trace.info("build %s Completed Successfully in %s Seconds",updatedQueuedBuild.buildNumber,counter); 
+										trace.println();
+										trace.info("build %s Completed Successfully in %s Seconds",updatedQueuedBuild.buildNumber,counter);
 									} else {
 										trace.warn("build %s Completed in %s Seconds with result %s",updatedQueuedBuild.buildNumber,counter,buildContracts.BuildResult[updatedQueuedBuild.result]);
+										trace.println();
 										process.exitCode = 1; 
 									}
 								}								
 								clearInterval(time);
-							} else {
-								process.stdout.write(".");
+							} else {							
+								return buildapi.getBuildTimeline(updatedQueuedBuild.project.name,updatedQueuedBuild.id).then((timeline) => {
+									timeline.records.forEach(Record => {
+										if (Record.currentOperation && Record.currentOperation != "Initializing"){
+											if(Record.currentOperation != currentOperation){
+												process.stdout.write('\n');
+												process.stdout.write(Record.currentOperation.replace("Starting ",""));
+												currentOperation = Record.currentOperation;
+											}									
+										} else {
+											process.stdout.write('.');
+										}
+									});
+								});	
 							}
 						});
 					},1000);
