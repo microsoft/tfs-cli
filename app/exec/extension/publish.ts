@@ -53,7 +53,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 	public exec(): Promise<ExtensionPublishResult> {
 		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 		let result = <ExtensionPublishResult>{};
-		return this.getPublishSettings().then((publishSettings) => {
+		return this.getPublishSettings().then<ExtensionPublishResult>((publishSettings) => {
 			let extensionCreatePromise: Promise<string>;
 			if (publishSettings.vsixPath) {
 				result.packaged = null;
@@ -68,7 +68,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 					return createResult.path;
 				});
 			}
-			return extensionCreatePromise.then((vsixPath) => {
+			return extensionCreatePromise.then<ExtensionPublishResult>((vsixPath) => {
 				publishSettings.vsixPath = vsixPath;
 				let packagePublisher = new publishUtils.PackagePublisher(publishSettings, galleryApi);
 				return packagePublisher.publish().then((ext) => {
