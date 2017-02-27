@@ -368,6 +368,12 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					});
 				}
 				break;
+			case "showpricingcalculator":
+				if (typeof value !== "boolean") {
+					throw new Error("Value for showPricingCalculator is invalid. Only boolean values are allowed.");
+				}
+				this.addProperty("Microsoft.VisualStudio.Services.Content.Pricing.PriceCalculator", value.toString());
+				break;
 		}
 	}
 
