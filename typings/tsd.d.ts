@@ -15,3 +15,4 @@
 /// <reference path="shelljs/shelljs.d.ts" />
 /// <reference path="validator/validator.d.ts" />
 /// <reference path="console/console.d.ts" />
+/// <reference path="uuid/uuid.d.ts" />
