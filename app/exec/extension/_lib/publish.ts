@@ -160,7 +160,7 @@ export class SharingManager extends GalleryBase {
 	}
 
 	public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
-		return this.getExtInfo().then((extInfo) => {
+		return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>((extInfo) => {
 			return this.galleryClient.getExtension(
 				extInfo.publisher,
 				extInfo.id,

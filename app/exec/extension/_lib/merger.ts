@@ -232,7 +232,7 @@ export class Merger {
 		// Make sure locRoot is set, that it refers to a directory, and
 		// iterate each subdirectory of that.
 		if (!this.settings.locRoot) {
-			return Promise.resolve<void[]>(null);
+			return Promise.resolve<LocalizedResources>(null);
 		}
 		let stringsPath = path.resolve(this.settings.locRoot);
 

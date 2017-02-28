@@ -296,7 +296,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						getValuePromises.push(pr);
 					}
 				});
-				return Promise.all(getValuePromises).then(() => {
+				return Promise.all(getValuePromises).then<void>(() => {
 					return args.getOptionsCache().then((existingCache) => {
 						// custom shallow-ish merge of cache properties.
 						let newInThisCommand = _.get(newToCache, cacheKey);

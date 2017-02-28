@@ -6,7 +6,7 @@ import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
-import uuid = require("node-uuid");
+import uuid = require("uuid");
 
 
 export interface TaskCreateResult {

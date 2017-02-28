@@ -25,7 +25,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 	public exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then((taskPaths) => {
 			let taskPath = taskPaths[0];
-			return this.commandArgs.overwrite.val().then((overwrite) => {
+			return this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>((overwrite) => {
 				vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
 				//directory is good, check json
 
@@ -42,7 +42,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 
 					archive.finalize();
-					return agentApi.uploadTaskDefinition(null, archive, taskJson.id, overwrite).then((task) => {
+					return agentApi.uploadTaskDefinition(null, archive, taskJson.id, overwrite).then(() => {
 						trace.debug('Success');
 						return <agentContracts.TaskDefinition>{
 							sourceLocation: taskPath
