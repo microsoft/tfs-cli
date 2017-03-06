@@ -11,7 +11,7 @@ export function getCommand(args: string[]): BuildLogs {
 }
 
 export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-	protected description = "Print build logs.";
+	protected description = "Download build logs to zip archive.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
