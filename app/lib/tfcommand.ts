@@ -78,10 +78,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					}
 				}).then(() => {
 					// Set custom proxy
-					if (os.platform() == 'linux' && process.env.http_proxy && !process.env.HTTP_PROXY) {
-						process.env.HTTP_PROXY = process.env.http_proxy;
-						trace.debug("using system http_proxy")
-					} 
 					return this.commandArgs.proxy.val(true).then((proxy) => {
 						if (proxy) {
 							process.env.HTTP_PROXY = proxy;
@@ -95,6 +91,21 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				}).then(() => {
 					// Set the cached service url
 					return this.commandArgs.serviceUrl.val(true).then((serviceUrl) => {
+						// handle native http_proxy/ no_proxy settings on linux boxes
+						var bypass_proxy = false;
+						var no_proxy: string[] = process.env.no_proxy.split(',');
+						no_proxy.forEach(function (entry) {
+							if (serviceUrl && serviceUrl.indexOf(entry.replace('*', '')) >= 0) {
+								bypass_proxy = true;
+							}
+						})
+						if (os.platform() == 'linux' &&
+							process.env.http_proxy &&
+							!process.env.HTTP_PROXY && 
+							!bypass_proxy) {
+								process.env.HTTP_PROXY = process.env.http_proxy;
+								trace.debug("using system http_proxy")
+							}
 						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"] && common.EXEC_PATH.join("") !== "login") {
 							let diskCache = new DiskCache("tfx");
 							return diskCache.itemExists("cache", "connection").then((isConnection) => {
@@ -106,6 +117,22 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 								}
 								return connectionUrlPromise.then((url) => {
 									if (url) {
+										// handle native http_proxy/ no_proxy settings on linux boxes
+										var bypass_proxy = false;
+										var no_proxy: string[] = process.env.no_proxy.split(',');
+										no_proxy.forEach(function (entry) {
+											if (url.indexOf(entry.replace('*', '')) >= 0) {
+												bypass_proxy = true;
+												process.env.HTTP_PROXY = '';	
+											}
+										})
+										if (os.platform() == 'linux' &&
+											process.env.http_proxy &&
+											!process.env.HTTP_PROXY &&
+											!bypass_proxy) {
+												process.env.HTTP_PROXY = process.env.http_proxy;
+												trace.debug("using system http_proxy")
+											}
 										this.commandArgs.serviceUrl.setValue(url);
 									}
 								});
