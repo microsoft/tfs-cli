@@ -18,6 +18,7 @@ import qfs = require("./qfs");
 import trace = require("./trace");
 import version = require("./version");
 import console = require('console');
+import os = require('os');
 
 export interface CoreArguments {
 	project: args.StringArgument;
@@ -76,7 +77,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 					}
 				}).then(() => {
-					// Set custom proxy 
+					// Set custom proxy
+					if (os.platform() == 'linux' && process.env.http_proxy && !process.env.HTTP_PROXY) {
+						process.env.HTTP_PROXY = process.env.http_proxy;
+						trace.debug("using system http_proxy")
+					} 
 					return this.commandArgs.proxy.val(true).then((proxy) => {
 						if (proxy) {
 							process.env.HTTP_PROXY = proxy;
