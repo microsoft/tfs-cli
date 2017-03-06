@@ -27,6 +27,7 @@ export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, bui
 					return buildapi.getBuildLogsZip(build.project.name, build.id).then((stream) => {
 						var archiveName = build.definition.name + "-" + build.buildNumber + "_" + build.id + ".zip";
 						trace.info('Downloading ... ');
+						trace.info('File: %s Created', archiveName);
 						stream.pipe(fs.createWriteStream(archiveName));
 						return build;
 					});
@@ -39,10 +40,7 @@ export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, bui
 			throw new Error("no build supplied");
 		}
 		trace.println();
-		trace.info("id              : %s", build.id);
-		trace.info("definition name : %s", build.definition ? build.definition.name : "unknown");
-		trace.info("requested by    : %s", build.requestedBy ? build.requestedBy.displayName : "unknown");
-		trace.info("status          : %s", buildContracts.BuildStatus[build.status]);
-		trace.info("queue time      : %s", build.queueTime ? build.queueTime.toJSON() : "unknown");
+		trace.info("build id	: %s", build.id);
+		trace.info("Logs location	: %s", build.logs.url);
 	}
 }
