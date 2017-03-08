@@ -15,7 +15,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	protected description = "Show / Update task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId","agentId", "agentName","userCapabilityKey","userCapabilityValue","disable"];
+		return ["poolId","agentId", "agentName","userCapabilityKey","userCapabilityValue","disable","parallel"];
 	}
 
 	public exec(): Promise<taskAgentContracts.TaskAgent> {
@@ -27,9 +27,10 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 			this.commandArgs.poolId.val(),
 			this.commandArgs.userCapabilityKey.val(),
 			this.commandArgs.userCapabilityValue.val(),
-			this.commandArgs.disable.val()
+			this.commandArgs.disable.val(),
+			this.commandArgs.parallel.val()
 		]).then((values) => {
-			const [agentid, agentname, pool, newkey, value, disable] = values;
+			const [agentid, agentname, pool, newkey, value, disable, maxParallel] = values;
 			var agents: number[] = null;
 			trace.debug("getting pool  : %s",pool);
 			trace.debug("getting agent (id) : %s", agentid);
@@ -45,7 +46,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 						var aid = ao[0].id;
 						var an = ao[0].name;
 						trace.debug("found, agent id %s for agent name %s",aid, an);
-						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string); 
+						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string, maxParallel ? maxParallel as number : 1 ); 
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
@@ -54,7 +55,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				});
 			}
 			trace.debug("disable request: %s",disable);
-			return this._getOrUpdateAgent(agentapi, pool as number,agentid as number,newkey as string,value as string,include,disable as string);	
+			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, maxParallel ? maxParallel as number : 1);	
 			});
 		};
 	
@@ -68,6 +69,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 		trace.info("Version         	: %s", agent.version ? agent.version : "unknown");
 		trace.info("status          	: %s", agent.status ? taskAgentContracts.TaskAgentStatus[agent.status] : "unknown");
 		trace.info("enabled		      	: %s", agent.enabled ? agent.enabled : "unknown");
+		trace.info("maxParallelism		: %s", agent.maxParallelism);
 		if (agent.systemCapabilities){
 			trace.info("System capabilities : ");
 		}
@@ -81,9 +83,13 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				trace.info("	%s : %s", key ,agent.userCapabilities[key]);
 		}
 	}
-	private _getOrUpdateAgent(agentapi:  agentClient.ITaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string ) {
+	private _getOrUpdateAgent(agentapi:  agentClient.ITaskAgentApiBase,pool: number,agentid: number, newkey: string, value: string, include: boolean, disable: string , Parallel: number) {
 			return agentapi.getAgent(pool,agentid,true,true,null).then((agent) => {
 			trace.debug("disable request: %s",disable);
+			if (Parallel) {
+				agent.maxParallelism = Parallel;
+				agentapi.updateAgent(agent, pool, agentid);
+			}
 			if (disable) {
 				if (disable == "true") {
 						include = false;

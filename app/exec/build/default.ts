@@ -20,6 +20,7 @@ export interface BuildArguments extends CoreArguments {
 	disable: args.StringArgument;
 	wait: args.BooleanArgument;
 	timeout: args.IntArgument;
+	parallel: args.IntArgument;
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
@@ -51,6 +52,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("disable","disable / enable agent","Update the agent status.",args.StringArgument,null);
 		this.registerCommandArgument("wait","wait for the build","wait for the triggered build",args.BooleanArgument,"false");
 		this.registerCommandArgument("timeout","max time to wait","Maximum time to wait for the build to complete (in seconds).",args.IntArgument,"0");
+		this.registerCommandArgument("parallel", "max agent parallelism", "Maximum parallel agent runs.", args.IntArgument, null);
 	}
 
 	public exec(cmd?: any): Promise<any> {
