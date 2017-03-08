@@ -46,7 +46,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 						var aid = ao[0].id;
 						var an = ao[0].name;
 						trace.debug("found, agent id %s for agent name %s",aid, an);
-						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string, maxParallel ? maxParallel as number : 1 ); 
+						return this._getOrUpdateAgent(agentapi, pool as number,aid,newkey as string,value as string,include,disable as string, maxParallel as number ); 
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
@@ -55,7 +55,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				});
 			}
 			trace.debug("disable request: %s",disable);
-			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, maxParallel ? maxParallel as number : 1);	
+			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, maxParallel as number);	
 			});
 		};
 	
