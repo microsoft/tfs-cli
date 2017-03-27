@@ -24,7 +24,8 @@ export abstract class Argument<T> {
 		public friendlyName: string = name,
 		public description?: string,
 		givenValue?: string[] | string,
-		public hasDefaultValue?: boolean) {
+		public hasDefaultValue?: boolean,
+		public aliases?: string[]) {
 
 		if (typeof givenValue === "string") {
 			this.givenValue = [givenValue];

@@ -21,7 +21,7 @@ export function getCommand(): Promise<TFXCommand> {
 		let currentHierarchy = hierarchy;
 		let inArgs = false;
 		args.forEach((arg) => {
-			if (arg.substr(0, 2) === "--" || inArgs) {
+			if (arg.substr(0, 1) === "-" || inArgs) {
 				commandArgs.push(arg);
 				inArgs = true;
 			} else if ((currentHierarchy && currentHierarchy[arg] !== undefined)) {
