@@ -41,7 +41,7 @@ export class ShowEndpoint extends TfCommand<EndpointArguments, taskAgentContract
 
     public friendlyOutput(data: taskAgentContracts.ServiceEndpoint): void {
         if (!data) {
-            throw new Error('no definitions supplied');
+            throw new Error('no endpoints supplied');
         }
 
         trace.println();
