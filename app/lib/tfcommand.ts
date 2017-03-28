@@ -21,6 +21,7 @@ import console = require('console');
 import os = require('os');
 
 export interface CoreArguments {
+	[key: string]: args.Argument<any>;
 	project: args.StringArgument;
 	root: args.ExistingDirectoriesArgument;
 	authType: args.StringArgument;
@@ -166,6 +167,17 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 					group[currentArg] = [];
 					return;
 				}
+				// short args/alias support - allow things like -abc "cat" "dog"
+				// which means the same as --arg-a --arg-b --arg-c "cat" "dog"
+				if (_.startsWith(arg, "-")) {
+					const shorthandArgs = arg.substr(1).split("");
+					for (const shArg of shorthandArgs) {
+						const shorthandArg = "-" + shArg;
+						group[shorthandArg] = [];
+						currentArg = shorthandArg;
+					}
+					return;
+				}
 				if (currentArg) {
 					group[currentArg].push(arg);
 				}
@@ -177,17 +189,32 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	}
 
 	protected registerCommandArgument<T extends args.Argument<any>>(
-		name: string,
+		name: string | string[],
 		friendlyName: string,
 		description: string,
-		ctor: new (name: string, friendlyName: string, description: string, value: string | string[], hasDefaultValue?: boolean) => T,
+		ctor: new (name: string, friendlyName: string, description: string, value: string | string[], hasDefaultValue?: boolean, argAliases?: string[]) => T,
 		defaultValue?: string | string[]): void {
 
+		const fixedArgNames = (typeof name === "string" ? [name] : name).map(a => a.substr(0, 2) === "--" ? a.substr(0, 2) : a);
+		const argName = fixedArgNames[0];
+		const argAliases = fixedArgNames.slice(1);
+
 		let groupedArgs = this.getGroupedArgs();
-		if (groupedArgs[name]) {
-			this.commandArgs[name] = new ctor(name, friendlyName, description, groupedArgs[name]);
+
+		let argValue = groupedArgs[argName];
+		if (argValue === undefined) {
+			for (const alias of argAliases) {
+				if (groupedArgs[alias]) {
+					argValue = groupedArgs[alias];
+					break;
+				}
+			}
+		}
+
+		if (argValue) {
+			this.commandArgs[argName] = new ctor(argName, friendlyName, description, argValue, false, argAliases);
 		} else {
-			this.commandArgs[name] = new ctor(name, friendlyName, description, defaultValue, true);
+			this.commandArgs[argName] = new ctor(argName, friendlyName, description, defaultValue, true, argAliases);
 		}
 	}
 
@@ -195,20 +222,20 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Register arguments that may be used with this command.
 	 */
 	protected setCommandArgs(): void {
-		this.registerCommandArgument("project", "Project name", null, args.StringArgument);
-		this.registerCommandArgument("root", "Root directory", null, args.ExistingDirectoriesArgument, ".");
-		this.registerCommandArgument("authType", "Authentication Method", "Method of authentication ('pat' or 'basic').", args.StringArgument, "pat");
-		this.registerCommandArgument("serviceUrl", "Service URL", "URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.", args.StringArgument);
-		this.registerCommandArgument("password", "Password", "Password to use for basic authentication.", args.SilentStringArgument);
-		this.registerCommandArgument("token", "Personal access token", null, args.SilentStringArgument);
-		this.registerCommandArgument("save", "Save settings", "Save arguments for the next time a command in this command group is run.", args.BooleanArgument, "false");
-		this.registerCommandArgument("username", "Username", "Username to use for basic authentication.", args.StringArgument);
-		this.registerCommandArgument("output", "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
-		this.registerCommandArgument("json", "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
-		this.registerCommandArgument("fiddler", "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
-		this.registerCommandArgument("proxy", "Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
-		this.registerCommandArgument("help", "Help", "Get help for any command.", args.BooleanArgument, "false");
-		this.registerCommandArgument("noPrompt", "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
+		this.registerCommandArgument(["project", "-p"], "Project name", null, args.StringArgument);
+		this.registerCommandArgument(["root", "-r"], "Root directory", null, args.ExistingDirectoriesArgument, ".");
+		this.registerCommandArgument(["authType"], "Authentication Method", "Method of authentication ('pat' or 'basic').", args.StringArgument, "pat");
+		this.registerCommandArgument(["serviceUrl", "-u"], "Service URL", "URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.", args.StringArgument);
+		this.registerCommandArgument(["password"], "Password", "Password to use for basic authentication.", args.SilentStringArgument);
+		this.registerCommandArgument(["token", "-t"], "Personal access token", null, args.SilentStringArgument);
+		this.registerCommandArgument(["save"], "Save settings", "Save arguments for the next time a command in this command group is run.", args.BooleanArgument, "false");
+		this.registerCommandArgument(["username"], "Username", "Username to use for basic authentication.", args.StringArgument);
+		this.registerCommandArgument(["output"], "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
+		this.registerCommandArgument(["json"], "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
+		this.registerCommandArgument(["fiddler"], "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
+		this.registerCommandArgument(["proxy"],"Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
+		this.registerCommandArgument(["help", "-h"], "Help", "Get help for any command.", args.BooleanArgument, "false");
+		this.registerCommandArgument(["noPrompt"], "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
 
 	/**
@@ -380,7 +407,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			// Need help with a particular command
 			let singleArgData = (argName: string, maxArgLen: number) => {
 				let argKebab = _.kebabCase(argName);
-				let argObj = this.commandArgs[argName];
+				const argObj = this.commandArgs[argName];
+				const shorthandArg = argObj.aliases.filter(a => a.length === 2 && a.substr(0, 1) === "-")[0];
+				if (shorthandArg) {
+					argKebab = `${argKebab}, ${shorthandArg}`;
+				}
+
 				return "  --" +
 					argKebab + "  " +
 					repeatStr(" ", maxArgLen - argKebab.length) +
@@ -426,7 +458,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 		} else {
 			// Need help with a suite of commands
-			// There is a weird coloring bug when colors are nested, so we don"t do that.
+			// There is a weird coloring bug when colors are nested, so we don't do that.
 			result += cyan("Available ") +
 				"commands" +
 				cyan(" and ") +
