@@ -34,11 +34,11 @@ export class ListEndpoints extends TfCommand<CoreArguments, taskAgentContracts.S
 
     public friendlyOutput(data: taskAgentContracts.ServiceEndpoint[]): void {
         if (!data) {
-            throw new Error('no definitions supplied');
+            throw new Error('no endpoints supplied');
         }
 
         if (!(data instanceof Array)) {
-            throw new Error('expected an array of definitions');
+            throw new Error('expected an array of endpoints');
         }
 
         data.forEach((endpoint) => {
