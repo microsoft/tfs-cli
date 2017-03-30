@@ -50,42 +50,36 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 			"vsix", "shareWith"];
 	}
 
-	public exec(): Promise<ExtensionPublishResult> {
+	public async exec(): Promise<ExtensionPublishResult> {
 		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 		let result = <ExtensionPublishResult>{};
-		return this.getPublishSettings().then<ExtensionPublishResult>((publishSettings) => {
-			let extensionCreatePromise: Promise<string>;
-			if (publishSettings.vsixPath) {
-				result.packaged = null;
-				extensionCreatePromise = Q.resolve(publishSettings.vsixPath);
-			} else {
-				extensionCreatePromise = this.getMergeSettings().then((mergeSettings) => {
-					return this.getPackageSettings().then((packageSettings) => {
-						return createExtension(mergeSettings, packageSettings);
-					});
-				}).then((createResult) => {
-					result.packaged = createResult.path;
-					return createResult.path;
-				});
-			}
-			return extensionCreatePromise.then<ExtensionPublishResult>((vsixPath) => {
-				publishSettings.vsixPath = vsixPath;
-				let packagePublisher = new publishUtils.PackagePublisher(publishSettings, galleryApi);
-				return packagePublisher.publish().then((ext) => {
-					result.published = true;
-					if (publishSettings.shareWith && publishSettings.shareWith.length >= 0) {
-						let sharingMgr = new publishUtils.SharingManager(publishSettings, galleryApi);
-						return sharingMgr.shareWith(publishSettings.shareWith).then(() => {
-							result.shared = publishSettings.shareWith;
-							return result;
-						});
-					} else {
-						result.shared = null;
-						return result;
-					}
-				});
-			});
-		});
+
+		const publishSettings = await this.getPublishSettings();
+
+		let extensionCreatePromise: Promise<string>;		
+		let createdExtensionVsixPath: string;
+		if (publishSettings.vsixPath) {
+			result.packaged = null;
+			createdExtensionVsixPath = publishSettings.vsixPath;
+		} else {
+			// Run two async operations in parallel and destructure the result.
+			const [mergeSettings, packageSettings] = await Promise.all([this.getMergeSettings(), this.getPackageSettings()]);
+			const createdExtension = await createExtension(mergeSettings, packageSettings);
+			result.packaged = createdExtension.path;
+			createdExtensionVsixPath = createdExtension.path;
+		}
+		publishSettings.vsixPath = createdExtensionVsixPath;
+		const packagePublisher = new publishUtils.PackagePublisher(publishSettings, galleryApi);
+		const publishedExtension = await packagePublisher.publish();
+		result.published = true;
+		if (publishSettings.shareWith && publishSettings.shareWith.length >= 0) {
+			const sharingMgr = new publishUtils.SharingManager(publishSettings, galleryApi);
+			await sharingMgr.shareWith(publishSettings.shareWith);
+			result.shared = publishSettings.shareWith;
+		} else {
+			result.shared = null;
+		}
+		return result;
 	}
 
 	protected friendlyOutput(data: ExtensionPublishResult): void {
