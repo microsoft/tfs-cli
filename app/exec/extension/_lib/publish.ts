@@ -209,7 +209,7 @@ export class PackagePublisher extends GalleryBase {
 
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
 		trace.info("Checking if this extension is already published");
-		return this.createOrUpdateExtension(extPackage).then((ext) => {
+		return this.createOrUpdateExtension(fs.createReadStream(this.settings.vsixPath)).then((ext) => {
 			trace.info("Waiting for server to validate extension package...");
 			let versions = ext.versions;
 			versions.sort((a, b) => {
@@ -227,15 +227,15 @@ export class PackagePublisher extends GalleryBase {
 		});
 	}
 
-	private createOrUpdateExtension(extPackage: GalleryInterfaces.ExtensionPackage): Promise<GalleryInterfaces.PublishedExtension> {
+	private createOrUpdateExtension(extPackage: NodeJS.ReadableStream): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then((extInfo) => {
 			let publishPromise;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
-				publishPromise = this.galleryClient.updateExtension(extPackage, extInfo.publisher, extInfo.id).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id).catch(errHandler.httpErr);
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-				publishPromise = this.galleryClient.createExtension(extPackage).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
 			}
 			return publishPromise.then(() => {
 				return this.galleryClient.getExtension(extInfo.publisher, extInfo.id, null, GalleryInterfaces.ExtensionQueryFlags.IncludeVersions);
