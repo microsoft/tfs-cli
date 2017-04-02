@@ -7,7 +7,7 @@ import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
-import { cyan, gray, green, yellow, magenta, reset as resetColors } from "colors";
+import {blue, cyan, gray, green, yellow, magenta, reset as resetColors} from "colors";
 import command = require("../lib/command");
 import common = require("./common");
 import copypaste = require("copy-paste");
@@ -188,6 +188,20 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		return this.groupedArgs;
 	}
 
+	/**
+	 * Registers an argument that this command can accept from the command line
+	 * 
+	 * @param name Name of the argument. This is what is passed in on the command line, e.g. "authType" 
+	 *        is passed in with --auth-type. Can be an array for aliases, but the first item is how the
+	 *        argument's value is accessed, e.g. this.commandArgs.authType.val().
+	 *        An argument can have one shorthand argument: a dash followed by a single letter. This is
+	 *        passed at the command line with a single dash, e.g. -u. Multiple boolean shorthand arguments
+	 *        can be passed with a single dash: -abcd. See setCommandArgs for usage examples.
+	 * @param friendlyName Name to display to the user in help.
+	 * @param description Description to display in help.
+	 * @param ctor Constructor for the type of argument this is (e.g. string, number, etc.)
+	 * @param defaultValue Default value of the argument, null for no default, undefined to prompt the user.
+	 */
 	protected registerCommandArgument<T extends args.Argument<any>>(
 		name: string | string[],
 		friendlyName: string,
@@ -382,6 +396,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	public getHelp(cmd: command.TFXCommand): Promise<string> {
 		this.commandArgs.output.setValue("help");
 		let result = eol;
+<<<<<<< HEAD
 		result += ["                        fTfs         ",
 			"                      fSSSSSSSs      ",
 			"                    fSSSSSSSSSS      ",
@@ -398,6 +413,8 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			"                        FSFs    (TM) "].
 			map(l => magenta(l)).join(eol) + eol + eol;
 
+=======
+>>>>>>> upstream/master
 		let continuedHierarchy: command.CommandHierarchy = cmd.commandHierarchy;
 		cmd.execPath.forEach((segment) => {
 			continuedHierarchy = continuedHierarchy[segment];
