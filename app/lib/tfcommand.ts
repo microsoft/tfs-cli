@@ -7,7 +7,7 @@ import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
-import {blue, cyan, gray, green, yellow, magenta, reset as resetColors} from "colors";
+import { blue, cyan, gray, green, yellow, magenta, reset as resetColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
 import copypaste = require("copy-paste");
@@ -17,8 +17,6 @@ import Q = require("q");
 import qfs = require("./qfs");
 import trace = require("./trace");
 import version = require("./version");
-import console = require('console');
-import os = require('os');
 
 export interface CoreArguments {
 	[key: string]: args.Argument<any>;
@@ -78,7 +76,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 					}
 				}).then(() => {
-					// Set custom proxy
+					// Set custom proxy 
 					return this.commandArgs.proxy.val(true).then((proxy) => {
 						if (proxy) {
 							process.env.HTTP_PROXY = proxy;
@@ -92,21 +90,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				}).then(() => {
 					// Set the cached service url
 					return this.commandArgs.serviceUrl.val(true).then((serviceUrl) => {
-						// handle native http_proxy/ no_proxy settings on linux boxes
-						var bypass_proxy = false;
-						var no_proxy: string[] = process.env.no_proxy ? process.env.no_proxy.split(',') : [];
-						no_proxy.forEach(function (entry) {
-							if (serviceUrl && serviceUrl.indexOf(entry.replace('*', '')) >= 0) {
-								bypass_proxy = true;
-							}
-						})
-						if (os.platform() == 'linux' &&
-							process.env.http_proxy &&
-							!process.env.HTTP_PROXY &&
-							!bypass_proxy) {
-							process.env.HTTP_PROXY = process.env.http_proxy;
-							trace.debug("using system http_proxy")
-						}
 						if (!serviceUrl && !process.env["TFX_BYPASS_CACHE"] && common.EXEC_PATH.join("") !== "login") {
 							let diskCache = new DiskCache("tfx");
 							return diskCache.itemExists("cache", "connection").then((isConnection) => {
@@ -118,22 +101,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 								}
 								return connectionUrlPromise.then((url) => {
 									if (url) {
-										// handle native http_proxy/ no_proxy settings on linux boxes
-										var bypass_proxy = false;
-										var no_proxy: string[] = process.env.no_proxy ? process.env.no_proxy.split(',') : [];
-										no_proxy.forEach(function (entry) {
-											if (url.indexOf(entry.replace('*', '')) >= 0) {
-												bypass_proxy = true;
-												process.env.HTTP_PROXY = '';
-											}
-										})
-										if (os.platform() == 'linux' &&
-											process.env.http_proxy &&
-											!process.env.HTTP_PROXY &&
-											!bypass_proxy) {
-											process.env.HTTP_PROXY = process.env.http_proxy;
-											trace.debug("using system http_proxy")
-										}
 										this.commandArgs.serviceUrl.setValue(url);
 									}
 								});
@@ -247,7 +214,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		this.registerCommandArgument(["output"], "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
 		this.registerCommandArgument(["json"], "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
 		this.registerCommandArgument(["fiddler"], "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
-		this.registerCommandArgument(["proxy"],"Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
+		this.registerCommandArgument(["proxy"], "Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
 		this.registerCommandArgument(["help", "-h"], "Help", "Get help for any command.", args.BooleanArgument, "false");
 		this.registerCommandArgument(["noPrompt"], "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
@@ -396,25 +363,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	public getHelp(cmd: command.TFXCommand): Promise<string> {
 		this.commandArgs.output.setValue("help");
 		let result = eol;
-<<<<<<< HEAD
-		result += ["                        fTfs         ",
-			"                      fSSSSSSSs      ",
-			"                    fSSSSSSSSSS      ",
-			"     TSSf         fSSSSSSSSSSSS      ",
-			"     SSSSSF     fSSSSSSST SSSSS      ",
-			"     SSfSSSSSsfSSSSSSSt   SSSSS      ",
-			"     SS  tSSSSSSSSSs      SSSSS      ",
-			"     SS   fSSSSSSST       SSSSS      ",
-			"     SS fSSSSSFSSSSSSf    SSSSS      ",
-			"     SSSSSST    FSSSSSSFt SSSSS      ",
-			"     SSSSt        FSSSSSSSSSSSS      ",
-			"                    FSSSSSSSSSS      ",
-			"                       FSSSSSSs      ",
-			"                        FSFs    (TM) "].
-			map(l => magenta(l)).join(eol) + eol + eol;
-
-=======
->>>>>>> upstream/master
 		let continuedHierarchy: command.CommandHierarchy = cmd.commandHierarchy;
 		cmd.execPath.forEach((segment) => {
 			continuedHierarchy = continuedHierarchy[segment];
