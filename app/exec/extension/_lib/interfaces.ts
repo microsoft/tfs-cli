@@ -153,7 +153,12 @@ export interface MergeSettings {
 	 * True to rev the version of the extension before packaging.
 	 */
 	revVersion: boolean;
-
+	
+	/**
+	 * Path to the generated vsix
+	 */
+	outputPath: string;
+	
 	/**
 	 * Path to the root of localized resource files
 	 */
