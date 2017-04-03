@@ -52,7 +52,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
                     defpath = definitionPath as string;
                 }
                 if (fs.existsSync(defpath) && !overwrite) {
-                    return <any>Promise.reject(new Error("Build definition file already exists"));
+                    return null//<any>Promise.reject(new Error("Build definition file already exists"));
                 }
                 fs.writeFileSync(defpath, JSON.stringify(definition, null, '  '));
                 return definition;

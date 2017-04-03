@@ -49,7 +49,7 @@ export class ExportTemplate extends TfCommand<ExportTemplateArguments, buildCont
                     tempPath = templatePath as string;
                 }
                 if (fs.existsSync(tempPath.toString()) && !overwrite) {
-                    return <any>Promise.reject(new Error("Build template file already exists"));
+                    return null//<any>Promise.reject(new Error("Build template file already exists"));
                 }
                 fs.writeFileSync(tempPath.toString(), JSON.stringify(template, null, '  '));
                 return template;

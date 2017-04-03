@@ -116,7 +116,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
             parameters: parameters,
 			sourceVersion: version,
 			sourceBranch: shelveset,
-            demands: demandList ? demandList : [("%s",demands)]
+            demands: demandList ? demandList : [(demands)]
             
 		};
         if (!wait){
