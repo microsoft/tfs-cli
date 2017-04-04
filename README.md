@@ -129,8 +129,9 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Manual installation (from sources)
 * refer to installation for your OS (and follow the installation steps).
 * clone the repository.
-* to compile the sources run:
+* to compile the sources run (see additional node modules):
 ```bash 
+npm update
 npm run build `(from the repository root)`
 ```
 `link the executable (and make executable)`
@@ -151,7 +152,7 @@ replace the content of `%appdata%\npm\tfx.cmd` with the following:
 )
 ```
 ### additional node modules
-`run "npm update" or install the following modules (this may need to happen befor compilation)`
+`run "npm outdated / update" to resolve modules dependecy or install the following modules (this may need to happen befor compilation)`
 ```bash
 npm install archiver colors graceful-fs gulp-filter gulp-mocha gulp-tsb gulp-util is-utf8 pug jszip node-uuid prompt q readable-stream ts-promise typescript unique-stream user-home validator vso-node-api xml2js del os-homedir copy-paste shelljs lodash minimatch@3.0.2 pretty-hrtime liftoff tildify interpret v8flags minimist onecolor winreg glob json-in-place mkdirp
 ```
