@@ -40,12 +40,17 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 		trace.info("Deleting build...")
         buildapi.deleteBuild(buildId,project)
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
-        build.deleted = true;
-            if (build.deleted) {
-                trace.info("build deleted")
-            } else {
-                trace.error("failed to delete")  
-            }
+        if (!build.keepForever) {
+			build.deleted = true;
+			if (build.deleted) {
+				trace.info("build deleted")
+			} else {
+				trace.error("failed to delete")
+			}
+		} else {
+			trace.warn("build is marked for retention");
+		}
+			
         });
 	}
 }
