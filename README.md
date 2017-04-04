@@ -10,7 +10,7 @@ First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM 
 
 ### Linux/OSX
 ```bash
-sudo npm install -g tfx-cli
+sudo -E npm install -g tfx-cli
 ```
 
 ### Windows
