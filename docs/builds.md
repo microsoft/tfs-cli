@@ -17,13 +17,13 @@ OR
 
 ```txt
 Additional optional Parameters
-  --parameters	- Build process Parameters JSON file / string.
-  --priority	- Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).
-  --version		- the source version for the queued build.
-  --shelveset	- the shelveset to queue in the build.
-  --demands		- Demands string [semi-colon separator] for Queued Build [key / key -equals value].
-  --wait		- wait for the triggered build
-  --timeout		- Maximum time to wait for the build to complete (in seconds).
+  --parameters    - Build process Parameters JSON file / string.
+  --priority    - Queue a build with priority 1 [High] - 5 [Low] default = 3 [Normal]).
+  --version   - the source version for the queued build.
+  --shelveset   - the shelveset to queue in the build.
+  --demands   - Demands string [semi-colon separator] for Queued Build [key / key -equals value].
+  --wait    - wait for the triggered build
+  --timeout   - Maximum time to wait for the build to complete (in seconds).
 ```
 
 ####Example
