@@ -21,7 +21,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		return ["project", "buildId"];
 	}
 
-	public exec(): Promise<void> {
+	public exec(): Promise<buildContracts.Build> {
 		trace.debug("keep-build.exec");
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
@@ -46,6 +46,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
                 trace.warn("Build %s Retained indefinatly", build.buildNumber);
                 build.keepForever = true;                  
             }
+			return buildapi.updateBuild(build,build.id);
         });
 	}
 }
