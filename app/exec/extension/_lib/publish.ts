@@ -43,18 +43,19 @@ export class GalleryBase {
 			this.vsixInfoPromise = GalleryBase.getExtInfo({
 				extensionId: this.settings.extensionId,
 				publisher: this.settings.publisher,
-				vsixPath: this.settings.vsixPath});
+				vsixPath: this.settings.vsixPath
+			});
 		}
 		return this.vsixInfoPromise;
 	}
 
-	public static getExtInfo(info: {extensionId?: string, publisher?: string, vsixPath?: string}): Promise<CoreExtInfo> {
+	public static getExtInfo(info: { extensionId?: string, publisher?: string, vsixPath?: string }): Promise<CoreExtInfo> {
 		let promise: Promise<CoreExtInfo>;
 		if (info.extensionId && info.publisher) {
-			promise = Q.resolve({id: info.extensionId, publisher: info.publisher, version: null});
+			promise = Q.resolve({ id: info.extensionId, publisher: info.publisher, version: null });
 		} else {
 			promise = Q.Promise<JSZip>((resolve, reject, notify) => {
-				fs.readFile(info.vsixPath, function(err, data) {
+				fs.readFile(info.vsixPath, function (err, data) {
 					if (err) reject(err);
 					trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
 					try {
@@ -76,7 +77,7 @@ export class GalleryBase {
 				let extensionPublisher: string = info.publisher || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
 				let extensionVersion: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
 				if (extensionId && extensionPublisher) {
-					return {id: extensionId, publisher: extensionPublisher, version: extensionVersion};
+					return { id: extensionId, publisher: extensionPublisher, version: extensionVersion };
 				} else {
 					throw "Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property, or specify the necessary --publisher and/or --extension options.";
 				}
@@ -166,12 +167,12 @@ export class SharingManager extends GalleryBase {
 				extInfo.id,
 				null,
 				GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
-					GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
-					GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
-					GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
+				GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
+				GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
+				GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
 
 					return extension;
-			}).catch(errHandler.httpErr);
+				}).catch(errHandler.httpErr);
 		});
 	}
 }
@@ -191,7 +192,7 @@ export class PackagePublisher extends GalleryBase {
 					return extInfo;
 				}
 				return extInfo;
-			}).catch<{id: string, publisher: string, version: string}>(() => extInfo);
+			}).catch<{ id: string, publisher: string, version: string }>(() => extInfo);
 		});
 	}
 
