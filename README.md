@@ -133,11 +133,11 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ```bash 
 npm run build `(from the repository root)`
 ```
-`link the executable`
-
+`link the executable (and make executable)`
 ### Linux (bash)
 ```bash
 sudo ln -s <repository root>\app.js /usr/bin/tfx
+sudo chmod 755 /usr/bin/tfx
 ```
 ### windows 
 replace the content of `%appdata%\npm\tfx.cmd` with the following: 
