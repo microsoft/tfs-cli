@@ -202,6 +202,16 @@ export abstract class ManifestBuilder {
 			file.partName = file.packagePath;
 		}
 
+		if (_.isArray(file.partName)) {
+			let lastAdd = null;
+			for (let i = 0; i < file.partName.length; ++i) {
+				const newFile = {...file};
+				newFile.partName = file.partName[i];
+				lastAdd = this.addFile(newFile);
+			}
+			return lastAdd;
+		}
+
 		if (typeof file.assetType === "string") {
 			file.assetType = [<string>file.assetType];
 		}
@@ -239,8 +249,22 @@ export abstract class ManifestBuilder {
 			let existPartName = this.lcPartNames[file.partName.toLowerCase()];
 			if (!existPartName || file.partName === existPartName) {
 				// key off a guid if there is no file path.
-				this.packageFiles[file.path || common.newGuid()] = file;
-				this.lcPartNames[file.partName.toLowerCase()] = file.partName;
+				const key = file.path || common.newGuid()
+				if (this.packageFiles[key]) {
+
+					// Additional package paths is an UNSUPPORTED and UNDOCUMENTED feature.
+					// It may trample on other existing files with no warning or error.
+					// Use at your own risk.
+					const additionalPackagePaths = (this.packageFiles[key] as any)._additionalPackagePaths;
+					if (additionalPackagePaths) {
+						additionalPackagePaths.push(file.partName);
+					} else {
+						(this.packageFiles[key] as any)._additionalPackagePaths = [file.partName];
+					}
+				} else {
+					this.packageFiles[key] = file;
+					this.lcPartNames[file.partName.toLowerCase()] = file.partName;
+				}
 			} else {
 				throw new Error("All files in the package must have a case-insensitive unique filename. Trying to add " + file.partName + ", but " + existPartName + " was already added to the package.");
 			}

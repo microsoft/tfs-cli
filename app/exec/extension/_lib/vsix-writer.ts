@@ -112,16 +112,26 @@ export class VsixWriter {
 					let itemName = toZipItemName(builder.files[path].partName);
 					if (!VsixWriter.validatePartName(itemName)) {
 						let eol = require("os").EOL;
-						throw "Part Name '" + itemName + "' is invalid. Please check the following: " + eol  + "1. No whitespace or any of these characters: #^[]<>?" + eol + "2. Cannot end with a period." + eol + "3. No percent-encoded / or \\ characters. Additionally, % must be followed by two hex characters.";
+						throw new Error("Part Name '" + itemName + "' is invalid. Please check the following: " + eol  + "1. No whitespace or any of these characters: #^[]<>?" + eol + "2. Cannot end with a period." + eol + "3. No percent-encoded / or \\ characters. Additionally, % must be followed by two hex characters.");
 					}
 					if (itemName.indexOf(" ") )
 					if (!builder.files[path].content) {
 						let readFilePromise = Q.nfcall(fs.readFile, path).then((result) => {
 							vsix.file(itemName, result);
+							if ((builder.files[path] as any)._additionalPackagePaths) {
+								for (const p of (builder.files[path] as any)._additionalPackagePaths) {
+									vsix.file(p, result);
+								}
+							}
 						});
 						readFilePromises.push(readFilePromise);
 					} else {
 						vsix.file(itemName, builder.files[path].content);
+						if ((builder.files[path] as any)._additionalPackagePaths) {
+							for (const p of (builder.files[path] as any)._additionalPackagePaths) {
+								vsix.file(p, builder.files[path].content);
+							}
+						}
 						readFilePromises.push(Promise.resolve<void>(null));
 					}
 				}
