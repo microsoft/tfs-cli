@@ -16,6 +16,7 @@ Now you can start to use `tfx` against your TFS server. You'll want to `login` b
 
 1. Type `tfx login --auth-type basic`
 2. You will be prompted to add your service Url.
+  * **Note for TFS on-prem**: If the server name is part of the service URL, be sure to specify the fully-qualitifed domain name (FQDN) of that server (i.e. in the form _servername.domain.local_). Otherwise, TFX will fail to connect.
 3. You will be prompted for your username. Use `domain\user` (e.g. fabrikam\peter). If you are on a workgroup machine, use `machinename\username`.
 4. You will be prompted for your password. Enter the password for the username you entered.
 
