@@ -242,7 +242,7 @@ export abstract class ManifestBuilder {
 		// priority than those specified explicitly. Therefore, if
 		// the file has already been added to the package list, don't
 		// re-add (overwrite) with this file if it is an auto (from a dir)
-		if (file.auto && this.packageFiles[file.path]) {
+		if (file.auto && this.packageFiles[file.path] && this.packageFiles[file.path].partName === file.partName) {
 			// Don't add files discovered via directory if they've already
 			// been added.
 		} else {

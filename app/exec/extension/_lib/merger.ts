@@ -307,14 +307,19 @@ export class Merger {
 			});
 		} else {
 			let relativePath = path.relative(root, fsPath);
-			let partName = "/" + relativePath;
+			let partName: any = "/" + relativePath;
 			if (fileDecl.partName || fileDecl.packagePath) {
-				partName = toZipItemName(forwardSlashesPath(_.trimEnd(fileDecl.partName || fileDecl.packagePath, "/") + relativePath.substr(fileDecl.path.length)));
+				partName = fileDecl.partName || fileDecl.packagePath;
+				if (typeof partName === "string") {
+					partName = toZipItemName(forwardSlashesPath(_.trimEnd(partName, "/") + relativePath.substr(fileDecl.path.length)));
+				} else {
+					partName = partName.map(pn => toZipItemName(forwardSlashesPath(_.trimEnd(pn, "/") + relativePath.substr(fileDecl.path.length))));
+				}
 			}
 			
 			files.push({
-				path: relativePath, 
-				partName: partName, 
+				path: relativePath,
+				partName: partName,
 				auto: true, 
 				addressable: fileDecl.addressable
 			});
