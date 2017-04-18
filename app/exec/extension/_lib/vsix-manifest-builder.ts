@@ -675,6 +675,16 @@ export class VsixManifestBuilder extends ManifestBuilder {
 							PartName: "/" + toZipItemName(this.files[filePath].partName)
 						}
 					});
+					if ((this.files[filePath] as any)._additionalPackagePaths) {
+						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {
+							contentTypes.Types.Override.push({
+								$: {
+									ContentType: this.files[filePath].contentType,
+									PartName: "/" + toZipItemName(additionalPath)
+								}
+							});
+						}
+					}
 				}
 			});
 			// Add the Default entries for manifests.
