@@ -15,7 +15,8 @@
     "clean": "rimraf _build",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "buildschema": "typescript-json-schema ./tsconfig.json VssManifest > manifest.schema.json"
   },
   "dependencies": {
     "@types/colors": "^0.6.31",

@@ -1,0 +1,369 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "definitions": {
+        "BadgeDeclaration": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "href": {
+                    "type": "string"
+                },
+                "imgUri": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "uri": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "BrandingDeclaration": {
+            "description": "Describes the extension's branding in the manifest.",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "theme": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ContentDeclaration": {
+            "properties": {
+                "contentType": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ContentsDeclaration": {
+            "additionalProperties": {
+                "$ref": "#/definitions/ContentDeclaration"
+            },
+            "type": "object"
+        },
+        "ContributionDeclaration": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ContributionTypeDeclaration": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "DetailsDeclaration": {
+            "description": "Describes a details file in the manifest",
+            "properties": {
+                "contentType": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "FileDeclaration": {
+            "description": "Describes a file in a manifest",
+            "properties": {
+                "addressable": {
+                    "description": "If true, this asset will be addressable via a public gallery endpoint",
+                    "type": "boolean"
+                },
+                "assetType": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "The type of this asset (Type attribute in the vsixmanifest's <Asset> entry)\nAlso used as the addressable name of this asset (if addressable = true)\nIf a string[] is provided, multiple <Asset> entries will be added."
+                },
+                "auto": {
+                    "description": "True means that this file was added indirectly, e.g. from a directory. Files that have\nauto = true will be overridden by files with the same path that do not.",
+                    "type": "boolean"
+                },
+                "content": {
+                    "description": "If content is not empty, this string will be used as the packaged contents\nrather than the contents of <path> on the file system.",
+                    "type": "string"
+                },
+                "contentType": {
+                    "description": "Manually specified content-type/mime-type. Otherwise, try to automatically determine.",
+                    "type": "string"
+                },
+                "lang": {
+                    "description": "Language of this asset, if any",
+                    "type": "string"
+                },
+                "packagePath": {
+                    "description": "Alias to partName",
+                    "type": "string"
+                },
+                "partName": {
+                    "description": "Path/file name to the file in the archive",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "Path to the file on disk",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "LinkDeclaration": {
+            "description": "Describes a link in the manifest",
+            "properties": {
+                "uri": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Links": {
+            "additionalProperties": {
+                "$ref": "#/definitions/LinkDeclaration"
+            },
+            "description": "Describes a set of links keyed off the link type in the manifest.",
+            "type": "object"
+        },
+        "RepositoryDeclaration": {
+            "properties": {
+                "type": {
+                    "enum": [
+                        "git"
+                    ],
+                    "type": "string"
+                },
+                "uri": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ScreenshotDeclaration": {
+            "description": "Describes a screenshot in the manifest",
+            "properties": {
+                "contentType": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "TargetDeclaration": {
+            "description": "Describes a target in the manifest",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "properties": {
+        "badges": {
+            "items": {
+                "$ref": "#/definitions/BadgeDeclaration"
+            },
+            "type": "array"
+        },
+        "baseuri": {
+            "type": "string"
+        },
+        "branding": {
+            "$ref": "#/definitions/BrandingDeclaration"
+        },
+        "categories": {
+            "anyOf": [
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "content": {
+            "$ref": "#/definitions/ContentsDeclaration"
+        },
+        "contributionTypes": {
+            "items": {
+                "$ref": "#/definitions/ContributionTypeDeclaration"
+            },
+            "type": "array"
+        },
+        "contributions": {
+            "items": {
+                "$ref": "#/definitions/ContributionDeclaration"
+            },
+            "type": "array"
+        },
+        "contributiontypes": {
+            "items": {
+                "$ref": "#/definitions/ContributionTypeDeclaration"
+            },
+            "type": "array"
+        },
+        "description": {
+            "type": "string"
+        },
+        "details": {
+            "$ref": "#/definitions/DetailsDeclaration"
+        },
+        "eventcallbacks": {
+            "properties": {
+            },
+            "type": "object"
+        },
+        "extensionid": {
+            "type": "string"
+        },
+        "files": {
+            "items": {
+                "$ref": "#/definitions/FileDeclaration"
+            },
+            "type": "array"
+        },
+        "flags": {
+            "properties": {
+            },
+            "type": "object"
+        },
+        "galleryflags": {
+            "anyOf": [
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "githubflavoredmarkdown": {
+            "type": "boolean"
+        },
+        "icons": {
+            "additionalProperties": {
+                "type": "string"
+            },
+            "type": "object"
+        },
+        "id": {
+            "type": "string"
+        },
+        "links": {
+            "$ref": "#/definitions/Links"
+        },
+        "manifestVersion": {
+            "type": [
+                "string",
+                "number"
+            ]
+        },
+        "manifestversion": {
+            "type": [
+                "string",
+                "number"
+            ]
+        },
+        "name": {
+            "type": "string"
+        },
+        "namespace": {
+            "type": "string"
+        },
+        "public": {
+            "type": "boolean"
+        },
+        "publisher": {
+            "type": "string"
+        },
+        "releasenotes": {
+            "type": "string"
+        },
+        "repository": {
+            "$ref": "#/definitions/RepositoryDeclaration"
+        },
+        "scopes": {
+            "items": {
+                "type": "string"
+            },
+            "type": "array"
+        },
+        "screenshots": {
+            "items": {
+                "$ref": "#/definitions/ScreenshotDeclaration"
+            },
+            "type": "array"
+        },
+        "showpricingcalculator": {
+            "type": "boolean"
+        },
+        "tags": {
+            "anyOf": [
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        },
+        "targets": {
+            "items": {
+                "$ref": "#/definitions/TargetDeclaration"
+            },
+            "type": "array"
+        },
+        "version": {
+            "type": "string"
+        },
+        "vsoflags": {
+            "properties": {
+            },
+            "type": "object"
+        }
+    },
+    "type": "object"
+}
+

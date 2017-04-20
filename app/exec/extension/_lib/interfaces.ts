@@ -79,22 +79,22 @@ export interface AssetDeclaration {
 /**
  * Describes a screenshot in the manifest
  */
-export interface ScreenshotDeclaration extends AssetDeclaration {
-
-}
+export interface ScreenshotDeclaration extends AssetDeclaration { }
 
 /**
  * Describes a details file in the manifest
  */
-export interface DetailsDeclaration extends AssetDeclaration {
-
+export interface DetailsDeclaration extends AssetDeclaration { }
+export interface ContentDeclaration extends AssetDeclaration { }
+export interface ContentsDeclaration {
+	[key: string]: ContentDeclaration;
 }
-
 /**
  * Describes a link in the manifest
  */
 export interface LinkDeclaration {
-	url: string;
+	url?: string;
+	uri?: string;
 }
 
 /**
@@ -112,12 +112,78 @@ export interface TargetDeclaration {
 	version?: string;
 }
 
+export interface ContributionDeclaration {
+	id: string;
+}
+
+export interface ContributionTypeDeclaration {
+	id: string;
+}
+
+export interface BadgeDeclaration {
+	link?: string;
+	imgUri?: string;
+	description?: string;
+	href?: string;
+	uri?: string
+}
+
+export interface RepositoryDeclaration {
+	type: RepositoryType;
+	url?: string;
+	uri?: string;
+}
+
+export type RepositoryType = 'git';
+
 /**
  * Describes the extension's branding in the manifest.
  */
 export interface BrandingDeclaration {
 	color: string;
 	theme: string;
+}
+
+export interface VssManifest {
+	manifestVersion: string | number;
+	manifestversion: VssManifest['manifestVersion'];
+	targets: TargetDeclaration[];
+	version: string;
+	files: FileDeclaration[];
+	icons: { [key: string]: string };
+	eventcallbacks: {};
+	scopes: string[];
+	baseuri: string;
+	contributions: ContributionDeclaration[];
+	contributionTypes: ContributionTypeDeclaration[];
+	contributiontypes: VssManifest['contributionTypes'];
+	namespace: string;
+	extensionid: string;
+	id: string;
+	name: string;
+	description: string;
+	screenshots: ScreenshotDeclaration[];
+	details: DetailsDeclaration;
+	links: Links;
+	branding: BrandingDeclaration;
+	public: boolean;
+	publisher: string;
+	releasenotes: string;
+	tags: string|string[];
+	flags: {};
+	vsoflags: {};
+	galleryflags: string|string[];
+	categories: string|string[];
+	githubflavoredmarkdown: boolean;
+	showpricingcalculator: boolean;
+	content: ContentsDeclaration;
+	repository: RepositoryDeclaration;
+	badges: BadgeDeclaration[];
+}
+
+
+export interface VssManifestData extends VssManifest {
+	__origin: string;
 }
 
 /**
@@ -142,7 +208,7 @@ export interface MergeSettings {
 	/**
 	 * Highest priority partial manifest
 	 */
-	overrides: any;
+	overrides: VssManifestData;
 
 	/**
 	 * True to bypass validation during packaging.
