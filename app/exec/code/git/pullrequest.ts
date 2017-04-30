@@ -1,21 +1,12 @@
 import { success, warn } from '../../../lib/trace';
-import os = require('os');
 import { errLog } from '../../../lib/errorhandler';
-import { isNull } from 'util';
-import { GitPushSearchCriteria } from 'vso-node-api/interfaces/TfvcInterfaces';
-import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import { getCredentialStore } from "../../../lib/credstore";
-//import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
-import corem = require('vso-node-api/CoreApi');
 import gi = require('vso-node-api/interfaces/GitInterfaces');
-import vm = require('vso-node-api');
 import git_Api = require('vso-node-api/GitApi')
 import VSSInterfaces = require("vso-node-api/interfaces/common/VSSInterfaces");
 import codedBase = require("../default");
+
 export function getCommand(args: string[]): PullRequest {
 	return new PullRequest(args);
 }
