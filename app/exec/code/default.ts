@@ -9,7 +9,7 @@ export interface CodeArguments extends CoreArguments {
 	source: args.StringArgument;
 	target: args.StringArgument;
 	title: args.StringArgument;
-	repositoryName: args.StringArgument;
+	repositoryname: args.StringArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -19,7 +19,7 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 	protected setCommandArgs(): void {
 		super.setCommandArgs();
 
-		this.registerCommandArgument(["repositoryName", "-rn"], "Repository name", null, args.StringArgument);
+		this.registerCommandArgument(["repositoryname", "-rn"], "Repository name", null, args.StringArgument);
 		this.registerCommandArgument(["source", "-so"], "Repository source branch name", null, args.StringArgument);
 		this.registerCommandArgument(["target", "-ta"], "Repository target branch name", null, args.StringArgument, null);
 		this.registerCommandArgument(["title", "-ti"], "Title", null, args.StringArgument, null);

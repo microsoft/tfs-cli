@@ -51,9 +51,10 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	}
 
 	public async exec(): Promise<any> {
+		//getting variables.
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var repositoryName = await this.commandArgs.repositoryName.val();
+		var repositoryName = await this.commandArgs.repositoryname.val();
 		var source = await this.commandArgs.source.val();
 		var target = await this.commandArgs.target.val();
 		var title = await this.commandArgs.title.val();
@@ -104,31 +105,15 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		}
 		newPullrequest.title = myBranchComment;
+		//Creating the request
 		var pullRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project).catch((err) => {
 			errLog(err.message);
 		});
-		var pullRequestType: any = pullRequest
+		var pullRequestType: any = pullRequest;
 		return new Promise<any>(() => {
 			success('New pull request created');
 			trace.info('Title    : %s', pullRequestType.title);
 			trace.info('id       : %s', pullRequestType.pullRequestId);
 		})
-	}
-
-	// public friendlyOutput(data: taskAgentContracts.ServiceEndpoint[]): void {
-	// 	if (!data) {
-	// 		throw new Error('no endpoints supplied');
-	// 	}
-
-	// 	if (!(data instanceof Array)) {
-	// 		throw new Error('expected an array of endpoints');
-	// 	}
-
-	// 	data.forEach((endpoint) => {
-	// 		trace.println();
-	// 		trace.info('name    : %s', endpoint.name);
-	// 		trace.info('id      : %s', endpoint.id);
-	// 		trace.info('type    : %s', endpoint.type);
-	// 	});
-	// }
-}
+	};
+};
