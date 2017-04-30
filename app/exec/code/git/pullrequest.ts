@@ -1,4 +1,4 @@
-import { warn } from '../../../lib/trace';
+import { success, warn } from '../../../lib/trace';
 import os = require('os');
 import { errLog } from '../../../lib/errorhandler';
 import { isNull } from 'util';
@@ -60,7 +60,6 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	}
 
 	public async exec(): Promise<any> {
-		console.log(this.connection.getAccountUrl());
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		var repositoryName = await this.commandArgs.repositoryName.val();
@@ -82,13 +81,12 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 		var gitRepositorieId = gitRepositorie.id
 		var pullRequests = await gitApi.getPullRequests(gitRepositorieId, null)
-		var myBranch;
+		var myBranchComment = '';
 		var newPullrequest: GR = new GR;
 		newPullrequest.sourceRefName = 'refs/heads/' + source;
 		//Getting source branch name
 		if (target && target.length > 0)
 			newPullrequest.targetRefName = 'refs/heads/' + target;
-
 		else {
 			warn('No target branch specified, using master.')
 			var masterPath = await gitApi.getSuggestions(gitRepositorieId, project)
@@ -97,30 +95,33 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 		//Getting title.
 		if (title && title.length > 0)
-			newPullrequest.title = title;
+			myBranchComment = title;
 		else {
+			var myBranch;
 			warn('No title specified, using last comment of source branch.')
 			var branches = await gitApi.getBranches(gitRepositorieId, project);
 			branches.forEach(branch => {
 				if (branch.name == source) {
-					console.log(branch)
-					myBranch = branch
+					myBranch = branch;
 				}
 			});
+			if (!myBranch) {
+				errLog('Source Branch ' + source + ' not found (brach name is key sensitive)');
+				process.exit(1);
+			}
+			myBranchComment += myBranch.commit.comment + ' from ' + source + ' to ' + target;
+
 		}
-		if (!myBranch) {
-			errLog('Source Branch ' + source + ' not found (brach name is key sensitive)');
-			process.exit(1);
-		}
-		newPullrequest.title = myBranch.commit.comment + ' from ' + source + ' to ' + target;;
-		console.log(newPullrequest);
-		await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project).then(() => {
-			console.log('Pull Request created')
-		}).catch((err) => {
+		newPullrequest.title = myBranchComment;
+		var pullRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project).catch((err) => {
 			errLog(err.message);
 		});
-
-		return new Promise<any>(() => console.log())
+		var pullRequestType: any = pullRequest
+		return new Promise<any>(() => {
+			success('New pull request created');
+			trace.info('Title    : %s', pullRequestType.title);
+			trace.info('id       : %s', pullRequestType.pullRequestId);
+		})
 	}
 
 	// public friendlyOutput(data: taskAgentContracts.ServiceEndpoint[]): void {
