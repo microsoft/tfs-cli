@@ -15,7 +15,7 @@ export function getCommand(args: string[]): Abandon {
 
 export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Get a list of pull requests";
+	protected description = "Abandon a pull request";
 	protected getHelpArgs(): string[] {
 		return ["project", "repositoryName", "pullrequestname", "pullrequestid"];
 	}

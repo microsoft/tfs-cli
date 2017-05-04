@@ -15,7 +15,7 @@ export function getCommand(args: string[]): Complete {
 
 export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Get a list of pull requests";
+	protected description = "Complete a pull request";
 	protected getHelpArgs(): string[] {
 		return ["project", "repositoryName", "pullrequestname", "pullrequestid"];
 	}

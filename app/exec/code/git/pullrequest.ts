@@ -44,7 +44,7 @@ class GR implements gi.GitPullRequest {
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Pull request";
+	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
 		return ["project", "repositoryName", 'source', 'target', 'title'];
