@@ -5,7 +5,7 @@ import trace = require('../../../lib/trace');
 import gi = require('vso-node-api/interfaces/GitInterfaces');
 import git_Api = require('vso-node-api/GitApi')
 import VSSInterfaces = require("vso-node-api/interfaces/common/VSSInterfaces");
-import codedBase = require("../default");
+import codedBase = require("./default");
 
 export function getCommand(args: string[]): PullRequest {
 	return new PullRequest(args);
