@@ -5,7 +5,7 @@ import trace = require('../../../lib/trace');
 import gi = require('vso-node-api/interfaces/GitInterfaces');
 import git_Api = require('vso-node-api/GitApi')
 import VSSInterfaces = require("vso-node-api/interfaces/common/VSSInterfaces");
-import codedBase = require("../default");
+import codedBase = require("./default");
 
 export function getCommand(args: string[]): PullRequest {
 	return new PullRequest(args);
@@ -44,16 +44,17 @@ class GR implements gi.GitPullRequest {
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Pull request";
+	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName", 'source', 'target', 'title'];
+		return ["project", "repositoryname", 'source', 'target', 'title'];
 	}
 
 	public async exec(): Promise<any> {
+		//getting variables.
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var repositoryName = await this.commandArgs.repositoryName.val();
+		var repositoryName = await this.commandArgs.repositoryname.val();
 		var source = await this.commandArgs.source.val();
 		var target = await this.commandArgs.target.val();
 		var title = await this.commandArgs.title.val();
@@ -104,31 +105,20 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		}
 		newPullrequest.title = myBranchComment;
-		var pullRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project).catch((err) => {
-			errLog(err.message);
-		});
-		var pullRequestType: any = pullRequest
-		return new Promise<any>(() => {
-			success('New pull request created');
-			trace.info('Title    : %s', pullRequestType.title);
-			trace.info('id       : %s', pullRequestType.pullRequestId);
-		})
+
+		//Creating the request
+		return await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+	};
+
+	public friendlyOutput(data: gi.GitPullRequest): void {
+		if (!data) {
+			throw new Error("no pull requests supplied");
+		}
+		console.log(' ');
+		success('New pull request created');
+		trace.info('Title    : %s', data.title);
+		trace.info('id       : %s', data.pullRequestId);
+
 	}
 
-	// public friendlyOutput(data: taskAgentContracts.ServiceEndpoint[]): void {
-	// 	if (!data) {
-	// 		throw new Error('no endpoints supplied');
-	// 	}
-
-	// 	if (!(data instanceof Array)) {
-	// 		throw new Error('expected an array of endpoints');
-	// 	}
-
-	// 	data.forEach((endpoint) => {
-	// 		trace.println();
-	// 		trace.info('name    : %s', endpoint.name);
-	// 		trace.info('id      : %s', endpoint.id);
-	// 		trace.info('type    : %s', endpoint.type);
-	// 	});
-	// }
-}
+};
