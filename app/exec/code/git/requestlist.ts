@@ -18,7 +18,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Get a list of pull requests";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName"];
+		return ["project", "repositoryname"];
 	}
 
 	public async exec(): Promise<any> {
@@ -34,25 +34,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 				return;
 			};
 		});
-		//var pullRequestes = await 
-		// console.log(' ');
-		// success('Pull Requestes for ' + repositoryName + ':')
-		// //console.log(pullRequestes)
-		// pullRequestes.forEach(req => {
-		// 	var reviewerList = '';
-		// 	if (req.reviewers) {
-		// 		req.reviewers.forEach(reviewers => {
-		// 			reviewerList += reviewers.displayName + '; '
-		// 		});
-		// 	};
-		// 	trace.info('Title           : %s', req.title);
-		// 	trace.info('id              : %s', req.pullRequestId);
-		// 	trace.info('Created by      : %s', req.createdBy.displayName);
-		// 	trace.info('Created Date    : %s', req.creationDate.toString());
-		// 	trace.info('Merge Status    : %s', PullRequestAsyncStatus[req.mergeStatus]);
-		// 	trace.info('Reviewers       : %s', reviewerList);
-		// 	console.log(' ');
-		// });
+
 		return await gitApi.getPullRequests(gitRepositorie.id, null);
 	};
 	

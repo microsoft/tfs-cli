@@ -17,7 +17,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
 	protected description = "Abandon a pull request";
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName", "pullrequestname", "pullrequestid"];
+		return ["project", "repositoryname", "pullrequestname", "pullrequestid"];
 	}
 	public async exec(): Promise<any> {
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
@@ -66,19 +66,24 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 			process.exit(1);
 		}
 		pullRequestId = myPullRequestId;
-
 		var updatedPullRequest: GR = new GR;
 		updatedPullRequest.status = 2 //abandoned;
 
-		updatedPullRequest = await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project)
-
-		return new Promise<any>(() => {
-			success('Pull request abandoned');
-			console.log('');
-			trace.info('Title    : %s', updatedPullRequest.title);
-			trace.info('id       : %s', updatedPullRequest.pullRequestId);
-		})
+		return await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project)
 	};
+
+	public friendlyOutput(data: gi.GitPullRequest): void {
+		if (!data) {
+			throw new Error("no pull requests supplied");
+		}
+
+		console.log(' ');
+		success('Pull request abandoned');
+		console.log('');
+		trace.info('Title    : %s', data.title);
+		trace.info('id       : %s', data.pullRequestId);
+
+	}
 };
 
 class GR implements gi.GitPullRequest {

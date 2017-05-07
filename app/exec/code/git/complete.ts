@@ -17,7 +17,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 	protected serverCommand = true;
 	protected description = "Complete a pull request";
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName", "pullrequestname", "pullrequestid"];
+		return ["project", "repositoryname", "pullrequestname", "pullrequestid"];
 	}
 	public async exec(): Promise<any> {
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
@@ -70,18 +70,27 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 
 		var updatedPullRequest: GR = new GR;
 		updatedPullRequest.lastMergeSourceCommit = myPullRequest.lastMergeSourceCommit;
-		updatedPullRequest.status = 3 //completed;
+		updatedPullRequest.status = 3; //completed;
 
-		updatedPullRequest = await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project)
+		return await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project);
 
-		return new Promise<any>(() => {
-			success('Pull request completed');
-			console.log('');
-			trace.info('Title    : %s', updatedPullRequest.title);
-			trace.info('id       : %s', updatedPullRequest.pullRequestId);
-		})
 	};
+
+
+	public friendlyOutput(data: gi.GitPullRequest): void {
+		if (!data) {
+			throw new Error("no pull requests supplied");
+		}
+
+		console.log(' ');
+		success('Pull request completed');
+		console.log('');
+		trace.info('Title    : %s', data.title);
+		trace.info('id       : %s', data.pullRequestId);
+
+	}
 };
+
 
 class GR implements gi.GitPullRequest {
 	_links: any;

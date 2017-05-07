@@ -47,7 +47,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName", 'source', 'target', 'title'];
+		return ["project", "repositoryname", 'source', 'target', 'title'];
 	}
 
 	public async exec(): Promise<any> {
@@ -105,15 +105,20 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		}
 		newPullrequest.title = myBranchComment;
+
 		//Creating the request
-		var pullRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project).catch((err) => {
-			errLog(err.message);
-		});
-		var pullRequestType: any = pullRequest;
-		return new Promise<any>(() => {
-			success('New pull request created');
-			trace.info('Title    : %s', pullRequestType.title);
-			trace.info('id       : %s', pullRequestType.pullRequestId);
-		})
+		return await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
 	};
+
+	public friendlyOutput(data: gi.GitPullRequest): void {
+		if (!data) {
+			throw new Error("no pull requests supplied");
+		}
+		console.log(' ');
+		success('New pull request created');
+		trace.info('Title    : %s', data.title);
+		trace.info('id       : %s', data.pullRequestId);
+
+	}
+
 };
