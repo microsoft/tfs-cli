@@ -36,7 +36,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			};
 		});
 
-		return await gitApi.getPullRequest(gitRepositorie.id, parseInt(requestId));
+		return await gitApi.getPullRequest(gitRepositorie.id, +requestId);
 	};
 	
 	public friendlyOutput(req: gi.GitPullRequest): void {
@@ -51,7 +51,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			trace.info('Created Date	: %s', req.creationDate.toString());
 			trace.info('Merge Status	: %s', PullRequestAsyncStatus[req.mergeStatus]);
 			trace.info('Last commit	: %s', req.lastMergeCommit.commitId);
-			trace.info('Url		: %s', req.url);
+			trace.info('API Url		: %s', req.url);
 			trace.println();
 	}
 };

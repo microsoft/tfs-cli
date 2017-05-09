@@ -15,6 +15,7 @@ export interface CodeArguments extends CoreArguments {
 	pullrequestname: args.StringArgument;
 	requeststatus: args.StringArgument;
 	top: args.IntArgument;
+	deletesourcebranch: args.BooleanArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -32,6 +33,7 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 		this.registerCommandArgument(["pullrequestid"], "Pull request id", null, args.StringArgument);
 		this.registerCommandArgument(["top"], "Number of results to get", null, args.IntArgument, null);
 		this.registerCommandArgument(["requeststatus"], "filter by status (Active, Abandoned, Completed, All)", null, args.StringArgument, null);
+		this.registerCommandArgument(["deletesourcebranch"], "delete source branch", "delete source branch on successfull merge",args.BooleanArgument,null);
 	}
 	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
