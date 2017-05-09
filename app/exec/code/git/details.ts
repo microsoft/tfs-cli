@@ -18,7 +18,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Get a list of pull requests";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname"];
+		return ["project", "repositoryname","pullrequestid"];
 	}
 
 	public async exec(): Promise<any> {
@@ -27,6 +27,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		var project = await this.commandArgs.project.val();
 		repositoryName = await this.commandArgs.repositoryname.val();
 		var gitRepositories = await gitApi.getRepositories(project);
+		var requestId = await this.commandArgs.pullrequestid.val();
 		var gitRepositorie;
 		gitRepositories.forEach(repo => {
 			if (repo.name.toLowerCase() == repositoryName.toLowerCase()) {
@@ -35,35 +36,23 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			};
 		});
 
-		return await gitApi.getPullRequests(gitRepositorie.id, null);
+		return await gitApi.getPullRequest(gitRepositorie.id, parseInt(requestId));
 	};
 	
-	public friendlyOutput(data: gi.GitPullRequest[]): void {
-		if (!data) {
+	public friendlyOutput(req: gi.GitPullRequest): void {
+		if (!req) {
 			throw new Error("no pull requests supplied");
-		}
-
-		if (!(data instanceof Array)) {
-			throw new Error("expected an array of pull requests");
-		}
-		console.log(' ');
-		success('Pull Requestes for ' + repositoryName + ':')
-		data.forEach(req => {
-			var reviewerList = '';
-			if (req.reviewers) {
-				req.reviewers.forEach(reviewers => {
-					reviewerList += reviewers.displayName + '; '
-				});
-			};
-			trace.info('Title           : %s', req.title);
-			trace.info('id              : %s', req.pullRequestId);
-			trace.info('Created by      : %s', req.createdBy.displayName);
-			trace.info('Created Date    : %s', req.creationDate.toString());
-			trace.info('Merge Status    : %s', PullRequestAsyncStatus[req.mergeStatus]);
-			trace.info('Url				: %s', req.url);
-			trace.info('Reviewers       : %s', reviewerList);
-			console.log(' ');
-		});
+		}		
+			trace.info('Title		: %s', req.title);
+			trace.info('Description	: %s', req.description);
+			trace.info('id		: %s', req.pullRequestId);
+			trace.info('Created by	: %s', req.createdBy.displayName);
+			trace.info('Status		: %s',gi.PullRequestStatus[req.status]);
+			trace.info('Created Date	: %s', req.creationDate.toString());
+			trace.info('Merge Status	: %s', PullRequestAsyncStatus[req.mergeStatus]);
+			trace.info('Last commit	: %s', req.lastMergeCommit.commitId);
+			trace.info('Url		: %s', req.url);
+			trace.println();
 	}
 };
 
