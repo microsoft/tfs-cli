@@ -13,6 +13,7 @@ export interface CodeArguments extends CoreArguments {
 	repositoryname: args.StringArgument;
 	pullrequestid: args.StringArgument;
 	pullrequestname: args.StringArgument;
+	deletesourcebranch: args.BooleanArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -28,6 +29,7 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 		this.registerCommandArgument(["title"], "Title", null, args.StringArgument, null);
 		this.registerCommandArgument(["pullrequestname"], "Pull request name", null, args.StringArgument, null);
 		this.registerCommandArgument(["pullrequestid"], "Pull request id", null, args.StringArgument);
+		this.registerCommandArgument(["deletesourcebranch"], "delete source branch", "delete source branch on successfull merge",args.BooleanArgument,null);
 	}
 	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);

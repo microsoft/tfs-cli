@@ -17,11 +17,12 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 	protected serverCommand = true;
 	protected description = "Complete a pull request";
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", "pullrequestname", "pullrequestid"];
+		return ["project", "repositoryname", "pullrequestname", "pullrequestid","deletesourcebranch"];
 	}
 	public async exec(): Promise<any> {
 		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
+		var delSources = await this.commandArgs.deletesourcebranch.val();
 		var repositoryName = await this.commandArgs.repositoryname.val();
 		var pullRequestName = await this.commandArgs.pullrequestname.val();
 		var pullRequestId;
@@ -71,7 +72,12 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		var updatedPullRequest: GR = new GR;
 		updatedPullRequest.lastMergeSourceCommit = myPullRequest.lastMergeSourceCommit;
 		updatedPullRequest.status = 3; //completed;
-
+		var completionOptions:CO = new CO;
+		if (delSources){
+			trace.debug('delete source branch option selected')
+			completionOptions.deleteSourceBranch = delSources
+			updatedPullRequest.completionOptions = completionOptions;
+		}
 		return await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project);
 
 	};
@@ -122,3 +128,8 @@ class GR implements gi.GitPullRequest {
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
 }
+ class CO implements gi.GitPullRequestCompletionOptions {
+	 deleteSourceBranch: boolean;
+	 mergeCommitMessage: string;
+	 squashMerge: boolean;
+ }
