@@ -42,6 +42,7 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
             var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
             var NewPool:AP = new AP;
             NewPool.name = Name;
+            NewPool.autoProvision = true;
             return agentapi.addAgentPool(NewPool).then((pool) => {
                 return pool;
             });
