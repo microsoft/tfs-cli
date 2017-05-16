@@ -1,16 +1,19 @@
-import { TfCommand } from "../../lib/tfcommand";
-import args = require("../../lib/arguments");
+import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
+import args = require("../../../lib/arguments");
 import agentBase = require("./default");
 import agentClient = require("vso-node-api/TaskAgentApiBase");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
-import trace = require("../../lib/trace");
+import trace = require("../../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
 
-export function getCommand(args: string[]): Pools {
-	return new Pools(args);
+export function getCommand(args: string[]): List {
+	return new List(args);
 }
 
-export class Pools extends agentBase.BuildBase<agentBase.BuildArguments, taskAgentContracts.TaskAgent> {
+export interface ListPoolArguments extends CoreArguments {
+}
+
+export class List extends TfCommand<ListPoolArguments, taskAgentContracts.TaskAgentPool[]> {
     protected serverCommand = true;
 	protected description = "Show agent pool list.";
 	protected getHelpArgs(): string[] {
@@ -18,7 +21,7 @@ export class Pools extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	}
 
 	public exec(): Promise<taskAgentContracts.TaskAgentPool[]> {
-		trace.debug("pool.exec");
+		trace.debug("pools.exec");
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
 			return agentapi.getAgentPools();
 	}

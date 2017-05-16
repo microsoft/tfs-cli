@@ -1,4 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
+import args = require("../../../lib/arguments");
 
 export function getCommand(args: string[]): HelpCommand {
 	return new HelpCommand(args);
