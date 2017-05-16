@@ -36,23 +36,48 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
             this.commandArgs.name.val(),
         ]).then((values) => {
             const [name] = values;
-            var Name = name as string;
 
-            trace.debug("Creating build agent pool %s...", name);
+            trace.debug("Trying to Create build agent pool %s...", name);
             var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
-            var NewPool:AP = new AP;
-            NewPool.name = Name;
-            NewPool.autoProvision = true;
-            return agentapi.addAgentPool(NewPool).then((pool) => {
-                return pool;
-            });
+            return agentapi.getAgentPools(name).then((pools) => {
+                if (pools.length <= 0){
+                    trace.debug("build agent pool %s does not exist", name);
+                    var NewPool: AP = new AP;
+                    NewPool.name = name;
+                    NewPool.autoProvision = true;
+                    return agentapi.addAgentPool(NewPool).then((pool) => {
+                        return pool;
+                    });
+                } else {
+                    var exists = false;
+                    pools.forEach((pool) => {
+                        if (pool.name == name){
+                            trace.warn("Agent pool %s already exsits (id: %s)", pool.name, pool.id)
+                            exists = true;
+                            return pool;
+                        }
+                    });
+                     if (!exists){
+                        trace.debug("build agent pool %s", name);
+                        var NewPool: AP = new AP;
+                        NewPool.name = name;
+                        NewPool.autoProvision = true;
+                        return agentapi.addAgentPool(NewPool).then((pool) => {
+                            return pool;
+                        });
+                    }
+
+                }
+            })
         });
     }
 
     public friendlyOutput(pool: taskAgentContracts.TaskAgentPool): void {
-        trace.println();
-        trace.info('id            : %s', pool.id);
-        trace.info('name          : %s', pool.name);
+        if (pool) {
+            trace.println();
+            trace.info('id            : %s', pool.id);
+            trace.info('name          : %s', pool.name);
+        }
     }
     
 }
