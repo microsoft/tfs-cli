@@ -6,7 +6,7 @@ Command utility for interacting with Microsoft Team Foundation Server and Visual
 
 ## Setup
 
-First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
+First, download and install [Node.js](http://nodejs.org) 7.0.x or later and NPM (included with the installer or from sources)
 
 ### Linux/OSX
 ```bash
