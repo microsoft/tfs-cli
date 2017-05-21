@@ -16,6 +16,7 @@ export interface CodeArguments extends CoreArguments {
 	requeststatus: args.StringArgument;
 	top: args.IntArgument;
 	deletesourcebranch: args.BooleanArgument;
+	repositoryid: args.StringArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -26,6 +27,7 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 		super.setCommandArgs();
 
 		this.registerCommandArgument(["repositoryname"], "Repository name", null, args.StringArgument);
+		this.registerCommandArgument(["repositoryid"], "Repository id", null, args.StringArgument);
 		this.registerCommandArgument(["source"], "Repository source branch name", null, args.StringArgument);
 		this.registerCommandArgument(["target"], "Repository target branch name", null, args.StringArgument, null);
 		this.registerCommandArgument(["title"], "Title", null, args.StringArgument, null);

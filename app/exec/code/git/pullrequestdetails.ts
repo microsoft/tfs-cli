@@ -9,11 +9,11 @@ import VSSInterfaces = require('vso-node-api/interfaces/common/VSSInterfaces');
 import codedBase = require('./default');
 var repositoryName;
 
-export function getCommand(args: string[]): RequestList {
-	return new RequestList(args);
+export function getCommand(args: string[]): RequestDetails {
+	return new RequestDetails(args);
 }
 
-export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, void> {
+export class RequestDetails extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
 	protected description = "Get a list of pull requests";
 
