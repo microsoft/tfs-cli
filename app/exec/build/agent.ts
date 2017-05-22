@@ -15,7 +15,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 	protected description = "Show / Update task agent details.";
 
 	protected getHelpArgs(): string[] {
-		return ["poolId", "agentId", "agentName", "userCapabilityKey", "userCapabilityValue", "disable", "delete", "parallel"];
+		return ["poolId", "agentId", "agentName", "userCapabilityKey", "userCapabilityValue", "disable", "deleteAgent", "parallel"];
 	}
 
 	public exec(): Promise<taskAgentContracts.TaskAgent> {
