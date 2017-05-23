@@ -17,6 +17,7 @@ export interface CodeArguments extends CoreArguments {
 	top: args.IntArgument;
 	deletesourcebranch: args.BooleanArgument;
 	repositoryid: args.StringArgument;
+	autocomplete: args.BooleanArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -36,6 +37,7 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 		this.registerCommandArgument(["top"], "Number of results to get", null, args.IntArgument, null);
 		this.registerCommandArgument(["requeststatus"], "filter by status (Active, Abandoned, Completed, All)", null, args.StringArgument, null);
 		this.registerCommandArgument(["deletesourcebranch"], "delete source branch", "delete source branch on successfull merge",args.BooleanArgument,null);
+		this.registerCommandArgument(["autocomplete"], "Auto Complete", "Set auto completion for a new pull request.", args.BooleanArgument, null);
 	}
 	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
