@@ -19,7 +19,7 @@ class GR implements gi.GitPullRequest {
 	closedDate: Date;
 	codeReviewId: number;
 	commits: gi.GitCommitRef[];
-	completionOptions: gi.GitPullRequestCompletionOptions;
+	completionOptions: completionOptions = new completionOptions;
 	completionQueueTime: Date;
 	createdBy: VSSInterfaces.IdentityRef;
 	creationDate: Date;
@@ -42,12 +42,18 @@ class GR implements gi.GitPullRequest {
 	workItemRefs: VSSInterfaces.ResourceRef[];
 }
 
+class completionOptions implements gi.GitPullRequestCompletionOptions {
+	deleteSourceBranch: boolean;
+	mergeCommitMessage: string;
+	squashMerge: boolean;;
+}
+
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
 	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", 'source', 'target', 'title'];
+		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'deletesourcebranch'];
 	}
 
 	public async exec(): Promise<any> {
@@ -58,6 +64,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		var source = await this.commandArgs.source.val();
 		var target = await this.commandArgs.target.val();
 		var title = await this.commandArgs.title.val();
+		var autoComplete = await this.commandArgs.autocomplete.val();
+		var delSources = await this.commandArgs.deletesourcebranch.val();
 
 		var gitRepositories = await gitApi.getRepositories(project);
 		var gitRepositorie;
@@ -104,10 +112,20 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			myBranchComment += myBranch.commit.comment + ' from ' + source + ' to ' + target;
 
 		}
+
 		newPullrequest.title = myBranchComment;
 
 		//Creating the request
-		return await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+		if (!autoComplete)
+			return await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+
+		var createdRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+		var newPullrequest: GR = new GR;
+		if (delSources) {
+			newPullrequest.completionOptions.deleteSourceBranch = true
+		}
+		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
+		return await gitApi.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project);
 	};
 
 	public friendlyOutput(data: gi.GitPullRequest): void {
@@ -116,9 +134,11 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 		console.log(' ');
 		success('New pull request created');
-		trace.info('Title    : %s', data.title);
-		trace.info('id       : %s', data.pullRequestId);
-
+		trace.info('Title                 : %s', data.title);
+		trace.info('id                    : %s', data.pullRequestId);
+		if (data.autoCompleteSetBy)
+		trace.info('AutoCompleteSetBy     : %s', data.autoCompleteSetBy.displayName);
+		if (data.completionOptions.deleteSourceBranch)
+	    trace.info('Delete Source Branch  : %s', data.completionOptions.deleteSourceBranch);
 	}
-
 };
