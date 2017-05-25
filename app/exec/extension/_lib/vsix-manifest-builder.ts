@@ -333,7 +333,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					// Normalize keys by fixing casing
 					Object.keys(value).forEach(k => {
 						const lck = k.toLowerCase();
-						if (lck === "url" || lck.toLowerCase() === "uri") {
+						if (lck === "url" || lck === "uri") {
 							value["url"] = value[k];
 						}
 						if (lck === "enablemarketplaceqna") {
