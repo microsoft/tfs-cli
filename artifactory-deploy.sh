@@ -98,3 +98,4 @@ STATUSCODE=$(curl --progress-bar -i -X PUT -u $ARTIFACTORY_USER:$ARTIFACTORY_PAS
 fail_if '[[ "$STATUSCODE" -ne "201" ]]' "Upload failed: http status $STATUSCODE"
 
 echo "Upload successfull!"
+# generic comment to check CI
