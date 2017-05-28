@@ -120,6 +120,11 @@ export interface BrandingDeclaration {
 	theme: string;
 }
 
+export interface CustomerQnASupport {
+	enableMarketplaceQnA?: boolean;
+	url?: string;
+}
+
 /**
  * Settings for doing the merging
  */
