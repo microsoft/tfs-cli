@@ -85,7 +85,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 
 	}
 };
-
+//Classes
 class GR implements gi.GitPullRequest {
 	_links: any;
 	artifactId: string;
