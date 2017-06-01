@@ -1,6 +1,5 @@
 # Cross-platform CLI for Team Foundation Server and Visual Studio Team Services
 
-
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 #### Pull Request validation
 [![PR Validation passing](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)
