@@ -14,6 +14,7 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 export interface CreationResult {
 	path: string;
 	extensionId: string;
+	version: string;
 	publisher: string;
 }
 
@@ -28,6 +29,7 @@ export function createExtension(mergeSettings: MergeSettings, packageSettings: P
 			return {
 				path: outPath,
 				extensionId: vsixBuilder ? vsixBuilder.getExtensionId() : null,
+				version: vsixBuilder ? vsixBuilder.getExtensionVersion(): null,
 				publisher: vsixBuilder ? vsixBuilder.getExtensionPublisher() : null
 			};
 		});
@@ -58,6 +60,7 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 		trace.info(colors.green("\n=== Completed operation: create extension ==="));
 		trace.info(" - VSIX: %s", data.path);
 		trace.info(" - Extension ID: %s", data.extensionId);
+		trace.info(" - Extension Version: %s", data.version);
 		trace.info(" - Publisher: %s", data.publisher);
 	}
 }
