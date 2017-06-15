@@ -429,6 +429,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	}
 
 	/**
+	 * Get the version of the extension this vsixmanifest goes to
+	 */
+	public getExtensionVersion() {
+		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Version");
+	}
+
+	/**
 	 * --Ensures an <Asset> entry is added for each file as appropriate
 	 * --Builds the [Content_Types].xml file
 	 */
