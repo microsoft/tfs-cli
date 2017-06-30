@@ -79,7 +79,7 @@ tfx extension publish --service-url <root-tfs-url> --token <personal-access-toke
 
 1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
 2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
+3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line). You can also use the `--token <personal-access-token>` flag to avoid having to fill in the prompt every time you publish.
 
 
 
