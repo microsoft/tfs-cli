@@ -28,7 +28,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 
 ### Examples
 
-#### Package for a different publisher 
+#### Package for a different publisher
 
 ```
 tfx extension create --publisher mypublisher --manifest-globs myextension.json
@@ -63,17 +63,23 @@ In addition to all of the `extension create` options, the following options are 
 * `--vsix`: Path to an existing VSIX (to publish or query for).
 * `--share-with`: List of accounts (VSTS) with which to share the extension.
 
-### Example
+### Examples
 
 ```
 tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
+```
+
+#### Install/update an extension for an on-premise (hosted) TFS instance
+
+```
+tfx extension publish --service-url <root-tfs-url> --token <personal-access-token>
 ```
 
 ### Tips
 
 1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
 2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
+3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/docs/integrate/extensions/publish/command-line). You can also use the `--token <personal-access-token>` flag to avoid having to fill in the prompt every time you publish.
 
 
 
