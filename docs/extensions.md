@@ -63,10 +63,16 @@ In addition to all of the `extension create` options, the following options are 
 * `--vsix`: Path to an existing VSIX (to publish or query for).
 * `--share-with`: List of accounts (VSTS) with which to share the extension.
 
-### Example
+### Examples
 
 ```
 tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
+```
+
+#### Install/update an extension for an on-premise (hosted) TFS instance
+
+```
+tfx extension publish --service-url <root-tfs-url> --token <personal-access-token>
 ```
 
 ### Tips
