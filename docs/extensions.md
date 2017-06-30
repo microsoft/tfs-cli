@@ -28,7 +28,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 
 ### Examples
 
-#### Package for a different publisher 
+#### Package for a different publisher
 
 ```
 tfx extension create --publisher mypublisher --manifest-globs myextension.json
