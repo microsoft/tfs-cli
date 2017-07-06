@@ -130,8 +130,12 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 			if (newkey) {
 				include = false;
 				var capabilities: { [key: string]: string; } = agent.userCapabilities;
-				capabilities[newkey] = value;
-				agentapi.updateAgentUserCapabilities(capabilities, pool, agentid);
+				//capabilities[newkey] = value;
+				let userCapabilitiesObj = {};
+				for(var attrname in capabilities) { userCapabilitiesObj[attrname] = capabilities[attrname] }
+			    userCapabilitiesObj[newkey] = value;
+				
+				agentapi.updateAgentUserCapabilities(userCapabilitiesObj, pool, agentid);
 			};
 			return agentapi.getAgent(pool, agentid, include, include, null)
 		});
