@@ -56,7 +56,7 @@ export class BuildBase<TArguments extends BuildArguments, TResult> extends TfCom
 		this.registerCommandArgument("wait","wait for the build","wait for the triggered build",args.BooleanArgument,"false");
 		this.registerCommandArgument("timeout","max time to wait","Maximum time to wait for the build to complete (in seconds).",args.IntArgument,"0");
 		this.registerCommandArgument("parallel", "max agent parallelism", "Maximum parallel agent runs.", args.IntArgument, null);
-		this.registerCommandArgument("waitForActiveRequests", "Wait For Active Requests", "Waiting for active Agent jobs / requests", args.BooleanArgument, "true");
+		this.registerCommandArgument("waitForActiveRequests", "Wait For Active Requests", "Waiting for active Agent jobs / requests", args.BooleanArgument, "false");
 }
 
 	public exec(cmd?: any): Promise<any> {
