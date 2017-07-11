@@ -1,16 +1,20 @@
 # Cross-platform CLI for Team Foundation Server and Visual Studio Team Services
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
+#### Pull Request validation
+[![PR Validation passing](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)
+#### Internal Deploy
+[![build passing](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/1612/badge)](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/1612/badge)
 
 Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
 
 ## Setup
 
-First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
+First, download and install [Node.js](http://nodejs.org) 7.0.x or later and NPM (included with the installer or from sources)
 
 ### Linux/OSX
 ```bash
-sudo npm install -g tfx-cli
+sudo -E npm install -g tfx-cli
 ```
 
 ### Windows
@@ -36,6 +40,7 @@ tfx <command> --help
 
 * `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
 * `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
+* `tfx build definition` ([build definition/definitions](docs/definitions.md)): Create, manage, show, list, export, upload and delete build definitions
 * `tfx extension` ([extensions](docs/extensions.md)): Package, manage, publisher Team Foundation Server / Team Services extensions
 * `tfx workitem` ([work items](docs/workitems.md)): Create, query and view work items.
 
@@ -124,3 +129,34 @@ We take contributions and fixes via Pull Request. [Read here](docs/contributions
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Manual installation (from sources)
+* refer to installation for your OS (and follow the installation steps).
+* clone the repository.
+* to compile the sources run (see additional node modules):
+```bash 
+npm update
+npm run build `(from the repository root)`
+```
+`link the executable (and make executable)`
+### Linux (bash)
+```bash
+sudo ln -s <repository root>\app.js /usr/bin/tfx
+sudo chmod 755 /usr/bin/tfx
+```
+### windows 
+replace the content of `%appdata%\npm\tfx.cmd` with the following: 
+```bash
+@IF EXIST "%~dp0\node.exe" (
+  "%~dp0\node.exe"  "%~dp0\node_modules\tfx-cli\_build\app.js" %*
+) ELSE (
+  @SETLOCAL
+  @SET PATHEXT=%PATHEXT:;.JS;=;%
+  node  "%~dp0\node_modules\tfx-cli\_build\app.js" %*
+)
+```
+### additional node modules
+`run "npm outdated / update" to resolve modules dependecy or install the following modules (this may need to happen befor compilation)`
+```bash
+npm install archiver colors graceful-fs gulp-filter gulp-mocha gulp-tsb gulp-util is-utf8 pug jszip node-uuid prompt q readable-stream ts-promise typescript unique-stream user-home validator vso-node-api xml2js del os-homedir copy-paste shelljs lodash minimatch@3.0.2 pretty-hrtime liftoff tildify interpret v8flags minimist onecolor winreg glob json-in-place mkdirp
+```

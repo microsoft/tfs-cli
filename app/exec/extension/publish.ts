@@ -56,7 +56,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 
 		const publishSettings = await this.getPublishSettings();
 
-		let extensionCreatePromise: Promise<string>;		
+		let extensionCreatePromise: Promise<string>;
 		let createdExtensionVsixPath: string;
 		if (publishSettings.vsixPath) {
 			result.packaged = null;

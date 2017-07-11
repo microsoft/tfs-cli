@@ -17,27 +17,27 @@
 declare module "archiver" {
     import * as FS from 'fs';
     import * as Stream from "stream";
-    
+
     interface nameInterface {
         name?: string;
     }
-        
+
     interface Archiver extends Stream.Transform {
         pipe(writeStream: FS.WriteStream): void;
         append(readStream: FS.ReadStream, name: nameInterface): void;
         finalize(): void;
         directory(dirpath: string, destpath?: string | boolean, data?: any)
     }
-    
+
     interface Options {
-        
+
     }
-    
+
     function archiver(format: string, options?: Options): Archiver;
-    
+
     namespace archiver {
         function create(format: string, options?: Options): Archiver;
     }
-    
+
     export = archiver;
 }

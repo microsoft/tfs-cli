@@ -2,9 +2,9 @@ import { TfCommand, CoreArguments } from "../lib/tfcommand";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import colors = require("colors");
-import Q = require('q');
 import os = require('os');
 import trace = require('../lib/trace');
+import Q = require('q');
 
 export function getCommand(args: string[]): Login {
 	// this just offers description for help and to offer sub commands
@@ -42,15 +42,16 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 						} else {
 							credString = "basic:" + authHandler.username + ":" + authHandler.password;
 						}
+						trace.info(colors.green("Logged in successfully"));
 						return tfxCredStore.storeCredential(collectionUrl, "allusers", credString).then(() => {
 							return tfxCache.setItem("cache", "connection", collectionUrl);
 						});
 					}).catch((err) => {
 						if (err && err.statusCode && err.statusCode === 401) {
-							trace.debug("Connection failed: invalid credentials.");
+							trace.error("Connection failed: invalid credentials.");
 							throw "Invalid credentials.";
 						} else if (err) {
-							trace.debug("Connection failed.");
+							trace.error("Connection failed.");
 							throw "Connection failed. Check your internet connection & collection URL." + os.EOL + "Message: " + err.message;
 						}
 					});

@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "./manifest";
-import { FileDeclaration, LocalizedResources, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
+import { CustomerQnASupport, FileDeclaration, LocalizedResources, PackageFiles, ResourcesFile, ScreenshotDeclaration, TargetDeclaration, Vsix, VsixLanguagePack } from "./interfaces";
 import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
@@ -327,6 +327,28 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					});
 				}
 				break;
+			case "customerqnasupport":
+				if (_.isObject(value)) {
+
+					// Normalize keys by fixing casing
+					Object.keys(value).forEach(k => {
+						const lck = k.toLowerCase();
+						if (lck === "url" || lck === "uri") {
+							value["url"] = value[k];
+						}
+						if (lck === "enablemarketplaceqna") {
+							value["enableMarketplaceQnA"] = value[k];
+						}
+					});
+					const qnaSupportVal = value as CustomerQnASupport;
+					if (typeof qnaSupportVal.enableMarketplaceQnA === "boolean") {
+						this.addProperty("Microsoft.VisualStudio.Services.EnableMarketplaceQnA", String(qnaSupportVal.enableMarketplaceQnA));
+					}
+					if (typeof qnaSupportVal.url === "string") {
+						this.addProperty("Microsoft.VisualStudio.Services.CustomerQnALink", qnaSupportVal.url);
+					}
+				}
+				break;
 			case "githubflavoredmarkdown":
 				if (typeof value !== "boolean") {
 					throw "Value for gitHubFlavoredMarkdown is invalid. Only boolean values are allowed.";
@@ -404,6 +426,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 */
 	public getExtensionPublisher() {
 		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+	}
+
+	/**
+	 * Get the version of the extension this vsixmanifest goes to
+	 */
+	public getExtensionVersion() {
+		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Version");
 	}
 
 	/**

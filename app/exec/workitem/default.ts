@@ -3,8 +3,8 @@ import args = require("../../lib/arguments");
 import vssCoreContracts = require("vso-node-api/interfaces/common/VSSInterfaces")
 import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
 import trace = require("../../lib/trace");
-import { EOL as eol } from "os";
-import _ = require("lodash");
+import { EOL as eol } from 'os';
+import _ = require('lodash');
 
 
 export class WorkItemValuesJsonArgument extends args.JsonArgument<any> {}

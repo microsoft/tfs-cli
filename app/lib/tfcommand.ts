@@ -7,7 +7,7 @@ import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
-import {blue, cyan, gray, green, yellow, magenta, reset as resetColors} from "colors";
+import { blue, cyan, gray, green, yellow, magenta, reset as resetColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
 import copypaste = require("copy-paste");
@@ -112,7 +112,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				}).then(() => {
 					let apiPromise = Promise.resolve<any>(null);
 					if (this.serverCommand) {
-						apiPromise = this.getWebApi().then(_ => {});
+						apiPromise = this.getWebApi().then(_ => { });
 					}
 					return apiPromise.then(() => {
 						return this.run.bind(this, this.exec.bind(this));
@@ -214,7 +214,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		this.registerCommandArgument(["output"], "Output destination", "Method to use for output. Options: friendly, json, clipboard.", args.StringArgument, "friendly");
 		this.registerCommandArgument(["json"], "Output as JSON", "Alias for --output json.", args.BooleanArgument, "false");
 		this.registerCommandArgument(["fiddler"], "Use Fiddler proxy", "Set up the fiddler proxy for HTTP requests (for debugging purposes).", args.BooleanArgument, "false");
-		this.registerCommandArgument(["proxy"],"Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
+		this.registerCommandArgument(["proxy"], "Proxy server", "Use the specified proxy server for HTTP traffic.", args.StringArgument, null);
 		this.registerCommandArgument(["help", "-h"], "Help", "Get help for any command.", args.BooleanArgument, "false");
 		this.registerCommandArgument(["noPrompt"], "No Prompt", "Do not prompt the user for input (instead, raise an error).", args.BooleanArgument, "false");
 	}
@@ -321,7 +321,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		let newToCache = {};
 		return this.commandArgs.save.val().then((shouldSave) => {
 			if (shouldSave) {
-				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
+				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." +
 					common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
 				let getValuePromises: Promise<void>[] = [];
 				Object.keys(this.commandArgs).forEach((arg) => {
@@ -360,7 +360,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	/**
 	 * Gets help (as a string) for the given command
 	 */
-	public getHelp(cmd: command.TFXCommand): Promise<string> {		
+	public getHelp(cmd: command.TFXCommand): Promise<string> {
 		this.commandArgs.output.setValue("help");
 		let result = eol;
 		let continuedHierarchy: command.CommandHierarchy = cmd.commandHierarchy;
@@ -388,12 +388,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				cyan("tfx ") + yellow(cmd.execPath.join(" ")) +
 				green(" --arg1 arg1val1 arg1val2[...]") +
 				gray(" --arg2 arg2val1 arg2val2[...]") + eol + eol;
-			
+
 			return loader.load(cmd.execPath, []).then((tfCommand) => {
 				result += cyan("Command: ") + commandName + eol;
 				result += tfCommand.description + eol + eol
 				result += cyan("Arguments: ") + eol;
-				
+
 				let uniqueArgs = this.getHelpArgs();
 				uniqueArgs = _.uniq(uniqueArgs);
 				let maxArgLen = uniqueArgs.map(a => _.kebabCase(a)).reduce((a, b) => Math.max(a, b.length), 0);
@@ -403,19 +403,19 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				uniqueArgs.forEach((arg) => {
 					result += singleArgData(arg, maxArgLen);
 				});
-				
+
 				if (this.serverCommand) {
 					result += eol + cyan("Global server command arguments:") + eol;
 					["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy"].forEach((arg) => {
 						result += singleArgData(arg, 11);
 					});
 				}
-				
+
 				result += eol + cyan("Global arguments:") + eol;
 				["help", "save", "noPrompt", "output", "json"].forEach((arg) => {
 					result += singleArgData(arg, 9);
 				});
-				
+
 				result += eol + gray("To see more commands, type " + resetColors("tfx " + cmd.execPath.slice(0, cmd.execPath.length - 1).join(" ") + " --help"));
 			}).then(() => {
 				return result;
@@ -477,7 +477,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 */
 	public output(data: any): Promise<void> {
 		return this.commandArgs.output.val().then((outputDestination) => {
-			switch(outputDestination.toLowerCase()) {
+			switch (outputDestination.toLowerCase()) {
 				case "friendly":
 					this.friendlyOutput(data);
 					break;

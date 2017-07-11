@@ -120,6 +120,11 @@ export interface BrandingDeclaration {
 	theme: string;
 }
 
+export interface CustomerQnASupport {
+	enableMarketplaceQnA?: boolean;
+	url?: string;
+}
+
 /**
  * Settings for doing the merging
  */
@@ -153,7 +158,12 @@ export interface MergeSettings {
 	 * True to rev the version of the extension before packaging.
 	 */
 	revVersion: boolean;
-
+	
+	/**
+	 * Path to the generated vsix
+	 */
+	outputPath: string;
+	
 	/**
 	 * Path to the root of localized resource files
 	 */

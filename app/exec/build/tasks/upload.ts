@@ -4,7 +4,6 @@ import archiver = require('archiver');
 import args = require("../../../lib/arguments");
 import fs = require('fs');
 import path = require('path');
-import Q = require('q');
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')

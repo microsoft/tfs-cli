@@ -3,7 +3,6 @@ import args = require("../../lib/arguments");
 import buildBase = require("./default");
 import buildClient = require("vso-node-api/BuildApi");
 import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
-
 import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): BuildGetList {

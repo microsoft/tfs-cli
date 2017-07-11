@@ -1,7 +1,7 @@
-
-
 import colors = require("colors");
 import os = require('os');
+import console = require('console');
+
 let traceEnabled = process.env['TFX_TRACE'];
 
 export let outputType;

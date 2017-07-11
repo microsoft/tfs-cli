@@ -15,7 +15,6 @@ export class BuildTaskDelete extends tasksBase.BuildTaskBase<agentContracts.Task
 	protected getHelpArgs(): string[] {
 		return ["taskId"];
 	}
-
 	public exec(): Promise<agentContracts.TaskDefinition> {
 		let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		return this.commandArgs.taskId.val().then((taskId) => {
