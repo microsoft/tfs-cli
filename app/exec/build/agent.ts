@@ -148,8 +148,8 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 						if (requests.length <= 0) {
 							clearInterval(timer);
 							timer = null;
-						}
-						trace.info("-------------- The agent [ %s ]  is currently running the job [ %s ] ", agent.name , requests[0].jobName);
+						} 
+						trace.info("-------------- The agent [ %s ]  is currently running the job [ %s ] ", agent.name, requests[0].definition.name);
 					}).catch(function (e) {
 						trace.info("==== ERROR Occurred ===== ");
 						trace.error(e.stack);
