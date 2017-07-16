@@ -24,14 +24,26 @@ export class BuildTaskValidate extends tasksBase.BuildTaskBase<agentContracts.Ta
 		return ["taskPath"];
 	}
 
-	 public exec(): Promise<agentContracts.TaskDefinition> {
+	public exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then((taskPaths) => {
 			let taskPath = taskPaths[0];
-			let tp = path.join(taskPath, c_taskJsonFile);
-			this.validate(tp);
-			return <agentContracts.TaskDefinition>{
-				sourceLocation: taskPath
-			};
+			return this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>((overwrite) => {
+				vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
+				//directory is good, check json
+
+				let tp = path.join(taskPath, c_taskJsonFile);
+				return vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory').then((taskJson) => {
+					let archive = archiver('zip');
+					archive.on('error', function (error) {
+						trace.debug('Archiving error: ' + error.message);
+						error.message = 'Archiving error: ' + error.message;
+						throw error;
+					});
+					return <agentContracts.TaskDefinition>{
+						sourceLocation: taskPath
+					};
+				});
+			});
 		});
 	}
 
