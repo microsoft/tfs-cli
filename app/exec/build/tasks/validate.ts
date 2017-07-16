@@ -7,7 +7,7 @@ import path = require('path');
 import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
-
+var check = require('validator');
 
 
 export function getCommand(args: string[]): BuildTaskValidate {
