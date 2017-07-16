@@ -8,6 +8,8 @@ import tasksBase = require("./default");
 import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
 
+
+
 export function getCommand(args: string[]): BuildTaskValidate {
 	return new BuildTaskValidate(args);
 }
@@ -15,19 +17,74 @@ export function getCommand(args: string[]): BuildTaskValidate {
 var c_taskJsonFile: string = 'task.json';
 
 export class BuildTaskValidate extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
-	protected description = "Upload a Build Task.";
+	protected description = "Validate a Build Task.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
-		return ["taskPath", "overwrite"];
+		return ["taskPath"];
 	}
 
-	public exec(): any {
-		console.log('validate success');
+	 public exec(): Promise<agentContracts.TaskDefinition> {
+		return this.commandArgs.taskPath.val().then((taskPaths) => {
+			let taskPath = taskPaths[0];
+			let tp = path.join(taskPath, c_taskJsonFile);
+			this.validate(tp);
+			return <agentContracts.TaskDefinition>{
+				sourceLocation: taskPath
+			};
+		});
+	}
+
+
+
+	public validate(jsonFilePath) {
+		var taskJson;
+		try {
+			taskJson = require(jsonFilePath);
+		}
+		catch (jsonError) {
+			console.log('jsonError = ' + jsonError)
+			trace.debug('Invalid task json: %s', jsonError);
+			throw new Error("Invalid task json: " + jsonError);
+		}
+
+		this.validateTask(jsonFilePath, taskJson);
+	}
+
+
+	/*
+	* Validates a parsed json file describing a build task
+	* @param taskPath the path to the original json file
+	* @param taskData the parsed json file
+	* @return list of issues with the json file
+	*/
+	public validateTask(taskPath: string, taskData: any): string[] {
+		var vn = (taskData.name || taskPath);
+		var issues: string[] = [];
+
+		if (!taskData.id || !check.isUUID(taskData.id)) {
+			issues.push(vn + ': id is a required guid');
+		}
+
+		if (!taskData.name || !check.isAlphanumeric(taskData.name)) {
+			issues.push(vn + ': name is a required alphanumeric string');
+		}
+
+		if (!taskData.friendlyName || !check.isLength(taskData.friendlyName, 1, 40)) {
+			issues.push(vn + ': friendlyName is a required string <= 40 chars');
+		}
+
+		if (!taskData.instanceNameFormat) {
+			issues.push(vn + ': instanceNameFormat is required');
+		}
+		return issues;
 	}
 
 	public friendlyOutput(data: agentContracts.TaskDefinition): void {
 		trace.println();
-		trace.success('Validate successfully!', data.sourceLocation);
+		trace.success('Task at %s Validate successfully!', data.sourceLocation);
 	}
 }
+
+
+
