@@ -94,7 +94,7 @@ export class BuildTaskValidate extends tasksBase.BuildTaskBase<agentContracts.Ta
 
 	public friendlyOutput(data: agentContracts.TaskDefinition): void {
 		trace.println();
-		trace.success('Task at %s Validate successfully!', data.sourceLocation);
+		trace.success('Task at %s Validated successfully!', data.sourceLocation);
 	}
 }
 
