@@ -49,18 +49,18 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 						var aid = ao[0].id;
 						var an = ao[0].name;
 						trace.debug("found, agent id %s for agent name %s", aid, an);
-						return this._getOrUpdateAgent(agentapi, pool as number, aid, newkey as string, value as string, include, disable as string, deleteAgent as string, maxParallel as number, waitForInProgressRequests as boolean);
+						return this._getOrUpdateAgent(agentapi, pool as number, aid, newkey as string, value as string, include, disable as string, deleteAgent as string, maxParallel as number, waitForInProgressRequests as string);
 					}
 					else {
 						trace.debug("No agents found with name " + agentname);
 						throw new Error("No agents found with name " + agentname);
-						
+
 					}
 				});
 			}
-			
+
 			trace.debug("disable request: %s", disable);
-			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, deleteAgent as string, maxParallel as number, waitForInProgressRequests as boolean);
+			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, deleteAgent as string, maxParallel as number, waitForInProgressRequests as string);
 		});
 	};
 
@@ -93,7 +93,7 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 			}
 		}
 	}
-	private _getOrUpdateAgent(agentapi: agentClient.ITaskAgentApiBase, pool: number, agentid: number, newkey: string, value: string, include: boolean, disable: string, deleteAgent: string, Parallel: number, waitForInProgressRequests: boolean) {
+	private _getOrUpdateAgent(agentapi: agentClient.ITaskAgentApiBase, pool: number, agentid: number, newkey: string, value: string, include: boolean, disable: string, deleteAgent: string, Parallel: number, waitForInProgressRequests: string) {
 		return agentapi.getAgent(pool, agentid, true, true, null).then((agent) => {
 			trace.debug("disable request: %s", disable);
 			if (Parallel) {
@@ -142,21 +142,24 @@ export class Agent extends agentBase.BuildBase<agentBase.BuildArguments, taskAge
 				agentapi.updateAgentUserCapabilities(userCapabilitiesObj, pool, agentid);
 			};
 
-			if (waitForInProgressRequests) {
+			if (waitForInProgressRequests == "true") {
 				var timer = setInterval(function () {
 					return agentapi.getAgentRequestsForAgent(pool, agent.id, 0).then(function (requests) {
 						if (requests.length <= 0) {
 							clearInterval(timer);
 							timer = null;
-						} 
-						trace.info("-------------- The agent [ %s ]  is currently running the job [ %s ] ", agent.name, requests[0].definition.name);
+							trace.info("-------------- There are no requests which are 'in progress' state ");
+						}
+						else {
+							trace.info("-------------- The agent [ %s ]  is currently running the job [ %s ] ", agent.name, requests[0].definition.name);
+						}
 					}).catch(function (e) {
 						trace.info("==== ERROR Occurred ===== ");
 						trace.error(e.stack);
 						trace.error(e.message);
 						clearInterval(timer);
 						timer = null;
-					});	
+					});
 				}, 60000);
 			}
 			return agentapi.getAgent(pool, agentid, include, include, null)
