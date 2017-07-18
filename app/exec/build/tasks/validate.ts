@@ -47,51 +47,6 @@ export class BuildTaskValidate extends tasksBase.BuildTaskBase<agentContracts.Ta
 		});
 	}
 
-
-
-	public validate(jsonFilePath) {
-		var taskJson;
-		try {
-			taskJson = require(jsonFilePath);
-		}
-		catch (jsonError) {
-			console.log('jsonError = ' + jsonError)
-			trace.debug('Invalid task json: %s', jsonError);
-			throw new Error("Invalid task json: " + jsonError);
-		}
-
-		this.validateTask(jsonFilePath, taskJson);
-	}
-
-
-	/*
-	* Validates a parsed json file describing a build task
-	* @param taskPath the path to the original json file
-	* @param taskData the parsed json file
-	* @return list of issues with the json file
-	*/
-	public validateTask(taskPath: string, taskData: any): string[] {
-		var vn = (taskData.name || taskPath);
-		var issues: string[] = [];
-
-		if (!taskData.id || !check.isUUID(taskData.id)) {
-			issues.push(vn + ': id is a required guid');
-		}
-
-		if (!taskData.name || !check.isAlphanumeric(taskData.name)) {
-			issues.push(vn + ': name is a required alphanumeric string');
-		}
-
-		if (!taskData.friendlyName || !check.isLength(taskData.friendlyName, 1, 40)) {
-			issues.push(vn + ': friendlyName is a required string <= 40 chars');
-		}
-
-		if (!taskData.instanceNameFormat) {
-			issues.push(vn + ': instanceNameFormat is required');
-		}
-		return issues;
-	}
-
 	public friendlyOutput(data: agentContracts.TaskDefinition): void {
 		trace.println();
 		trace.success('Task at %s Validated successfully!', data.sourceLocation);
