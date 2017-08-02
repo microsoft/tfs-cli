@@ -11,18 +11,10 @@ export interface BuildArguments extends CoreArguments {
     priority: args.IntArgument;
 	version: args.StringArgument;
 	shelveset: args.StringArgument;
-	poolId: args.IntArgument;
-	agentId: args.IntArgument;
-	agentName: args.StringArgument;
-	userCapabilityKey: args.StringArgument;
-	userCapabilityValue: args.StringArgument;
     demands: args.StringArgument;
-	disable: args.StringArgument;
-	deleteAgent: args.StringArgument;
 	wait: args.BooleanArgument;
 	timeout: args.IntArgument;
-	parallel: args.IntArgument;
-	waitForInProgressRequests: args.StringArgument;
+
 }
 
 export function getCommand(args: string[]): BuildBase<BuildArguments, void> {
