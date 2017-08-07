@@ -2,7 +2,6 @@ import { TfCommand } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import agentBase = require("./default");
 import agentClient = require("vso-node-api/TaskAgentApiBase");
-import agentContracts = require("vso-node-api/interfaces/AgentInterfaces");
 import trace = require("../../../lib/trace");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 
@@ -18,7 +17,7 @@ export class AgentDetails extends agentBase.AgentBase<taskAgentContracts.TaskAge
 	}
 
 	public exec(): Promise<taskAgentContracts.TaskAgent[]> {
-		trace.debug("Agent-details.exec");
+		trace.debug("list-agents.exec");
 		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
 		return this.commandArgs.poolId.val().then((pool) => {
 			trace.debug("getting pool  : %s", pool);

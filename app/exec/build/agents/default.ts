@@ -23,7 +23,7 @@ export class AgentBase<T> extends buildBase.BuildBase<AgentArguments, T> {
 	protected serverCommand = false;
 	protected setCommandArgs(): void {
 		super.setCommandArgs();
-		this.registerCommandArgument("agentId", "Agent ID", "Identifies a particular Agent.", args.IntArgument);
+		this.registerCommandArgument("agentId", "Agent ID", "Identifies a particular Agent.", args.IntArgument,null);
 		this.registerCommandArgument("agentName", "Agent Name", "Required Agent Name.", args.StringArgument, null);
 		this.registerCommandArgument("poolId", "Agent Pool Id", "Required Agent pool ID For Edit.", args.IntArgument, null);
 		this.registerCommandArgument("userCapabilityKey", "Capability to add / edit", "Capability to add / edit to the Agent.", args.StringArgument, null);
