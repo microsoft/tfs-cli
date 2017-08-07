@@ -9,7 +9,6 @@ import trace = require('../../../lib/trace');
 import vm = require('../../../lib/jsonvalidate')
 var check = require('validator');
 
-
 export function getCommand(args: string[]): BuildTaskValidate {
 	return new BuildTaskValidate(args);
 }
@@ -52,6 +51,3 @@ export class BuildTaskValidate extends tasksBase.BuildTaskBase<agentContracts.Ta
 		trace.success('Task at %s Validated successfully!', data.sourceLocation);
 	}
 }
-
-
-
