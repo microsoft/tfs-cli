@@ -2,7 +2,6 @@ import { TfCommand } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import agentBase = require("./default");
 import agentClient = require("vso-node-api/TaskAgentApiBase");
-import agentContracts = require("vso-node-api/interfaces/AgentInterfaces");
 import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../../lib/trace");
 import taskAgentApi = require("vso-node-api/TaskAgentApi");
