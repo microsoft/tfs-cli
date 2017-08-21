@@ -13,7 +13,7 @@ export class AgentDetails extends agentBase.AgentBase<taskAgentContracts.TaskAge
 	protected serverCommand = true;
 	protected description = "Display extended Agent details.";
 	protected getHelpArgs(): string[] {
-		return ["project", "AgentId"];
+		return ["project", "poolId"];
 	}
 
 	public exec(): Promise<taskAgentContracts.TaskAgent[]> {
