@@ -401,29 +401,26 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				 * The Gallery Properties would be a generic array of JSON elements
 				 */
 				if (_.isArray(value)) {
-					value.forEach((propertyGroup: any) => {						
+					value.forEach((propertyGroup) => {						
 						Object.keys(propertyGroup).forEach((propertyKey: string) => {
-							if(propertyKey && propertyGroup[propertyKey]) {
+							if (propertyKey && propertyGroup[propertyKey]) {
 
 								// Property ID would be in upper camel case (First letter Capital)
-								let ucck: string = propertyKey.charAt(0).toUpperCase() + propertyKey.slice(1);
-								trace.debug("Property key %s.", ucck);
-								trace.debug("Property value %s.", String(propertyGroup[propertyKey]));
-								
+								let ucck: string = _.upperFirst(propertyKey);
 								let propertyName: string = "Microsoft.VisualStudio.Services.GalleryProperties." + ucck;
 
 								// Check for duplicates								
 								let existingProperties = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Properties[0].Property", []);
-								let pIds = existingProperties.map(function (p) { return _.get(p, "$.Id"); });
+								let pIds = existingProperties.map(p => _.get(p, "$.Id"));
 								if (_.intersection([propertyName], pIds).length !== 0) {
-									trace.warn("multiple entries found for same property group ... ignoring the duplicates.");
+									trace.warn("multiple entries found for same property group in vss-extension.json ... ignoring the duplicates.");
 								}
 								else {										
 									this.addProperty(propertyName, String(propertyGroup[propertyKey]));
 								}
 							}
 							else {
-								trace.warn("incorrectly formed property group ... ignoring.");
+								trace.warn("incorrectly formed property group in vss-extension.json ... ignoring.");
 							}
 						})						
 					});					
