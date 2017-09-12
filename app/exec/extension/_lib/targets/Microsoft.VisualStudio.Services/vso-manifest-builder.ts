@@ -109,29 +109,30 @@ export class VsoManifestBuilder extends ManifestBuilder {
 				break;
 
 			// Ignore all the vsixmanifest keys so we can take a default case below.
-			case "namespace":
-			case "extensionid":
-			case "id":
-			case "version":
-			case "name":
-			case "description":
-			case "icons":
-			case "screenshots":
-			case "details":
-			case "targets":
-			case "links":
 			case "branding":
+			case "categories":
+			case "description":
+			case "details":
+			case "extensionid":
+			case "files":
+			case "flags":
+			case "galleryflags":
+			case "galleryproperties":
+			case "githubflavoredmarkdown":
+			case "icons":
+			case "id":
+			case "links":
+			case "name":
+			case "namespace":
 			case "public":
 			case "publisher":
 			case "releasenotes":
-			case "tags":
-			case "flags":
-			case "vsoflags":
-			case "galleryflags":
-			case "categories":
-			case "files":
-			case "githubflavoredmarkdown":
+			case "screenshots":
 			case "showpricingcalculator":
+			case "tags":
+			case "targets":
+			case "version":
+			case "vsoflags":
 				break;
 			default:
 				if (key.substr(0, 2) !== "__") {
