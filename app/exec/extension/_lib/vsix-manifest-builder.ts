@@ -396,6 +396,36 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				}
 				this.addProperty("Microsoft.VisualStudio.Services.Content.Pricing.PriceCalculator", value.toString());
 				break;
+			case "galleryproperties":
+				/**
+				 * The Gallery Properties would be a generic array of JSON elements
+				 */
+				if (_.isArray(value)) {
+					value.forEach((propertyGroup) => {						
+						Object.keys(propertyGroup).forEach((propertyKey: string) => {
+							if (typeof propertyKey === "string" && propertyKey.length > 0 && propertyGroup[propertyKey]) {
+
+								// Property ID would be in upper camel case (First letter Capital)
+								let ucck: string = _.upperFirst(propertyKey);
+								let propertyName: string = "Microsoft.VisualStudio.Services.GalleryProperties." + ucck;
+
+								// Check for duplicates								
+								let existingProperties = _.get<any[]>(this.data, "PackageManifest.Metadata[0].Properties[0].Property", []);
+								let pIds = existingProperties.map(p => _.get(p, "$.Id"));
+								if (_.intersection([propertyName], pIds).length !== 0) {
+									trace.warn("multiple entries found for the same property group in the extension manifest ... ignoring the duplicates.");
+								}
+								else {										
+									this.addProperty(propertyName, String(propertyGroup[propertyKey]));
+								}
+							}
+							else {
+								trace.warn("incorrectly formed property group in the extension manifest ... ignoring.");
+							}
+						})						
+					});					
+				}
+				break;
 		}
 	}
 
