@@ -45,18 +45,18 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Promise<TaskCreateResult> {
+	public async exec(): Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
 		return Promise.all([
-			this.commandArgs.taskName.val(),
-			this.commandArgs.friendlyName.val(),
-			this.commandArgs.description.val(),
-			this.commandArgs.author.val(),
+			await this.commandArgs.taskName.val(),
+			await this.commandArgs.friendlyName.val(),
+			await this.commandArgs.description.val(),
+			await this.commandArgs.author.val(),
 		]).then((values) => {
 			const [taskName, friendlyName, description, author] = values;
 			if (!taskName || !check.isAlphanumeric(taskName)) {
-				throw new Error("name is a required alphanumeric string with no spaces");
+				throw new Error("taskName is a required alphanumeric string with no spaces");
 			}
 
 			if (!friendlyName || !check.isLength(friendlyName, 1, 40)) {
