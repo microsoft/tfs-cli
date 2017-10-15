@@ -12,7 +12,7 @@ import path = require("path");
 import Q = require("q");
 import qfs = require("../../../lib/qfs");
 import trace = require("../../../lib/trace");
-import version = require("../../../lib/version");
+import version = require("../../../lib/dynamicVersion");
 
 /**
  * Combines the vsix and vso manifests into one object
@@ -118,8 +118,8 @@ export class Merger {
 					if (this.settings.revVersion) {
 						if (partial["version"] && partial.__origin) {
 							try {
-								const semver = version.SemanticVersion.parse(partial["version"]);
-								const newVersion = new version.SemanticVersion(semver.major, semver.minor, semver.patch + 1);
+								const dynVer = version.DynamicVersion.parse(partial["version"]);
+								const newVersion = version.DynamicVersion.increase(dynVer); 
 								const newVersionString = newVersion.toString();
 								partial["version"] = newVersionString;
 								updateVersionPromise = qfs.readFile(partial.__origin, "utf8").then(versionPartial => {

@@ -19,7 +19,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 * `--manifest-globs`: List of globs to find manifests (space separated).
 * `--override`: JSON string which is merged into the manifests, overriding any values.
 * `--overrides-file`: Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.
-* `--rev-version`: Rev the patch-version of the extension and save the result.
+* `--rev-version`: Rev the latest version number of the extension and save the result.
 * `--bypass-validation`: Bypass local validation.
 * `--publisher`: Use this as the publisher ID instead of what is specified in the manifest.
 * `--extension-id`: Use this as the extension ID instead of what is specified in the manifest.
