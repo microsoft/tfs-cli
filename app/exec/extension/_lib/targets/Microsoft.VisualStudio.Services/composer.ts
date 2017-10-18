@@ -19,6 +19,19 @@ export class VSSExtensionComposer extends ExtensionComposer {
 			if (data.contributions.length === 0 && data.contributionTypes.length === 0) {
 				result.push("Your extension must define at least one contribution or contribution type.");
 			}
+
+			// Validate that contribution ids are unique within the extension
+			let ids: { [contributionId: string]: boolean } = {};
+			for(let contribution of data.contributions) {
+				const id = contribution.id;
+
+				if (ids[id]) {
+					result.push(`Your extension defined a duplicate contribution '${id}'`);
+				}
+
+				ids[id] = true;
+			}
+
 			data = components.builders.filter(b => b.getType() === VsixManifestBuilder.manifestType)[0].getData();
 			let galleryFlags = data.PackageManifest.Metadata[0].GalleryFlags;
 			let properties = data.PackageManifest.Metadata[0].Properties;
