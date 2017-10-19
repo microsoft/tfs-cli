@@ -21,24 +21,24 @@ export class VSSExtensionComposer extends ExtensionComposer {
 			}
 
 			// Validate that contribution ids are unique within the extension
-			let ids: { [contributionId: string]: boolean } = {};
-			for(let contribution of data.contributions) {
+			const ids: { [contributionId: string]: boolean } = {};
+			for (const contribution of data.contributions) {
 				const id = contribution.id;
 
 				if (ids[id]) {
-					result.push(`Your extension defined a duplicate contribution '${id}'`);
+					result.push(`Your extension defined a duplicate contribution id '${id}'.`);
 				}
 
 				ids[id] = true;
 			}
 
 			data = components.builders.filter(b => b.getType() === VsixManifestBuilder.manifestType)[0].getData();
-			let galleryFlags = data.PackageManifest.Metadata[0].GalleryFlags;
-			let properties = data.PackageManifest.Metadata[0].Properties;
+			const galleryFlags = data.PackageManifest.Metadata[0].GalleryFlags;
+			const properties = data.PackageManifest.Metadata[0].Properties;
 
 			if (galleryFlags && galleryFlags[0] && galleryFlags[0].toLowerCase().includes("paid")) {
 				if (properties && properties.length > 0) {
-					let property = properties[0].Property.filter(prop => prop.$.Id === VSSExtensionComposer.SupportLink && prop.$.Value)
+					const property = properties[0].Property.filter(prop => prop.$.Id === VSSExtensionComposer.SupportLink && prop.$.Value)
 					if (!property) {
 						result.push("Paid extensions are required to have a support link. Try adding it to your manifest: { \"links\": { \"support\": \"<support url>\" } }");
 					}
