@@ -20,7 +20,8 @@ export class ComposerFactory {
 		targets.forEach((target) => {
 			switch (target.id) {
 				case "Microsoft.VisualStudio.Services" :
-				case "Microsoft.VisualStudio.Services.Cloud" :
+				case "Microsoft.VisualStudio.Services.Cloud":
+				case "Microsoft.VisualStudio.Services.Resource.Cloud":
 				case "Microsoft.TeamFoundation.Server" :
 					composers.push(new VSSExtensionComposer(settings));
 					break;

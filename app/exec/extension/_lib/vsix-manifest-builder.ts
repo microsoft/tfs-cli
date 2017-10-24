@@ -281,6 +281,30 @@ export class VsixManifestBuilder extends ManifestBuilder {
 					});
 				}
 				break;
+			case "cloudresources":
+				if (_.isObject(value)) {
+                    Object.keys(value).forEach(function (resourceType) {
+                        let resourceTypeCased = _.capitalize(_.camelCase(resourceType));
+                        let resourceValue = _.get(value, resourceType);
+                        if (resourceValue) {
+                            if (_.isObject(resourceValue)) {
+                                Object.keys(resourceValue).forEach((childType) => {
+                                    let childResourceValue = _.get(resourceValue, childType);
+                                    if (childResourceValue) {
+                                        this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud." + resourceTypeCased + childType, childResourceValue);
+                                    } else {
+                                        trace.warn("'%s' property not found for resource: '%s'... ignoring.", childType, resourceType);
+                                    }
+                                });
+                            } else {
+                                this.addProperty("Microsoft.VisualStudio.Services.Resource.Cloud." + resourceTypeCased, resourceValue);
+                            }
+                        } else {
+                            trace.warn("'%s' property not found for resource: 'cloudResources'... ignoring.", resourceType);
+                        }
+                    });
+                }
+				break;
 			case "repository":
 				if (_.isObject(value)) {					
 						const {type, url, uri} = value;
