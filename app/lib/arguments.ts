@@ -55,7 +55,7 @@ export abstract class Argument<T> {
 			initPromise = getOptionsCache().then((cache) => {
 				let cacheKey = path.resolve().replace("/\.\[\]/g", "-") + "." + 
 					common.EXEC_PATH.slice(0, common.EXEC_PATH.length - 1).join("/");
-				let cachedValue = _.get<string | string[]>(cache, cacheKey + "." + this.name);
+				let cachedValue = _.get<any, string>(cache, cacheKey + "." + this.name);
 				let cachedValueStringArray: string[];
 				if (typeof cachedValue === "string") {
 					cachedValueStringArray = [cachedValue];
