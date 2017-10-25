@@ -73,9 +73,9 @@ export class GalleryBase {
 					throw "Could not locate vsix manifest!";
 				}
 			}).then((vsixManifestAsJson) => {
-				let extensionId: string = info.extensionId || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
-				let extensionPublisher: string = info.publisher || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-				let extensionVersion: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
+				let extensionId: string = info.extensionId || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+				let extensionPublisher: string = info.publisher || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+				let extensionVersion: string = _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
 				if (extensionId && extensionPublisher) {
 					return { id: extensionId, publisher: extensionPublisher, version: extensionVersion };
 				} else {

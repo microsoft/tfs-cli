@@ -271,7 +271,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			case "links":
 				if (_.isObject(value)) {
 					Object.keys(value).forEach((linkType) => {
-						let url = _.get<string>(value, linkType + ".uri") || _.get<string>(value, linkType + ".url");
+						let url = _.get<any, string>(value, linkType + ".uri") || _.get<any, string>(value, linkType + ".url");
 						if (url) {
 							let linkTypeCased = _.capitalize(_.camelCase(linkType));
 							this.addProperty("Microsoft.VisualStudio.Services.Links." + linkTypeCased, url);
@@ -433,7 +433,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * Get the id of the extension this vsixmanifest goes to
 	 */
 	public getExtensionId() {
-		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Id");
+		return _.get<any, string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Id");
 	}
 
 	/**
@@ -455,14 +455,14 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * Get the publisher this vsixmanifest goes to
 	 */
 	public getExtensionPublisher() {
-		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+		return _.get<any, string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
 	}
 
 	/**
 	 * Get the version of the extension this vsixmanifest goes to
 	 */
 	public getExtensionVersion() {
-		return _.get<string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Version");
+		return _.get<any, string>(this.data, "PackageManifest.Metadata[0].Identity[0].$.Version");
 	}
 
 	/**
@@ -472,7 +472,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {
 		return super.finalize(files, resourceData, builders).then(() => {
 			// Default installation target to VSS if not provided (and log warning)
-			let installationTarget = _.get<any[]>(this.data, "PackageManifest.Installation[0].InstallationTarget");
+			let installationTarget = _.get<any, string>(this.data, "PackageManifest.Installation[0].InstallationTarget");
 			
 			if (resourceData) {
 				Object.keys(resourceData).forEach(languageTag => {

@@ -44,9 +44,9 @@ export function getExtInfo(vsixPath: string, extensionId: string, publisherName:
 				throw new Error("Could not locate vsix manifest!");
 			}
 		}).then((vsixManifestAsJson) => {
-			let foundExtId: string = extensionId || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
-			let foundPublisher: string = publisherName || _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-			let extensionVersion: string = _.get<string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
+			let foundExtId: string = extensionId || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+			let foundPublisher: string = publisherName || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+			let extensionVersion: string = _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
 			if (foundExtId && foundPublisher) {
 				return {id: foundExtId, publisher: foundPublisher, version: extensionVersion};
 			} else {
