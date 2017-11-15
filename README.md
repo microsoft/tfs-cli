@@ -1,4 +1,6 @@
-# Cross-platform CLI for Team Foundation Server and Visual Studio Team Services
+# Node CLI for VSTS and TFS
+
+> NOTE: If you are looking for the new VSTS CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
