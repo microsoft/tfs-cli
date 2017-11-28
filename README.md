@@ -3,10 +3,8 @@
 > NOTE: If you are looking for the new VSTS CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
-#### Pull Request validation
-[![PR Validation passing](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/2164/badge)
-#### Internal Deploy
-[![build passing](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/1612/badge)](https://intel-realsense.visualstudio.com/_apis/public/build/definitions/bb6e275d-d07a-4daa-a38c-d7e1470a9df3/1612/badge)
+#### Internal Deploy / Pull Request validation
+[![build passing](https://shfeldma.visualstudio.com/_apis/public/build/definitions/0362c756-148c-4a35-9c69-19fef97b8761/1/badge)](https://shfeldma.visualstudio.com/_apis/public/build/definitions/0362c756-148c-4a35-9c69-19fef97b8761/1/badge)
 
 Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
 
