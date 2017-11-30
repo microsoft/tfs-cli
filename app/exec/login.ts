@@ -32,7 +32,7 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 			}).then((webApi) => {
 				let agentApi = webApi.getTaskAgentApi();
 				return Q.Promise<LoginResult>((resolve, reject) => {
-					if (collectionUrl.includes('visualstudio.com')) {
+					if (collectionUrl.includes('visualstudio.com') && !collectionUrl.toLocaleLowerCase().includes('defaultcollection')) {
 						if (collectionUrl[collectionUrl.length - 1] == '/')
 							collectionUrl = collectionUrl.substring(0, collectionUrl.length - 1);
 						collectionUrl = collectionUrl + '/DefaultCollection'
