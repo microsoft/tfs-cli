@@ -21,7 +21,7 @@ export interface LoginResult {
 export class Login extends TfCommand<CoreArguments, LoginResult> {
 	protected description = "Login and cache credentials using a PAT or basic auth.";
 	protected serverCommand = true;
-	
+
 	public exec(): Promise<LoginResult> {
 		trace.debug('Login.exec');
 		let authHandler;
@@ -32,7 +32,11 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 			}).then((webApi) => {
 				let agentApi = webApi.getTaskAgentApi();
 				return Q.Promise<LoginResult>((resolve, reject) => {
-
+					if (collectionUrl.includes('visualstudio.com')) {
+						if (collectionUrl[collectionUrl.length - 1] == '/')
+							collectionUrl = collectionUrl.substring(0, collectionUrl.length - 1);
+						collectionUrl = collectionUrl + '/DefaultCollection'
+					}
 					return agentApi.connect().then((obj) => {
 						let tfxCredStore = getCredentialStore("tfx");
 						let tfxCache = new DiskCache("tfx");
