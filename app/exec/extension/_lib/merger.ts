@@ -6,7 +6,7 @@ import { forwardSlashesPath, toZipItemName } from "./utils";
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
-import jsonInPlace = require("json-in-place");
+import jju = require("jju");
 import loc = require("./loc");
 import path = require("path");
 import Q = require("q");
@@ -85,7 +85,7 @@ export class Merger {
 				manifestPromises.push(Q.nfcall<any>(fs.readFile, file, "utf8").then((data) => {
 					let jsonData = data.replace(/^\uFEFF/, '');
 					try {
-						let result = JSON.parse(jsonData);
+						let result = jju.parse(jsonData);
 						result.__origin = file; // save the origin in order to resolve relative paths later.
 						return result;
 					} catch (err) {
@@ -124,7 +124,9 @@ export class Merger {
 								partial["version"] = newVersionString;
 								updateVersionPromise = qfs.readFile(partial.__origin, "utf8").then(versionPartial => {
 									try {
-										const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+										const parsed = jju.parse(versionPartial);
+										parsed["version"] = newVersionString;
+										const newPartial = jju.update(versionPartial, parsed);
 										return qfs.writeFile(partial.__origin, newPartial);
 									}
 									catch (e) {
