@@ -34,7 +34,6 @@ export interface ExtensionArguments extends CoreArguments {
 	accounts: args.ArrayArgument;
 	revVersion: args.BooleanArgument;
 	noWaitValidation: args.BooleanArgument
-	version: args.StringArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
