@@ -180,8 +180,8 @@ export class PackagePublisher extends GalleryBase {
 
 	private static validationPending = "__validation_pending";
 	private static validated = "__validated";
-	private static validationInterval = 15000;
-	private static validationRetries = 80;
+	private static validationInterval = 60000;
+	private static validationRetries = 20;
 
 	private checkVsixPublished(): Promise<CoreExtInfo> {
 		return this.getExtInfo().then((extInfo) => {
