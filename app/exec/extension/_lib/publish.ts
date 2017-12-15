@@ -180,8 +180,8 @@ export class PackagePublisher extends GalleryBase {
 
 	private static validationPending = "__validation_pending";
 	private static validated = "__validated";
-	private static validationInterval = 60000;
-	private static validationRetries = 20;
+	private static validationInterval = 1000;
+	private static validationRetries = 50;
 
 	private checkVsixPublished(): Promise<CoreExtInfo> {
 		return this.getExtInfo().then((extInfo) => {
@@ -210,26 +210,20 @@ export class PackagePublisher extends GalleryBase {
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
 		trace.info("Checking if this extension is already published");
 		return this.createOrUpdateExtension(extPackage).then((ext) => {
-			if(this.settings.noWaitValidation) {
-				trace.info("Validations are in progress, based on the package size it can take up to 20 mins. Extension will be available post completion of validation.");
-				return ext;
-			}
-			else {
-				trace.info("Validations are in progress, based on the package size it can take up to 20 mins. You can choose to exit or use --no-wait-validation parameter. Extension will be available post completion of validation.");
-				let versions = ext.versions;
-				versions.sort((a, b) => {
-					let aTime = a.lastUpdated.getTime();
-					let bTime = b.lastUpdated.getTime();
-					return aTime < bTime ? 1 : (aTime === bTime ? 0 : -1);
-				});
-				return this.waitForValidation(versions[0].version).then((result) => {
-					if (result === PackagePublisher.validated) {
-						return ext;
-					} else {
-						throw "Extension validation failed. Please address the following issues and retry publishing.\n" + result;
-					}
-				});
-			}
+			trace.info("Waiting for server to validate extension package...");
+			let versions = ext.versions;
+			versions.sort((a, b) => {
+				let aTime = a.lastUpdated.getTime();
+				let bTime = b.lastUpdated.getTime();
+				return aTime < bTime ? 1 : (aTime === bTime ? 0 : -1);
+			});
+			return this.waitForValidation(versions[0].version).then((result) => {
+				if (result === PackagePublisher.validated) {
+					return ext;
+				} else {
+					throw "Extension validation failed. Please address the following issues and retry publishing.\n" + result;
+				}
+			});
 		});
 	}
 
@@ -252,8 +246,9 @@ export class PackagePublisher extends GalleryBase {
 	public waitForValidation(version?: string, interval = PackagePublisher.validationInterval, retries = PackagePublisher.validationRetries): Promise<string> {
 		if (retries === 0) {
 			throw "Validation timed out. There may be a problem validating your extension. Please try again later.";
+		} else if (retries === 25) {
+			trace.info("This is taking longer than usual. Hold tight...");
 		}
-
 		trace.debug("Polling for validation (%s retries remaining).", retries.toString());
 
 		// Compiler nonsense below. Sorry.

@@ -33,7 +33,6 @@ export interface ExtensionArguments extends CoreArguments {
 	description: args.StringArgument;
 	accounts: args.ArrayArgument;
 	revVersion: args.BooleanArgument;
-	noWaitValidation: args.BooleanArgument
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
@@ -66,7 +65,6 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument("displayName", "Display name", null, args.StringArgument);
 		this.registerCommandArgument("description", "Description", "Description of the Publisher.", args.StringArgument);
 		this.registerCommandArgument("revVersion", "Rev version", "Rev the patch-version of the extension and save the result.", args.BooleanArgument, "false");
-		this.registerCommandArgument("noWaitValidation", "Don't block command for extension validation.", null, args.BooleanArgument, "false");
 	}
 
 	protected getMergeSettings(): Promise<MergeSettings> {
@@ -164,18 +162,16 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.vsix.val(true),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true),
-			this.commandArgs.shareWith.val(),
-			this.commandArgs.noWaitValidation.val()
+			this.commandArgs.shareWith.val()
 		]).then<PublishSettings>((values) => {
-			const [marketUrl, vsix, publisher, extensionId, shareWith, noWaitValidation] = values;
+			const [marketUrl, vsix, publisher, extensionId, shareWith] = values;
 			let vsixPath: string = _.isArray<string>(vsix) ? vsix[0] : null;
 			return {
 				galleryUrl: marketUrl,
 				vsixPath: vsixPath,
 				publisher: publisher,
 				extensionId: extensionId,
-				shareWith: shareWith,
-				noWaitValidation: noWaitValidation
+				shareWith: shareWith
 			};
 		});
 	}

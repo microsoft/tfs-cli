@@ -202,11 +202,6 @@ export interface PublishSettings {
 	 * List of VSTS accounts to share an extension with.
 	 */
 	shareWith?: string[];
-
-	/**
-	 * If true, command will not wait for extension to be validated.
-	 */
-	noWaitValidation?: boolean;
 }
 
 /*** Types related to localized resources ***/
