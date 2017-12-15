@@ -20,6 +20,9 @@ export interface CoreExtInfo {
 }
 
 export class GalleryBase {
+    public static validationPending = "__validation_pending";
+    public static validated = "__validated";
+
     private vsixInfoPromise: Promise<CoreExtInfo>;
 
     /**
@@ -106,6 +109,77 @@ export class GalleryBase {
         }
         return promise;
     }
+
+    public getValidationStatus(version?: string): Promise<string> {
+        return this.getExtInfo().then(extInfo => {
+            return this.galleryClient
+                .getExtension(
+                    extInfo.publisher,
+                    extInfo.id,
+                    extInfo.version,
+                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
+                )
+                .then(ext => {
+                    return this.extToValidationStatus(ext, version);
+                });
+        });
+    }
+
+    public extToValidationStatus(extension: GalleryInterfaces.PublishedExtension, version?: string): string {
+        if (!extension || extension.versions.length === 0) {
+            throw new Error("Extension not published.");
+        }
+        let extVersion = extension.versions[0];
+        if (version) {
+            extVersion = this.getVersionedExtension(extension, version);
+        }
+
+        if (!extVersion) {
+            throw new Error("Could not find extension version " + version);
+        }
+
+        // If there is a validationResultMessage, validation failed and this is the error
+        // If the validated flag is missing and there is no validationResultMessage, validation is pending
+        // If the validated flag is present and there is no validationResultMessage, the extension is validated.
+        if (extVersion.validationResultMessage) {
+            return extVersion.validationResultMessage;
+        } else if ((extVersion.flags & GalleryInterfaces.ExtensionVersionFlags.Validated) === 0) {
+            return PackagePublisher.validationPending;
+        } else {
+            return PackagePublisher.validated;
+        }
+    }
+
+    private getVersionedExtension(
+        extension: GalleryInterfaces.PublishedExtension,
+        version: string,
+    ): GalleryInterfaces.ExtensionVersion {
+        const matches = extension.versions.filter(ev => ev.version === version);
+        if (matches.length > 0) {
+            return matches[0];
+        } else {
+            return null;
+        }
+    }
+
+    public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
+        return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>(extInfo => {
+            return this.galleryClient
+                .getExtension(
+                    extInfo.publisher,
+                    extInfo.id,
+                    null,
+                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
+                )
+                .then(extension => {
+                    return extension;
+                })
+                .catch(errHandler.httpErr);
+        });
+    }
 }
 
 /**
@@ -184,31 +258,9 @@ export class SharingManager extends GalleryBase {
             return ext.sharedWith.map(acct => acct.name);
         });
     }
-
-    public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
-        return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>(extInfo => {
-            return this.galleryClient
-                .getExtension(
-                    extInfo.publisher,
-                    extInfo.id,
-                    null,
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
-                )
-                .then(extension => {
-                    return extension;
-                })
-                .catch(errHandler.httpErr);
-        });
-    }
 }
 
 export class PackagePublisher extends GalleryBase {
-    private static validationPending = "__validation_pending";
-    private static validated = "__validated";
-
     private static fastValidationInterval = 1000;
     private static fastValidationRetries = 50;
     private static fullValidationInterval = 15000;
@@ -250,11 +302,11 @@ export class PackagePublisher extends GalleryBase {
             const noWaitHelp = this.settings.noWaitValidation
                 ? ""
                 : "If you don't want TFX to wait for validation, use the --no-wait-validation parameter. ";
-            const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(`tfx extension show --publisher ${
-                extInfo.publisher
-            } --extension-id ${extInfo.id} --service-url ${
-                this.settings.galleryUrl
-            } --token <your PAT>`)}\n\nAfter running the command, look in the output at the "flags" property for the version you published. If the value for flags is an odd number, validation was successful.`;
+            const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
+                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${extInfo.version} --service-url ${
+                    this.settings.galleryUrl
+                } --token <your PAT>`,
+            )}`;
             return this.createOrUpdateExtension(extPackage).then(ext => {
                 if (extInfo.isPublicExtension && this.settings.noWaitValidation) {
                     trace.info(publicValidationMessage);
@@ -273,12 +325,13 @@ export class PackagePublisher extends GalleryBase {
                     const validationRetries = extInfo.isPublicExtension
                         ? PackagePublisher.fullValidationRetries
                         : PackagePublisher.fastValidationRetries;
-                    const hangTightMessage = extInfo.isPublicExtension ? -1 : 25;
+                    const hangTightMessageRetryCount = extInfo.isPublicExtension ? -1 : 25;
 
                     return this.waitForValidation(
+                        1000,
                         validationInterval,
                         validationRetries,
-                        hangTightMessage,
+                        hangTightMessageRetryCount,
                         versions[0].version,
                     ).then(result => {
                         if (result === PackagePublisher.validated) {
@@ -322,6 +375,7 @@ export class PackagePublisher extends GalleryBase {
 
     public waitForValidation(
         interval: number,
+        maxInterval: number,
         retries: number,
         showPatienceMessageAt: number,
         version?: string,
@@ -338,53 +392,17 @@ export class PackagePublisher extends GalleryBase {
         return (<Promise<string>>(<any>Q.delay(this.getValidationStatus(version), interval))).then(status => {
             trace.debug("--Retrieved validation status: %s", status);
             if (status === PackagePublisher.validationPending) {
-                return this.waitForValidation(interval, retries - 1, showPatienceMessageAt, version);
+                // exponentially increase interval until we reach max interval
+                return this.waitForValidation(
+                    Math.min(interval * 2, maxInterval),
+                    maxInterval,
+                    retries - 1,
+                    showPatienceMessageAt,
+                    version,
+                );
             } else {
                 return Q.resolve(status); // otherwise TypeScript gets upset... I don't really know why.
             }
         });
-    }
-
-    public getValidationStatus(version?: string): Promise<string> {
-        return this.getExtInfo().then(extInfo => {
-            return this.galleryClient
-                .getExtension(
-                    extInfo.publisher,
-                    extInfo.id,
-                    extInfo.version,
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
-                )
-                .then(ext => {
-                    if (!ext || ext.versions.length === 0) {
-                        throw "Extension not published.";
-                    }
-                    let extVersion = ext.versions[0];
-                    if (version) {
-                        extVersion = this.getVersionedExtension(ext, version);
-                    }
-                    // If there is a validationResultMessage, validation failed and this is the error
-                    // If the validated flag is missing and there is no validationResultMessage, validation is pending
-                    // If the validated flag is present and there is no validationResultMessage, the extension is validated.
-                    if (extVersion.validationResultMessage) {
-                        return extVersion.validationResultMessage;
-                    } else if ((extVersion.flags & GalleryInterfaces.ExtensionVersionFlags.Validated) === 0) {
-                        return PackagePublisher.validationPending;
-                    } else {
-                        return PackagePublisher.validated;
-                    }
-                });
-        });
-    }
-
-    private getVersionedExtension(
-        extension: GalleryInterfaces.PublishedExtension,
-        version: string,
-    ): GalleryInterfaces.ExtensionVersion {
-        const matches = extension.versions.filter(ev => ev.version === version);
-        if (matches.length > 0) {
-            return matches[0];
-        } else {
-            return null;
-        }
     }
 }
