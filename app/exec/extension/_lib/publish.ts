@@ -12,379 +12,291 @@ import xml2js = require("xml2js");
 import zip = require("jszip");
 
 export interface CoreExtInfo {
-    id: string;
-    publisher: string;
-    version: string;
-    published?: boolean;
-    isPublicExtension: boolean;
+	id: string;
+	publisher: string;
+	version: string;
+	published?: boolean;
 }
 
 export class GalleryBase {
-    private vsixInfoPromise: Promise<CoreExtInfo>;
+	private vsixInfoPromise: Promise<CoreExtInfo>;
 
-    /**
-     * Constructor
-     * @param PublishSettings
-     */
-    constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi, extInfo?: CoreExtInfo) {
-        if (extInfo) {
-            this.vsixInfoPromise = Q.resolve(extInfo);
-        }
+	/**
+	 * Constructor
+	 * @param PublishSettings
+	 */
+	constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi, extInfo?: CoreExtInfo) {
+		if (extInfo) {
+			this.vsixInfoPromise = Q.resolve(extInfo);
+		}
 
-        // if (!settings.galleryUrl || !/^https?:\/\//.test(settings.galleryUrl)) {
-        //     throw "Invalid or missing gallery URL.";
-        // }
-        // if (!settings.token || !/^[A-z0-9]{52}$/.test(settings.token)) {
-        //     throw "Invalid or missing personal access token.";
-        // }
-    }
+		// if (!settings.galleryUrl || !/^https?:\/\//.test(settings.galleryUrl)) {
+		//     throw "Invalid or missing gallery URL.";
+		// }
+		// if (!settings.token || !/^[A-z0-9]{52}$/.test(settings.token)) {
+		//     throw "Invalid or missing personal access token.";
+		// }
+	}
 
-    protected getExtInfo(): Promise<CoreExtInfo> {
-        if (!this.vsixInfoPromise) {
-            this.vsixInfoPromise = GalleryBase.getExtInfo({
-                extensionId: this.settings.extensionId,
-                publisher: this.settings.publisher,
-                vsixPath: this.settings.vsixPath,
-            });
-        }
-        return this.vsixInfoPromise;
-    }
+	protected getExtInfo(): Promise<CoreExtInfo> {
+		if (!this.vsixInfoPromise) {
+			this.vsixInfoPromise = GalleryBase.getExtInfo({
+				extensionId: this.settings.extensionId,
+				publisher: this.settings.publisher,
+				vsixPath: this.settings.vsixPath});
+		}
+		return this.vsixInfoPromise;
+	}
 
-    public static getExtInfo(info: { extensionId?: string; publisher?: string; vsixPath?: string }): Promise<CoreExtInfo> {
-        let promise: Promise<CoreExtInfo>;
-        if (info.extensionId && info.publisher) {
-            promise = Q.resolve({ id: info.extensionId, publisher: info.publisher, version: null });
-        } else {
-            promise = Q.Promise<JSZip>((resolve, reject, notify) => {
-                fs.readFile(info.vsixPath, function(err, data) {
-                    if (err) reject(err);
-                    trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
-                    try {
-                        resolve(new zip(data));
-                    } catch (err) {
-                        reject(err);
-                    }
-                });
-            })
-                .then(zip => {
-                    trace.debug("Files in the zip: %s", Object.keys(zip.files).join(", "));
-                    const vsixManifestFileNames = Object.keys(zip.files).filter(key => _.endsWith(key, "vsixmanifest"));
-                    if (vsixManifestFileNames.length > 0) {
-                        return Q.nfcall(xml2js.parseString, zip.files[vsixManifestFileNames[0]].asText());
-                    } else {
-                        throw new Error("Could not locate vsix manifest!");
-                    }
-                })
-                .then(vsixManifestAsJson => {
-                    const extensionId: string =
-                        info.extensionId ||
-                        _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
-                    const extensionPublisher: string =
-                        info.publisher ||
-                        _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-                    const extensionVersion: string = _.get<any, string>(
-                        vsixManifestAsJson,
-                        "PackageManifest.Metadata[0].Identity[0].$.Version",
-                    );
-                    const isPublicExtension: boolean =
-                        _.get<any, string[]>(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]").indexOf(
-                            "Public",
-                        ) >= 0;
-                    if (extensionId && extensionPublisher) {
-                        return {
-                            id: extensionId,
-                            publisher: extensionPublisher,
-                            version: extensionVersion,
-                            isPublicExtension: isPublicExtension,
-                        };
-                    } else {
-                        throw new Error(
-                            "Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property, or specify the necessary --publisher and/or --extension options.",
-                        );
-                    }
-                });
-        }
-        return promise;
-    }
+	public static getExtInfo(info: {extensionId?: string, publisher?: string, vsixPath?: string}): Promise<CoreExtInfo> {
+		let promise: Promise<CoreExtInfo>;
+		if (info.extensionId && info.publisher) {
+			promise = Q.resolve({id: info.extensionId, publisher: info.publisher, version: null});
+		} else {
+			promise = Q.Promise<JSZip>((resolve, reject, notify) => {
+				fs.readFile(info.vsixPath, function(err, data) {
+					if (err) reject(err);
+					trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
+					try {
+						resolve(new zip(data));
+					} catch (err) {
+						reject(err);
+					}
+				});
+			}).then((zip) => {
+				trace.debug("Files in the zip: %s", Object.keys(zip.files).join(", "));
+				let vsixManifestFileNames = Object.keys(zip.files).filter(key => _.endsWith(key, "vsixmanifest"));
+				if (vsixManifestFileNames.length > 0) {
+					return Q.nfcall(xml2js.parseString, zip.files[vsixManifestFileNames[0]].asText());
+				} else {
+					throw "Could not locate vsix manifest!";
+				}
+			}).then((vsixManifestAsJson) => {
+				let extensionId: string = info.extensionId || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+				let extensionPublisher: string = info.publisher || _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+				let extensionVersion: string = _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Version");
+				if (extensionId && extensionPublisher) {
+					return {id: extensionId, publisher: extensionPublisher, version: extensionVersion};
+				} else {
+					throw new Error("Could not locate both the extension id and publisher in vsix manfiest! Ensure your manifest includes both a namespace and a publisher property, or specify the necessary --publisher and/or --extension options.");
+				}
+			});
+		}
+		return promise;
+	}
 }
 
 /**
  * Class that handles creating and deleting publishers
  */
 export class PublisherManager extends GalleryBase {
-    /**
-     * Constructor
-     * @param PublishSettings
-     */
-    constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi) {
-        super(settings, galleryClient);
-    }
 
-    /**
-     * Create a a publisher with the given name, displayName, and description
-     * @param string Publisher's unique name
-     * @param string Publisher's display name
-     * @param string Publisher description
-     * @return Q.Promise that is resolved when publisher is created
-     */
-    public createPublisher(name: string, displayName: string, description: string): Promise<any> {
-        return this.galleryClient
-            .createPublisher(<GalleryInterfaces.Publisher>{
-                publisherName: name,
-                displayName: displayName,
-                longDescription: description,
-                shortDescription: description,
-            })
-            .catch(errHandler.httpErr);
-    }
+	/**
+	 * Constructor
+	 * @param PublishSettings
+	 */
+	constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi) {
+		super(settings, galleryClient);
+	}
 
-    /**
-     * Delete the publisher with the given name
-     * @param string Publisher's unique name
-     * @return Q.promise that is resolved when publisher is deleted
-     */
-    public deletePublisher(name: string): Promise<any> {
-        return this.galleryClient.deletePublisher(name).catch(errHandler.httpErr);
-    }
+	/**
+	 * Create a a publisher with the given name, displayName, and description
+	 * @param string Publisher's unique name
+	 * @param string Publisher's display name
+	 * @param string Publisher description
+	 * @return Q.Promise that is resolved when publisher is created
+	 */
+	public createPublisher(name: string, displayName: string, description: string): Promise<any> {
+		return this.galleryClient.createPublisher(<GalleryInterfaces.Publisher>{
+			publisherName: name,
+			displayName: displayName,
+			longDescription: description,
+			shortDescription: description
+		}).catch(errHandler.httpErr);
+	}
+
+	/**
+	 * Delete the publisher with the given name
+	 * @param string Publisher's unique name
+	 * @return Q.promise that is resolved when publisher is deleted
+	 */
+	public deletePublisher(name: string): Promise<any> {
+		return this.galleryClient.deletePublisher(name).catch(errHandler.httpErr);
+	}
 }
 
 export class SharingManager extends GalleryBase {
-    private id: Promise<string>;
-    private publisher: Promise<string>;
 
-    public shareWith(accounts: string[]): Promise<any> {
-        return this.getExtInfo().then(extInfo => {
-            return Promise.all(
-                accounts.map(account => {
-                    trace.info("Sharing extension with %s.", account);
-                    return this.galleryClient.shareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
-                }),
-            );
-        });
-    }
+	private id: Promise<string>;
+	private publisher: Promise<string>;
 
-    public unshareWith(accounts: string[]): Promise<any> {
-        return this.getExtInfo().then(extInfo => {
-            return Promise.all(
-                accounts.map(account => {
-                    return this.galleryClient.unshareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
-                }),
-            );
-        });
-    }
+	public shareWith(accounts: string[]): Promise<any> {
+		return this.getExtInfo().then((extInfo) => {
+			return Promise.all(accounts.map((account) => {
+				trace.info("Sharing extension with %s.", account);
+				return this.galleryClient.shareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
+			}));
+		});
+	}
 
-    public unshareWithAll(): Promise<any> {
-        return this.getSharedWithAccounts().then(accounts => {
-            return this.unshareWith(accounts);
-        });
-    }
+	public unshareWith(accounts: string[]): Promise<any> {
+		return this.getExtInfo().then((extInfo) => {
+			return Promise.all(accounts.map((account) => {
+				return this.galleryClient.unshareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
+			}));
+		});
+	}
 
-    public getSharedWithAccounts() {
-        return this.getExtensionInfo().then(ext => {
-            return ext.sharedWith.map(acct => acct.name);
-        });
-    }
+	public unshareWithAll(): Promise<any> {
+		return this.getSharedWithAccounts().then((accounts) => {
+			return this.unshareWith(accounts);
+		});
+	}
 
-    public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
-        return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>(extInfo => {
-            return this.galleryClient
-                .getExtension(
-                    extInfo.publisher,
-                    extInfo.id,
-                    null,
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
-                )
-                .then(extension => {
-                    return extension;
-                })
-                .catch(errHandler.httpErr);
-        });
-    }
+	public getSharedWithAccounts() {
+		return this.getExtensionInfo().then((ext) => {
+			return ext.sharedWith.map(acct => acct.name);
+		});
+	}
+
+	public getExtensionInfo(): Promise<GalleryInterfaces.PublishedExtension> {
+		return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>((extInfo) => {
+			return this.galleryClient.getExtension(
+				extInfo.publisher,
+				extInfo.id,
+				null,
+				GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
+					GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
+					GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
+					GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts).then((extension) => {
+
+					return extension;
+			}).catch(errHandler.httpErr);
+		});
+	}
 }
 
 export class PackagePublisher extends GalleryBase {
-    private static validationPending = "__validation_pending";
-    private static validated = "__validated";
 
-    private static fastValidationInterval = 1000;
-    private static fastValidationRetries = 50;
-    private static fullValidationInterval = 15000;
-    private static fullValidationRetries = 80;
+	private static validationPending = "__validation_pending";
+	private static validated = "__validated";
+	private static validationInterval = 15000;
+	private static validationRetries = 80;
 
-    private checkVsixPublished(): Promise<CoreExtInfo> {
-        return this.getExtInfo().then(extInfo => {
-            return this.galleryClient
-                .getExtension(extInfo.publisher, extInfo.id)
-                .then(ext => {
-                    if (ext) {
-                        extInfo.published = true;
-                        return extInfo;
-                    }
-                    return extInfo;
-                })
-                .catch<CoreExtInfo>(() => extInfo);
-        });
-    }
+	private checkVsixPublished(): Promise<CoreExtInfo> {
+		return this.getExtInfo().then((extInfo) => {
+			return this.galleryClient.getExtension(extInfo.publisher, extInfo.id).then((ext) => {
+				if (ext) {
+					extInfo.published = true;
+					return extInfo;
+				}
+				return extInfo;
+			}).catch<{id: string, publisher: string, version: string}>(() => extInfo);
+		});
+	}
 
-    /**
-     * Publish the VSIX extension given by vsixPath
-     * @param string path to a VSIX extension to publish
-     * @return Q.Promise that is resolved when publish is complete
-     */
-    public publish(): Promise<GalleryInterfaces.PublishedExtension> {
-        const extPackage: GalleryInterfaces.ExtensionPackage = {
-            extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64"),
-        };
-        trace.debug("Publishing %s", this.settings.vsixPath);
+	/**
+	 * Publish the VSIX extension given by vsixPath
+	 * @param string path to a VSIX extension to publish
+	 * @return Q.Promise that is resolved when publish is complete
+	 */
+	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
 
-        // Check if the app is already published. If so, call the update endpoint. Otherwise, create.
-        trace.info("Checking if this extension is already published");
+		let extPackage: GalleryInterfaces.ExtensionPackage = {
+			extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64")
+		};
+		trace.debug("Publishing %s", this.settings.vsixPath);
 
-        return this.getExtInfo().then(extInfo => {
-            const quitValidation = this.settings.noWaitValidation
-                ? "You passed --no-wait-validation, so TFX is exiting."
-                : "You can choose to exit (Ctrl-C) if you don't want to wait.";
-            const noWaitHelp = this.settings.noWaitValidation
-                ? ""
-                : "If you don't want TFX to wait for validation, use the --no-wait-validation parameter. ";
-            const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(`tfx extension show --publisher ${
-                extInfo.publisher
-            } --extension-id ${extInfo.id} --service-url ${
-                this.settings.galleryUrl
-            } --token <your PAT>`)}\n\nAfter running the command, look in the output at the "flags" property for the version you published. If the value for flags is an odd number, validation was successful.`;
-            return this.createOrUpdateExtension(extPackage).then(ext => {
-                if (extInfo.isPublicExtension && this.settings.noWaitValidation) {
-                    trace.info(publicValidationMessage);
-                    return ext;
-                } else {
-                    const validaitonInProgressMessage = extInfo.isPublicExtension
-                        ? publicValidationMessage
-                        : "Validations are in progress. This should take only a few seconds, but in some cases may take a bit longer.";
-                    trace.info(validaitonInProgressMessage);
-                    const versions = ext.versions;
-                    versions.sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime());
+		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
+		trace.info("Checking if this extension is already published");
+		return this.createOrUpdateExtension(extPackage).then((ext) => {
+			if(this.settings.noWaitValidation) {
+				trace.info("Validations are in progress, based on the package size it can take up to 20 mins. Extension will be available post completion of validation.");
+				return ext;
+			}
+			else {
+				trace.info("Validations are in progress, based on the package size it can take up to 20 mins. You can choose to exit or use --no-wait-validation parameter. Extension will be available post completion of validation.");
+				let versions = ext.versions;
+				versions.sort((a, b) => {
+					let aTime = a.lastUpdated.getTime();
+					let bTime = b.lastUpdated.getTime();
+					return aTime < bTime ? 1 : (aTime === bTime ? 0 : -1);
+				});
+				return this.waitForValidation(versions[0].version).then((result) => {
+					if (result === PackagePublisher.validated) {
+						return ext;
+					} else {
+						throw "Extension validation failed. Please address the following issues and retry publishing.\n" + result;
+					}
+				});
+			}
+		});
+	}
 
-                    const validationInterval = extInfo.isPublicExtension
-                        ? PackagePublisher.fullValidationInterval
-                        : PackagePublisher.fastValidationInterval;
-                    const validationRetries = extInfo.isPublicExtension
-                        ? PackagePublisher.fullValidationRetries
-                        : PackagePublisher.fastValidationRetries;
-                    const hangTightMessage = extInfo.isPublicExtension ? -1 : 25;
+	private createOrUpdateExtension(extPackage: GalleryInterfaces.ExtensionPackage): Promise<GalleryInterfaces.PublishedExtension> {
+		return this.checkVsixPublished().then((extInfo) => {
+			let publishPromise;
+			if (extInfo && extInfo.published) {
+				trace.info("It is, %s the extension", colors.cyan("update").toString());
+				publishPromise = this.galleryClient.updateExtension(extPackage, extInfo.publisher, extInfo.id).catch(errHandler.httpErr);
+			} else {
+				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
+				publishPromise = this.galleryClient.createExtension(extPackage).catch(errHandler.httpErr);
+			}
+			return publishPromise.then(() => {
+				return this.galleryClient.getExtension(extInfo.publisher, extInfo.id, null, GalleryInterfaces.ExtensionQueryFlags.IncludeVersions);
+			});
+		})
+	}
 
-                    return this.waitForValidation(
-                        validationInterval,
-                        validationRetries,
-                        hangTightMessage,
-                        versions[0].version,
-                    ).then(result => {
-                        if (result === PackagePublisher.validated) {
-                            return ext;
-                        } else {
-                            throw new Error(
-                                "Extension validation failed. Please address the following issues and retry publishing.\n" +
-                                    result,
-                            );
-                        }
-                    });
-                }
-            });
-        });
-    }
+	public waitForValidation(version?: string, interval = PackagePublisher.validationInterval, retries = PackagePublisher.validationRetries): Promise<string> {
+		if (retries === 0) {
+			throw "Validation timed out. There may be a problem validating your extension. Please try again later.";
+		}
 
-    private createOrUpdateExtension(
-        extPackage: GalleryInterfaces.ExtensionPackage,
-    ): Promise<GalleryInterfaces.PublishedExtension> {
-        return this.checkVsixPublished().then(extInfo => {
-            let publishPromise;
-            if (extInfo && extInfo.published) {
-                trace.info("It is, %s the extension", colors.cyan("update").toString());
-                publishPromise = this.galleryClient
-                    .updateExtension(extPackage, extInfo.publisher, extInfo.id)
-                    .catch(errHandler.httpErr);
-            } else {
-                trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-                publishPromise = this.galleryClient.createExtension(extPackage).catch(errHandler.httpErr);
-            }
-            return publishPromise.then(() => {
-                return this.galleryClient.getExtension(
-                    extInfo.publisher,
-                    extInfo.id,
-                    null,
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
-                );
-            });
-        });
-    }
+		trace.debug("Polling for validation (%s retries remaining).", retries.toString());
 
-    public waitForValidation(
-        interval: number,
-        retries: number,
-        showPatienceMessageAt: number,
-        version?: string,
-    ): Promise<string> {
-        if (retries === 0) {
-            throw new Error("Validation timed out. There may be a problem validating your extension. Please try again later.");
-        } else if (retries === showPatienceMessageAt) {
-            trace.info("This is taking longer than usual. Hang tight...");
-        }
+		// Compiler nonsense below. Sorry.
+		return (<Promise<string>><any>(Q.delay(this.getValidationStatus(version), interval))).then((status) => {
+			trace.debug("--Retrieved validation status: %s", status);
+			if (status === PackagePublisher.validationPending) {
+				return this.waitForValidation(version, interval, retries - 1);
+			} else {
+				return Q.resolve(status); // otherwise TypeScript gets upset... I don't really know why.
+			}
+		});
+	}
 
-        trace.debug("Polling for validation (%s retries remaining).", retries.toString());
+	public getValidationStatus(version?: string): Promise<string> {
+		return this.getExtInfo().then((extInfo) => {
+			return this.galleryClient.getExtension(extInfo.publisher, extInfo.id, extInfo.version, GalleryInterfaces.ExtensionQueryFlags.IncludeVersions).then((ext) => {
+				if (!ext || ext.versions.length === 0) {
+					throw "Extension not published.";
+				}
+				let extVersion = ext.versions[0];
+				if (version) {
+					extVersion = this.getVersionedExtension(ext, version);
+				}
+				// If there is a validationResultMessage, validation failed and this is the error
+				// If the validated flag is missing and there is no validationResultMessage, validation is pending
+				// If the validated flag is present and there is no validationResultMessage, the extension is validated.
+				if (extVersion.validationResultMessage) {
+					return extVersion.validationResultMessage;
+				} else if ((extVersion.flags & GalleryInterfaces.ExtensionVersionFlags.Validated) === 0) {
+					return PackagePublisher.validationPending;
+				} else {
+					return PackagePublisher.validated;
+				}
+			});
+		});
+	}
 
-        // Compiler nonsense below. Sorry.
-        return (<Promise<string>>(<any>Q.delay(this.getValidationStatus(version), interval))).then(status => {
-            trace.debug("--Retrieved validation status: %s", status);
-            if (status === PackagePublisher.validationPending) {
-                return this.waitForValidation(interval, retries - 1, showPatienceMessageAt, version);
-            } else {
-                return Q.resolve(status); // otherwise TypeScript gets upset... I don't really know why.
-            }
-        });
-    }
-
-    public getValidationStatus(version?: string): Promise<string> {
-        return this.getExtInfo().then(extInfo => {
-            return this.galleryClient
-                .getExtension(
-                    extInfo.publisher,
-                    extInfo.id,
-                    extInfo.version,
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
-                )
-                .then(ext => {
-                    if (!ext || ext.versions.length === 0) {
-                        throw "Extension not published.";
-                    }
-                    let extVersion = ext.versions[0];
-                    if (version) {
-                        extVersion = this.getVersionedExtension(ext, version);
-                    }
-                    // If there is a validationResultMessage, validation failed and this is the error
-                    // If the validated flag is missing and there is no validationResultMessage, validation is pending
-                    // If the validated flag is present and there is no validationResultMessage, the extension is validated.
-                    if (extVersion.validationResultMessage) {
-                        return extVersion.validationResultMessage;
-                    } else if ((extVersion.flags & GalleryInterfaces.ExtensionVersionFlags.Validated) === 0) {
-                        return PackagePublisher.validationPending;
-                    } else {
-                        return PackagePublisher.validated;
-                    }
-                });
-        });
-    }
-
-    private getVersionedExtension(
-        extension: GalleryInterfaces.PublishedExtension,
-        version: string,
-    ): GalleryInterfaces.ExtensionVersion {
-        const matches = extension.versions.filter(ev => ev.version === version);
-        if (matches.length > 0) {
-            return matches[0];
-        } else {
-            return null;
-        }
-    }
+	private getVersionedExtension(extension: GalleryInterfaces.PublishedExtension, version: string): GalleryInterfaces.ExtensionVersion {
+		let matches = extension.versions.filter(ev => ev.version === version);
+		if (matches.length > 0) {
+			return matches[0];
+		} else {
+			return null;
+		}
+	}
 }
