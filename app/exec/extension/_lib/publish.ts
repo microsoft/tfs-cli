@@ -90,7 +90,7 @@ export class GalleryBase {
                         "PackageManifest.Metadata[0].Identity[0].$.Version",
                     );
                     const isPublicExtension: boolean =
-                        _.get<any, string[]>(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]").indexOf(
+                        _.get<any, string[]>(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]", []).indexOf(
                             "Public",
                         ) >= 0;
                     if (extensionId && extensionPublisher) {
