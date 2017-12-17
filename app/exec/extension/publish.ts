@@ -47,7 +47,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 
 	protected getHelpArgs(): string[] {
 		return ["root", "manifests", "manifestGlobs", "override", "overridesFile", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot",
-			"vsix", "shareWith"];
+			"vsix", "shareWith", "noWaitValidation"];
 	}
 
 	public async exec(): Promise<ExtensionPublishResult> {
