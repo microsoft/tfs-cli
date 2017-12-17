@@ -49,7 +49,7 @@
     "@types/copy-paste": "^1.1.29",
     "@types/glob": "^5.0.29",
     "@types/jszip": "0.0.30",
-    "@types/lodash": "^4.14.53",
+    "@types/lodash": "4.14.69",
     "@types/mkdirp": "^0.3.28",
     "@types/node": "^6.0.38",
     "@types/shelljs": "^0.3.30",
