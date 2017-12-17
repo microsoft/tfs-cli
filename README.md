@@ -4,7 +4,7 @@
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 #### Internal Deploy / Pull Request validation
-[![build passing](https://shfeldma.visualstudio.com/_apis/public/build/definitions/0362c756-148c-4a35-9c69-19fef97b8761/1/badge)](https://shfeldma.visualstudio.com/_apis/public/build/definitions/0362c756-148c-4a35-9c69-19fef97b8761/1/badge)
+[![build passing](https://shfeldma.visualstudio.com/_apis/public/build/definitions/f4b6db46-e446-49f0-a424-0bfb52c0925d/2/badge)](https://shfeldma.visualstudio.com/_apis/public/build/definitions/f4b6db46-e446-49f0-a424-0bfb52c0925d/2/badge)
 
 Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
 
