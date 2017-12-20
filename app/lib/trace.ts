@@ -62,12 +62,12 @@ function log(prefix: string, msg: any, color: any, replacements: printable[], me
 }
 
 function write(prefix: string, msg: string, color: any, replacements: printable[], method = console.log) {
-	let toLog = doReplacements(msg, replacements);
+	let toLog = format(msg, ...replacements);
 	toLog = toLog.split(/\n|\r\n/).map(line => prefix + line).join(os.EOL);
 	method(color(toLog));
 }
 
-function doReplacements(str: string, replacements: printable[]): string {
+export function format(str: string, ...replacements: printable[]): string {
 	let lcRepl = str.replace(/%S/g, "%s");
 	let split = lcRepl.split("%s");
 	if (split.length - 1 !== replacements.length) {
