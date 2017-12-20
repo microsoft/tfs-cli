@@ -19,6 +19,12 @@ namespace Bootstrap {
     }
 }
 
+// Version check
+const nodeVersion = process.version.substr(1);
+if (parseInt(nodeVersion.charAt(0)) < 8) {
+    throw new Error("TFX requires Node.js version 8 or later. Download the latest version at https://nodejs.org.");
+}
+
 Bootstrap.begin()
     .then(() => {})
     .catch(reason => {

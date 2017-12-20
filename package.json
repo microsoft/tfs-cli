@@ -62,6 +62,9 @@
         "typescript": "~2.6.2",
         "webpack": "^1.13.2"
     },
+    "engines": {
+        "npm": ">=8.0.0"
+    },
     "author": "Microsoft Corporation",
     "contributors": [
         {
