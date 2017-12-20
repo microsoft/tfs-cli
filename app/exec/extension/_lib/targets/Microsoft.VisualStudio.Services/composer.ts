@@ -3,7 +3,6 @@ import { ManifestBuilder } from "../../manifest";
 import { VsixComponents } from "../../merger";
 import { VsoManifestBuilder } from "./vso-manifest-builder";
 import { VsixManifestBuilder } from "../../vsix-manifest-builder";
-import Q = require("q");
 
 export class VSSExtensionComposer extends ExtensionComposer {
 
@@ -48,7 +47,7 @@ export class VSSExtensionComposer extends ExtensionComposer {
 				}
 			}
 
-			return Q.resolve(result);
+			return result;
 		});
 	}
 }

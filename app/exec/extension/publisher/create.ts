@@ -5,7 +5,6 @@ import extBase = require("../default");
 import extPubBase = require("./default");
 import galleryInterfaces = require('vso-node-api/interfaces/GalleryInterfaces');
 import argm = require('../../../lib/arguments');
-import Q = require('q');
 import trace = require('../../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, galleryInterfaces.Publisher> {

@@ -8,22 +8,19 @@ import path = require("path");
 common.APP_ROOT = __dirname;
 
 namespace Bootstrap {
-	export function begin() {
-		return command.getCommand().then((cmd) => {
-			common.EXEC_PATH = cmd.execPath;
-			return loader.load(cmd.execPath, cmd.args).then((tfCommand) => {
-				return tfCommand.showBanner().then(() => {
-					return tfCommand.ensureInitialized().then((executor) => {
-						return executor(cmd);
-					});
-				});
-			});
-		});
-	}
+    export async function begin() {
+        const cmd = await command.getCommand();
+        common.EXEC_PATH = cmd.execPath;
+
+        const tfCommand = await loader.load(cmd.execPath, cmd.args);
+        await tfCommand.showBanner();
+        const executor = await tfCommand.ensureInitialized();
+        return executor(cmd);
+    }
 }
 
-Bootstrap.begin().then(() => {
-	
-}).catch((reason) => {
-	errHandler.errLog(reason);
-});
+Bootstrap.begin()
+    .then(() => {})
+    .catch(reason => {
+        errHandler.errLog(reason);
+    });

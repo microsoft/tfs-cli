@@ -43,7 +43,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 
 					archive.finalize();
-					return agentApi.uploadTaskDefinition(null, archive, taskJson.id, overwrite).then(() => {
+					return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
 						trace.debug('Success');
 						return <agentContracts.TaskDefinition>{
 							sourceLocation: taskPath

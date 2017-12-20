@@ -6,7 +6,6 @@ import extPubBase = require("./default");
 import gallerym = require('vso-node-api/GalleryApi');
 import galleryifm = require('vso-node-api/interfaces/GalleryInterfaces');
 import argm = require('../../../lib/arguments');
-import Q = require('q');
 import trace = require('../../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, DeletePublisherResult> {
