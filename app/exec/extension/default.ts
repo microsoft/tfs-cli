@@ -36,6 +36,8 @@ export interface ExtensionArguments extends CoreArguments {
     revVersion: args.BooleanArgument;
     noWaitValidation: args.BooleanArgument;
     version: args.StringArgument;
+    noArchive: args.BooleanArgument;
+    metadataOnly: args.BooleanArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
@@ -139,10 +141,18 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
         );
         this.registerCommandArgument(
             "noWaitValidation",
+            "Wait for validation?",
             "Don't block command for extension validation.",
-            null,
             args.BooleanArgument,
             "false",
+        );
+        this.registerCommandArgument(
+            "metadataOnly",
+            "Metadata only",
+            "Only copy metadata to the path specified and do not package the extension",
+            args.BooleanArgument,
+            "false",
+            true, // undocumented
         );
     }
 
@@ -212,13 +222,16 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
     }
 
     protected getPackageSettings(): Promise<PackageSettings> {
-        return Promise.all<string | string[]>([this.commandArgs.outputPath.val(), this.commandArgs.locRoot.val()]).then<
-            PackageSettings
-        >(values => {
-            const [outputPath, locRoot] = values;
+        return Promise.all([
+            this.commandArgs.outputPath.val(),
+            this.commandArgs.locRoot.val(),
+            this.commandArgs.metadataOnly.val(),
+        ]).then(values => {
+            const [outputPath, locRoot, metadataOnly] = values;
             return {
                 outputPath: outputPath as string,
                 locRoot: locRoot && locRoot[0],
+                metadataOnly: metadataOnly,
             };
         });
     }

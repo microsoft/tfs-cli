@@ -82,6 +82,10 @@ export abstract class ManifestBuilder {
 		return JSON.stringify(this.prepResult(resources), null, 4).replace(/\n/g, os.EOL);
 	}
 
+	public getMetadataResult(resources?: ResourcesFile): string | null {
+		return null;
+	}
+
 	/**
 	 * Gets the contents of the file that will serve as localization for this asset.
 	 * Default implementation returns JSON with all strings replaced given by the translations/defaults objects.

@@ -95,10 +95,31 @@ export class VsixWriter {
         return segments.filter(segment => re.test(segment)).length === 0;
     }
 
+    private async writeVsixMetadata(): Promise<string> {
+        let prevWrittenOutput = null;
+        const outputPath = this.getOutputPath(this.settings.outputPath);
+        for (const builder of this.manifestBuilders) {
+            const metadataResult = builder.getMetadataResult(this.resources.combined);
+            if (typeof metadataResult === "string") {
+                if (prevWrittenOutput === outputPath) {
+                    trace.warn("Warning: Multiple files written to " + outputPath + ". Last writer will win. Instead, try providing a folder path in --output-path.");
+                }
+                await promisify(writeFile)(outputPath, metadataResult, "utf8");
+                prevWrittenOutput = outputPath;
+            }
+        }
+        return outputPath;
+    }
+
     /**
      * Write a vsix package to the given file name
      */
     public writeVsix(): Promise<string> {
+
+        if (this.settings.metadataOnly) {
+            return this.writeVsixMetadata();
+        }
+
         let outputPath = this.getOutputPath(this.settings.outputPath);
         let vsix = new zip();
 

@@ -187,8 +187,10 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             value: string | string[],
             hasDefaultValue?: boolean,
             argAliases?: string[],
+            undocumented?: boolean,
         ) => T,
         defaultValue?: string | string[],
+        undocumented: boolean = false,
     ): void {
         const fixedArgNames = (typeof name === "string" ? [name] : name).map(a => (a.substr(0, 2) === "--" ? a.substr(0, 2) : a));
         const argName = fixedArgNames[0];
@@ -207,9 +209,17 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
         }
 
         if (argValue) {
-            this.commandArgs[argName] = new ctor(argName, friendlyName, description, argValue, false, argAliases);
+            this.commandArgs[argName] = new ctor(argName, friendlyName, description, argValue, false, argAliases, undocumented);
         } else {
-            this.commandArgs[argName] = new ctor(argName, friendlyName, description, defaultValue, true, argAliases);
+            this.commandArgs[argName] = new ctor(
+                argName,
+                friendlyName,
+                description,
+                defaultValue,
+                true,
+                argAliases,
+                undocumented,
+            );
         }
     }
 
@@ -274,6 +284,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             ["noPrompt"],
             "No Prompt",
             "Do not prompt the user for input (instead, raise an error).",
+            args.BooleanArgument,
+            "false",
+        );
+        this.registerCommandArgument(
+            "includeUndocumented",
+            "Include undocumented commands?",
+            "Show help for commands and options that are undocumented (use at your own risk!)",
             args.BooleanArgument,
             "false",
         );
@@ -392,7 +409,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                     let argObj = <args.Argument<any>>this.commandArgs[arg];
                     if (!argObj.hasDefaultValue) {
                         let pr = argObj.val().then(value => {
-                            // don"t cache these 5 options.
+                            // don't cache these 5 options.
                             if (["username", "password", "save", "token", "help"].indexOf(arg) < 0) {
                                 _.set(newToCache, cacheKey + "." + arg, value);
                             }
@@ -428,7 +445,9 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
     /**
      * Gets help (as a string) for the given command
      */
-    public getHelp(cmd: command.TFXCommand): Promise<string> {
+    public async getHelp(cmd: command.TFXCommand): Promise<string> {
+        const includeUndocumented = await this.commandArgs.includeUndocumented.val();
+
         this.commandArgs.output.setValue("help");
         let result = eol;
         let continuedHierarchy: command.CommandHierarchy = cmd.commandHierarchy;
@@ -444,6 +463,10 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                 const shorthandArg = argObj.aliases.filter(a => a.length === 2 && a.substr(0, 1) === "-")[0];
                 if (shorthandArg) {
                     argKebab = `${argKebab}, ${shorthandArg}`;
+                }
+
+                if (argObj.undocumented && !includeUndocumented) {
+                    return "";
                 }
 
                 return (

@@ -1,5 +1,5 @@
 import { ManifestBuilder } from "../../manifest"
-import { LocalizedResources, PackageFiles } from "../../interfaces"
+import { LocalizedResources, PackageFiles, ResourcesFile } from "../../interfaces"
 import _ = require("lodash");
 import os = require("os");
 
@@ -23,6 +23,10 @@ export class VsoManifestBuilder extends ManifestBuilder {
 
 	public getContentType(): string {
 		return "application/json";
+	}
+
+	public getMetadataResult(resources: ResourcesFile): string {
+		return this.getResult(resources);
 	}
 
 	public finalize(files: PackageFiles, resourceData: LocalizedResources, builders: ManifestBuilder[]): Promise<void> {

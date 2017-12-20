@@ -54,6 +54,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
             "vsix",
             "shareWith",
             "noWaitValidation",
+            "metadataOnly",
         ];
     }
 

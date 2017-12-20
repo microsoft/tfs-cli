@@ -29,6 +29,7 @@ export abstract class Argument<T> {
         givenValue?: string[] | string,
         public hasDefaultValue?: boolean,
         public aliases?: string[],
+        public undocumented: boolean = false,
     ) {
         if (typeof givenValue === "string") {
             this.givenValue = [givenValue];
@@ -116,9 +117,9 @@ export abstract class Argument<T> {
             if (this.assignedValue !== undefined) {
                 return Promise.resolve(this.assignedValue);
             } else {
-                if (!noPrompt) {
+                if (!noPrompt && !this.undocumented) {
                     if (common.NO_PROMPT) {
-                        throw "Missing required value for argument '" + this.name + "'.";
+                        throw new Error("Missing required value for argument '" + this.name + "'.");
                     }
                     return qread.read(this.name, this.friendlyName, this.silent).then(answer => {
                         // Split answer into args, just as if they were passed through command line
