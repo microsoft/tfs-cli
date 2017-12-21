@@ -6,7 +6,7 @@ You can queue, show, and list builds using tfx.
 
 Queues a build for a given project with a given definition.
 
-####Options
+### Options
 ```txt
 --project <string>         - Required. The name of the project to queue a build for.
 AND
@@ -15,7 +15,7 @@ OR
 --definition-name <string>  - The name of the build definition to build against.
 ```
 
-####Example
+### Example
 ```bash
 ~$ tfx build queue --project MyProject --definition-name TestDefinition
 Copyright Microsoft Corporation
@@ -32,13 +32,13 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 
 Shows information for a given build.
 
-####Options
+### Options
 ```txt
 --project <string> - Required. The name of the project to queue a build for.
 --id <number>      - Required. The id of the build to show.
 ```
 
-####Example
+### Example
 ```bash
 $ tfx build show --project MyProject --id 1
 Copyright Microsoft Corporation
@@ -55,7 +55,7 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 
 Queries for a list of builds.
 
-####Options
+### Options
 ```txt
 --project <string>        - Required. The name of the project to queue a build for.
 --defintion-id <number>    - The id of a build definition.
@@ -64,7 +64,7 @@ Queries for a list of builds.
 --top <number>            - Show the first X builds that satisfy the other query criteria.
 ```
 
-####Example
+### Example
 ```bash
 ~$ tfx build list
 
