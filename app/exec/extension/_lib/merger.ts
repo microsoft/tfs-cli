@@ -18,7 +18,7 @@ import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
 import path = require("path");
 import trace = require("../../../lib/trace");
-import version = require("../../../lib/version");
+import version = require("../../../lib/dynamicVersion");
 
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
@@ -146,15 +146,9 @@ export class Merger {
                     if (this.settings.revVersion) {
                         if (partial["version"] && partial.__origin) {
                             try {
-                                const splitVersion: string[] = partial["version"].split(".");
-                                const last = splitVersion.pop();
-                                const lastNum = Number(last);
-                                if (isNaN(lastNum)) {
-                                    throw new Error("Could not parse version number.");
-                                }
-                                splitVersion.push(String(lastNum + 1));
-                                const newVersionString = splitVersion.join(".");
-                                partial["version"] = newVersionString;
+                                const parsedVersion = version.DynamicVersion.parse(partial["version"]);
+                                const newVersion = version.DynamicVersion.increase(parsedVersion);
+                                const newVersionString = newVersion.toString();
 
                                 updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
                                     try {
