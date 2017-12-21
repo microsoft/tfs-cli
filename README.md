@@ -73,7 +73,7 @@ You can alternatively use basic auth by passing `--auth-type basic` (see [Config
 
 ### Settings cache
 
-To avoid providing other options in every command, you can save options out to a settings file by adding the --save flag.
+To avoid providing other options in every command, you can save options out to a settings file by adding the `--save` flag.
 
 ```bash
 ~$ tfx build list --project MyProject --definition-name println --top 5 --save
