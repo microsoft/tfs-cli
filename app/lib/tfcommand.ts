@@ -294,6 +294,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             args.BooleanArgument,
             "false",
         );
+        this.registerCommandArgument(
+            "traceLevel",
+            "Trace Level",
+            `Tracing threshold can be specified as "none", "info" (default), and "debug".`,
+            args.StringArgument,
+            null,
+        );
     }
 
     /**
@@ -514,7 +521,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                     }
 
                     result += eol + cyan("Global arguments:") + eol;
-                    ["help", "save", "noPrompt", "output", "json"].forEach(arg => {
+                    ["help", "save", "noPrompt", "output", "json", "traceLevel"].forEach(arg => {
                         result += singleArgData(arg, 9);
                     });
 
@@ -579,14 +586,26 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                 }
             })
             .then(() => {
-                return this.commandArgs.output.val(true).then(outputType => {
-                    return version.getTfxVersion().then(semVer => {
-                        trace.outputType = outputType;
-                        if (outputType === "friendly") {
-                            trace.info(gray("TFS Cross Platform Command Line Interface v" + semVer.toString()));
-                            trace.info(gray("Copyright Microsoft Corporation"));
-                        }
-                    });
+                return version.getTfxVersion().then(async semVer => {
+                    const [outputType, traceLevel] = await Promise.all([
+                        this.commandArgs.output.val(),
+                        this.commandArgs.traceLevel.val(),
+                    ]);
+                    switch (traceLevel && traceLevel.toLowerCase()) {
+                        case "none":
+                            trace.traceLevel = trace.TraceLevel.None;
+                            break;
+                        case "debug":
+                            trace.traceLevel = trace.TraceLevel.Debug;
+                            break;
+                        case "info":
+                            trace.traceLevel = trace.TraceLevel.Info;
+                            break;
+                        default:
+                            trace.traceLevel = outputType === "friendly" ? trace.TraceLevel.Info : trace.TraceLevel.None;
+                    }
+                    trace.info(gray("TFS Cross Platform Command Line Interface v" + semVer.toString()));
+                    trace.info(gray("Copyright Microsoft Corporation"));
                 });
             });
     }
