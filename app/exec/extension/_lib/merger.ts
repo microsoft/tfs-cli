@@ -146,10 +146,16 @@ export class Merger {
                     if (this.settings.revVersion) {
                         if (partial["version"] && partial.__origin) {
                             try {
-                                const semver = version.SemanticVersion.parse(partial["version"]);
-                                const newVersion = new version.SemanticVersion(semver.major, semver.minor, semver.patch + 1);
-                                const newVersionString = newVersion.toString();
+                                const splitVersion: string[] = partial["version"].split(".");
+                                const last = splitVersion.pop();
+                                const lastNum = Number(last);
+                                if (isNaN(lastNum)) {
+                                    throw new Error("Could not parse version number.");
+                                }
+                                splitVersion.push(String(lastNum + 1));
+                                const newVersionString = splitVersion.join(".");
                                 partial["version"] = newVersionString;
+
                                 updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
                                     try {
                                         const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
@@ -162,7 +168,7 @@ export class Merger {
                                 });
                             } catch (e) {
                                 trace.warn(
-                                    "Could not parse %s as a semantic version (major.minor.patch). Skipping version rev...",
+                                    "Could not parse %s as a version (e.g. major.minor.patch). Skipping version rev...",
                                     partial["version"],
                                 );
                             }
