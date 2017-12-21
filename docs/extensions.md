@@ -19,7 +19,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 * `--manifest-globs`: List of globs to find manifests (space separated).
 * `--override`: JSON string which is merged into the manifests, overriding any values.
 * `--overrides-file`: Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.
-* `--rev-version`: Rev the patch-version of the extension and save the result.
+* `--rev-version`: Rev the latest version number of the extension and save the result.
 * `--bypass-validation`: Bypass local validation.
 * `--publisher`: Use this as the publisher ID instead of what is specified in the manifest.
 * `--extension-id`: Use this as the extension ID instead of what is specified in the manifest.
@@ -73,7 +73,7 @@ tfx extension publish --publisher mypublisher --manifest-globs myextension.json 
 
 1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
 2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/integrate/extensions/publish/command-line).
+3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/docs/integrate/extensions/publish/command-line).
 
 
 

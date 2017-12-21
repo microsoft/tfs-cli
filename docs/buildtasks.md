@@ -16,7 +16,7 @@ Account admins can add users to that group
 
 Creates a templated task ready for you to start editing
 
-####Example
+### Example
 ```bash
 ~$ tfx build tasks create
 Copyright Microsoft Corporation
@@ -42,7 +42,7 @@ You can upload a task by specifying the directory (fully qualified or relative) 
 
 As an example we can upload the Octopus Deploy custom task.  
 
-####Example
+### Example
 ```bash
 ~$ git clone https://github.com/OctopusDeploy/OctoTFS
 Cloning into 'OctoTFS'...
@@ -63,7 +63,7 @@ Build tasks are cached by version on the agent. The implementation by that versi
 
 To list the tasks that are on the server ...
 
-####Example
+### Example
 ```bash
 ~$ tfx build tasks list
 
@@ -85,7 +85,7 @@ As an example, this would delete the Octopus task we uploaded above
 
 Of course, be cautious deleting tasks.
 
-####Example
+### Example
 ```bash
 ~/$ tfx build tasks delete --task-id 4e131b60-5532-4362-95b6-7c67d9841b4f
 Copyright Microsoft Corporation

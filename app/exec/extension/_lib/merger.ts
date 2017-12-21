@@ -18,7 +18,7 @@ import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
 import path = require("path");
 import trace = require("../../../lib/trace");
-import version = require("../../../lib/version");
+import version = require("../../../lib/dynamicVersion");
 
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
@@ -146,10 +146,10 @@ export class Merger {
                     if (this.settings.revVersion) {
                         if (partial["version"] && partial.__origin) {
                             try {
-                                const semver = version.SemanticVersion.parse(partial["version"]);
-                                const newVersion = new version.SemanticVersion(semver.major, semver.minor, semver.patch + 1);
+                                const parsedVersion = version.DynamicVersion.parse(partial["version"]);
+                                const newVersion = version.DynamicVersion.increase(parsedVersion);
                                 const newVersionString = newVersion.toString();
-                                partial["version"] = newVersionString;
+
                                 updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
                                     try {
                                         const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
@@ -162,7 +162,7 @@ export class Merger {
                                 });
                             } catch (e) {
                                 trace.warn(
-                                    "Could not parse %s as a semantic version (major.minor.patch). Skipping version rev...",
+                                    "Could not parse %s as a version (e.g. major.minor.patch). Skipping version rev...",
                                     partial["version"],
                                 );
                             }
