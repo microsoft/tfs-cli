@@ -82,6 +82,10 @@ export abstract class ManifestBuilder {
 		return JSON.stringify(this.prepResult(resources), null, 4).replace(/\n/g, os.EOL);
 	}
 
+	public getMetadataResult(resources?: ResourcesFile): string | null {
+		return null;
+	}
+
 	/**
 	 * Gets the contents of the file that will serve as localization for this asset.
 	 * Default implementation returns JSON with all strings replaced given by the translations/defaults objects.
@@ -161,11 +165,15 @@ export abstract class ManifestBuilder {
 	 * Set 'value' to data[path] in this manifest if it has not been set, or if override is true.
 	 * If it has been set, issue a warning.
 	 */
-	protected singleValueProperty(path: string, value: any, manifestKey: string, override: boolean = false): boolean {
+	protected singleValueProperty(path: string, value: any, manifestKey: string, override: boolean = false, duplicatesAreErrors: boolean = false): boolean {
 		let existingValue = _.get(this.data, path);
 
 		if (!override && existingValue !== undefined) {
-			trace.warn("Multiple values found for '%s'. Ignoring future occurrences and using the value '%s'.", manifestKey, JSON.stringify(existingValue, null, 4));
+			if (duplicatesAreErrors) {
+				throw new Error(trace.format("Multiple values found for '%s'. Ensure only one occurrence of '%s' exists across all manifest files.", manifestKey, manifestKey));
+			} else {
+				trace.warn("Multiple values found for '%s'. Ignoring future occurrences and using the value '%s'.", manifestKey, JSON.stringify(existingValue, null, 4));
+			}
 			return false;
 		} else {
 			_.set(this.data, path, value);

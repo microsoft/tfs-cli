@@ -9,22 +9,25 @@ import path = require("path");
 common.APP_ROOT = __dirname;
 
 namespace Bootstrap {
-	export function begin() {
-		return command.getCommand().then((cmd) => {
-			common.EXEC_PATH = cmd.execPath;
-			return loader.load(cmd.execPath, cmd.args).then((tfCommand) => {
-				return tfCommand.showBanner().then(() => {
-					return tfCommand.ensureInitialized().then((executor) => {
-						return executor(cmd);
-					});
-				});
-			});
-		});
-	}
+    export async function begin() {
+        const cmd = await command.getCommand();
+        common.EXEC_PATH = cmd.execPath;
+
+        const tfCommand = await loader.load(cmd.execPath, cmd.args);
+        await tfCommand.showBanner();
+        const executor = await tfCommand.ensureInitialized();
+        return executor(cmd);
+    }
 }
 
-Bootstrap.begin().then(() => {
-	
-}).catch((reason) => {
-	errHandler.errLog(reason);
-});
+// Version check
+const nodeVersion = process.version.substr(1);
+if (parseInt(nodeVersion.charAt(0)) < 8) {
+    throw new Error("TFX requires Node.js version 8 or later. Download the latest version at https://nodejs.org.");
+}
+
+Bootstrap.begin()
+    .then(() => {})
+    .catch(reason => {
+        errHandler.errLog(reason);
+    });

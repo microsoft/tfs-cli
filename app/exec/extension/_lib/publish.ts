@@ -5,18 +5,18 @@ import colors = require("colors");
 import errHandler = require("../../../lib/errorhandler");
 import fs = require("fs");
 import GalleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
-import Q = require("q");
-import qfs = require("../../../lib/qfs");
 import trace = require("../../../lib/trace");
 import xml2js = require("xml2js");
 import zip = require("jszip");
+
+import { delay } from "../../../lib/promiseUtils";
 
 export interface CoreExtInfo {
     id: string;
     publisher: string;
     version: string;
     published?: boolean;
-    isPublicExtension: boolean;
+    isPublicExtension?: boolean;
 }
 
 export class GalleryBase {
@@ -31,7 +31,7 @@ export class GalleryBase {
      */
     constructor(protected settings: PublishSettings, protected galleryClient: IGalleryApi, extInfo?: CoreExtInfo) {
         if (extInfo) {
-            this.vsixInfoPromise = Q.resolve(extInfo);
+            this.vsixInfoPromise = Promise.resolve(extInfo);
         }
 
         // if (!settings.galleryUrl || !/^https?:\/\//.test(settings.galleryUrl)) {
@@ -56,14 +56,16 @@ export class GalleryBase {
     public static getExtInfo(info: { extensionId?: string; publisher?: string; vsixPath?: string }): Promise<CoreExtInfo> {
         let promise: Promise<CoreExtInfo>;
         if (info.extensionId && info.publisher) {
-            promise = Q.resolve({ id: info.extensionId, publisher: info.publisher, version: null });
+            promise = Promise.resolve<CoreExtInfo>({ id: info.extensionId, publisher: info.publisher, version: null });
         } else {
-            promise = Q.Promise<JSZip>((resolve, reject, notify) => {
-                fs.readFile(info.vsixPath, function(err, data) {
+            promise = new Promise<zip>((resolve, reject) => {
+                fs.readFile(info.vsixPath, async function(err, data) {
                     if (err) reject(err);
                     trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
                     try {
-                        resolve(new zip(data));
+                        const archive = new zip();
+                        await archive.loadAsync(data);
+                        resolve(archive);
                     } catch (err) {
                         reject(err);
                     }
@@ -73,7 +75,15 @@ export class GalleryBase {
                     trace.debug("Files in the zip: %s", Object.keys(zip.files).join(", "));
                     const vsixManifestFileNames = Object.keys(zip.files).filter(key => _.endsWith(key, "vsixmanifest"));
                     if (vsixManifestFileNames.length > 0) {
-                        return Q.nfcall(xml2js.parseString, zip.files[vsixManifestFileNames[0]].asText());
+                        return new Promise(async (resolve, reject) => {
+                            xml2js.parseString(await zip.files[vsixManifestFileNames[0]].async("text"), (err, result) => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(result);
+                                }
+                            });
+                        });
                     } else {
                         throw new Error("Could not locate vsix manifest!");
                     }
@@ -303,9 +313,9 @@ export class PackagePublisher extends GalleryBase {
                 ? ""
                 : "If you don't want TFX to wait for validation, use the --no-wait-validation parameter. ";
             const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
-                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${extInfo.version} --service-url ${
-                    this.settings.galleryUrl
-                } --token <your PAT>`,
+                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${
+                    extInfo.version
+                } --service-url ${this.settings.galleryUrl} --token <your PAT>`,
             )}`;
             return this.createOrUpdateExtension(extPackage).then(ext => {
                 if (extInfo.isPublicExtension && this.settings.noWaitValidation) {
@@ -389,7 +399,7 @@ export class PackagePublisher extends GalleryBase {
         trace.debug("Polling for validation (%s retries remaining).", retries.toString());
 
         // Compiler nonsense below. Sorry.
-        return (<Promise<string>>(<any>Q.delay(this.getValidationStatus(version), interval))).then(status => {
+        return (delay(this.getValidationStatus(version), interval)).then(status => {
             trace.debug("--Retrieved validation status: %s", status);
             if (status === PackagePublisher.validationPending) {
                 // exponentially increase interval until we reach max interval
@@ -401,7 +411,7 @@ export class PackagePublisher extends GalleryBase {
                     version,
                 );
             } else {
-                return Q.resolve(status); // otherwise TypeScript gets upset... I don't really know why.
+                return status;
             }
         });
     }

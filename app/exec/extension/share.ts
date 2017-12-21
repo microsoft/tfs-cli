@@ -3,7 +3,6 @@ import args = require("../../lib/arguments");
 import colors = require("colors");
 import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
-import Q = require('q');
 import trace = require('../../lib/trace');
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, string[]> {

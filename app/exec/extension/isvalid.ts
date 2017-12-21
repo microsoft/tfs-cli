@@ -5,7 +5,6 @@ import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
 import galleryContracts = require("vso-node-api/interfaces/GalleryInterfaces");
 import publishUtils = require("./_lib/publish");
-import Q = require("q");
 import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): extBase.ExtensionBase<galleryContracts.PublishedExtension> {

@@ -180,6 +180,11 @@ export interface PackageSettings {
 	 * Path to the root of localized resource files
 	 */
 	locRoot: string;
+
+	/**
+	 * Only output metadata for the extension rather than a full package
+	 */
+	metadataOnly: boolean;
 }
 
 export interface PublishSettings {
