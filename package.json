@@ -134,6 +134,10 @@
         {
             "email": "trgau@microsoft.com",
             "name": "Trevor Gau"
+        },
+        {
+            "email": "shfeldma@microsoft.com",
+            "name": "Shani Feldman"
         }
     ],
     "license": "MIT"
