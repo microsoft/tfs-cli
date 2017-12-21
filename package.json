@@ -65,7 +65,7 @@
   "author": "",
   "license": "MIT",
     "name": "tfx-cli",
-    "version": "0.5.0",
+    "version": "0.5.2",
     "description": "CLI for Visual Studio Team Services and Team Foundation Server",
     "repository": {
         "type": "git",
