@@ -5,6 +5,14 @@ import errHandler = require("./lib/errorhandler");
 import loader = require("./lib/loader");
 import path = require("path");
 
+function patchPromisify() {
+    // Monkey-patch promisify if we are NodeJS <8.0
+    const nodeVersion = process.version.substr(1);
+    if (parseInt(nodeVersion.charAt(0)) < 8) {
+        require("util.promisify/shim")();
+    }
+}
+
 // Set app root
 common.APP_ROOT = __dirname;
 
@@ -20,11 +28,7 @@ namespace Bootstrap {
     }
 }
 
-// Version check
-const nodeVersion = process.version.substr(1);
-if (parseInt(nodeVersion.charAt(0)) < 8) {
-    throw new Error("TFX requires Node.js version 8 or later. Download the latest version at https://nodejs.org.");
-}
+patchPromisify();
 
 Bootstrap.begin()
     .then(() => {})

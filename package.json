@@ -38,6 +38,7 @@
         "tabtab": "^2.2.2",
         "tmp": "0.0.26",
         "tracer": "0.7.4",
+        "util.promisify": "^1.0.0",
         "uuid": "^3.0.1",
         "validator": "^3.43.0",
         "vso-node-api": "^5.0.0",
