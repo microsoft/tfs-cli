@@ -5,7 +5,6 @@ import args = require("../lib/arguments");
 import common = require("../lib/common");
 import credStore = require("../lib/credstore");
 import path = require("path");
-import Q = require('q');
 
 import trace = require("../lib/trace");
 
