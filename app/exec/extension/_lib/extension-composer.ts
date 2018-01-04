@@ -67,10 +67,10 @@ export abstract class ExtensionComposer {
                             return "All 'files' must include a 'path'.";
                         }
                         if (asset.Type && asset.Addressable) {
-                            if (usedAssetTypes[asset.Type + "|" + asset.lang]) {
+                            if (usedAssetTypes[asset.Type + "|" + asset.Lang]) {
                                 return (
                                     "Cannot have multiple 'addressable' files with the same 'assetType'.\nFile1: " +
-                                    usedAssetTypes[asset.Type + "|" + asset.lang] +
+                                    usedAssetTypes[asset.Type + "|" + asset.Lang] +
                                     ", File 2: " +
                                     asset.Path +
                                     " (asset type: " +
