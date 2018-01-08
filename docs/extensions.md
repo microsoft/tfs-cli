@@ -62,6 +62,7 @@ In addition to all of the `extension create` options, the following options are 
 
 * `--vsix`: Path to an existing VSIX (to publish or query for).
 * `--share-with`: List of accounts (VSTS) with which to share the extension.
+* `--nowait-validation`: Use this paramater if you or the pipeline don’t want to wait for the CLI tool to complete. The extension is published and available in the Marketplace only after completion successful validation.
 
 ### Example
 
@@ -84,6 +85,7 @@ tfx extension publish --publisher mypublisher --manifest-globs myextension.json 
 * `tfx extension show`: Show information about a published extension.
 * `tfx extension share`: Share an extension with an account.
 * `tfx extension unshare`: Unshare an extension with an account.
+* `tfx extension isvalid`: Checks if an extension is valid.
 
 For more details on a specific command, run:
 
