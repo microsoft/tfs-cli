@@ -509,6 +509,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
                     builders.forEach(builder => {
                         const locResult = builder.getLocResult(resourceData[languageTag], resourceData.defaults);
                         locResult.forEach(lr => {
+                            lr.isMetadata = builder.producesMetadata;
                             lr.lang = languageTag;
                             lr.partName = `${languageTag}/${lr.partName}`;
                             if (lr.partName.indexOf("vsixlangpack") === -1) {
