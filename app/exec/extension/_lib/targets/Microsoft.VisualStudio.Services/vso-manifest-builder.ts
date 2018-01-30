@@ -6,6 +6,8 @@ import os = require("os");
 import stream = require("stream");
 
 export class VsoManifestBuilder extends ManifestBuilder {
+    public producesMetadata: boolean = true;
+
     /**
      * Gets the package path to this manifest.
      */
@@ -87,7 +89,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
                     this.singleValueProperty("eventCallbacks", value, key, override);
                 }
                 break;
-			case "constraints":
+            case "constraints":
                 if (_.isArray(value)) {
                     if (!this.data.constraints) {
                         this.data.constraints = [];
@@ -97,7 +99,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
                     throw new Error(`"constraints" must be an array of ContributionConstraint objects.`);
                 }
                 break;
-			case "restrictedto":
+            case "restrictedto":
                 if (_.isArray(value)) {
                     this.singleValueProperty("restrictedTo", value, key, override, true);
                 } else {
@@ -129,7 +131,7 @@ export class VsoManifestBuilder extends ManifestBuilder {
                     }
                     this.data.contributions = this.data.contributions.concat(value);
                 } else {
-                    throw new Error("\"contributions\" must be an array of Contribution objects.");
+                    throw new Error('"contributions" must be an array of Contribution objects.');
                 }
                 break;
             case "contributiontypes":
