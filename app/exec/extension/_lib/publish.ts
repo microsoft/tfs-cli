@@ -271,8 +271,8 @@ export class SharingManager extends GalleryBase {
 }
 
 export class PackagePublisher extends GalleryBase {
-    private static fastValidationInterval = 1000;
-    private static fastValidationRetries = 50;
+    private static fastValidationInterval = 2000;
+    private static fastValidationRetries = 120;
     private static fullValidationInterval = 15000;
     private static fullValidationRetries = 80;
 
@@ -342,6 +342,8 @@ export class PackagePublisher extends GalleryBase {
                         validationInterval,
                         validationRetries,
                         hangTightMessageRetryCount,
+                        extInfo.publisher,
+                        extInfo.id,
                         versions[0].version,
                     ).then(result => {
                         if (result === PackagePublisher.validated) {
@@ -388,10 +390,14 @@ export class PackagePublisher extends GalleryBase {
         maxInterval: number,
         retries: number,
         showPatienceMessageAt: number,
+        publisher: string,
+        extensionId: string,
         version?: string,
     ): Promise<string> {
         if (retries === 0) {
-            throw new Error("Validation timed out. There may be a problem validating your extension. Please try again later.");
+			const validationTimedOutMessage = `Validation is taking much longer than usual. TFX is exiting. To get the validation status, you may run the command below. This extension will be available after validation is successful.\n\n
+                tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${this.settings.galleryUrl} --token <your PAT>`;						
+            throw new Error(validationTimedOutMessage);
         } else if (retries === showPatienceMessageAt) {
             trace.info("This is taking longer than usual. Hang tight...");
         }
@@ -408,6 +414,8 @@ export class PackagePublisher extends GalleryBase {
                     maxInterval,
                     retries - 1,
                     showPatienceMessageAt,
+                    publisher,
+                    extensionId,
                     version,
                 );
             } else {
