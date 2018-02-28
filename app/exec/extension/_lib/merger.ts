@@ -149,6 +149,7 @@ export class Merger {
                                 const parsedVersion = version.DynamicVersion.parse(partial["version"]);
                                 const newVersion = version.DynamicVersion.increase(parsedVersion);
                                 const newVersionString = newVersion.toString();
+                                partial["version"] = newVersionString;
 
                                 updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
                                     try {

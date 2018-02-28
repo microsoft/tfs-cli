@@ -97,14 +97,20 @@ export class VsixWriter {
 
     private async writeVsixMetadata(): Promise<string> {
         let prevWrittenOutput = null;
-        const outputPath = this.getOutputPath(this.settings.outputPath);
+        const outputPath = this.settings.outputPath;
+
         for (const builder of this.manifestBuilders) {
             const metadataResult = builder.getMetadataResult(this.resources.combined);
             if (typeof metadataResult === "string") {
                 if (prevWrittenOutput === outputPath) {
-                    trace.warn("Warning: Multiple files written to " + outputPath + ". Last writer will win. Instead, try providing a folder path in --output-path.");
+                    trace.warn(
+                        "Warning: Multiple files written to " +
+                            outputPath +
+                            ". Last writer will win. Instead, try providing a folder path in --output-path.",
+                    );
                 }
-                await promisify(writeFile)(outputPath, metadataResult, "utf8");
+                const writePath = path.join(outputPath, builder.getPath());
+                await promisify(writeFile)(writePath, metadataResult, "utf8");
                 prevWrittenOutput = outputPath;
             }
         }
@@ -114,9 +120,29 @@ export class VsixWriter {
     /**
      * Write a vsix package to the given file name
      */
-    public writeVsix(): Promise<string> {
-
+    public async writeVsix(): Promise<string> {
         if (this.settings.metadataOnly) {
+            const outputPath = this.settings.outputPath;
+            const pathExists = await exists(outputPath);
+            if (pathExists && !(await promisify(lstat)(outputPath)).isDirectory()) {
+                throw new Error("--output-path must be a directory when using --metadata-only.");
+            }
+            if (!pathExists) {
+                await promisify(mkdirp)(outputPath, undefined);
+            }
+
+            for (const builder of this.manifestBuilders) {
+                for (const filePath of Object.keys(builder.files)) {
+                    const fileObj = builder.files[filePath];
+                    if (fileObj.isMetadata) {
+                        const content = fileObj.content || (await promisify(readFile)(fileObj.path, "utf-8"));
+                        const writePath = path.join(this.settings.outputPath, fileObj.partName);
+                        const folder = path.dirname(writePath);
+                        await promisify(mkdirp)(folder, undefined);
+                        await promisify(writeFile)(writePath, content, "utf-8");
+                    }
+                }
+            }
             return this.writeVsixMetadata();
         }
 
