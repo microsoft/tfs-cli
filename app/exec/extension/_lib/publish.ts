@@ -59,7 +59,7 @@ export class GalleryBase {
             promise = Promise.resolve<CoreExtInfo>({ id: info.extensionId, publisher: info.publisher, version: null });
         } else {
             promise = new Promise<zip>((resolve, reject) => {
-                fs.readFile(info.vsixPath, async function(err, data) {
+                fs.readFile(info.vsixPath, async function (err, data) {
                     if (err) reject(err);
                     trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
                     try {
@@ -128,7 +128,7 @@ export class GalleryBase {
                     extInfo.id,
                     extInfo.version,
                     GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
-                )
+            )
                 .then(ext => {
                     return this.extToValidationStatus(ext, version);
                 });
@@ -180,10 +180,10 @@ export class GalleryBase {
                     extInfo.id,
                     null,
                     GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
-                        GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
-                )
+                    GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
+                    GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
+                    GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
+            )
                 .then(extension => {
                     return extension;
                 })
@@ -312,19 +312,18 @@ export class PackagePublisher extends GalleryBase {
             const noWaitHelp = this.settings.noWaitValidation
                 ? ""
                 : "If you don't want TFX to wait for validation, use the --no-wait-validation parameter. ";
-            const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
-                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${
-                    extInfo.version
-                } --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+            const extensionValidationTime = extInfo.isPublicExtension
+                ? "Based on the package size, this can take up to 20 mins."
+                : "This should take only a few seconds, but in some cases may take a bit longer.";
+            const validationMessage = `\n== Extension Validation In Progress ==\n${extensionValidationTime} ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
+                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${extInfo.version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
             )}`;
             return this.createOrUpdateExtension(extPackage).then(ext => {
-                if (extInfo.isPublicExtension && this.settings.noWaitValidation) {
-                    trace.info(publicValidationMessage);
+                if (this.settings.noWaitValidation) {
+                    trace.info(validationMessage);
                     return ext;
                 } else {
-                    const validaitonInProgressMessage = extInfo.isPublicExtension
-                        ? publicValidationMessage
-                        : "Validations are in progress. This should take only a few seconds, but in some cases may take a bit longer.";
+                    const validaitonInProgressMessage = validationMessage;
                     trace.info(validaitonInProgressMessage);
                     const versions = ext.versions;
                     versions.sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime());
@@ -351,7 +350,7 @@ export class PackagePublisher extends GalleryBase {
                         } else {
                             throw new Error(
                                 "Extension validation failed. Please address the following issues and retry publishing.\n" +
-                                    result,
+                                result,
                             );
                         }
                     });
@@ -395,8 +394,9 @@ export class PackagePublisher extends GalleryBase {
         version?: string,
     ): Promise<string> {
         if (retries === 0) {
-			const validationTimedOutMessage = `Validation is taking much longer than usual. TFX is exiting. To get the validation status, you may run the command below. This extension will be available after validation is successful.\n\n
-                tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${this.settings.galleryUrl} --token <your PAT>`;						
+            const validationTimedOutMessage = `Validation is taking much longer than usual. TFX is exiting. To get the validation status, you may run the command below. This extension will be available after validation is successful.\n\n${colors.yellow(
+                `tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+            )}`;
             throw new Error(validationTimedOutMessage);
         } else if (retries === showPatienceMessageAt) {
             trace.info("This is taking longer than usual. Hang tight...");
