@@ -100,7 +100,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                             if (noColor) {
                                 console.log = logNoColors;
                             }
-                        })
+                        });
                     })
                     .then(() => {
                         // Set the cached service url
