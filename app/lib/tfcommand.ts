@@ -7,7 +7,7 @@ import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
-import { blue, cyan, gray, green, yellow, magenta, reset as resetColors } from "colors";
+import { blue, cyan, gray, green, yellow, magenta, reset as resetColors, stripColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
 import copypaste = require("copy-paste");
@@ -35,6 +35,7 @@ export interface CoreArguments {
     proxy: args.StringArgument;
     help: args.BooleanArgument;
     noPrompt: args.BooleanArgument;
+    noColor: args.BooleanArgument;
 }
 
 export interface Executor<TResult> {
@@ -92,6 +93,14 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                         return this.commandArgs.noPrompt.val(true).then(noPrompt => {
                             common.NO_PROMPT = noPrompt;
                         });
+                    })
+                    .then(() => {
+                        // If --no-color specified, Patch console.log to never output color bytes
+                        return this.commandArgs.noColor.val(true).then(noColor => {
+                            if (noColor) {
+                                console.log = logNoColors;
+                            }
+                        })
                     })
                     .then(() => {
                         // Set the cached service url
@@ -300,6 +309,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             `Tracing threshold can be specified as "none", "info" (default), and "debug".`,
             args.StringArgument,
             null,
+        );
+        this.registerCommandArgument(
+            "noColor",
+            "No colored output",
+            "Do not emit bytes that affect text color in any output.",
+            args.BooleanArgument,
+            "false",
         );
     }
 
@@ -702,9 +718,14 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
      */
     protected jsonOutput(data: any): void {
         try {
-            console.log(resetColors(JSON.stringify(data, null, 4)));
+            console.log(stripColors(JSON.stringify(data, null, 4)));
         } catch (e) {
             throw new Error("Could not stringify JSON output.");
         }
     }
+}
+
+const originalConsoleLog = console.log.bind(console);
+function logNoColors(...args: string[]) {
+    originalConsoleLog.apply(console, args.map(stripColors));
 }
