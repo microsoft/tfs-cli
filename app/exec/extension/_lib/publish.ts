@@ -59,7 +59,7 @@ export class GalleryBase {
             promise = Promise.resolve<CoreExtInfo>({ id: info.extensionId, publisher: info.publisher, version: null });
         } else {
             promise = new Promise<zip>((resolve, reject) => {
-                fs.readFile(info.vsixPath, async function (err, data) {
+                fs.readFile(info.vsixPath, async function(err, data) {
                     if (err) reject(err);
                     trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
                     try {
@@ -128,7 +128,7 @@ export class GalleryBase {
                     extInfo.id,
                     extInfo.version,
                     GalleryInterfaces.ExtensionQueryFlags.IncludeVersions,
-            )
+                )
                 .then(ext => {
                     return this.extToValidationStatus(ext, version);
                 });
@@ -180,10 +180,10 @@ export class GalleryBase {
                     extInfo.id,
                     null,
                     GalleryInterfaces.ExtensionQueryFlags.IncludeVersions |
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
-                    GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
-            )
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeFiles |
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeCategoryAndTags |
+                        GalleryInterfaces.ExtensionQueryFlags.IncludeSharedAccounts,
+                )
                 .then(extension => {
                     return extension;
                 })
@@ -350,7 +350,7 @@ export class PackagePublisher extends GalleryBase {
                         } else {
                             throw new Error(
                                 "Extension validation failed. Please address the following issues and retry publishing.\n" +
-                                result,
+                                    result,
                             );
                         }
                     });
