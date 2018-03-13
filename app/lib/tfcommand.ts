@@ -537,7 +537,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                     }
 
                     result += eol + cyan("Global arguments:") + eol;
-                    ["help", "save", "noPrompt", "output", "json", "traceLevel"].forEach(arg => {
+                    ["help", "save", "noColor", "noPrompt", "output", "json", "traceLevel"].forEach(arg => {
                         result += singleArgData(arg, 9);
                     });
 
