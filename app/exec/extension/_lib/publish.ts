@@ -323,8 +323,7 @@ export class PackagePublisher extends GalleryBase {
                     trace.info(validationMessage);
                     return ext;
                 } else {
-                    const validaitonInProgressMessage = validationMessage;
-                    trace.info(validaitonInProgressMessage);
+                    trace.info(validationMessage);
                     const versions = ext.versions;
                     versions.sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime());
 
