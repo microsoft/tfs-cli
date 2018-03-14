@@ -271,8 +271,8 @@ export class SharingManager extends GalleryBase {
 }
 
 export class PackagePublisher extends GalleryBase {
-    private static fastValidationInterval = 1000;
-    private static fastValidationRetries = 50;
+    private static fastValidationInterval = 2000;
+    private static fastValidationRetries = 120;
     private static fullValidationInterval = 15000;
     private static fullValidationRetries = 80;
 
@@ -312,20 +312,18 @@ export class PackagePublisher extends GalleryBase {
             const noWaitHelp = this.settings.noWaitValidation
                 ? ""
                 : "If you don't want TFX to wait for validation, use the --no-wait-validation parameter. ";
-            const publicValidationMessage = `\n== Public Extension Validation In Progress ==\nBased on the package size, this can take up to 20 mins. ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
-                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${
-                    extInfo.version
-                } --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+            const extensionValidationTime = extInfo.isPublicExtension
+                ? "Based on the package size, this can take up to 20 mins."
+                : "This should take only a few seconds, but in some cases may take a bit longer.";
+            const validationMessage = `\n== Extension Validation In Progress ==\n${extensionValidationTime} ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
+                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${extInfo.version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
             )}`;
             return this.createOrUpdateExtension(extPackage).then(ext => {
-                if (extInfo.isPublicExtension && this.settings.noWaitValidation) {
-                    trace.info(publicValidationMessage);
+                if (this.settings.noWaitValidation) {
+                    trace.info(validationMessage);
                     return ext;
                 } else {
-                    const validaitonInProgressMessage = extInfo.isPublicExtension
-                        ? publicValidationMessage
-                        : "Validations are in progress. This should take only a few seconds, but in some cases may take a bit longer.";
-                    trace.info(validaitonInProgressMessage);
+                    trace.info(validationMessage);
                     const versions = ext.versions;
                     versions.sort((a, b) => b.lastUpdated.getTime() - a.lastUpdated.getTime());
 
@@ -342,6 +340,8 @@ export class PackagePublisher extends GalleryBase {
                         validationInterval,
                         validationRetries,
                         hangTightMessageRetryCount,
+                        extInfo.publisher,
+                        extInfo.id,
                         versions[0].version,
                     ).then(result => {
                         if (result === PackagePublisher.validated) {
@@ -388,10 +388,15 @@ export class PackagePublisher extends GalleryBase {
         maxInterval: number,
         retries: number,
         showPatienceMessageAt: number,
+        publisher: string,
+        extensionId: string,
         version?: string,
     ): Promise<string> {
         if (retries === 0) {
-            throw new Error("Validation timed out. There may be a problem validating your extension. Please try again later.");
+            const validationTimedOutMessage = `Validation is taking much longer than usual. TFX is exiting. To get the validation status, you may run the command below. This extension will be available after validation is successful.\n\n${colors.yellow(
+                `tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+            )}`;
+            throw new Error(validationTimedOutMessage);
         } else if (retries === showPatienceMessageAt) {
             trace.info("This is taking longer than usual. Hang tight...");
         }
@@ -408,6 +413,8 @@ export class PackagePublisher extends GalleryBase {
                     maxInterval,
                     retries - 1,
                     showPatienceMessageAt,
+                    publisher,
+                    extensionId,
                     version,
                 );
             } else {
