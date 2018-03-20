@@ -9,6 +9,7 @@ export const enum TraceLevel {
 }
 
 export let traceLevel: TraceLevel = debugTracingEnvVar ? TraceLevel.Debug : TraceLevel.Info;
+export let debugLogStream = console.log;
 
 export type printable = string | number | boolean;
 
@@ -37,14 +38,14 @@ export function warn(msg: any, ...replacements: printable[]): void {
 export function debugArea(msg: any, area: string) {
     debugTracingEnvVar = process.env["TFX_TRACE_" + area.toUpperCase()];
     if (debugTracingEnvVar) {
-        log(colors.cyan(new Date().toISOString() + " : "), msg, colors.grey, []);
+        log(colors.cyan(new Date().toISOString() + " : "), msg, colors.grey, [], debugLogStream);
     }
     debugTracingEnvVar = process.env["TFX_TRACE"];
 }
 
 export function debug(msg: any, ...replacements: printable[]) {
     if (traceLevel >= TraceLevel.Debug) {
-        log(colors.cyan(new Date().toISOString() + " : "), msg, colors.grey, replacements);
+        log(colors.cyan(new Date().toISOString() + " : "), msg, colors.grey, replacements, debugLogStream);
     }
 }
 
