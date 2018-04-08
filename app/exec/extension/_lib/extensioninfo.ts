@@ -28,10 +28,12 @@ export function getExtInfo(
         vsixInfoPromise = Promise.resolve({ id: extensionId, publisher: publisherName, version: null });
     } else if (vsixPath) {
         vsixInfoPromise = promisify(readFile)(vsixPath)
-            .then(data => {
+            .then(async data => {
                 trace.debug(vsixPath);
                 trace.debug("Read vsix as zip... Size (bytes): %s", data.length.toString());
-                return new zip(data);
+                const zipArchive = new zip();
+                await zipArchive.loadAsync(data);
+                return zipArchive;
             })
             .then(zip => {
                 trace.debug("Files in the zip: %s", Object.keys(zip.files).join(", "));

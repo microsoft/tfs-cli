@@ -42,32 +42,6 @@ export class AccountInstallReport {
     }
 }
 
-// export class ExtensionInstallResult {
-// 	constructor(
-// 		public itemId: string,
-// 		public accountReports: AccountInstallReport[]) {
-// 	}
-
-// 	public hasErrors(): boolean {
-// 		return this.accountReports.some(t => !t.installed);
-// 	}
-
-// 	public toString() {
-// 		let result: string;
-// 		const status: string = this.hasErrors() ? "Failed" : "Succeeded";
-
-// 		result = `=== Installation ${status} === ` +
-// 			`\n  - ItemId: ${this.itemId}` +
-// 			"\n  - Accounts:";
-
-// 		this.accountReports.forEach(t => {
-// 			result += `\n	- ${t.accountName}: [${t.installed ? "OK" : `Failed: ${t.reason}`}]`;
-// 		});
-
-// 		return result;
-// 	}
-// }
-
 export interface ExtensionInstallResult {
     accounts: { [account: string]: { installed: boolean; issues: string } };
     extension: string;
@@ -88,6 +62,8 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
             "Installation target accounts",
             "List of accounts where to install the extension.",
             args.ArrayArgument,
+            null,
+            true,
         );
     }
 
@@ -95,48 +71,67 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
         return ["publisher", "extensionId", "vsix", "accounts"];
     }
 
-    public exec(): Promise<ExtensionInstallResult> {
+    public async exec(): Promise<ExtensionInstallResult> {
         // Read extension info from arguments
         const result: ExtensionInstallResult = { accounts: {}, extension: null };
-        return this._getExtensionInfo().then(extInfo => {
-            const itemId = `${extInfo.publisher}.${extInfo.id}`;
-            const galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+        const extensionInfo = await this._getExtensionInfo();
 
-            result.extension = itemId;
+        const extInfo = await this._getExtensionInfo();
+        const itemId = `${extInfo.publisher}.${extInfo.id}`;
+        const galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 
-            // Read accounts from arguments and resolve them to get its accountIds
-            return this.commandArgs.accounts
-                .val()
-                .then(accounts => {
-                    // Install extension in each account
-                    const installations = [...accounts].map((account): Promise<[string, EmsInterfaces.InstalledExtension]> => {
-                        const emsApi = this.webApi.getExtensionManagementApi(
-                            this.getEmsAccountUrl(this.webApi.serverUrl, account),
-                        );
-                        return emsApi
-                            .installExtensionByName(extInfo.publisher, extInfo.id)
-                            .then(installation => [account, installation] as [string, EmsInterfaces.InstalledExtension]);
-                    });
-                    return Promise.all(installations);
-                })
-                .then(installations => {
-                    installations.forEach(installation => {
-                        const account: string = installation[0];
-                        const installedExtension: EmsInterfaces.InstalledExtension = installation[1];
-                        const installationResult = { installed: true, issues: null };
-                        if (
-                            installedExtension.installState.installationIssues &&
-                            installedExtension.installState.installationIssues.length > 0
-                        ) {
-                            installationResult.installed = false;
-                            installationResult.issues = `The following issues were encountered installing to ${account}: 
+        result.extension = itemId;
+
+        // Read accounts from arguments and resolve them to get its accountIds
+        const accounts = await this.commandArgs.accounts.val(true);
+        if (accounts) {
+            // Old flow, does not work on-prem
+            const installations = await Promise.all(
+                [...accounts].map(async (account): Promise<[string, EmsInterfaces.InstalledExtension]> => {
+                    const emsApi = this.webApi.getExtensionManagementApi(this.getEmsAccountUrl(this.webApi.serverUrl, account));
+                    const installation = await emsApi.installExtensionByName(extInfo.publisher, extInfo.id);
+                    return [account, installation] as [string, EmsInterfaces.InstalledExtension];
+                }),
+            );
+
+            for (const installation of installations) {
+                const account: string = installation[0];
+                const installedExtension: EmsInterfaces.InstalledExtension = installation[1];
+                const installationResult = { installed: true, issues: null };
+                if (
+                    installedExtension.installState.installationIssues &&
+                    installedExtension.installState.installationIssues.length > 0
+                ) {
+                    installationResult.installed = false;
+                    installationResult.issues = `The following issues were encountered installing to ${account}: 
 ${installedExtension.installState.installationIssues.map(i => " - " + i).join("\n")}`;
-                        }
-                        result.accounts[account] = installationResult;
-                    });
-                    return result;
-                });
-        });
+                }
+                result.accounts[account] = installationResult;
+            }
+        } else {
+            // New flow - service-url contains account. Install to 1 account at a time.
+            const serviceUrl = (await this.commandArgs.serviceUrl.val()).replace(".visualstudio.com", ".extmgmt.visualstudio.com");
+            const emsApi = this.webApi.getExtensionManagementApi(serviceUrl);
+
+            try {
+                const installation = await emsApi.installExtensionByName(extInfo.publisher, extInfo.id);
+                const installationResult = { installed: true, issues: null };
+                if (installation.installState.installationIssues && installation.installState.installationIssues.length > 0) {
+                    installationResult.installed = false;
+                    installationResult.issues = `The following issues were encountered installing to ${serviceUrl}: 
+${installation.installState.installationIssues.map(i => " - " + i).join("\n")}`;
+                }
+                result.accounts[serviceUrl] = installationResult;
+            } catch (err) {
+                if (err.message.indexOf("TF400856") >= 0) {
+                    throw new Error("Failed to install extension (TF400856). Ensure service-url includes a collection name, e.g. " + serviceUrl.replace(/\/$/, "") + "/DefaultCollection");
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        return result;
     }
 
     private getEmsAccountUrl(marketplaceUrl: string, accountName: string) {
@@ -158,21 +153,20 @@ ${installedExtension.installState.installationIssues.map(i => " - " + i).join("\
         });
     }
 
-    private _getExtensionInfo(): Promise<extInfo.CoreExtInfo> {
-        return this.commandArgs.vsix.val(true).then(vsixPath => {
-            let extInfoPromise: Promise<extInfo.CoreExtInfo>;
-            if (vsixPath !== null) {
-                extInfoPromise = extInfo.getExtInfo(vsixPath[0], null, null);
-            } else {
-                extInfoPromise = Promise.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).then<
-                    extInfo.CoreExtInfo
-                >(values => {
-                    const [publisher, extension] = values;
-                    return extInfo.getExtInfo(null, extension, publisher);
-                });
-            }
+    private async _getExtensionInfo(): Promise<extInfo.CoreExtInfo> {
+        const vsixPath = await this.commandArgs.vsix.val(true);
+        let extInfoPromise: Promise<extInfo.CoreExtInfo>;
+        if (vsixPath !== null) {
+            extInfoPromise = extInfo.getExtInfo(vsixPath[0], null, null);
+        } else {
+            extInfoPromise = Promise.all([this.commandArgs.publisher.val(), this.commandArgs.extensionId.val()]).then<
+                extInfo.CoreExtInfo
+            >(values => {
+                const [publisher, extension] = values;
+                return extInfo.getExtInfo(null, extension, publisher);
+            });
+        }
 
-            return extInfoPromise;
-        });
+        return extInfoPromise;
     }
 }

@@ -378,6 +378,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
                     throw "Value for gitHubFlavoredMarkdown is invalid. Only boolean values are allowed.";
                 }
                 this.addProperty("Microsoft.VisualStudio.Services.GitHubFlavoredMarkdown", value.toString());
+                break;
             case "public":
                 if (typeof value === "boolean") {
                     let flags = _.get(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", "").split(" ");

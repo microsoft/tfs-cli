@@ -36,6 +36,7 @@ export interface CoreArguments {
     help: args.BooleanArgument;
     noPrompt: args.BooleanArgument;
     noColor: args.BooleanArgument;
+    debugLogStream: args.StringArgument;
 }
 
 export interface Executor<TResult> {
@@ -317,6 +318,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             args.BooleanArgument,
             "false",
         );
+        this.registerCommandArgument(
+            "debugLogStream",
+            "Debug message logging stream (stdout | stderr)",
+            "Stream used for writing debug logs (stdout or stderr)",
+            args.StringArgument,
+            "stdout",
+        );
     }
 
     /**
@@ -537,7 +545,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                     }
 
                     result += eol + cyan("Global arguments:") + eol;
-                    ["help", "save", "noColor", "noPrompt", "output", "json", "traceLevel"].forEach(arg => {
+                    ["help", "save", "noColor", "noPrompt", "output", "json", "traceLevel", "debugLogStream"].forEach(arg => {
                         result += singleArgData(arg, 9);
                     });
 
@@ -603,10 +611,21 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             })
             .then(() => {
                 return version.getTfxVersion().then(async semVer => {
-                    const [outputType, traceLevel] = await Promise.all([
+                    const [outputType, traceLevel, debugLogStream] = await Promise.all([
                         this.commandArgs.output.val(),
                         this.commandArgs.traceLevel.val(),
+                        this.commandArgs.debugLogStream.val(),
                     ]);
+                    switch (debugLogStream) {
+                        case "stdout":
+                            trace.debugLogStream = console.log;
+                            break;
+                        case "stderr":
+                            trace.debugLogStream = console.error;
+                            break;
+                        default:
+                            throw new Error("Parameter --debug-log-stream must have value 'stdout' or 'stderr'.");
+                    }
                     switch (traceLevel && traceLevel.toLowerCase()) {
                         case "none":
                             trace.traceLevel = trace.TraceLevel.None;
