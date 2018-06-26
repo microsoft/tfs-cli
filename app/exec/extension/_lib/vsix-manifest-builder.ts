@@ -10,7 +10,7 @@ import {
     Vsix,
     VsixLanguagePack,
 } from "./interfaces";
-import { cleanAssetPath, jsonToXml, maxKey, removeMetaKeys, toZipItemName } from "./utils";
+import { cleanAssetPath, jsonToXml, maxKey, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
 import onecolor = require("onecolor");
@@ -429,10 +429,16 @@ export class VsixManifestBuilder extends ManifestBuilder {
                     value.forEach(propertyGroup => {
                         Object.keys(propertyGroup).forEach((propertyKey: string) => {
                             if (typeof propertyKey === "string" && propertyKey.length > 0 && propertyGroup[propertyKey]) {
-                                // Property ID would be in upper camel case (First letter Capital)
-                                let ucck: string = _.upperFirst(propertyKey);
-                                let propertyName: string = "Microsoft.VisualStudio.Services.GalleryProperties." + ucck;
+                                let propertyName: string;
 
+                                if (_.startsWith(propertyKey, "Microsoft.")) {
+                                    propertyName = propertyKey;
+                                } else {
+                                    // Property ID would be in upper camel case (First letter Capital)
+                                    let ucck: string = _.upperFirst(propertyKey);
+                                    propertyName = "Microsoft.VisualStudio.Services.GalleryProperties." + ucck;
+                                }
+                                
                                 // Check for duplicates
                                 let existingProperties = _.get<any[]>(
                                     this.data,
