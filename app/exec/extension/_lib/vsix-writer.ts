@@ -2,7 +2,7 @@ import { ManifestBuilder } from "./manifest";
 import { VsixManifestBuilder } from "./vsix-manifest-builder";
 import { FileDeclaration, PackageSettings, PackageFiles, PackagePart, ResourceSet, ResourcesFile } from "./interfaces";
 import { VsixComponents } from "./merger";
-import { cleanAssetPath, removeMetaKeys, toZipItemName } from "./utils";
+import { cleanAssetPath, toZipItemName } from "./utils";
 import { LocPrep } from "./loc";
 import _ = require("lodash");
 import childProcess = require("child_process");
