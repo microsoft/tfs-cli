@@ -425,8 +425,14 @@ export class VsixManifestBuilder extends ManifestBuilder {
                 /**
                  * The Gallery Properties would be a generic array of JSON elements
                  */
-                if (_.isArray(value)) {
-                    value.forEach(propertyGroup => {
+                let normalizedValue = value;
+                if (_.isObject(value)) {
+                    normalizedValue = Object.keys(value).map(k => {
+                        return { [k]: value[k] };
+                    });
+                }
+                if (_.isArray(normalizedValue)) {
+                    normalizedValue.forEach(propertyGroup => {
                         Object.keys(propertyGroup).forEach((propertyKey: string) => {
                             if (typeof propertyKey === "string" && propertyKey.length > 0 && propertyGroup[propertyKey]) {
                                 let propertyName: string;

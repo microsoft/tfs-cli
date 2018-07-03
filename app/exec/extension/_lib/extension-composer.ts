@@ -99,9 +99,6 @@ export abstract class ExtensionComposer {
                 return null;
             }
             let categories = value.split(",");
-            if (categories.length > 1) {
-                return "For now, extensions are limited to a single category.";
-            }
             let validCategories = [
                 "Build and release",
                 "Collaborate",
