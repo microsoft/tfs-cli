@@ -91,16 +91,16 @@ export class GalleryBase {
                 .then(vsixManifestAsJson => {
                     const extensionId: string =
                         info.extensionId ||
-                        _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
                     const extensionPublisher: string =
                         info.publisher ||
-                        _.get<any, string>(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
-                    const extensionVersion: string = _.get<any, string>(
+                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+                    const extensionVersion: string = _.get(
                         vsixManifestAsJson,
                         "PackageManifest.Metadata[0].Identity[0].$.Version",
                     );
                     const isPublicExtension: boolean =
-                        _.get<any, string[]>(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]", []).indexOf(
+                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]", []).indexOf(
                             "Public",
                         ) >= 0;
                     if (extensionId && extensionPublisher) {

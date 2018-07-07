@@ -4,7 +4,11 @@ import path = require("path");
 import xml = require("xml2js");
 
 export function removeMetaKeys(obj: any): any {
+<<<<<<< HEAD
 	return _.pickBy(obj,(v,k)=> !_.startsWith(k,"__meta_"));
+=======
+	return _.omitBy(obj, (v, k) => _.startsWith(k, "__meta_"));
+>>>>>>> upstream/master
 }
 
 export function cleanAssetPath(assetPath: string, root: string = ".") {
