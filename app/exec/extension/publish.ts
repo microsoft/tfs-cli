@@ -65,18 +65,15 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
         const publishSettings = await this.getPublishSettings();
 
         let extensionCreatePromise: Promise<string>;
-        let createdExtensionVsixPath: string;
         if (publishSettings.vsixPath) {
             result.packaged = null;
-            createdExtensionVsixPath = publishSettings.vsixPath;
         } else {
             // Run two async operations in parallel and destructure the result.
             const [mergeSettings, packageSettings] = await Promise.all([this.getMergeSettings(), this.getPackageSettings()]);
             const createdExtension = await createExtension(mergeSettings, packageSettings);
             result.packaged = createdExtension.path;
-            createdExtensionVsixPath = createdExtension.path;
+            publishSettings.vsixPath = createdExtension.path;
         }
-        publishSettings.vsixPath = createdExtensionVsixPath;
         const packagePublisher = new publishUtils.PackagePublisher(publishSettings, galleryApi);
         const publishedExtension = await packagePublisher.publish();
         result.published = true;
