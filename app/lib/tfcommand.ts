@@ -10,7 +10,7 @@ import args = require("./arguments");
 import { blue, cyan, gray, green, yellow, magenta, reset as resetColors, stripColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
-import copypaste = require("copy-paste");
+import clipboardy = require("clipboardy");
 import { writeFile } from "fs";
 import loader = require("../lib/loader");
 import path = require("path");
@@ -194,12 +194,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
             name: string,
             friendlyName: string,
             description: string,
-            value: string | string[],
+            value: string | string[] | Promise<string[]>,
             hasDefaultValue?: boolean,
             argAliases?: string[],
             undocumented?: boolean,
         ) => T,
-        defaultValue?: string | string[],
+        defaultValue?: string | string[] | (() => Promise<string[]>),
         undocumented: boolean = false,
     ): void {
         const fixedArgNames = (typeof name === "string" ? [name] : name).map(a => (a.substr(0, 2) === "--" ? a.substr(0, 2) : a));
@@ -221,11 +221,17 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
         if (argValue) {
             this.commandArgs[argName] = new ctor(argName, friendlyName, description, argValue, false, argAliases, undocumented);
         } else {
+            let def: string | string[] | Promise<string[]> = null;
+            if (typeof defaultValue === "function") {
+                def = defaultValue();
+            } else {
+                def = defaultValue;
+            }
             this.commandArgs[argName] = new ctor(
                 argName,
                 friendlyName,
                 description,
-                defaultValue,
+                def,
                 true,
                 argAliases,
                 undocumented,
@@ -663,11 +669,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
                 case "clip":
                 case "clipboard":
                     let clipboardText = this.getClipboardOutput(data);
-                    return new Promise<void>(resolve => {
-                        copypaste.copy(clipboardText, () => {
-                            resolve();
-                        });
-                    });
+                    return clipboardy.write(clipboardText);
                 default:
                     return fsUtils.canWriteTo(path.resolve(outputDestination)).then(canWrite => {
                         if (canWrite) {

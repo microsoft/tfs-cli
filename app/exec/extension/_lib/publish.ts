@@ -90,19 +90,15 @@ export class GalleryBase {
                 })
                 .then(vsixManifestAsJson => {
                     const extensionId: string =
-                        info.extensionId ||
-                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
+                        info.extensionId || _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Id");
                     const extensionPublisher: string =
-                        info.publisher ||
-                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
+                        info.publisher || _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].Identity[0].$.Publisher");
                     const extensionVersion: string = _.get(
                         vsixManifestAsJson,
                         "PackageManifest.Metadata[0].Identity[0].$.Version",
                     );
                     const isPublicExtension: boolean =
-                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]", []).indexOf(
-                            "Public",
-                        ) >= 0;
+                        _.get(vsixManifestAsJson, "PackageManifest.Metadata[0].GalleryFlags[0]", []).indexOf("Public") >= 0;
                     if (extensionId && extensionPublisher) {
                         return {
                             id: extensionId,
@@ -316,7 +312,9 @@ export class PackagePublisher extends GalleryBase {
                 ? "Based on the package size, this can take up to 20 mins."
                 : "This should take only a few seconds, but in some cases may take a bit longer.";
             const validationMessage = `\n== Extension Validation In Progress ==\n${extensionValidationTime} ${quitValidation} To get the validation status, you may run the command below. ${noWaitHelp}This extension will be available after validation is successful.\n\n${colors.yellow(
-                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${extInfo.version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+                `tfx extension isvalid --publisher ${extInfo.publisher} --extension-id ${extInfo.id} --version ${
+                    extInfo.version
+                } --service-url ${this.settings.galleryUrl} --token <your PAT>`,
             )}`;
             return this.createOrUpdateExtension(extPackage).then(ext => {
                 if (this.settings.noWaitValidation) {
@@ -394,7 +392,9 @@ export class PackagePublisher extends GalleryBase {
     ): Promise<string> {
         if (retries === 0) {
             const validationTimedOutMessage = `Validation is taking much longer than usual. TFX is exiting. To get the validation status, you may run the command below. This extension will be available after validation is successful.\n\n${colors.yellow(
-                `tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
+                `tfx extension isvalid --publisher ${publisher} --extension-id ${extensionId} --version ${version} --service-url ${
+                    this.settings.galleryUrl
+                } --token <your PAT>`,
             )}`;
             throw new Error(validationTimedOutMessage);
         } else if (retries === showPatienceMessageAt) {
@@ -404,7 +404,7 @@ export class PackagePublisher extends GalleryBase {
         trace.debug("Polling for validation (%s retries remaining).", retries.toString());
 
         // Compiler nonsense below. Sorry.
-        return (delay(this.getValidationStatus(version), interval)).then(status => {
+        return delay(this.getValidationStatus(version), interval).then(status => {
             trace.debug("--Retrieved validation status: %s", status);
             if (status === PackagePublisher.validationPending) {
                 // exponentially increase interval until we reach max interval

@@ -2,10 +2,11 @@ import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import { MergeSettings, PackageSettings, PublishSettings } from "./_lib/interfaces";
 import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
 import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
-import { GalleryBase, CoreExtInfo } from "./_lib/publish";
+import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./_lib/publish";
 import * as path from "path";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
+import https = require("https");
 import trace = require("../../lib/trace");
 
 import { readFile } from "fs";
@@ -71,7 +72,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
             "Market URL",
             "URL to the VSS Marketplace.",
             args.StringArgument,
-            "https://marketplace.visualstudio.com",
+            ExtensionBase.getMarketplaceUrl,
         );
         this.registerCommandArgument(
             "manifests",
@@ -281,5 +282,26 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 
     public exec(cmd?: any): Promise<any> {
         return this.getHelp(cmd);
+    }
+
+    public static async getMarketplaceUrl(): Promise<string[]> {
+        const url = "https://app.vssps.visualstudio.com/_apis/resourceareas/69D21C00-F135-441B-B5CE-3626378E0819";
+        const response = await new Promise<string>((resolve, reject) => {
+            https
+                .get(url, resp => {
+                    let data = "";
+                    resp.on("data", chunk => {
+                        data += chunk;
+                    });
+                    resp.on("end", () => {
+                        resolve(data);
+                    });
+                })
+                .on("error", err => {
+                    reject(err);
+                });
+        });
+        const resourceArea = JSON.parse(response);
+        return [resourceArea["locationUrl"]];
     }
 }

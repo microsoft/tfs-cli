@@ -20,13 +20,13 @@ export abstract class Argument<T> {
     public silent: boolean = false;
     protected assignedValue: T;
     protected initializePromise: Promise<void>;
-    protected givenValue: string[];
+    protected givenValue: string[] | Promise<string[]>;
 
     constructor(
         public name: string,
         public friendlyName: string = name,
         public description?: string,
-        givenValue?: string[] | string,
+        givenValue?: string[] | string | Promise<string[]>,
         public hasDefaultValue?: boolean,
         public aliases?: string[],
         public undocumented: boolean = false,
@@ -149,19 +149,20 @@ export abstract class Argument<T> {
      * be implemented by the type of argument to do the conversion
      * from the given string  array to the argument's concrete type.
      */
-    protected abstract getValue(argParams: string[]): Promise<T>;
+    protected abstract getValue(argParams: string[] | Promise<string[]>): Promise<T>;
 }
 
 /**
  * Argument that represents an array of comma-separated strings.
  */
 export class ArrayArgument extends Argument<string[]> {
-    protected getValue(argParams: string[]) {
-        if (argParams.length === 1) {
-            let stripped = argParams[0].replace(/(^\[)|(\]$)/g, "");
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        if (params.length === 1) {
+            let stripped = params[0].replace(/(^\[)|(\]$)/g, "");
             return Promise.resolve(stripped.split(",").map(s => s.trim()));
         } else {
-            return Promise.resolve(argParams);
+            return Promise.resolve(params);
         }
     }
 }
@@ -171,8 +172,9 @@ export class ArrayArgument extends Argument<string[]> {
  * @TODO: Better validation of valid/invalid file paths (FS call?)
  */
 export class FilePathsArgument extends Argument<string[]> {
-    protected getValue(argParams: string[]) {
-        return Promise.resolve(argParams.map(p => path.resolve(p)));
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        return Promise.resolve(params.map(p => path.resolve(p)));
     }
 }
 
@@ -180,7 +182,7 @@ export class FilePathsArgument extends Argument<string[]> {
  * Argument that represents a set of existing file paths
  */
 export class ExistingFilePathsArgument extends FilePathsArgument {
-    protected getValue(argParams: string[]) {
+    protected async getValue(argParams: string[] | Promise<string[]>) {
         return super.getValue(argParams).then(paths => {
             let existencePromises: Promise<string>[] = [];
             paths.forEach(p => {
@@ -204,7 +206,7 @@ export class ExistingFilePathsArgument extends FilePathsArgument {
  * Paths that refer to non-existent files are assumed writable.
  */
 export class WritableFilePathsArgument extends FilePathsArgument {
-    protected getValue(argParams: string[]) {
+    protected async getValue(argParams: string[] | Promise<string[]>) {
         return super.getValue(argParams).then(paths => {
             let canWritePromises: Promise<string>[] = [];
             paths.forEach(p => {
@@ -226,7 +228,7 @@ export class WritableFilePathsArgument extends FilePathsArgument {
  * Argument that represents a set of readable file paths
  */
 export class ReadableFilePathsArgument extends ExistingFilePathsArgument {
-    protected getValue(argParams: string[]) {
+    protected async getValue(argParams: string[] | Promise<string[]>) {
         return super.getValue(argParams).then(paths => {
             let canReadPromises: Promise<string>[] = [];
             paths.forEach(p => {
@@ -248,7 +250,7 @@ export class ReadableFilePathsArgument extends ExistingFilePathsArgument {
  * Argument that represents a set of existing directory file paths
  */
 export class ExistingDirectoriesArgument extends ExistingFilePathsArgument {
-    protected getValue(argParams: string[]) {
+    protected async getValue(argParams: string[] | Promise<string[]>) {
         return super.getValue(argParams).then(paths => {
             let isDirectoryPromises: Promise<string>[] = [];
             paths.forEach(p => {
@@ -291,18 +293,19 @@ export class BooleanArgument extends Argument<boolean> {
     /**
      * If there is no argument to this option, assume true.
      */
-    protected getValue(argParams: string[]) {
-        if (argParams.length === 1) {
-            let yes = ["true", "1", "yes", "y"].indexOf(argParams[0].toLowerCase()) >= 0;
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        if (params.length === 1) {
+            let yes = ["true", "1", "yes", "y"].indexOf(params[0].toLowerCase()) >= 0;
             if (yes) {
                 return Promise.resolve(true);
             }
-            let no = ["false", "0", "no", "n"].indexOf(argParams[0].toLowerCase()) >= 0;
+            let no = ["false", "0", "no", "n"].indexOf(params[0].toLowerCase()) >= 0;
             if (no) {
                 return Promise.resolve(false);
             }
-            throw new Error("'" + argParams[0] + "' is not a recognized Boolean value.");
-        } else if (argParams.length === 0) {
+            throw new Error("'" + params[0] + "' is not a recognized Boolean value.");
+        } else if (params.length === 0) {
             return Promise.resolve(true);
         } else {
             throw new Error("Multiple values provided for Boolean Argument " + this.name + ".");
@@ -314,14 +317,15 @@ export class BooleanArgument extends Argument<boolean> {
  * Argument that reprents an int value.
  */
 export class IntArgument extends Argument<number> {
-    protected getValue(argParams: string[]) {
-        if (argParams.length === 1) {
-            let parseResult = parseInt(argParams[0], 10);
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        if (params.length === 1) {
+            let parseResult = parseInt(params[0], 10);
             if (isNaN(parseResult)) {
                 throw new Error("Could not parse int argument " + this.name + ".");
             }
             return Promise.resolve(parseResult);
-        } else if (argParams.length === 0) {
+        } else if (params.length === 0) {
             throw new Error("No number provided for Int Argument " + this.name + ".");
         } else {
             throw new Error("Multiple values provided for Int Argument " + this.name + ".");
@@ -333,14 +337,15 @@ export class IntArgument extends Argument<number> {
  * Argument that reprents a float value.
  */
 export class FloatArgument extends Argument<number> {
-    protected getValue(argParams: string[]) {
-        if (argParams.length === 1) {
-            let parseResult = parseFloat(argParams[0]);
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        if (params.length === 1) {
+            let parseResult = parseFloat(params[0]);
             if (isNaN(parseResult)) {
                 throw new Error("Could not parse float argument " + this.name + ".");
             }
             return Promise.resolve(parseResult);
-        } else if (argParams.length === 0) {
+        } else if (params.length === 0) {
             throw new Error("No number provided for Float Argument " + this.name + ".");
         } else {
             throw new Error("Multiple values provided for Float Argument " + this.name + ".");
@@ -354,9 +359,10 @@ export class FloatArgument extends Argument<number> {
  * function can be referenced. See exec/extensions/default.ts for an example.
  */
 export class JsonArgument<T> extends Argument<T> {
-    protected getValue(argParams: string[]) {
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
         try {
-            return Promise.resolve(<T>JSON.parse(argParams.join(" ")));
+            return Promise.resolve(<T>JSON.parse(params.join(" ")));
         } catch (parseError) {
             let info: string = parseError.stack || parseError.message;
             throw new Error("Failed to parse JSON argument " + this.name + ". Info: " + info);
@@ -369,8 +375,9 @@ export class JsonArgument<T> extends Argument<T> {
  * by a single space.
  */
 export class StringArgument extends Argument<string> {
-    protected getValue(argParams: string[]) {
-        return Promise.resolve(argParams.join(" "));
+    protected async getValue(argParams: string[] | Promise<string[]>) {
+        const params = Array.isArray(argParams) ? argParams : await argParams;
+        return Promise.resolve(params.join(" "));
     }
 }
 
