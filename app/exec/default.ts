@@ -1,7 +1,6 @@
 import { TfCommand } from "../lib/tfcommand";
 import args = require("../lib/arguments");
 
-
 export function getCommand(args: string[]): TfCommand<any, void> {
 	return new DefaultCommand(args);
 }

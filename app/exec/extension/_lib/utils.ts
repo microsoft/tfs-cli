@@ -39,7 +39,7 @@ export function jsonToXml(json: any): string {
 	return builder.buildObject(json);
 }
 
-export function maxKey<T>(obj: {[key: string]: T}, func: (input: T) => number): string {
+export function maxKey<T>(obj: { [key: string]: T }, func: (input: T) => number): string {
 	let maxProp;
 	for (let prop in obj) {
 		if (!maxProp || func(obj[prop]) > func(obj[maxProp])) {
@@ -56,6 +56,6 @@ export var DEFAULT_XML_BUILDER_SETTINGS: xml.BuilderOptions = {
 	xmldec: {
 		encoding: "utf-8",
 		standalone: null,
-		version: "1.0"
-	}
+		version: "1.0",
+	},
 };

@@ -1,11 +1,11 @@
 import { TfCommand } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
-import cm = require('../../../lib/common');
+import cm = require("../../../lib/common");
 import extBase = require("../default");
 import extPubBase = require("./default");
-import galleryInterfaces = require('vso-node-api/interfaces/GalleryInterfaces');
-import argm = require('../../../lib/arguments');
-import trace = require('../../../lib/trace');
+import galleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
+import argm = require("../../../lib/arguments");
+import trace = require("../../../lib/trace");
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, galleryInterfaces.Publisher> {
 	// this just offers description for help and to offer sub commands
@@ -26,23 +26,21 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 	}
 
 	public exec(): Promise<galleryInterfaces.Publisher> {
-
 		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return Promise.all([
 			this.commandArgs.publisher.val(),
 			this.commandArgs.displayName.val(),
-			this.commandArgs.description.val()
-		]).then<galleryInterfaces.Publisher>((values) => {
+			this.commandArgs.description.val(),
+		]).then<galleryInterfaces.Publisher>(values => {
 			const [publisherName, displayName, description] = values;
 			return galleryApi.createPublisher(<galleryInterfaces.Publisher>{
 				publisherName: publisherName,
 				displayName: displayName,
 				shortDescription: description,
-				longDescription: description
+				longDescription: description,
 			});
 		});
-
 	}
 
 	protected friendlyOutput(data: galleryInterfaces.Publisher): void {

@@ -2,7 +2,6 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import ext = require("../default");
 
-
 export function getCommand(args: string[]): TfCommand<ext.ExtensionArguments, void> {
 	return new ExtensionResourcesBase<void>(args);
 }
