@@ -13,7 +13,7 @@ export function getCommand(args: string[]): WorkItemUpdate {
 export class WorkItemUpdate extends witBase.WorkItemBase<witContracts.WorkItem> {
 	protected description = "Update a Work Item.";
 	protected serverCommand = true;
-	
+
 	protected getHelpArgs(): string[] {
 		return ["workItemId", "title", "assignedTo", "description", "values"];
 	}
@@ -26,15 +26,15 @@ export class WorkItemUpdate extends witBase.WorkItemBase<witContracts.WorkItem> 
 			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
-			this.commandArgs.values.val(true)
-		]).then((promiseValues) => {
+			this.commandArgs.values.val(true),
+		]).then(promiseValues => {
 			const [workItemId, title, assignedTo, description, values] = promiseValues;
-			if(!title && !assignedTo && !description && (!values || Object.keys(values).length <= 0)) {
+			if (!title && !assignedTo && !description && (!values || Object.keys(values).length <= 0)) {
 				throw new Error("At least one field value must be specified.");
 			}
-			
-            var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
-            return witapi.updateWorkItem(null, patchDoc, workItemId);
+
+			var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
+			return witapi.updateWorkItem(null, patchDoc, workItemId);
 		});
 	}
 

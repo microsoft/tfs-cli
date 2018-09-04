@@ -23,34 +23,36 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 	public exec(): Promise<witContracts.WorkItem[]> {
 		var witApi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
 
-		return this.commandArgs.project.val(true).then((projectName) => {
-			return this.commandArgs.query.val().then((query) => {
+		return this.commandArgs.project.val(true).then(projectName => {
+			return this.commandArgs.query.val().then(query => {
 				let wiql: witContracts.Wiql = { query: query };
-				return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then((result) => {
+				return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then(result => {
+					let workItemIds: number[] = [];
 
-					let workItemIds:number[] = [];
-					
 					// Flat Query
-					if(result.queryType == witContracts.QueryType.Flat){
+					if (result.queryType == witContracts.QueryType.Flat) {
 						workItemIds = result.workItems.map(val => val.id).slice(0, Math.min(200, result.workItems.length));
-					} 
+					}
 
 					// Link Query
-					else  {
-						let sourceIds = result.workItemRelations.filter(relation => relation.source && relation.source.id).map(relation => relation.source.id);
-						let targetIds = result.workItemRelations.filter(relation => relation.target && relation.target.id).map(relation => relation.target.id);
+					else {
+						let sourceIds = result.workItemRelations
+							.filter(relation => relation.source && relation.source.id)
+							.map(relation => relation.source.id);
+						let targetIds = result.workItemRelations
+							.filter(relation => relation.target && relation.target.id)
+							.map(relation => relation.target.id);
 						let allIds = sourceIds.concat(targetIds);
 						workItemIds = allIds.slice(0, Math.min(200, allIds.length));
 					}
-					
-					let fieldRefs = result.columns.map(val => val.referenceName)
-                    
-                    fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
+
+					let fieldRefs = result.columns.map(val => val.referenceName);
+
+					fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
 					return workItemIds.length > 0 ? witApi.getWorkItems(workItemIds, fieldRefs) : [];
 				});
 			});
 		});
-
 	}
 
 	public friendlyOutput(data: witContracts.WorkItem[]): void {
