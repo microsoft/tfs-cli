@@ -15,7 +15,6 @@ export function getCommand(args: string[]): BuildQueue {
 }
 
 export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-
 	protected description = "Queue a build.";
 	protected serverCommand = true;
 	protected getHelpArgs(): string[] {
@@ -30,7 +29,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 				if (definitionId) {
 					definitionPromise = buildapi.getDefinition(definitionId, project);
 				} else {
-					definitionPromise = this.commandArgs.definitionName.val().then((definitionName) => {
+					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
 						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
 						return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
 							if(definitionName && definitions.length > 0) {

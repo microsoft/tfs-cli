@@ -6,13 +6,13 @@ export function getCommand(args: string[]): TfCommand<CoreArguments, version.Sem
 	return new Version(args);
 }
 
-
-
 export class Version extends TfCommand<CoreArguments, version.SemanticVersion> {
 	protected description = "Output the version of this tool.";
-	protected getHelpArgs() {return [];}
+	protected getHelpArgs() {
+		return [];
+	}
 	protected serverCommand = false;
-	
+
 	constructor(args: string[]) {
 		super(args);
 	}

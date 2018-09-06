@@ -20,12 +20,11 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-show.exec");
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
-		return this.commandArgs.project.val().then((project) => {
-			return this.commandArgs.buildId.val().then((buildId) => {
+		return this.commandArgs.project.val().then(project => {
+			return this.commandArgs.buildId.val().then(buildId => {
 				return buildapi.getBuild(buildId, project);
 			});
 		});
-
 	}
 
 	public friendlyOutput(build: buildContracts.Build): void {
