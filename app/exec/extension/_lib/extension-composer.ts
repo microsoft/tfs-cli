@@ -93,38 +93,6 @@ export abstract class ExtensionComposer {
 			} else {
 				return "'publisher' must be provided.";
 			}
-		},
-		"PackageManifest.Metadata[0].Categories[0]": value => {
-			if (!value) {
-				return null;
-			}
-			let categories = value.split(",");
-			let validCategories = [
-				"Build and release",
-				"Collaborate",
-				"Code",
-				"Test",
-				"Plan and track",
-				"Insights",
-				"Integrate",
-				"Developer samples",
-			];
-			_.remove(categories, c => !c);
-			let badCategories = categories.filter(c => validCategories.indexOf(c) < 0);
-			return badCategories.length
-				? "The following categories are not valid: " +
-						badCategories.join(", ") +
-						". Valid categories are: " +
-						validCategories.join(", ") +
-						"."
-				: null;
-		},
-		"PackageManifest.Installation[0].InstallationTarget": value => {
-			if (_.isArray(value) && value.length > 0) {
-				return null;
-			}
-			// We check for InstallationTarget in extension-composer-factory for now. This might change in the future.
-			return null; //"Your manifest must include at least one 'target'.";
-		},
+		}
 	};
 }
