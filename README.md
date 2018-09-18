@@ -1,10 +1,10 @@
-# Node CLI for VSTS and TFS
+# Node CLI for Azure DevOps
 
-> NOTE: If you are looking for the new VSTS CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
+> NOTE: If you are looking for the new Azure DevOps CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
-Command utility for interacting with Microsoft Team Foundation Server and Visual Studio Team Services. It is cross platform and supported on Windows, OS X, and Linux.
+Command utility for interacting with Microsoft Team Foundation Server and Azure DevOps Services(formerly VSTS). It is cross platform and supported on Windows, OS X, and Linux.
 
 ## Setup
 
@@ -38,7 +38,7 @@ tfx <command> --help
 
 * `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
 * `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
-* `tfx extension` ([extensions](docs/extensions.md)): Package, manage, publisher Team Foundation Server / Team Services extensions
+* `tfx extension` ([extensions](docs/extensions.md)): Package, manage, publisher Team Foundation Server / Azure DevOps extensions
 * `tfx workitem` ([work items](docs/workitems.md)): Create, query and view work items.
 
 ### Login

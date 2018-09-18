@@ -17,7 +17,7 @@ export interface DeletePublisherResult {
 }
 
 export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<DeletePublisherResult> {
-	protected description = "Delete a Visual Studio Services Market publisher";
+	protected description = "Delete a Visual Studio Marketplace publisher";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {

@@ -205,7 +205,7 @@ export interface PublishSettings {
 	extensionId?: string;
 
 	/**
-	 * List of VSTS accounts to share an extension with.
+	 * List of Azure Devops organization to share an extension with.
 	 */
 	shareWith?: string[];
 
