@@ -98,7 +98,7 @@ export abstract class ExtensionComposer {
 			if (typeof value === "string" && value.length > 0) {
 				return null;
 			} else {
-				return "One or more 'categories' needs to be specified";
+				return "One or more 'categories' must be provided.";
 			}
 		}
 	};
