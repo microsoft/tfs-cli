@@ -4,7 +4,7 @@
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
-Command utility for interacting with Microsoft Team Foundation Server and Azure DevOps Services(formerly VSTS). It is cross platform and supported on Windows, OS X, and Linux.
+Command utility for interacting with Microsoft Team Foundation Server and Azure DevOps Services (formerly VSTS). It is cross platform and supported on Windows, OS X, and Linux.
 
 ## Setup
 
