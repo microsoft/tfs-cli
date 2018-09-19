@@ -10,7 +10,7 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 }
 
 export class ExtensionShare extends extBase.ExtensionBase<string[]> {
-	protected description = "Unshare a Visual Studio Services Extension with VSTS Accounts.";
+	protected description = "Unshare a Azure Devops Extension with Azure DevOps Organizations.";
 	protected serverCommand = true;
 
 	constructor(passedArgs: string[]) {
@@ -20,7 +20,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 		this.registerCommandArgument(
 			"unshareWith",
 			"Un-share with",
-			"List of accounts with which to un-share the extension",
+			"List of organizations with which to un-share the extension",
 			args.ArrayArgument,
 		);
 
