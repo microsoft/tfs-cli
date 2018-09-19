@@ -93,6 +93,13 @@ export abstract class ExtensionComposer {
 			} else {
 				return "'publisher' must be provided.";
 			}
+		},
+		"PackageManifest.Metadata[0].Categories[0]": value => {
+			if (typeof value === "string" && value.length > 0) {
+				return null;
+			} else {
+				return "One or more 'categories' must be provided.";
+			}
 		}
 	};
 }
