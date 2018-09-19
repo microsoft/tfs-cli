@@ -14,7 +14,6 @@ export function getCommand(args: string[]): BuildQueue {
 }
 
 export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-
 	protected description = "Queue a build.";
 	protected serverCommand = true;
 
@@ -25,27 +24,28 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	public exec(): Promise<buildContracts.Build> {
 		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
 
-		return this.commandArgs.project.val().then((project) => {
-			return this.commandArgs.definitionId.val(true).then((definitionId) => {
+		return this.commandArgs.project.val().then(project => {
+			return this.commandArgs.definitionId.val(true).then(definitionId => {
 				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
 					definitionPromise = buildapi.getDefinition(definitionId, project);
 				} else {
-					definitionPromise = this.commandArgs.definitionName.val().then((definitionName) => {
+					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
 						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
-						return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
-							if(definitions.length > 0) {
-								var definition = definitions[0];
-								return definition;
-							}
-							else {
-								trace.debug("No definition found with name " + definitionName);
-								throw new Error("No definition found with name " + definitionName);
-							}
-						});
+						return buildapi
+							.getDefinitions(project, definitionName)
+							.then((definitions: buildContracts.DefinitionReference[]) => {
+								if (definitions.length > 0) {
+									var definition = definitions[0];
+									return definition;
+								} else {
+									trace.debug("No definition found with name " + definitionName);
+									throw new Error("No definition found with name " + definitionName);
+								}
+							});
 					});
 				}
-				return definitionPromise.then((definition) => {
+				return definitionPromise.then(definition => {
 					return this._queueBuild(buildapi, definition, project);
 				});
 			});
@@ -66,9 +66,9 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 	private _queueBuild(buildapi: buildClient.IBuildApi, definition: buildContracts.DefinitionReference, project: string) {
-		trace.debug("Queueing build...")
-		var build = <buildContracts.Build> {
-			definition: definition
+		trace.debug("Queueing build...");
+		var build = <buildContracts.Build>{
+			definition: definition,
 		};
 		return buildapi.queueBuild(build, project);
 	}

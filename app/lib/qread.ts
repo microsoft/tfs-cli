@@ -9,12 +9,12 @@ var queue = [];
 export function read(name: string, message: string, silent: boolean = false): Promise<string> {
 	let promise = new Promise<string>((resolve, reject) => {
 		let schema: prompt.PromptSchema = {
-			properties: { }
+			properties: {},
 		};
 		schema.properties[name] = {
 			required: true,
 			description: message + ":",
-			hidden: silent
+			hidden: silent,
 		};
 		Promise.all(queue.filter(x => x !== promise)).then(() => {
 			prompt.start();

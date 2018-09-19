@@ -4,7 +4,7 @@ import { VsixWriter } from "../_lib/vsix-writer";
 import * as Loc from "../_lib/loc";
 import colors = require("colors");
 import extBase = require("../default");
-import trace = require('../../../lib/trace');
+import trace = require("../../../lib/trace");
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, GenResourcesResult> {
 	return new GenerateExtensionResources(args);
@@ -23,7 +23,19 @@ export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourc
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["root", "manifests", "manifestGlobs", "override", "overridesFile", "revVersion", "bypassValidation", "publisher", "extensionId", "outputPath", "locRoot"];
+		return [
+			"root",
+			"manifests",
+			"manifestGlobs",
+			"override",
+			"overridesFile",
+			"revVersion",
+			"bypassValidation",
+			"publisher",
+			"extensionId",
+			"outputPath",
+			"locRoot",
+		];
 	}
 
 	public exec(): Promise<GenResourcesResult> {
@@ -34,7 +46,7 @@ export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourc
 					const resjsonPath = writer.getOutputPath(packageSettings.outputPath, "resjson");
 					Loc.LocPrep.writeResourceFile(resjsonPath, components.resources.combined);
 					return <GenResourcesResult>{
-						resjsonPath: writer.getOutputPath(packageSettings.outputPath, "resjson")
+						resjsonPath: writer.getOutputPath(packageSettings.outputPath, "resjson"),
 					};
 				});
 			});
