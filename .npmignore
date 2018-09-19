@@ -6,3 +6,4 @@ _build/tests
 gulpfile.js
 tsconfig.json
 tmp/
+.vscode/
