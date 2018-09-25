@@ -48,7 +48,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	private groupedArgs: { [key: string]: string[] };
 	private initialized: Promise<Executor<any>>;
 	protected webApi: WebApi;
-	protected description: string = "A suite of command line tools to interact with Visual Studio Team Services.";
+	protected description: string = "A suite of command line tools to interact with Azure DevOps Services.";
 	public connection: TfsConnection;
 
 	protected abstract serverCommand;

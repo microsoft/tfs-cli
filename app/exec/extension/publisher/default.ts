@@ -8,7 +8,7 @@ export function getCommand(args: string[]): TfCommand<extPub.ExtensionArguments,
 }
 
 export class ExtensionPublisherBase<T> extends extPub.ExtensionBase<T> {
-	protected description = "Commands for managing Visual Studio Services Marketplace Publishers.";
+	protected description = "Commands for managing Visual Studio Marketplace Publishers.";
 	protected serverCommand = false;
 
 	protected setCommandArgs(): void {

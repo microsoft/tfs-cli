@@ -42,7 +42,7 @@ export interface ExtensionArguments extends CoreArguments {
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
-	protected description = "Commands to package, publish, and manage Extensions for Visual Studio Team Services.";
+	protected description = "Commands to package, publish, and manage Extensions for Azure DevOps Services.";
 	protected serverCommand = false;
 
 	constructor(passedArgs: string[]) {
@@ -99,14 +99,14 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		this.registerCommandArgument(
 			"shareWith",
 			"Share with",
-			"List of VSTS Accounts with which to share the extension (space separated).",
-			args.ArrayArgument,
+			"List of Azure DevOps organization(s) with which to share the extension (space separated).",
+			args.ArrayArgument, 
 			null,
 		);
 		this.registerCommandArgument(
 			"unshareWith",
 			"Un-share with",
-			"List of VSTS Accounts with which to un-share the extension (space separated).",
+			"List of Azure DevOps organization(s) with which to un-share the extension (space separated).",
 			args.ArrayArgument,
 			null,
 		);

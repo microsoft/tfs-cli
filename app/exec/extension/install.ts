@@ -49,7 +49,7 @@ export interface ExtensionInstallResult {
 }
 
 export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResult> {
-	protected description = "Install a Visual Studio Services Extension to a list of VSTS Accounts.";
+	protected description = "Install a Azure DevOps Extension to a list of Azure DevOps Organizations.";
 	protected serverCommand = true;
 
 	constructor(passedArgs: string[]) {
@@ -60,16 +60,16 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		super.setCommandArgs();
 		this.registerCommandArgument(
 			"accounts",
-			"Installation target accounts",
-			"List of accounts where to install the extension.",
+			"Installation target organizations",
+			"List of organizations where to install the extension.",
 			args.ArrayArgument,
 			null,
 			true,
 		);
 		this.registerCommandArgument(
 			"serviceUrl",
-			"Collection/Account URL",
-			"URL of the account or collection to install extension to.",
+			"Collection/Organization URL",
+			"URL of the organization or collection to install extension to.",
 			args.StringArgument,
 			undefined,
 		);
@@ -84,7 +84,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		const accounts = await this.commandArgs.accounts.val(true);
 		if (accounts) {
 			throw new Error(
-				"Installing extensions to multiple accounts no longer supported. Please use the following syntax to install an extension to an account/collection:\ntfx extension install --service-url <account/collection url> --token <pat> --publisher <publisher> --extension-id <extension id>",
+				"Installing extensions to multiple organizations no longer supported. Please use the following syntax to install an extension to an account/collection:\ntfx extension install --service-url <account/collection url> --token <pat> --publisher <publisher> --extension-id <extension id>",
 			);
 		}
 

@@ -13,7 +13,7 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 }
 
 export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<galleryInterfaces.Publisher> {
-	protected description = "Create a Visual Studio Services Market publisher";
+	protected description = "Create a Visual Studio Marketplace publisher";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
