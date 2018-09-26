@@ -18,8 +18,8 @@ export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 		return ["workItemId"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
-		var witapi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
+	public async exec(): Promise<witContracts.WorkItem> {
+		var witapi: witClient.IWorkItemTrackingApi = await this.webApi.getWorkItemTrackingApi();
 		return this.commandArgs.workItemId.val().then(workItemId => {
 			return witapi.getWorkItem(workItemId);
 		});

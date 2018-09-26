@@ -18,8 +18,8 @@ export class WorkItemCreate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemType", "title", "assignedTo", "description", "project", "values"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
-		var witapi = this.webApi.getWorkItemTrackingApi();
+	public async exec(): Promise<witContracts.WorkItem> {
+		var witapi = await this.webApi.getWorkItemTrackingApi();
 
 		return Promise.all([
 			this.commandArgs.workItemType.val(),

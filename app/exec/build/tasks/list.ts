@@ -16,8 +16,8 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 		return ["all"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition[]> {
-		var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+	public async exec(): Promise<agentContracts.TaskDefinition[]> {
+		var agentapi = await this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 
 		trace.debug("Searching for build tasks...");
 		return agentapi.getTaskDefinitions(null, ["build"], null).then(tasks => {

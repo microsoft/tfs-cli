@@ -18,8 +18,8 @@ export class WorkItemUpdate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemId", "title", "assignedTo", "description", "values"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
-		var witapi = this.webApi.getWorkItemTrackingApi();
+	public async exec(): Promise<witContracts.WorkItem> {
+		var witapi = await this.webApi.getWorkItemTrackingApi();
 
 		return Promise.all([
 			this.commandArgs.workItemId.val(),

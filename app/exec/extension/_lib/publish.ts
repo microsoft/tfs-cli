@@ -120,6 +120,7 @@ export class GalleryBase {
 		return this.getExtInfo().then(extInfo => {
 			return this.galleryClient
 				.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					extInfo.version,
@@ -172,6 +173,7 @@ export class GalleryBase {
 		return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>(extInfo => {
 			return this.galleryClient
 				.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					null,
@@ -275,7 +277,7 @@ export class PackagePublisher extends GalleryBase {
 	private checkVsixPublished(): Promise<CoreExtInfo> {
 		return this.getExtInfo().then(extInfo => {
 			return this.galleryClient
-				.getExtension(extInfo.publisher, extInfo.id)
+				.getExtension(null, extInfo.publisher, extInfo.id)
 				.then(ext => {
 					if (ext) {
 						extInfo.published = true;
@@ -293,9 +295,6 @@ export class PackagePublisher extends GalleryBase {
 	 * @return Q.Promise that is resolved when publish is complete
 	 */
 	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
-		const extPackage: GalleryInterfaces.ExtensionPackage = {
-			extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64"),
-		};
 		trace.debug("Publishing %s", this.settings.vsixPath);
 
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
@@ -316,7 +315,7 @@ export class PackagePublisher extends GalleryBase {
 					extInfo.version
 				} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
 			)}`;
-			return this.createOrUpdateExtension(extPackage).then(ext => {
+			return this.createOrUpdateExtension(this.settings.vsixPath).then(ext => {
 				if (this.settings.noWaitValidation) {
 					trace.info(validationMessage);
 					return ext;
@@ -357,21 +356,22 @@ export class PackagePublisher extends GalleryBase {
 	}
 
 	private createOrUpdateExtension(
-		extPackage: GalleryInterfaces.ExtensionPackage,
+		vsixPath: string,
 	): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then(extInfo => {
 			let publishPromise;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
 				publishPromise = this.galleryClient
-					.updateExtension(extPackage, extInfo.publisher, extInfo.id)
+					.updateExtension(null, fs.createReadStream(vsixPath), extInfo.publisher, extInfo.id)
 					.catch(errHandler.httpErr);
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-				publishPromise = this.galleryClient.createExtension(extPackage).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.createExtension(null, fs.createReadStream(vsixPath)).catch(errHandler.httpErr);
 			}
 			return publishPromise.then(() => {
 				return this.galleryClient.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					null,

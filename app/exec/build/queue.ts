@@ -21,8 +21,8 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		return ["project", "definitionId", "definitionName"];
 	}
 
-	public exec(): Promise<buildContracts.Build> {
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+	public async exec(): Promise<buildContracts.Build> {
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
 
 		return this.commandArgs.project.val().then(project => {
 			return this.commandArgs.definitionId.val(true).then(definitionId => {

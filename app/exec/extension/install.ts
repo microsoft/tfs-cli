@@ -99,7 +99,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 		// New flow - service-url contains account. Install to 1 account at a time.
 		const serviceUrl = await ExtensionInstall.getEmsAccountUrl(await this.commandArgs.serviceUrl.val());
-		const emsApi = this.webApi.getExtensionManagementApi(serviceUrl);
+		const emsApi = await this.webApi.getExtensionManagementApi(serviceUrl);
 
 		try {
 			const installation = await emsApi.installExtensionByName(extInfo.publisher, extInfo.id);

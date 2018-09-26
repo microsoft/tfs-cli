@@ -25,8 +25,8 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 		this.registerCommandArgument("publisher", "Publisher ID", "Use this as the publisher ID.", args.StringArgument);
 	}
 
-	public exec(): Promise<galleryInterfaces.Publisher> {
-		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+	public async exec(): Promise<galleryInterfaces.Publisher> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return Promise.all([
 			this.commandArgs.publisher.val(),

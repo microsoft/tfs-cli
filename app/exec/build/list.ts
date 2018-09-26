@@ -18,9 +18,9 @@ export class BuildGetList extends buildBase.BuildBase<buildBase.BuildArguments, 
 		return ["definitionId", "definitionName", "status", "top", "project"];
 	}
 
-	public exec(): Promise<buildContracts.Build[]> {
+	public async exec(): Promise<buildContracts.Build[]> {
 		trace.debug("build-list.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
 
 		return Promise.all<number | string>([
 			this.commandArgs.project.val(),

@@ -38,7 +38,7 @@ export class ExtensionIsValid extends extBase.ExtensionBase<galleryContracts.Pub
 	}
 
 	public async exec(): Promise<string> {
-		const galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		const extInfo = await this.identifyExtension();
 		const version = await this.commandArgs.version.val();
