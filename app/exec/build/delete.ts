@@ -38,11 +38,14 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 
 	private _deleteBuild(buildapi: buildClient.IBuildApi, buildId: number, project: string) {
 		trace.info("Deleting build...")
-        buildapi.deleteBuild(buildId,project)
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
 			if (!build.keepForever) {
 				build.deleted = true;
-				if (build.deleted) {
+				build.status = buildContracts.BuildStatus.Completed
+				build.result = buildContracts.BuildResult.Failed
+				if (build.deleted && build.status == buildContracts.BuildStatus.Completed) {
+					buildapi.updateBuild(build,build.id)
+					buildapi.deleteBuild(build.id,build.project.name)
 					trace.info("build deleted")
 				} else {
 					trace.error("failed to delete")
