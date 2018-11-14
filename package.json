@@ -61,7 +61,7 @@
     "webpack": "^1.13.2"
   },
   "engines": {
-    "npm": ">=8.0.0"
+    "node": ">=8.0.0"
   },
   "author": "Microsoft Corporation",
   "contributors": [
