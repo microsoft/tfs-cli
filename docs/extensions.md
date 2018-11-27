@@ -1,6 +1,6 @@
 # TFX extension commands
 
-Package, publish, and manage Team Services and Team Foundation Server extensions. To learn more, see an [introduction to extensions](https://www.visualstudio.com/docs/integrate/extensions/overview).
+Package, publish, and manage Team Services and Team Foundation Server extensions. To learn more, see an [introduction to extensions](https://docs.microsoft.com/en-gb/azure/devops/extend/overview?view=vsts).
 
 ## Get started
 
@@ -46,7 +46,7 @@ The version included in the packaged .VSIX and in the source manifest file is no
 
 ### Tips
 
-1. This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://www.visualstudio.com/en-us/integrate/extensions/develop/manifest)
+1. This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://docs.microsoft.com/en-us/azure/devops/extend/develop/manifest?view=vsts)
 
 ## Publish an extension
 
@@ -74,7 +74,7 @@ tfx extension publish --publisher mypublisher --manifest-globs myextension.json 
 
 1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
 2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://www.visualstudio.com/en-us/docs/integrate/extensions/publish/command-line).
+3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://docs.microsoft.com/en-gb/azure/devops/extend/publish/command-line?view=vsts).
 
 
 
