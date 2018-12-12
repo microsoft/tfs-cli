@@ -19,26 +19,26 @@ export function getCommand(args: string[]): TfCommand<ExtensionArguments, void> 
 export class ManifestJsonArgument extends args.JsonArgument<any> {}
 
 export interface ExtensionArguments extends CoreArguments {
+	accounts: args.ArrayArgument;
+	bypassValidation: args.BooleanArgument;
+	description: args.StringArgument;
+	displayName: args.StringArgument;
 	extensionId: args.StringArgument;
-	publisher: args.StringArgument;
-	manifests: args.ArrayArgument;
+	locRoot: args.ExistingDirectoriesArgument;
 	manifestGlobs: args.ArrayArgument;
+	manifests: args.ArrayArgument;
+	metadataOnly: args.BooleanArgument;
+	noWaitValidation: args.BooleanArgument;
 	outputPath: args.StringArgument;
 	override: ManifestJsonArgument;
 	overridesFile: args.ReadableFilePathsArgument;
+	path: args.FilePathsArgument;
+	publisher: args.StringArgument;
+	revVersion: args.BooleanArgument;
 	shareWith: args.ArrayArgument;
 	unshareWith: args.ArrayArgument;
-	vsix: args.ReadableFilePathsArgument;
-	bypassValidation: args.BooleanArgument;
-	locRoot: args.ExistingDirectoriesArgument;
-	displayName: args.StringArgument;
-	description: args.StringArgument;
-	accounts: args.ArrayArgument;
-	revVersion: args.BooleanArgument;
-	noWaitValidation: args.BooleanArgument;
 	version: args.StringArgument;
-	noArchive: args.BooleanArgument;
-	metadataOnly: args.BooleanArgument;
+	vsix: args.ReadableFilePathsArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
