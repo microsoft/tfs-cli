@@ -20,15 +20,19 @@ export class ManifestJsonArgument extends args.JsonArgument<any> {}
 
 export interface ExtensionArguments extends CoreArguments {
 	accounts: args.ArrayArgument;
+	branch: args.StringArgument;
 	bypassValidation: args.BooleanArgument;
 	description: args.StringArgument;
 	displayName: args.StringArgument;
+	extensionName: args.StringArgument;
 	extensionId: args.StringArgument;
 	locRoot: args.ExistingDirectoriesArgument;
 	manifestGlobs: args.ArrayArgument;
 	manifests: args.ArrayArgument;
 	metadataOnly: args.BooleanArgument;
+	noDownload: args.BooleanArgument;
 	noWaitValidation: args.BooleanArgument;
+	npmPath: args.StringArgument;
 	outputPath: args.StringArgument;
 	override: ManifestJsonArgument;
 	overridesFile: args.ReadableFilePathsArgument;
@@ -39,6 +43,7 @@ export interface ExtensionArguments extends CoreArguments {
 	unshareWith: args.ArrayArgument;
 	version: args.StringArgument;
 	vsix: args.ReadableFilePathsArgument;
+	zipUri: args.StringArgument;
 }
 
 export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
