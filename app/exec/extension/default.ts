@@ -39,6 +39,7 @@ export interface ExtensionArguments extends CoreArguments {
 	path: args.FilePathsArgument;
 	publisher: args.StringArgument;
 	revVersion: args.BooleanArgument;
+	samples: args.StringArgument;
 	shareWith: args.ArrayArgument;
 	unshareWith: args.ArrayArgument;
 	version: args.StringArgument;

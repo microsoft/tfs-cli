@@ -24,8 +24,6 @@ import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
 import { exists } from "../../../lib/fsUtils";
 
-import { inspect } from "util";
-
 /**
  * Combines the vsix and vso manifests into one object
  */

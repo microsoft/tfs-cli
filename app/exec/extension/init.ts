@@ -13,11 +13,76 @@ import * as path from "path";
 import * as trace from "../../lib/trace";
 import * as jszip from "jszip";
 
+const basicWebpackConfig = `const path = require("path");
+const fs = require("fs");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+
+module.exports = {
+    entry: "./src/index.js",
+    output: {
+        filename: "[name]/[name].js"
+    },
+    resolve: {
+        extensions: [".js"],
+    },
+    stats: {
+        warnings: false
+    },
+    module: {
+        rules: [
+            
+        ]
+    },
+    plugins: [
+        new CopyWebpackPlugin([ { from: "**/*.html", context: "src/" }])
+    ]
+};
+`;
+const basicDevDependencies = {
+	"copy-webpack-plugin": "^4.5.4",
+	"file-loader": "~2.0.0",
+	rimraf: "~2.6.2",
+	"tfx-cli": "^0.6.3",
+	webpack: "^4.22.0",
+	"webpack-cli": "^3.1.2",
+};
+
+const shorthandMap = {
+	a: "<all>",
+	all: "<all>",
+	f: "feature",
+	h: "hub",
+	m: "menu",
+	p: "panel",
+	v: "pivot",
+	w: "workitemopen",
+	n: "<none>",
+	none: "<none>",
+};
+
+function getSamplesToRemove(selection: string, availableSamples: string[]) {
+	const split = selection
+		.split(/,|;|\s+/)
+		.filter(v => v.trim().length > 0)
+		.map(v => v.toLowerCase().trim())
+		.map(v => shorthandMap[v] || v);
+
+	if (split.indexOf("<all>") >= 0) {
+		return [];
+	}
+	if (split.indexOf("<none>") >= 0) {
+		return [...availableSamples];
+	}
+	return availableSamples.filter(as => split.indexOf(as.toLowerCase()) === -1);
+}
+
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, InitResult> {
 	return new ExtensionInit(args);
 }
 
-export interface InitResult {}
+export interface InitResult {
+	path: string;
+}
 
 export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 	protected description = "Initialize a directory for development of a new Azure DevOps extension.";
@@ -69,42 +134,32 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		);
 		this.registerCommandArgument(
 			"publisher",
-			"Publisher",
-			"Publisher ID for this extension. Create a publisher at <url>.",
-			args.StringArgument
+			"Publisher ID",
+			"Publisher ID for this extension. Create a publisher at https://marketplace.visualstudio.com/manage.",
+			args.StringArgument,
 		);
+		this.registerCommandArgument("extensionId", "Extension ID", "This extension's ID.", args.StringArgument);
+		this.registerCommandArgument("extensionName", "Extension name", "Friendly name of this extension.", args.StringArgument);
 		this.registerCommandArgument(
-			"extensionId",
-			"Extension ID",
-			"This extension's ID.",
-			args.StringArgument
-		);
-		this.registerCommandArgument(
-			"extensionName",
-			"Extension name",
-			"Friendly name of this extension.",
-			args.StringArgument
+			"samples",
+			colors.white("Which examples do you want to start with?") + colors.gray(" You may specifiy multiple (comma-separated).\nFor descriptions, see https://github.com/Microsoft/azure-devops-extension-sample.\n  (A)ll, \n  (F)eature, \n  (H)ub, \n  (M)enu, \n  (P)anel, \n  Pi(v)ot, \n  (W)orkItemOpen, \n  (N)one - empty project\n"),
+			"Specify which examples to include in the new extension.",
+			args.StringArgument,
 		);
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["path", "branch", "zipUri", "noDownload"];
+		return ["path", "branch", "zipUri", "noDownload", "npmPath", "publisher", "extensionId", "extensionName"];
 	}
 
 	public async exec(): Promise<InitResult> {
-
-		trace.info("--Azure DevOps Extension Initialization--");
-		trace.info("  For all options, run `tfx extension init --help`");
+		trace.info("");
+		trace.info(colors.yellow("  --  New Azure DevOps Extension  --"));
+		trace.info("");
+		trace.info(colors.cyan("For all options and help, run `tfx extension init --help`"));
+		trace.info("");
 
 		const initPath = (await this.commandArgs.path.val())[0];
-		const branch = await this.commandArgs.branch.val();
-		const samplePackageUri = (await this.commandArgs.zipUri.val()).replace("{{branch}}", encodeURIComponent(branch));
-		const noDownload = await this.commandArgs.noDownload.val();
-		const npmPath = await this.commandArgs.npmPath.val();
-		const extensionPublisher = await this.commandArgs.publisher.val();
-		const extensionId = await this.commandArgs.extensionId.val();
-		const extensionName = await this.commandArgs.extensionName.val();
-
 		await this.createFolderIfNotExists(initPath);
 
 		const isFolder = await this.checkIsFolder(initPath);
@@ -117,9 +172,18 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			throw new Error("Could not access folder for reading and writing: " + initPath);
 		}
 
+		const branch = await this.commandArgs.branch.val();
+		const samplePackageUri = (await this.commandArgs.zipUri.val()).replace("{{branch}}", encodeURIComponent(branch));
+		const noDownload = await this.commandArgs.noDownload.val();
+		const npmPath = await this.commandArgs.npmPath.val();
+		const extensionPublisher = await this.commandArgs.publisher.val();
+		const extensionId = await this.commandArgs.extensionId.val();
+		const extensionName = await this.commandArgs.extensionName.val();
+		const wantedSamples = await this.commandArgs.samples.val();
+
 		// If --no-download is passed, do not download or unpack the zip file. Assume the folder's contents contain the zip file.
 		if (!noDownload) {
-			const isEmpty = await this.checkFolderIsEmpty(initPath);
+			const isEmpty = await this.checkFolderIsEmpty(initPath, ["node_modules"]);
 			if (!isEmpty) {
 				throw new Error("Folder is not empty: " + initPath);
 			}
@@ -195,12 +259,77 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			await promisify(fs.unlink)(downloadedZipPath);
 		}
 
+		trace.debug("Getting available samples");
+		const samplesPath = path.join(initPath, "src", "Samples");
+		const samplesList = await promisify(fs.readdir)(samplesPath);
+		let samplesToRemove = getSamplesToRemove(wantedSamples, samplesList);
+		const includesHub = samplesToRemove.indexOf("Hub") >= 0;
+		const includesBcs = samplesToRemove.indexOf("BreadcrumbService") >= 0;
+		if (includesHub && !includesBcs) {
+			samplesToRemove.push("BreadcrumbService");
+		} else if (!includesHub && includesBcs) {
+			samplesToRemove = samplesToRemove.filter(s => s !== "BreadcrumbService");
+		}
+
+		const includedSamples = samplesList.filter(s => samplesToRemove.indexOf(s) === -1 && s !== "BreadcrumbService");
+		if (includedSamples.length > 0) {
+			trace.info("Including the following samples: ");
+			trace.info(
+				includedSamples.map(s => {
+					const text = s === "Hub" ? s + " (with BreadcrumbService)" : s;
+					return " - " + text;
+				}),
+			);
+
+			trace.debug("Deleting the following samples: " + samplesToRemove.join(", "));
+			for (const sampleToRemove of samplesToRemove) {
+				await this.deleteNonEmptyFolder(path.join(samplesPath, sampleToRemove));
+			}
+		} else {
+			trace.info("Including no samples (starting with an empty project).");
+			const webpackConfigPath = path.join(initPath, "webpack.config.js");
+
+			// Delete all the samples
+			await this.deleteNonEmptyFolder(samplesPath);
+			await promisify(fs.unlink)(path.join(initPath, "src", "Common.scss"));
+			await promisify(fs.unlink)(path.join(initPath, "src", "Common.tsx"));
+
+			// Update the webpack config and create a dummy js file in src.
+			await promisify(fs.unlink)(webpackConfigPath);
+			await promisify(fs.writeFile)(webpackConfigPath, basicWebpackConfig, "utf8");
+			await promisify(fs.writeFile)(path.join(initPath, "src", "index.js"), "", "utf8");
+		}
+
+		trace.info("Updating azure-devops-extension.json with publisher ID, extension ID, and extension name.");
+		const mainManifestPath = path.join(initPath, "azure-devops-extension.json");
+		const manifestContents = await promisify(fs.readFile)(mainManifestPath, "utf8");
+		const packageJsonPath = path.join(initPath, "package.json");
+		const packageJsonContents = await promisify(fs.readFile)(packageJsonPath, "utf8");
+		const newManifest = jsonInPlace(manifestContents)
+			.set("publisher", extensionPublisher)
+			.set("id", extensionId)
+			.set("name", extensionName);
+
+		const newPackageJson = jsonInPlace(packageJsonContents)
+			.set("repository['url']", "")
+			.set("description", extensionName)
+			.set("name", extensionId)
+			.set("version", "1.0.0");
+		if (includedSamples.length === 0) {
+			newPackageJson
+				.set("scripts['package-extension']", "tfx extension create --manifests azure-devops-extension.json")
+				.set("scripts['publish-extension']", "tfx extension publish --manifests azure-devops-extension.json")
+				.set("devDependencies", basicDevDependencies);
+		}
+		await promisify(fs.writeFile)(mainManifestPath, newManifest.toString(), "utf8");
+		await promisify(fs.writeFile)(packageJsonPath, newPackageJson.toString(), "utf8");
+
 		// Check for existence of node_modules. If it's not there, try installing the package.
 		const nodeModulesPath = path.join(initPath, "node_modules");
 		const alreadyInstalled = await this.checkFolderAccessible(nodeModulesPath);
 		if (!alreadyInstalled) {
 			trace.debug("No node_modules folder found.");
-			trace.info("Running `" + npmPath + " install in " + initPath + "... please wait.`.");
+			trace.info("Running `" + npmPath + " install` in " + initPath + "... please wait.");
 			await new Promise((resolve, reject) => {
 				const npmCommand = exec(
 					npmPath + " install",
@@ -217,7 +346,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 				);
 			});
 		} else {
-			trace.info(`${nodeModulesPath} already exists. Foregoing npm install.`);
+			trace.info(`The folder "${nodeModulesPath}" already exists. Foregoing npm install.`);
 		}
 
 		// Yes, this is a lie. We're actually going to run tfx extension create manually.
@@ -238,36 +367,40 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			);
 		});
 
-		// @todo Crack the azure-devops-extension.json file to update the publisher and extension id.
-		const mainManifestPath = path.join(initPath, "azure-devops-extension.json");
-		const manifestContents = await promisify(fs.readFile)(mainManifestPath, "utf8");
-		const newManifest = jsonInPlace(manifestContents).set("publisher", extensionPublisher).set("id", extensionId).set("name", extensionName);
-		await promisify(fs.writeFile)(mainManifestPath, newManifest.toString(), "utf8");
-
 		trace.debug("Building extension package.");
-		const createResult = await createExtension({
-			manifestGlobs: ["azure-devops-extension.json", "src/Samples/**/*.json"],
-			revVersion: true,
-			bypassValidation: false,
-			locRoot: null,
-			manifests: null,
-			overrides: {},
-			root: initPath
-		}, {
-			locRoot: null,
-			metadataOnly: false,
-			outputPath: initPath
-		});
+		const manifestGlobs = ["azure-devops-extension.json"];
+		if (includedSamples.length > 0) {
+			manifestGlobs.push("src/Samples/**/*.json");
+		}
+		const createResult = await createExtension(
+			{
+				manifestGlobs: manifestGlobs,
+				revVersion: true,
+				bypassValidation: includedSamples.length === 0, // need to bypass validation when there are no contributions
+				locRoot: null,
+				manifests: null,
+				overrides: {},
+				root: initPath,
+			},
+			{
+				locRoot: null,
+				metadataOnly: false,
+				outputPath: initPath,
+			},
+		);
 
-		return {} as InitResult;
+		return { path: initPath } as InitResult;
 	}
 
 	protected friendlyOutput(data: InitResult): void {
 		trace.info(colors.green("\n=== Completed operation: initialize extension ==="));
+		trace.info(`Azure DevOps Extension initialized in "${data.path}".`);
+		trace.info("");
+		trace.info(colors.red("Don't forget to update the package.json file with relevant details about your project."));
 	}
 
-	private async checkFolderIsEmpty(folderPath: string) {
-		const files = await promisify(fs.readdir)(folderPath);
+	private async checkFolderIsEmpty(folderPath: string, allowedNames: string[] = []) {
+		const files = (await promisify(fs.readdir)(folderPath)).filter(n => allowedNames.indexOf(n) === -1);
 		return files.length === 0;
 	}
 
@@ -291,16 +424,21 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			throw new Error("Are you really trying to delete " + folderPath + " ?");
 		}
 		const files = await promisify(fs.readdir)(folderPath);
-		console.log("Files: " + files.join(", "));
 		for (const file of files) {
 			const fullName = path.join(folderPath, file);
 			const stat = await promisify(fs.lstat)(fullName);
 			if (stat.isDirectory()) {
 				await this.deleteFolderContents(fullName);
+				await promisify(fs.rmdir)(fullName);
 			} else {
 				await promisify(fs.unlink)(fullName);
 			}
 		}
+	}
+
+	private async deleteNonEmptyFolder(folderPath: string) {
+		await this.deleteFolderContents(folderPath);
+		await promisify(fs.rmdir)(folderPath);
 	}
 
 	private async createFolderIfNotExists(folderPath: string) {
