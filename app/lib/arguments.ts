@@ -30,6 +30,7 @@ export abstract class Argument<T> {
 		public hasDefaultValue?: boolean,
 		public aliases?: string[],
 		public undocumented: boolean = false,
+		public promptDefault?: string,
 	) {
 		if (typeof givenValue === "string") {
 			this.givenValue = [givenValue];
@@ -121,7 +122,7 @@ export abstract class Argument<T> {
 					if (common.NO_PROMPT) {
 						throw new Error("Missing required value for argument '" + this.name + "'.");
 					}
-					return qread.read(this.name, this.friendlyName, this.silent).then(answer => {
+					return qread.read(this.name, this.friendlyName, this.silent, this.promptDefault).then(answer => {
 						// Split answer into args, just as if they were passed through command line
 						let splitAnswer = answer.match(/".+?"|[^ ]+/g) || [""];
 						let answerArgs = splitAnswer.map(a => {

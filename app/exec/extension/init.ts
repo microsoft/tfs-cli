@@ -142,9 +142,15 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		this.registerCommandArgument("extensionName", "Extension name", "Friendly name of this extension.", args.StringArgument);
 		this.registerCommandArgument(
 			"samples",
-			colors.white("Which examples do you want to start with?") + colors.gray(" You may specifiy multiple (comma-separated).\nFor descriptions, see https://github.com/Microsoft/azure-devops-extension-sample.\n  (A)ll, \n  (F)eature, \n  (H)ub, \n  (M)enu, \n  (P)anel, \n  Pi(v)ot, \n  (W)orkItemOpen, \n  (N)one - empty project\n"),
-			"Specify which examples to include in the new extension.",
+			colors.white("Which samples do you want to start with?") +
+				colors.gray(
+					" You may specifiy multiple (comma-separated).\nFor descriptions, see https://github.com/Microsoft/azure-devops-extension-sample.\n  (A)ll, \n  (F)eature, \n  (H)ub, \n  (M)enu, \n  (P)anel, \n  Pi(v)ot, \n  (W)orkItemOpen, \n  (N)one - empty project\n",
+				),
+			"Specify which samples to include in the new extension.",
 			args.StringArgument,
+			undefined,
+			false,
+			"All",
 		);
 	}
 
@@ -160,6 +166,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		trace.info("");
 
 		const initPath = (await this.commandArgs.path.val())[0];
+		const noDownload = await this.commandArgs.noDownload.val();
 		await this.createFolderIfNotExists(initPath);
 
 		const isFolder = await this.checkIsFolder(initPath);
@@ -172,9 +179,15 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			throw new Error("Could not access folder for reading and writing: " + initPath);
 		}
 
+		if (!noDownload) {
+			const isEmpty = await this.checkFolderIsEmpty(initPath, ["node_modules"]);
+			if (!isEmpty) {
+				throw new Error("Folder is not empty: " + initPath);
+			}
+		}
+
 		const branch = await this.commandArgs.branch.val();
 		const samplePackageUri = (await this.commandArgs.zipUri.val()).replace("{{branch}}", encodeURIComponent(branch));
-		const noDownload = await this.commandArgs.noDownload.val();
 		const npmPath = await this.commandArgs.npmPath.val();
 		const extensionPublisher = await this.commandArgs.publisher.val();
 		const extensionId = await this.commandArgs.extensionId.val();
@@ -183,11 +196,6 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 		// If --no-download is passed, do not download or unpack the zip file. Assume the folder's contents contain the zip file.
 		if (!noDownload) {
-			const isEmpty = await this.checkFolderIsEmpty(initPath, ["node_modules"]);
-			if (!isEmpty) {
-				throw new Error("Folder is not empty: " + initPath);
-			}
-
 			const downloadedZipPath = path.join(initPath, "azure-devops-extension-sample.zip");
 			const zipFile = fs.createWriteStream(downloadedZipPath);
 			let bytesReceived = 0;
@@ -311,14 +319,14 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			.set("name", extensionName);
 
 		const newPackageJson = jsonInPlace(packageJsonContents)
-			.set("repository['url']", "")
+			.set("repository.url", "")
 			.set("description", extensionName)
 			.set("name", extensionId)
 			.set("version", "1.0.0");
 		if (includedSamples.length === 0) {
 			newPackageJson
-				.set("scripts['package-extension']", "tfx extension create --manifests azure-devops-extension.json")
-				.set("scripts['publish-extension']", "tfx extension publish --manifests azure-devops-extension.json")
+				.set("scripts.package-extension", "tfx extension create --manifests azure-devops-extension.json")
+				.set("scripts.publish-extension", "tfx extension publish --manifests azure-devops-extension.json")
 				.set("devDependencies", basicDevDependencies);
 		}
 		await promisify(fs.writeFile)(mainManifestPath, newManifest.toString(), "utf8");
