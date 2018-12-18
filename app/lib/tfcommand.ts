@@ -198,9 +198,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			hasDefaultValue?: boolean,
 			argAliases?: string[],
 			undocumented?: boolean,
+			promptDefault?: string,
 		) => T,
 		defaultValue?: string | string[] | (() => Promise<string[]>),
 		undocumented: boolean = false,
+		promptDefault?: string,
 	): void {
 		const fixedArgNames = (typeof name === "string" ? [name] : name).map(a => (a.substr(0, 2) === "--" ? a.substr(0, 2) : a));
 		const argName = fixedArgNames[0];
@@ -227,7 +229,16 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			} else {
 				def = defaultValue;
 			}
-			this.commandArgs[argName] = new ctor(argName, friendlyName, description, def, true, argAliases, undocumented);
+			this.commandArgs[argName] = new ctor(
+				argName,
+				friendlyName,
+				description,
+				def,
+				true,
+				argAliases,
+				undocumented,
+				promptDefault,
+			);
 		}
 	}
 
