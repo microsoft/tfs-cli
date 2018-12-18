@@ -306,6 +306,11 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			await promisify(fs.unlink)(webpackConfigPath);
 			await promisify(fs.writeFile)(webpackConfigPath, basicWebpackConfig, "utf8");
 			await promisify(fs.writeFile)(path.join(initPath, "src", "index.js"), "", "utf8");
+
+			// Delete tsconfig, overview.md, and truncate readme
+			await promisify(fs.unlink)(path.join(initPath, "tsconfig.json"));
+			await promisify(fs.unlink)(path.join(initPath, "overview.md"));
+			await promisify(fs.writeFile)(path.join(initPath, "README.md"), "", "utf8");
 		}
 
 		trace.info("Updating azure-devops-extension.json with publisher ID, extension ID, and extension name.");
@@ -316,20 +321,26 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		const newManifest = jsonInPlace(manifestContents)
 			.set("publisher", extensionPublisher)
 			.set("id", extensionId)
-			.set("name", extensionName);
+			.set("name", extensionName)
+			.set("version", "1.0.0")
+			.set("description", "Azure DevOps Extension")
+			.set("categories", ["Other"]);
 
 		const newPackageJson = jsonInPlace(packageJsonContents)
 			.set("repository.url", "")
 			.set("description", extensionName)
 			.set("name", extensionId)
 			.set("version", "1.0.0");
+		const newManifestObj = JSON.parse(newManifest.toString());
 		if (includedSamples.length === 0) {
 			newPackageJson
 				.set("scripts.package-extension", "tfx extension create --manifests azure-devops-extension.json")
 				.set("scripts.publish-extension", "tfx extension publish --manifests azure-devops-extension.json")
 				.set("devDependencies", basicDevDependencies);
+			delete newManifestObj["icons"];
+			delete newManifestObj["content"];
 		}
-		await promisify(fs.writeFile)(mainManifestPath, newManifest.toString(), "utf8");
+		await promisify(fs.writeFile)(mainManifestPath, JSON.stringify(newManifestObj, null, 4), "utf8");
 		await promisify(fs.writeFile)(packageJsonPath, newPackageJson.toString(), "utf8");
 
 		// Check for existence of node_modules. If it's not there, try installing the package.
@@ -383,7 +394,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		const createResult = await createExtension(
 			{
 				manifestGlobs: manifestGlobs,
-				revVersion: true,
+				revVersion: false,
 				bypassValidation: includedSamples.length === 0, // need to bypass validation when there are no contributions
 				locRoot: null,
 				manifests: null,
@@ -404,7 +415,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 		trace.info(colors.green("\n=== Completed operation: initialize extension ==="));
 		trace.info(`Azure DevOps Extension initialized in "${data.path}".`);
 		trace.info("");
-		trace.info(colors.red("Don't forget to update the package.json file with relevant details about your project."));
+		trace.info(colors.red("Don't forget to update the package.json file with relevant details about your project and update LICENSE as necessary."));
 	}
 
 	private async checkFolderIsEmpty(folderPath: string, allowedNames: string[] = []) {
