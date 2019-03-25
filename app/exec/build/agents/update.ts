@@ -20,7 +20,11 @@ export class AgentUpdate extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 
 	public exec(): Promise<taskAgentContracts.TaskAgent> {
 		trace.debug("update-agents.exec");
-		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+		} else {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+		}
 		return Promise.all<number | string | boolean>([
 			this.commandArgs.agentId.val(),
 			this.commandArgs.agentName.val(),

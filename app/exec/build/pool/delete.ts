@@ -38,7 +38,11 @@ export class CreatePool extends TfCommand<DeletePoolArguments, taskAgentContract
             var Id = id as number;
 
             
-            var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+            if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
+                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+            } else {
+                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+            }
             return agentapi.getAgentPool(Id).then((pool) => {
                 trace.debug("found build agent pool %s...", pool.name);
                 return agentapi.deleteAgentPool(pool.id).then((deletedpool) => {

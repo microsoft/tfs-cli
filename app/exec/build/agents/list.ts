@@ -18,7 +18,11 @@ export class AgentDetails extends agentBase.AgentBase<taskAgentContracts.TaskAge
 
 	public exec(): Promise<taskAgentContracts.TaskAgent[]> {
 		trace.debug("list-agents.exec");
-		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+		} else {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+		}
 		return this.commandArgs.poolId.val().then((pool) => {
 			trace.debug("getting pool  : %s", pool);
 			return agentapi.getAgents(pool);

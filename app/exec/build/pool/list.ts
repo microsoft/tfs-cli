@@ -22,7 +22,11 @@ export class List extends TfCommand<ListPoolArguments, taskAgentContracts.TaskAg
 
 	public exec(): Promise<taskAgentContracts.TaskAgentPool[]> {
 		trace.debug("pools.exec");
-		var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0,this.connection.getCollectionUrl().lastIndexOf("/")));
+		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));	
+		} else {
+			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+		}
 			return agentapi.getAgentPools();
 	}
 	

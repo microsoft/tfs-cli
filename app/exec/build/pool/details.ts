@@ -35,7 +35,11 @@ export class PoolDetails extends TfCommand<PoolDetailsArguments, taskAgentContra
             this.commandArgs.id.val(),
         ]).then((values) => {
             const [id] = values;
-            var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+            if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
+                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+            } else {
+                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+            }
             return agentapi.getAgentPool(id).then((pool) => {
             trace.debug("found build agent pool %s", pool.id);
                 return pool;                    
