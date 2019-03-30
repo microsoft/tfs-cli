@@ -3,7 +3,7 @@ import args = require("../../../lib/arguments");
 import cm = require("../../../lib/common");
 import extBase = require("../default");
 import extPubBase = require("./default");
-import galleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
+import galleryInterfaces = require("azure-devops-node-api/interfaces/GalleryInterfaces");
 import argm = require("../../../lib/arguments");
 import trace = require("../../../lib/trace");
 
@@ -26,14 +26,13 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 	}
 
 	public exec(): Promise<galleryInterfaces.Publisher> {
-		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
-
 		return Promise.all([
 			this.commandArgs.publisher.val(),
 			this.commandArgs.displayName.val(),
 			this.commandArgs.description.val(),
+			this.webApi.getGalleryApi(this.webApi.serverUrl)
 		]).then<galleryInterfaces.Publisher>(values => {
-			const [publisherName, displayName, description] = values;
+			const [publisherName, displayName, description, galleryApi] = values;
 			return galleryApi.createPublisher(<galleryInterfaces.Publisher>{
 				publisherName: publisherName,
 				displayName: displayName,

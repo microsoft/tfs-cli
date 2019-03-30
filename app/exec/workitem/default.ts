@@ -1,7 +1,7 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
-import vssCoreContracts = require("vso-node-api/interfaces/common/VSSInterfaces");
-import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
+import vssCoreContracts = require("azure-devops-node-api/interfaces/common/VSSInterfaces");
+import witContracts = require("azure-devops-node-api/interfaces/WorkItemTrackingInterfaces");
 import trace = require("../../lib/trace");
 import { EOL as eol } from "os";
 import _ = require("lodash");

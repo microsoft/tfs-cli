@@ -1,10 +1,10 @@
-import { IGalleryApi } from "vso-node-api/GalleryApi";
+import { IGalleryApi } from "azure-devops-node-api/GalleryApi";
 import { PublishSettings } from "./interfaces";
 import _ = require("lodash");
 import colors = require("colors");
 import errHandler = require("../../../lib/errorhandler");
 import fs = require("fs");
-import GalleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
+import GalleryInterfaces = require("azure-devops-node-api/interfaces/GalleryInterfaces");
 import trace = require("../../../lib/trace");
 import xml2js = require("xml2js");
 import zip = require("jszip");
@@ -120,6 +120,7 @@ export class GalleryBase {
 		return this.getExtInfo().then(extInfo => {
 			return this.galleryClient
 				.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					extInfo.version,
@@ -172,6 +173,7 @@ export class GalleryBase {
 		return this.getExtInfo().then<GalleryInterfaces.PublishedExtension>(extInfo => {
 			return this.galleryClient
 				.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					null,
@@ -275,7 +277,7 @@ export class PackagePublisher extends GalleryBase {
 	private checkVsixPublished(): Promise<CoreExtInfo> {
 		return this.getExtInfo().then(extInfo => {
 			return this.galleryClient
-				.getExtension(extInfo.publisher, extInfo.id)
+				.getExtension(null, extInfo.publisher, extInfo.id)
 				.then(ext => {
 					if (ext) {
 						extInfo.published = true;
@@ -293,9 +295,7 @@ export class PackagePublisher extends GalleryBase {
 	 * @return Q.Promise that is resolved when publish is complete
 	 */
 	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
-		const extPackage: GalleryInterfaces.ExtensionPackage = {
-			extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64"),
-		};
+		const extPackage = fs.createReadStream(this.settings.vsixPath);
 		trace.debug("Publishing %s", this.settings.vsixPath);
 
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
@@ -356,22 +356,21 @@ export class PackagePublisher extends GalleryBase {
 		});
 	}
 
-	private createOrUpdateExtension(
-		extPackage: GalleryInterfaces.ExtensionPackage,
-	): Promise<GalleryInterfaces.PublishedExtension> {
+	private createOrUpdateExtension(extPackage: NodeJS.ReadableStream): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then(extInfo => {
 			let publishPromise;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
 				publishPromise = this.galleryClient
-					.updateExtension(extPackage, extInfo.publisher, extInfo.id)
+					.updateExtension(null, extPackage, extInfo.publisher, extInfo.id)
 					.catch(errHandler.httpErr);
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-				publishPromise = this.galleryClient.createExtension(extPackage).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
 			}
 			return publishPromise.then(() => {
 				return this.galleryClient.getExtension(
+					null,
 					extInfo.publisher,
 					extInfo.id,
 					null,

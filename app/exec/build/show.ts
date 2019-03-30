@@ -1,8 +1,8 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): BuildShow {
@@ -19,12 +19,15 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 
 	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-show.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
-		return this.commandArgs.project.val().then(project => {
-			return this.commandArgs.buildId.val().then(buildId => {
-				return buildapi.getBuild(buildId, project);
+		return this.webApi
+			.getBuildApi()
+			.then(buildApi => {
+				return this.commandArgs.project.val().then(project => {
+					return this.commandArgs.buildId.val().then(buildId => {
+						return buildApi.getBuild(buildId, project);
+					});
+				});
 			});
-		});
 	}
 
 	public friendlyOutput(build: buildContracts.Build): void {

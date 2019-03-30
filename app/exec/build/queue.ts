@@ -1,8 +1,8 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 
 export function describe(): string {
@@ -22,31 +22,33 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 	}
 
 	public exec(): Promise<buildContracts.Build> {
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
-
-		return this.commandArgs.project.val().then(project => {
-			return this.commandArgs.definitionId.val(true).then(definitionId => {
-				let definitionPromise: Promise<buildContracts.DefinitionReference>;
-				if (definitionId) {
-					definitionPromise = buildapi.getDefinition(definitionId, project);
-				} else {
-					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
-						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
-						return buildapi
-							.getDefinitions(project, definitionName)
-							.then((definitions: buildContracts.DefinitionReference[]) => {
-								if (definitions.length > 0) {
-									var definition = definitions[0];
-									return definition;
-								} else {
-									trace.debug("No definition found with name " + definitionName);
-									throw new Error("No definition found with name " + definitionName);
-								}
-							});
+		return this.webApi
+		.getBuildApi()
+		.then(buildApi => {
+			return this.commandArgs.project.val().then(project => {
+				return this.commandArgs.definitionId.val(true).then(definitionId => {
+					let definitionPromise: Promise<buildContracts.DefinitionReference>;
+					if (definitionId) {
+						definitionPromise = buildApi.getDefinition(definitionId, project);
+					} else {
+						definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
+							trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
+							return buildApi
+								.getDefinitions(project, definitionName)
+								.then((definitions: buildContracts.DefinitionReference[]) => {
+									if (definitions.length > 0) {
+										var definition = definitions[0];
+										return definition;
+									} else {
+										trace.debug("No definition found with name " + definitionName);
+										throw new Error("No definition found with name " + definitionName);
+									}
+								});
+						});
+					}
+					return definitionPromise.then(definition => {
+						return this._queueBuild(buildApi, definition, project);
 					});
-				}
-				return definitionPromise.then(definition => {
-					return this._queueBuild(buildapi, definition, project);
 				});
 			});
 		});

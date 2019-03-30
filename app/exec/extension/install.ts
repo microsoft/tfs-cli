@@ -4,10 +4,10 @@ import colors = require("colors");
 import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
 import trace = require("../../lib/trace");
-import GalleryInterfaces = require("vso-node-api/interfaces/GalleryInterfaces");
-import gallerym = require("vso-node-api/GalleryApi");
-import emsm = require("vso-node-api/ExtensionManagementApi");
-import EmsInterfaces = require("vso-node-api/interfaces/ExtensionManagementInterfaces");
+import GalleryInterfaces = require("azure-devops-node-api/interfaces/GalleryInterfaces");
+import gallerym = require("azure-devops-node-api/GalleryApi");
+import emsm = require("azure-devops-node-api/ExtensionManagementApi");
+import EmsInterfaces = require("azure-devops-node-api/interfaces/ExtensionManagementInterfaces");
 import https = require("https");
 
 import { realPromise } from "../../lib/promiseUtils";
@@ -99,7 +99,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 
 		// New flow - service-url contains account. Install to 1 account at a time.
 		const serviceUrl = await ExtensionInstall.getEmsAccountUrl(await this.commandArgs.serviceUrl.val());
-		const emsApi = this.webApi.getExtensionManagementApi(serviceUrl);
+		const emsApi = await this.webApi.getExtensionManagementApi(serviceUrl);
 
 		try {
 			const installation = await emsApi.installExtensionByName(extInfo.publisher, extInfo.id);

@@ -1,7 +1,7 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import { MergeSettings, PackageSettings, PublishSettings } from "./_lib/interfaces";
-import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
-import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
+import { WebApi, getBasicHandler } from "azure-devops-node-api/WebApi";
+import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./_lib/publish";
 import * as path from "path";
 import _ = require("lodash");

@@ -34,7 +34,6 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 					let agentApi = webApi.getTaskAgentApi();
 
 					return agentApi
-						.connect()
 						.then(obj => {
 							let tfxCredStore = getCredentialStore("tfx");
 							let tfxCache = new DiskCache("tfx");

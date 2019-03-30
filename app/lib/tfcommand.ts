@@ -1,9 +1,9 @@
-import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
+import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
 import { repeatStr } from "../lib/common";
 import { TfsConnection } from "../lib/connection";
-import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
+import { WebApi, getBasicHandler } from "azure-devops-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
