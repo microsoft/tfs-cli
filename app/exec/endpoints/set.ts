@@ -57,7 +57,7 @@ export class ShowEndpoint extends TfCommand<EndpointArguments, taskAgentContract
         trace.info('description     : %s', data.description);
         trace.info('visibility      : %s', JSON.stringify(data.data));
         trace.info('auth scheme     : %s', JSON.stringify(data.authorization.scheme));
-        trace.info('auth parameters : %s', JSON.stringify(data.authorization.parameters));
+        //trace.info('auth parameters : %s', JSON.stringify(data.authorization.parameters));
         trace.info('created By      : %s', data.createdBy.displayName);
     }
 }
