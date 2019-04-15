@@ -2,11 +2,11 @@ import { EOL as eol } from "os";
 import { TfCommand } from "../../lib/tfcommand";
 import _ = require("lodash");
 import args = require("../../lib/arguments");
-import coreContracts = require("vso-node-api/interfaces/CoreInterfaces");
+import coreContracts = require("azure-devops-node-api/interfaces/CoreInterfaces");
 import trace = require("../../lib/trace");
 import witBase = require("./default");
-import witClient = require("vso-node-api/WorkItemTrackingApi");
-import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
+import witClient = require("azure-devops-node-api/WorkItemTrackingApi");
+import witContracts = require("azure-devops-node-api/interfaces/WorkItemTrackingInterfaces");
 
 export function getCommand(args: string[]): WorkItemQuery {
 	return new WorkItemQuery(args);
@@ -20,8 +20,8 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 		return ["project", "query"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem[]> {
-		var witApi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
+	public async exec(): Promise<witContracts.WorkItem[]> {
+		var witApi: witClient.IWorkItemTrackingApi = await this.webApi.getWorkItemTrackingApi();
 
 		return this.commandArgs.project.val(true).then(projectName => {
 			return this.commandArgs.query.val().then(query => {

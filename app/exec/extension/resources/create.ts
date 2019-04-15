@@ -38,7 +38,7 @@ export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourc
 		];
 	}
 
-	public exec(): Promise<GenResourcesResult> {
+	public async exec(): Promise<GenResourcesResult> {
 		return this.getMergeSettings().then(mergeSettings => {
 			return this.getPackageSettings().then(packageSettings => {
 				return new Merger(mergeSettings).merge().then(components => {

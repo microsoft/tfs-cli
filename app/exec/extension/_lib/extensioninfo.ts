@@ -20,7 +20,7 @@ export function getExtInfo(
 	publisherName: string,
 	cachedInfo?: CoreExtInfo,
 ): Promise<CoreExtInfo> {
-	trace.debug("extensioninfo.getExtInfo");
+	trace.debug("extensioninfo.getExtInfo with vsixpath: " + vsixPath + ", extId: " + extensionId + ", publisher: " + publisherName);
 	var vsixInfoPromise: Promise<CoreExtInfo>;
 	if (cachedInfo) {
 		return Promise.resolve(cachedInfo);

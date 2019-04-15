@@ -45,7 +45,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Promise<TaskCreateResult> {
+	public async exec(): Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
 		return Promise.all([

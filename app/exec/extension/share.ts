@@ -5,6 +5,8 @@ import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
 import trace = require("../../lib/trace");
 
+import { SharingManager } from "./_lib/publish";
+
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, string[]> {
 	return new ExtensionShare(args);
 }
@@ -34,8 +36,8 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 		return ["publisher", "extensionId", "vsix", "shareWith"];
 	}
 
-	public exec(): Promise<string[]> {
-		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+	public async exec(): Promise<string[]> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return this.commandArgs.vsix.val(true).then(vsixPath => {
 			let extInfoPromise: Promise<extInfo.CoreExtInfo>;
@@ -53,7 +55,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 				return this.commandArgs.shareWith.val().then(shareWith => {
 					let sharePromises: Promise<void>[] = [];
 					shareWith.forEach(account => {
-						sharePromises.push(galleryApi.shareExtension(extInfo.publisher, extInfo.id, account));
+						sharePromises.push(SharingManager.shareExtension(galleryApi, extInfo.publisher, extInfo.id, account));
 					});
 					return Promise.all(sharePromises).then(() => {
 						return shareWith;
