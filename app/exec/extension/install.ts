@@ -9,6 +9,7 @@ import gallerym = require("azure-devops-node-api/GalleryApi");
 import emsm = require("azure-devops-node-api/ExtensionManagementApi");
 import EmsInterfaces = require("azure-devops-node-api/interfaces/ExtensionManagementInterfaces");
 import https = require("https");
+import http = require("http");
 
 import { realPromise } from "../../lib/promiseUtils";
 
@@ -87,11 +88,10 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 				"Installing extensions to multiple organizations no longer supported. Please use the following syntax to install an extension to an account/collection:\ntfx extension install --service-url <account/collection url> --token <pat> --publisher <publisher> --extension-id <extension id>",
 			);
 		}
+		trace.debug("Installing extension by name");
 
 		// Read extension info from arguments
 		const result: ExtensionInstallResult = { accounts: {}, extension: null };
-		const extensionInfo = await this._getExtensionInfo();
-
 		const extInfo = await this._getExtensionInfo();
 		const itemId = `${extInfo.publisher}.${extInfo.id}`;
 
@@ -101,6 +101,7 @@ export class ExtensionInstall extends extBase.ExtensionBase<ExtensionInstallResu
 		const serviceUrl = await ExtensionInstall.getEmsAccountUrl(await this.commandArgs.serviceUrl.val());
 		const emsApi = await this.webApi.getExtensionManagementApi(serviceUrl);
 
+		trace.debug("Installing extension by name: " + extInfo.publisher + ": " + extInfo.id);
 		try {
 			const installation = await emsApi.installExtensionByName(extInfo.publisher, extInfo.id);
 			const installationResult = { installed: true, issues: null };
@@ -117,6 +118,8 @@ ${installation.installState.installationIssues.map(i => " - " + i).join("\n")}`;
 						serviceUrl.replace(/\/$/, "") +
 						"/DefaultCollection",
 				);
+			} else if (err.message.indexOf("TF1590010") >= 0) {
+				trace.warn("The given extension is already installed, so nothing happened.");
 			} else {
 				throw err;
 			}
@@ -162,10 +165,18 @@ ${installation.installState.installationIssues.map(i => " - " + i).join("\n")}`;
 	}
 
 	private static async getEmsAccountUrl(tfsAccountUrl: string): Promise<string> {
+		trace.debug("Get ems account url for " + tfsAccountUrl);
 		const acctUrlNoSlash = tfsAccountUrl.endsWith("/") ? tfsAccountUrl.substr(0, tfsAccountUrl.length - 1) : tfsAccountUrl;
+
+		if (acctUrlNoSlash.indexOf("visualstudio.com") < 0 && acctUrlNoSlash.indexOf("dev.azure.com") < 0) {
+			return acctUrlNoSlash;
+		}
+
 		const url = `${acctUrlNoSlash}/_apis/resourceareas/6c2b0933-3600-42ae-bf8b-93d4f7e83594`;
+		const httpModule = url.indexOf("https://") >= 0 ? https : http;
+
 		const response = await new Promise<string>((resolve, reject) => {
-			https
+			httpModule
 				.get(url, resp => {
 					let data = "";
 					resp.on("data", chunk => {
@@ -179,6 +190,7 @@ ${installation.installState.installationIssues.map(i => " - " + i).join("\n")}`;
 					reject(err);
 				});
 		});
+		trace.debug("response: " + response);
 		const resourceArea = JSON.parse(response);
 		return resourceArea.locationUrl;
 	}

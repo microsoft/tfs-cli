@@ -29,18 +29,15 @@ export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<
 		this.registerCommandArgument("publisher", "Publisher ID", "ID of Publisher to delete.", args.StringArgument);
 	}
 
-	public exec(): Promise<DeletePublisherResult> {
-		return this.webApi
-		.getGalleryApi(this.webApi.serverUrl)
-		.then(galleryApi => {
-			return this.commandArgs.publisher.val().then(publisherName => {
-				return galleryApi.deletePublisher(publisherName).then(() => {
-					return <DeletePublisherResult>{
-						publisher: {
-							publisherName: publisherName,
-						},
-					};
-				});
+	public async exec(): Promise<DeletePublisherResult> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+		return this.commandArgs.publisher.val().then(publisherName => {
+			return galleryApi.deletePublisher(publisherName).then(() => {
+				return <DeletePublisherResult>{
+					publisher: {
+						publisherName: publisherName,
+					},
+				};
 			});
 		});
 	}

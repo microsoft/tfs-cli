@@ -18,22 +18,23 @@ export class WorkItemUpdate extends witBase.WorkItemBase<witContracts.WorkItem> 
 		return ["workItemId", "title", "assignedTo", "description", "values"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
+	public async exec(): Promise<witContracts.WorkItem> {
+		var witapi = await this.webApi.getWorkItemTrackingApi();
+
 		return Promise.all([
 			this.commandArgs.workItemId.val(),
 			this.commandArgs.title.val(true),
 			this.commandArgs.assignedTo.val(true),
 			this.commandArgs.description.val(true),
 			this.commandArgs.values.val(true),
-			this.webApi.getWorkItemTrackingApi()
 		]).then(promiseValues => {
-			const [workItemId, title, assignedTo, description, values, witApi] = promiseValues;
+			const [workItemId, title, assignedTo, description, values] = promiseValues;
 			if (!title && !assignedTo && !description && (!values || Object.keys(values).length <= 0)) {
 				throw new Error("At least one field value must be specified.");
 			}
 
 			var patchDoc = witBase.buildWorkItemPatchDoc(title, assignedTo, description, values);
-			return witApi.updateWorkItem(null, patchDoc, workItemId);
+			return witapi.updateWorkItem(null, patchDoc, workItemId);
 		});
 	}
 

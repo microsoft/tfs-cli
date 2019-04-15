@@ -37,7 +37,7 @@ export class Reset extends TfCommand<ResetArgs, void> {
 		);
 	}
 
-	public exec(): Promise<void> {
+	public async exec(): Promise<void> {
 		return Promise.resolve<void>(null);
 	}
 

@@ -16,24 +16,22 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 		return ["all"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition[]> {
-		return this.webApi
-			.getTaskAgentApi(this.connection.getCollectionUrl())
-			.then(agentApi => {
-				trace.debug("Searching for build tasks...");
-				return agentApi.getTaskDefinitions(null, ["build"], null).then(tasks => {
-					trace.debug("Retrieved " + tasks.length + " build tasks from server.");
-					return this.commandArgs.all.val().then(all => {
-						if (all) {
-							trace.debug("Listing all build tasks.");
-							return tasks;
-						} else {
-							trace.debug("Filtering build tasks to give only the latest versions.");
-							return this._getNewestTasks(tasks);
-						}
-					});
-				});
+	public async exec(): Promise<agentContracts.TaskDefinition[]> {
+		var agentapi = await this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+
+		trace.debug("Searching for build tasks...");
+		return agentapi.getTaskDefinitions(null, ["build"], null).then(tasks => {
+			trace.debug("Retrieved " + tasks.length + " build tasks from server.");
+			return this.commandArgs.all.val().then(all => {
+				if (all) {
+					trace.debug("Listing all build tasks.");
+					return tasks;
+				} else {
+					trace.debug("Filtering build tasks to give only the latest versions.");
+					return this._getNewestTasks(tasks);
+				}
 			});
+		});
 	}
 
 	/*

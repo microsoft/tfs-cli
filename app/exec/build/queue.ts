@@ -21,34 +21,32 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		return ["project", "definitionId", "definitionName"];
 	}
 
-	public exec(): Promise<buildContracts.Build> {
-		return this.webApi
-		.getBuildApi()
-		.then(buildApi => {
-			return this.commandArgs.project.val().then(project => {
-				return this.commandArgs.definitionId.val(true).then(definitionId => {
-					let definitionPromise: Promise<buildContracts.DefinitionReference>;
-					if (definitionId) {
-						definitionPromise = buildApi.getDefinition(definitionId, project);
-					} else {
-						definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
-							trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
-							return buildApi
-								.getDefinitions(project, definitionName)
-								.then((definitions: buildContracts.DefinitionReference[]) => {
-									if (definitions.length > 0) {
-										var definition = definitions[0];
-										return definition;
-									} else {
-										trace.debug("No definition found with name " + definitionName);
-										throw new Error("No definition found with name " + definitionName);
-									}
-								});
-						});
-					}
-					return definitionPromise.then(definition => {
-						return this._queueBuild(buildApi, definition, project);
+	public async exec(): Promise<buildContracts.Build> {
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
+
+		return this.commandArgs.project.val().then(project => {
+			return this.commandArgs.definitionId.val(true).then(definitionId => {
+				let definitionPromise: Promise<buildContracts.DefinitionReference>;
+				if (definitionId) {
+					definitionPromise = buildapi.getDefinition(definitionId, project);
+				} else {
+					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
+						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
+						return buildapi
+							.getDefinitions(project, definitionName)
+							.then((definitions: buildContracts.DefinitionReference[]) => {
+								if (definitions.length > 0) {
+									var definition = definitions[0];
+									return definition;
+								} else {
+									trace.debug("No definition found with name " + definitionName);
+									throw new Error("No definition found with name " + definitionName);
+								}
+							});
 					});
+				}
+				return definitionPromise.then(definition => {
+					return this._queueBuild(buildapi, definition, project);
 				});
 			});
 		});

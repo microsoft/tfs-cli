@@ -22,7 +22,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		return ["taskPath", "overwrite"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition> {
+	public async exec(): Promise<agentContracts.TaskDefinition> {
 		return this.commandArgs.taskPath.val().then(taskPaths => {
 			let taskPath = taskPaths[0];
 			return this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>(overwrite => {
@@ -30,7 +30,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 				//directory is good, check json
 
 				let tp = path.join(taskPath, c_taskJsonFile);
-				return vm.validate(tp, "no " + c_taskJsonFile + " in specified directory").then(taskJson => {
+				return vm.validate(tp, "no " + c_taskJsonFile + " in specified directory").then(async taskJson => {
 					let archive = archiver("zip");
 					archive.on("error", function(error) {
 						trace.debug("Archiving error: " + error.message);
@@ -39,17 +39,15 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					});
 					archive.directory(path.resolve(taskPath), false);
 
-					return this.webApi
-						.getTaskAgentApi(this.connection.getCollectionUrl())
-						.then(agentApi => {
-							archive.finalize();
-							return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
-								trace.debug("Success");
-								return <agentContracts.TaskDefinition>{
-									sourceLocation: taskPath,
-								};
-							});
-						});
+					let agentApi = await this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+
+					archive.finalize();
+					return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
+						trace.debug("Success");
+						return <agentContracts.TaskDefinition>{
+							sourceLocation: taskPath,
+						};
+					});
 				});
 			});
 		});

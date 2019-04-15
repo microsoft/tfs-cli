@@ -25,14 +25,15 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 		this.registerCommandArgument("publisher", "Publisher ID", "Use this as the publisher ID.", args.StringArgument);
 	}
 
-	public exec(): Promise<galleryInterfaces.Publisher> {
+	public async exec(): Promise<galleryInterfaces.Publisher> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+
 		return Promise.all([
 			this.commandArgs.publisher.val(),
 			this.commandArgs.displayName.val(),
 			this.commandArgs.description.val(),
-			this.webApi.getGalleryApi(this.webApi.serverUrl)
 		]).then<galleryInterfaces.Publisher>(values => {
-			const [publisherName, displayName, description, galleryApi] = values;
+			const [publisherName, displayName, description] = values;
 			return galleryApi.createPublisher(<galleryInterfaces.Publisher>{
 				publisherName: publisherName,
 				displayName: displayName,

@@ -17,17 +17,14 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		return ["project", "buildId"];
 	}
 
-	public exec(): Promise<buildContracts.Build> {
+	public async exec(): Promise<buildContracts.Build> {
 		trace.debug("build-show.exec");
-		return this.webApi
-			.getBuildApi()
-			.then(buildApi => {
-				return this.commandArgs.project.val().then(project => {
-					return this.commandArgs.buildId.val().then(buildId => {
-						return buildApi.getBuild(buildId, project);
-					});
-				});
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
+		return this.commandArgs.project.val().then(project => {
+			return this.commandArgs.buildId.val().then(buildId => {
+				return buildapi.getBuild(buildId, project);
 			});
+		});
 	}
 
 	public friendlyOutput(build: buildContracts.Build): void {

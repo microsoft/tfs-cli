@@ -26,14 +26,12 @@ export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.Publis
 		);
 	}
 
-	public exec(): Promise<galleryContracts.PublishedExtension> {
-		return this.webApi
-			.getGalleryApi(this.webApi.serverUrl)
-			.then(galleryApi => {
-				return this.identifyExtension().then(extInfo => {
-					let sharingMgr = new publishUtils.SharingManager({}, galleryApi, extInfo);
-					return sharingMgr.getExtensionInfo();
-				});
-			});
+	public async exec(): Promise<galleryContracts.PublishedExtension> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+
+		return this.identifyExtension().then(extInfo => {
+			let sharingMgr = new publishUtils.SharingManager({}, galleryApi, extInfo);
+			return sharingMgr.getExtensionInfo();
+		});
 	}
 }

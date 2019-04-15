@@ -20,41 +20,39 @@ export class WorkItemQuery extends witBase.WorkItemBase<witContracts.WorkItem[]>
 		return ["project", "query"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem[]> {
-		return this.webApi
-			.getWorkItemTrackingApi()
-			.then(witApi => {
-				return this.commandArgs.project.val(true).then(projectName => {
-					return this.commandArgs.query.val().then(query => {
-						let wiql: witContracts.Wiql = { query: query };
-						return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then(result => {
-							let workItemIds: number[] = [];
+	public async exec(): Promise<witContracts.WorkItem[]> {
+		var witApi: witClient.IWorkItemTrackingApi = await this.webApi.getWorkItemTrackingApi();
 
-							// Flat Query
-							if (result.queryType == witContracts.QueryType.Flat) {
-								workItemIds = result.workItems.map(val => val.id).slice(0, Math.min(200, result.workItems.length));
-							}
+		return this.commandArgs.project.val(true).then(projectName => {
+			return this.commandArgs.query.val().then(query => {
+				let wiql: witContracts.Wiql = { query: query };
+				return witApi.queryByWiql(wiql, <coreContracts.TeamContext>{ project: projectName }).then(result => {
+					let workItemIds: number[] = [];
 
-							// Link Query
-							else {
-								let sourceIds = result.workItemRelations
-									.filter(relation => relation.source && relation.source.id)
-									.map(relation => relation.source.id);
-								let targetIds = result.workItemRelations
-									.filter(relation => relation.target && relation.target.id)
-									.map(relation => relation.target.id);
-								let allIds = sourceIds.concat(targetIds);
-								workItemIds = allIds.slice(0, Math.min(200, allIds.length));
-							}
+					// Flat Query
+					if (result.queryType == witContracts.QueryType.Flat) {
+						workItemIds = result.workItems.map(val => val.id).slice(0, Math.min(200, result.workItems.length));
+					}
 
-							let fieldRefs = result.columns.map(val => val.referenceName);
+					// Link Query
+					else {
+						let sourceIds = result.workItemRelations
+							.filter(relation => relation.source && relation.source.id)
+							.map(relation => relation.source.id);
+						let targetIds = result.workItemRelations
+							.filter(relation => relation.target && relation.target.id)
+							.map(relation => relation.target.id);
+						let allIds = sourceIds.concat(targetIds);
+						workItemIds = allIds.slice(0, Math.min(200, allIds.length));
+					}
 
-							fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
-							return workItemIds.length > 0 ? witApi.getWorkItems(workItemIds, fieldRefs) : [];
-						});
-					});
+					let fieldRefs = result.columns.map(val => val.referenceName);
+
+					fieldRefs = fieldRefs.slice(0, Math.min(20, result.columns.length));
+					return workItemIds.length > 0 ? witApi.getWorkItems(workItemIds, fieldRefs) : [];
 				});
 			});
+		});
 	}
 
 	public friendlyOutput(data: witContracts.WorkItem[]): void {

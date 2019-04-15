@@ -18,45 +18,42 @@ export class BuildGetList extends buildBase.BuildBase<buildBase.BuildArguments, 
 		return ["definitionId", "definitionName", "status", "top", "project"];
 	}
 
-	public exec(): Promise<buildContracts.Build[]> {
+	public async exec(): Promise<buildContracts.Build[]> {
 		trace.debug("build-list.exec");
-		
-		return this.webApi
-		.getBuildApi()
-		.then(buildApi => {
-			return Promise.all<number | string>([
-				this.commandArgs.project.val(),
-				this.commandArgs.definitionId.val(),
-				this.commandArgs.definitionName.val(),
-				this.commandArgs.status.val(),
-				this.commandArgs.top.val(),
-			]).then(values => {
-				const [project, definitionId, definitionName, status, top] = values;
-				var definitions: number[] = null;
-				if (definitionId) {
-					definitions = [definitionId as number];
-				} else if (definitionName) {
-					trace.debug("No definition Id provided, checking for definitions with name " + definitionName);
-					return buildApi
-						.getDefinitions(project as string, definitionName as string)
-						.then((defs: buildContracts.DefinitionReference[]) => {
-							if (defs.length > 0) {
-								definitions = [defs[0].id];
-								return this._getBuilds(
-									buildApi,
-									project as string,
-									definitions,
-									buildContracts.BuildStatus[status],
-									top as number,
-								);
-							} else {
-								trace.debug("No definition found with name " + definitionName);
-								throw new Error("No definition found with name " + definitionName);
-							}
-						});
-				}
-				return this._getBuilds(buildApi, project as string, definitions, buildContracts.BuildStatus[status], top as number);
-			});
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
+
+		return Promise.all<number | string>([
+			this.commandArgs.project.val(),
+			this.commandArgs.definitionId.val(),
+			this.commandArgs.definitionName.val(),
+			this.commandArgs.status.val(),
+			this.commandArgs.top.val(),
+		]).then(values => {
+			const [project, definitionId, definitionName, status, top] = values;
+			var definitions: number[] = null;
+			if (definitionId) {
+				definitions = [definitionId as number];
+			} else if (definitionName) {
+				trace.debug("No definition Id provided, checking for definitions with name " + definitionName);
+				return buildapi
+					.getDefinitions(project as string, definitionName as string)
+					.then((defs: buildContracts.DefinitionReference[]) => {
+						if (defs.length > 0) {
+							definitions = [defs[0].id];
+							return this._getBuilds(
+								buildapi,
+								project as string,
+								definitions,
+								buildContracts.BuildStatus[status],
+								top as number,
+							);
+						} else {
+							trace.debug("No definition found with name " + definitionName);
+							throw new Error("No definition found with name " + definitionName);
+						}
+					});
+			}
+			return this._getBuilds(buildapi, project as string, definitions, buildContracts.BuildStatus[status], top as number);
 		});
 	}
 
