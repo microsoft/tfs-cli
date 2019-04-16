@@ -284,6 +284,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	}
 
 	public static async getMarketplaceUrl(): Promise<string[]> {
+		trace.debug("getMarketplaceUrl");
 		const url = "https://app.vssps.visualstudio.com/_apis/resourceareas/69D21C00-F135-441B-B5CE-3626378E0819";
 		const response = await new Promise<string>((resolve, reject) => {
 			https

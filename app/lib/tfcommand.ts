@@ -530,7 +530,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				eol;
 
 			return loader
-				.load(cmd.execPath, [])
+				.load(cmd.execPath, ["--service-url", "null"])
 				.then(tfCommand => {
 					result += cyan("Command: ") + commandName + eol;
 					result += tfCommand.description + eol + eol;
@@ -583,7 +583,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				if (command === "default") {
 					return;
 				}
-				let pr = loader.load(cmd.execPath.concat([command]), []).then(tfCommand => {
+				let pr = loader.load(cmd.execPath.concat([command]), ["--service-url", "null"]).then(tfCommand => {
 					let coloredCommand = command;
 					if (continuedHierarchy[command] !== null) {
 						coloredCommand = yellow(command);
