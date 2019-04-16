@@ -65,7 +65,7 @@ export function validateTask(taskPath: string, taskData: any): string[] {
 		issues.push(vn + ": id is a required guid");
 	}
 
-	if (!taskData.name || !check.isAlphanumeric(taskData.name)) {
+	if (!taskData.name || !check.matches(taskData.name, /^[A-Za-z0-9\-]+$/)) {
 		issues.push(vn + ": name is a required alphanumeric string");
 	}
 
