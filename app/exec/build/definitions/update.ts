@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require("fs");
@@ -38,17 +38,19 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
             const [project, definitionId, definitionPath] = values;
             // Get the current definition so we can grab the revision id
             trace.debug("Retrieving build definition %s...", definitionId);
-            return api.getDefinition(definitionId as number, project as string).then(currentDefinition => {
-                trace.debug("Reading build definition from %s...", definitionPath.toString());
-                let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
-                definition.id = currentDefinition.id;
-                definition.revision = currentDefinition.revision;
+                return api.then((defapi) => {return defapi.getDefinition(definitionId as number, project as string).then(currentDefinition => {
+                    trace.debug("Reading build definition from %s...", definitionPath.toString());
+                    let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
+                    definition.id = currentDefinition.id;
+                    definition.revision = currentDefinition.revision;
 
-                trace.debug("Updating build definition %s...", definitionId);
-                return api.updateDefinition(definition, definitionId as number, project as string).then((definition) => {
-                    return definition;
-                });
-            })
+                        trace.debug("Updating build definition %s...", definitionId);
+                        return api.then((defapi) => {return defapi.updateDefinition(definition, definitionId as number, project as string).then((definition) => {
+                            return definition;
+                        });
+                    });
+                })
+            });
         });
     }
 

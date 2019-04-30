@@ -2,9 +2,9 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require('fs');
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
-import VSSInterfaces = require('vso-node-api/interfaces/common/VSSInterfaces');
+import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
+import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
+import VSSInterfaces = require('azure-devops-node-api/interfaces/common/VSSInterfaces');
 
 export function getCommand(args: string[]): CreatePool {
     return new CreatePool(args);
@@ -38,18 +38,19 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
 
             trace.debug("Trying to Create build agent pool %s...", name);
             if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
-                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+                var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
             } else {
-                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+                var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
             }
-            return agentapi.getAgentPools(name).then((pools) => {
+            return agentapi.then((api) =>{return api.getAgentPools(name).then((pools) => {
                 if (pools.length <= 0){
                     trace.debug("build agent pool %s does not exist", name);
                     var NewPool: AP = new AP;
                     NewPool.name = name;
                     NewPool.autoProvision = true;
-                    return agentapi.addAgentPool(NewPool).then((pool) => {
-                        return pool;
+                        return agentapi.then((api) => { api.addAgentPool(NewPool).then((pool) => {
+                            return pool;
+                        });
                     });
                 } else {
                     var exists = false;
@@ -72,6 +73,7 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
 
                 }
             })
+            });
         });
     }
 

@@ -2,11 +2,11 @@ import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import gi = require('vso-node-api/interfaces/GitInterfaces');
-import git_Api = require('vso-node-api/GitApi')
-import VSSInterfaces = require("vso-node-api/interfaces/common/VSSInterfaces");
+import gi = require('azure-devops-node-api/interfaces/GitInterfaces');
+import git_Api = require('azure-devops-node-api/GitApi')
+import VSSInterfaces = require("azure-devops-node-api/interfaces/common/VSSInterfaces");
 import codedBase = require("./default");
-import TfsCoreInterfaces = require("vso-node-api/interfaces/CoreInterfaces");
+import TfsCoreInterfaces = require("azure-devops-node-api/interfaces/CoreInterfaces");
 
 export function getCommand(args: string[]): ListRepositories {
 	return new ListRepositories(args);
@@ -22,7 +22,7 @@ export class ListRepositories extends codedBase.CodeBase<codedBase.CodeArguments
 
 	public async exec(): Promise<any> {
 		//getting variables.
-		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
+		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		return await gitApi.getRepositories(project);
 	};

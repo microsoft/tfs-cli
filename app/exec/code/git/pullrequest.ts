@@ -2,9 +2,9 @@ import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
-import gi = require('vso-node-api/interfaces/GitInterfaces');
-import git_Api = require('vso-node-api/GitApi')
-import VSSInterfaces = require("vso-node-api/interfaces/common/VSSInterfaces");
+import gi = require('azure-devops-node-api/interfaces/GitInterfaces');
+import git_Api = require('azure-devops-node-api/GitApi')
+import VSSInterfaces = require("azure-devops-node-api/interfaces/common/VSSInterfaces");
 import codedBase = require("./default");
 
 export function getCommand(args: string[]): PullRequest {
@@ -58,7 +58,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 	public async exec(): Promise<any> {
 		//getting variables.
-		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
+		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		var repositoryName = await this.commandArgs.repositoryname.val();
 		var source = await this.commandArgs.source.val();

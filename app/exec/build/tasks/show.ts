@@ -1,5 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
-import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
+import agentContracts = require('azure-devops-node-api/interfaces/TaskAgentInterfaces');
 import args = require("../../../lib/arguments");
 import fs = require('fs');
 import path = require('path');
@@ -29,38 +29,40 @@ export class BuildTaskDownload extends tasksBase.BuildTaskBase<agentContracts.Ta
 			return this.commandArgs.taskVersion.val().then((Version) =>{
 				let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 				trace.debug("retriving tasks from the server ...")
-				return agentApi.getTaskDefinitions(null, ['build'], null).then((tasks) => {
-					var taskDictionary = this._getNewestTasks(tasks);
-					return this.commandArgs.name.val().then((Name) => {
-						if (!Id) {
-							taskDictionary.forEach(element => {
-								if (element.name == Name) {
-									Id = element.id;
-									if (!Version) {
-										Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+					return agentApi.then((api) => {return api.getTaskDefinitions(null, ['build'], null).then((tasks) => {
+						var taskDictionary = this._getNewestTasks(tasks);
+						return this.commandArgs.name.val().then((Name) => {
+							if (!Id) {
+								taskDictionary.forEach(element => {
+									if (element.name == Name) {
+										Id = element.id;
+										if (!Version) {
+											Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+										}
 									}
-								}
-							});
-							trace.info("found %s with version %s ...",Name,Version);
-						}
-						else
-						{
-							taskDictionary.forEach(element => {
-								if (element.id == Id) {
-									Name = element.name;
-									if (!Version) {
-										Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+								});
+								trace.info("found %s with version %s ...",Name,Version);
+							}
+							else
+							{
+								taskDictionary.forEach(element => {
+									if (element.id == Id) {
+										Name = element.name;
+										if (!Version) {
+											Version = element.version.major + "." + element.version.minor + "." + element.version.patch;;
+										}
 									}
-								}
+								});
+								trace.info("found %s with version %s ...",Name,Version);	
+							}
+							if (!Id && !Version) {
+								var error = ("error: No Tasks found with this name ["+Name+"]");
+								throw(error);
+							}
+								return agentApi.then((api) => { return api.getTaskDefinition(Id,Version).then((task) => {
+									return task;
+								});
 							});
-							trace.info("found %s with version %s ...",Name,Version);	
-						}
-						if (!Id && !Version) {
-							var error = ("error: No Tasks found with this name ["+Name+"]");
-							throw(error);
-						}
-						return agentApi.getTaskDefinition(Id,Version).then((task) => {
-							return task;
 						});
 					});
 				});

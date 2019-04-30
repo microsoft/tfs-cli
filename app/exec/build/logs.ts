@@ -1,8 +1,8 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 import fs = require("fs");
 

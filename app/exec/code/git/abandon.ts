@@ -1,12 +1,12 @@
 import { PullRequest } from './pullrequest';
-import { PullRequestAsyncStatus } from 'vso-node-api/interfaces/GitInterfaces';
+import { PullRequestAsyncStatus } from 'azure-devops-node-api/interfaces/GitInterfaces';
 import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
 import args = require('../../../lib/arguments');
 import trace = require('../../../lib/trace');
-import gi = require('vso-node-api/interfaces/GitInterfaces');
-import git_Api = require('vso-node-api/GitApi');
-import VSSInterfaces = require('vso-node-api/interfaces/common/VSSInterfaces');
+import gi = require('azure-devops-node-api/interfaces/GitInterfaces');
+import git_Api = require('azure-devops-node-api/GitApi');
+import VSSInterfaces = require('azure-devops-node-api/interfaces/common/VSSInterfaces');
 import codedBase = require('./default');
 
 export function getCommand(args: string[]): Abandon {
@@ -20,7 +20,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 		return ["project", "repositoryname", "pullrequestname", "pullrequestid"];
 	}
 	public async exec(): Promise<any> {
-		var gitApi: git_Api.IGitApi = this.webApi.getGitApi();
+		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		var repositoryName = await this.commandArgs.repositoryname.val();
 		var pullRequestName = await this.commandArgs.pullrequestname.val();

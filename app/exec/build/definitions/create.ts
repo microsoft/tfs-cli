@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require('fs');
@@ -41,8 +41,9 @@ export class CreateDefinition extends TfCommand<CreateDefinitionArguments, build
             definition.name = name as string;
 
             trace.debug("Updating build definition %s...", name);
-            return api.createDefinition(definition, project as string).then((definition) => {
-                return definition;
+                return api.then((defapi) => { return defapi.createDefinition(definition, project as string).then((definition) => {
+                    return definition;
+                });
             });
         });
     }

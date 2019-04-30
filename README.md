@@ -158,5 +158,5 @@ replace the content of `%appdata%\npm\tfx.cmd` with the following:
 ### additional node modules
 `run "npm outdated / update" to resolve modules dependecy or install the following modules (this may need to happen befor compilation)`
 ```bash
-npm install archiver colors graceful-fs gulp-filter gulp-mocha gulp-tsb gulp-util is-utf8 pug jszip node-uuid prompt q readable-stream ts-promise typescript unique-stream user-home validator vso-node-api xml2js del os-homedir copy-paste shelljs lodash minimatch@3.0.2 pretty-hrtime liftoff tildify interpret v8flags minimist onecolor winreg glob json-in-place mkdirp
+npm install archiver colors graceful-fs gulp-filter gulp-mocha gulp-tsb gulp-util is-utf8 pug jszip node-uuid prompt q readable-stream ts-promise typescript unique-stream user-home validator azure-devops-node-api xml2js del os-homedir copy-paste shelljs lodash minimatch@3.0.2 pretty-hrtime liftoff tildify interpret v8flags minimist onecolor winreg glob json-in-place mkdirp
 ```

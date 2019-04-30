@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require("fs");
@@ -41,18 +41,19 @@ export class ExportTemplate extends TfCommand<ExportTemplateArguments, buildCont
         ]).then((values) => {
             const [project, templateId, templatePath, overwrite, revision] = values;
             trace.debug("Retrieving build template %s...", templateId);
-            return api.getTemplate(project as string, templateId as string).then((template) => {
-                var tempPath = "";
-                if (!templatePath) {
-                    tempPath = template.name + '-' + template.id + '.json';                   
-                } else {
-                    tempPath = templatePath as string;
-                }
-                if (fs.existsSync(tempPath.toString()) && !overwrite) {
-                    return null//<any>Promise.reject(new Error("Build template file already exists"));
-                }
-                fs.writeFileSync(tempPath.toString(), JSON.stringify(template, null, '  '));
-                return template;
+                return api.then((tempapi) => {return tempapi.getTemplate(project as string, templateId as string).then((template) => {
+                    var tempPath = "";
+                    if (!templatePath) {
+                        tempPath = template.name + '-' + template.id + '.json';                   
+                    } else {
+                        tempPath = templatePath as string;
+                    }
+                    if (fs.existsSync(tempPath.toString()) && !overwrite) {
+                        return null//<any>Promise.reject(new Error("Build template file already exists"));
+                    }
+                    fs.writeFileSync(tempPath.toString(), JSON.stringify(template, null, '  '));
+                    return template;
+                });
             });
         });
     }

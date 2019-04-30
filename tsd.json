@@ -44,7 +44,7 @@
     "form-data/form-data.d.ts": {
       "commit": "43b6bf88758852b9ab713a9b011487f047f94f4e"
     },
-    "vso-node-api/vso-node-api.d.ts": {
+    "azure-devops-node-api/azure-devops-node-api.d.ts": {
       "commit": "b9c534a52a50547c61c5f80519aaed285eb3e8b8"
     },
     "mkdirp/mkdirp.d.ts": {

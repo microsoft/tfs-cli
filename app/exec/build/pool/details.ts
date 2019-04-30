@@ -2,9 +2,9 @@ import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require('fs');
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
-import VSSInterfaces = require('vso-node-api/interfaces/common/VSSInterfaces');
+import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
+import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
+import VSSInterfaces = require('azure-devops-node-api/interfaces/common/VSSInterfaces');
 
 export function getCommand(args: string[]): PoolDetails {
     return new PoolDetails(args);
@@ -36,13 +36,14 @@ export class PoolDetails extends TfCommand<PoolDetailsArguments, taskAgentContra
         ]).then((values) => {
             const [id] = values;
             if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
-                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+                var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
             } else {
-                var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+                var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
             }
-            return agentapi.getAgentPool(id).then((pool) => {
-            trace.debug("found build agent pool %s", pool.id);
-                return pool;                    
+            return agentapi.then((api) => {return api.getAgentPool(id).then((pool) => {
+                trace.debug("found build agent pool %s", pool.id);
+                    return pool;                    
+                });
             });
         });
     }

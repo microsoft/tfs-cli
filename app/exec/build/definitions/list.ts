@@ -1,6 +1,6 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
-import buildClient = require("vso-node-api/BuildApi");
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
+import buildClient = require("azure-devops-node-api/BuildApi");
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 
@@ -17,13 +17,14 @@ export class ListDefinitions extends TfCommand<CoreArguments, buildContracts.Def
     }
 
     public exec(): Promise<buildContracts.DefinitionReference[]> {
-        var api: buildClient.IBuildApi = this.webApi.getBuildApi(this.connection.getCollectionUrl());
+        var api = this.webApi.getBuildApi(this.connection.getCollectionUrl());
         trace.debug("Searching for build definitions...");
 
         return this.commandArgs.project.val().then((project) => {
-            return api.getDefinitions(project as string).then((definitions) => {
-                trace.debug("Retrieved " + definitions.length + " build definitions from server.");
-                return definitions;
+                return api.then((defapi) => {return defapi.getDefinitions(project as string).then((definitions) => {
+                    trace.debug("Retrieved " + definitions.length + " build definitions from server.");
+                    return definitions;
+                });
             });
         });
     }

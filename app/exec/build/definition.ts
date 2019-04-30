@@ -1,8 +1,6 @@
-import { TfCommand } from "../../lib/tfcommand";
-import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 
 export function getCommand(args: string[]): BuildDefinition {
@@ -19,22 +17,16 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 
 	public exec(): Promise<buildContracts.DefinitionReference> {
 		trace.debug("build-definition.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.definitionId.val().then((definitionId) => {
                 return this.commandArgs.definitionName.val().then((definitionName) => {
                     if (definitionId){  
-                        return buildapi.getDefinition(definitionId,project,null,null);
+                        return buildapi.then((api) => {return api.getDefinition(definitionId,project,null,null) }); 
                     } else {
-                        return buildapi.getDefinitions(project, definitionName).then((definitions: buildContracts.DefinitionReference[]) => {
-							if(definitionName && definitions.length > 0) {
-								var definition = definitions[0];
-								return definition;
-							} else {
-								trace.debug("No definition found with name " + definitionName);
-								throw new Error("No definition found with name " + definitionName);
-							}
-						});
+						if (definitionName) {
+							return this._getDefinitionByName(definitionName, project, buildapi);
+						}
                     }    
                 });
 			});
@@ -54,5 +46,22 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 		trace.info("Queue Status	: %s", definition.queueStatus ? buildContracts.DefinitionQueueStatus[definition.queueStatus]: buildContracts.DefinitionQueueStatus[0])
         trace.info("type            : %s", buildContracts.DefinitionType[definition.type]);
         trace.info("url             : %s", definition.url ? definition.url :"unknown");       
-    }
+	}
+	
+	/**
+	 * _getDefinitionByName
+definitionName: string, project: string	 */
+	public _getDefinitionByName(definitionName: string, project: string, buildapi: Promise<buildClient.BuildApi>) :Promise <buildContracts.DefinitionReference> {
+	return buildapi.then((bapi) => {
+		var definitionsPromise = bapi.getDefinitions(project, definitionName)
+			return definitionsPromise.then((definitions) => {
+				if (definitions.length > 0) {
+						return definitions[0];
+				} else {
+					trace.debug("No definition found with name " + definitionName);	
+					throw new Error("No definition found with name " + definitionName);
+				}	
+			});			
+		});
+	}
 }

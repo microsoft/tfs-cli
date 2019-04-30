@@ -1,10 +1,10 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import agentBase = require("./default");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
+import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
+import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../../lib/trace");
-import taskAgentApi = require("vso-node-api/TaskAgentApi");
+import taskAgentApi = require("azure-devops-node-api/TaskAgentApi");
 
 export function getCommand(args: string[]): List {
 	return new List(args);
@@ -23,11 +23,11 @@ export class List extends TfCommand<ListPoolArguments, taskAgentContracts.TaskAg
 	public exec(): Promise<taskAgentContracts.TaskAgentPool[]> {
 		trace.debug("pools.exec");
 		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));	
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));	
 		} else {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		}
-			return agentapi.getAgentPools();
+		return agentapi.then((api) => { return api.getAgentPools() });
 	}
 	
 	public friendlyOutput(pools: taskAgentContracts.TaskAgentPool[]): void {

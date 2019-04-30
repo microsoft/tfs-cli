@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require("fs");
@@ -44,7 +44,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
         ]).then((values) => {
             const [project, definitionId, definitionPath, overwrite, revision] = values;
             trace.debug("Retrieving build definition %s...", definitionId);
-            return api.getDefinition(definitionId as number, project as string, revision as number).then((definition) => {
+            return api.then((defapi) => {return defapi.getDefinition(definitionId as number, project as string, revision as number).then((definition) => {
                 var defpath = "";
                 if (!definitionPath) {
                     defpath = definition.name + '-' + definition.id + '-' + definition.revision + '.json';                   
@@ -57,6 +57,7 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
                 fs.writeFileSync(defpath, JSON.stringify(definition, null, '  '));
                 return definition;
             });
+        });
         });
     }
 

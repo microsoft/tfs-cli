@@ -1,9 +1,9 @@
 import { TfCommand } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import agentBase = require("./default");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
+import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
 import trace = require("../../../lib/trace");
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
+import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
 
 export function describe(): string {
 	return "Delete an Agent";
@@ -24,9 +24,9 @@ export class AgentDelete extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 	public exec(): Promise<void | taskAgentContracts.TaskAgent> {
 		trace.debug("delete-agents.exec");
 		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
 		} else {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		}
 
 		return Promise.all<number | string>([
@@ -46,18 +46,19 @@ export class AgentDelete extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 			}
 			else if (agentname) {
 				trace.debug("No agent Id provided, checking for agent with name " + agentname);
-				return agentapi.getAgents(poolId as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
-					if (ao.length > 0) {
-						var aid = ao[0].id;
-						var an = ao[0].name;
-						trace.debug("found, agent id %s for agent name %s", aid, an);
-						return this._deleteAgent(agentapi, poolId as number, agentid as number, deleteAgent as string);
-					}
-					else {
-						trace.debug("No agents found with name " + agentname);
-						throw new Error("No agents found with name " + agentname);
+				return agentapi.then((api) => { api.getAgents(poolId as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
+						if (ao.length > 0) {
+							var aid = ao[0].id;
+							var an = ao[0].name;
+							trace.debug("found, agent id %s for agent name %s", aid, an);
+							return this._deleteAgent(agentapi, poolId as number, agentid as number, deleteAgent as string);
+						}
+						else {
+							trace.debug("No agents found with name " + agentname);
+							throw new Error("No agents found with name " + agentname);
 
-					}
+						}
+					});
 				});
 			}
 
@@ -71,7 +72,7 @@ export class AgentDelete extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 		trace.success('Agent %s deleted successfully!', agent.name);
 	}
 
-	private _deleteAgent(agentapi: agentClient.ITaskAgentApiBase, pool: number, agentid: number, deleteAgent: string) {
+	private _deleteAgent(agentapi, pool: number, agentid: number, deleteAgent: string) {
 		return agentapi.getAgent(pool, agentid, true, true, null).then((agent) => {
 			trace.debug("deleting Agent: %s", deleteAgent);
 

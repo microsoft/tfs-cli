@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 
@@ -20,9 +20,10 @@ export class ListTemplates extends TfCommand<CoreArguments, buildContracts.Build
         trace.debug("Searching for build templates...");
 
         return this.commandArgs.project.val().then((project) => {
-            return api.getTemplates(project).then((templates) => {
-                trace.debug("Retrieved " + templates.length + " build templates from server.");
-                return templates;
+           return api.then((tempapi) => {return tempapi.getTemplates(project).then((templates) => {
+                    trace.debug("Retrieved " + templates.length + " build templates from server.");
+                    return templates;
+                });
             });
         });
     }

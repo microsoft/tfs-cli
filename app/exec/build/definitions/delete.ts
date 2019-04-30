@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('vso-node-api/interfaces/BuildInterfaces');
+import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require("fs");
@@ -35,8 +35,9 @@ export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, build
         ]).then((values) => {
             const [project, definitionId] = values;
             trace.debug("Deleting build definition %s...", definitionId);
-            return api.deleteDefinition(definitionId as number, project as string).then((definition) => {
-                return <buildContracts.DefinitionReference>{ id: definitionId }
+                return api.then((defapi) => {return defapi.deleteDefinition(definitionId as number, project as string).then((definition) => {
+                    return <buildContracts.DefinitionReference>{ id: definitionId }
+                });
             });
         });
     }

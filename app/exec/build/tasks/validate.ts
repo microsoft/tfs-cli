@@ -1,5 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
-import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
+import agentContracts = require('azure-devops-node-api/interfaces/TaskAgentInterfaces');
 import archiver = require('archiver');
 import args = require("../../../lib/arguments");
 import fs = require('fs');

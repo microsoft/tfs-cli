@@ -1,8 +1,8 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 
 export function describe(): string {
@@ -23,7 +23,7 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 
 	public exec(): Promise<void> {
 		trace.debug("delete-build.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return this._deleteBuild(buildapi, buildId, project);
@@ -36,7 +36,7 @@ export class BuildDelete extends buildBase.BuildBase<buildBase.BuildArguments, b
 		trace.println();
 	}
 
-	private _deleteBuild(buildapi: buildClient.IBuildApi, buildId: number, project: string) {
+	private _deleteBuild(buildapi: Promise<buildClient.IBuildApi>, buildId: number, project: string) {
 		trace.info("Deleting build...")
         return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
 			if (!build.keepForever) {

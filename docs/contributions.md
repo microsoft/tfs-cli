@@ -39,7 +39,7 @@ tfx-cli@0.1.8 /usr/local/lib/node_modules/tfx-cli
 ├── q@1.4.1
 ├── validator@3.43.0
 ├── shelljs@0.5.1
-├── vso-node-api@0.3.0
+├── azure-devops-node-api@0.3.0
 ├── read@1.0.6 (mute-stream@0.0.5)
 └── archiver@0.14.4 (buffer-crc32@0.2.5, lazystream@0.1.0, async@0.9.2, readable-stream@1.0.33, tar-stream@1.1.5, lodash@3.2.0, zip-stream@0.5.2, glob@4.3.5)
 ```

@@ -1,10 +1,10 @@
 import { TfCommand } from "../../../lib/tfcommand";
 import args = require("../../../lib/arguments");
 import agentBase = require("./default");
-import agentClient = require("vso-node-api/TaskAgentApiBase");
-import taskAgentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
+import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
+import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
 import trace = require("../../../lib/trace");
-import taskAgentApi = require("vso-node-api/TaskAgentApi");
+import taskAgentApi = require("azure-devops-node-api/TaskAgentApi");
 
 
 export function getCommand(args: string[]): AgentUpdate {
@@ -21,9 +21,9 @@ export class AgentUpdate extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 	public exec(): Promise<taskAgentContracts.TaskAgent> {
 		trace.debug("update-agents.exec");
 		if (this.connection.getCollectionUrl().includes("DefaultCollection")) {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl().substring(0, this.connection.getCollectionUrl().lastIndexOf("/")));
 		} else {
-			var agentapi: agentClient.ITaskAgentApiBase = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+			var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		}
 		return Promise.all<number | string | boolean>([
 			this.commandArgs.agentId.val(),
@@ -46,23 +46,23 @@ export class AgentUpdate extends agentBase.AgentBase<taskAgentContracts.TaskAgen
 			}
 			else if (agentname) {
 				trace.debug("No agent Id provided, checking for agent with name " + agentname);
-				return agentapi.getAgents(pool as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
-					if (ao.length > 0) {
-						var aid = ao[0].id;
-						var an = ao[0].name;
-						trace.debug("found, agent id %s for agent name %s", aid, an);
-						return this._getOrUpdateAgent(agentapi, pool as number, aid, newkey as string, value as string, include, disable as string, maxParallel as number, waitForInProgressRequests as string);
-					}
-					else {
-						trace.debug("No agents found with name " + agentname);
-						throw new Error("No agents found with name " + agentname);
+					return agentapi.then((api) => {api.getAgents(pool as number, agentname as string).then((ao: taskAgentContracts.TaskAgent[]) => {
+						if (ao.length > 0) {
+							var aid = ao[0].id;
+							var an = ao[0].name;
+							trace.debug("found, agent id %s for agent name %s", aid, an);
+							return this._getOrUpdateAgent(api, pool as number, aid, newkey as string, value as string, include, disable as string, maxParallel as number, waitForInProgressRequests as string);
+						}
+						else {
+							trace.debug("No agents found with name " + agentname);
+							throw new Error("No agents found with name " + agentname);
 
-					}
+						}
+					});
+						trace.debug("disable request: %s", disable);
+						return this._getOrUpdateAgent(api, pool as number, agentid as number, newkey as string, value as string, include, disable as string, maxParallel as number, waitForInProgressRequests as string);
 				});
 			}
-
-			trace.debug("disable request: %s", disable);
-			return this._getOrUpdateAgent(agentapi, pool as number, agentid as number, newkey as string, value as string, include, disable as string, maxParallel as number, waitForInProgressRequests as string);
 		});
 	};
 
