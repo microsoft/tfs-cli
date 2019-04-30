@@ -390,6 +390,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						_.remove(flags, v => v === "Public");
 					}
 					_.set(this.data, "PackageManifest.Metadata[0].GalleryFlags[0]", _.uniq(flags).join(" "));
+				} else {
+					throw new Error("The value for `public` must be a boolean true or false.");
 				}
 				break;
 			case "publisher":

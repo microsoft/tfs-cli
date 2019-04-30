@@ -61,7 +61,7 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 		];
 	}
 
-	public exec(): Promise<CreationResult> {
+	public async exec(): Promise<CreationResult> {
 		return this.getMergeSettings().then(mergeSettings => {
 			return this.getPackageSettings().then(packageSettings => {
 				return createExtension(mergeSettings, packageSettings);

@@ -1,8 +1,8 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import buildBase = require("./default");
-import buildClient = require("vso-node-api/BuildApi");
-import buildContracts = require("vso-node-api/interfaces/BuildInterfaces");
+import buildClient = require("azure-devops-node-api/BuildApi");
+import buildContracts = require("azure-devops-node-api/interfaces/BuildInterfaces");
 import trace = require("../../lib/trace");
 import fs = require('fs');
 
@@ -21,10 +21,11 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 		return ["project", "definitionId", "definitionName", "parameters","priority","version","shelveset","demands", "wait","timeout"];
 	}
 
-	public exec(): Promise<buildContracts.Build> {
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
-        return this.commandArgs.project.val().then((project) => {
-			return this.commandArgs.definitionId.val(true).then((definitionId) => {
+	public async exec(): Promise<buildContracts.Build> {
+		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
+
+		return this.commandArgs.project.val().then(project => {
+			return this.commandArgs.definitionId.val(true).then(definitionId => {
 				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
 					definitionPromise = buildapi.getDefinition(definitionId, project);

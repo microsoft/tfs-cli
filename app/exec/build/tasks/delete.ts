@@ -1,5 +1,5 @@
 import { TfCommand } from "../../../lib/tfcommand";
-import agentContracts = require("vso-node-api/interfaces/TaskAgentInterfaces");
+import agentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
 import args = require("../../../lib/arguments");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
@@ -15,8 +15,9 @@ export class BuildTaskDelete extends tasksBase.BuildTaskBase<agentContracts.Task
 	protected getHelpArgs(): string[] {
 		return ["taskId"];
 	}
-	public exec(): Promise<agentContracts.TaskDefinition> {
-		let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+
+	public async exec(): Promise<agentContracts.TaskDefinition> {
+		let agentApi = await this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
 		return this.commandArgs.taskId.val().then(taskId => {
 			return agentApi.getTaskDefinitions(taskId).then(tasks => {
 				if (tasks && tasks.length > 0) {

@@ -1,7 +1,7 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
 import { MergeSettings, PackageSettings, PublishSettings } from "./_lib/interfaces";
-import { WebApi, getBasicHandler } from "vso-node-api/WebApi";
-import { BasicCredentialHandler } from "vso-node-api/handlers/basiccreds";
+import { WebApi, getBasicHandler } from "azure-devops-node-api/WebApi";
+import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./_lib/publish";
 import * as path from "path";
 import _ = require("lodash");
@@ -284,6 +284,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	}
 
 	public static async getMarketplaceUrl(): Promise<string[]> {
+		trace.debug("getMarketplaceUrl");
 		const url = "https://app.vssps.visualstudio.com/_apis/resourceareas/69D21C00-F135-441B-B5CE-3626378E0819";
 		const response = await new Promise<string>((resolve, reject) => {
 			https

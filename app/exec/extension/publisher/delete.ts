@@ -3,8 +3,8 @@ import args = require("../../../lib/arguments");
 import cm = require("../../../lib/common");
 import extBase = require("../default");
 import extPubBase = require("./default");
-import gallerym = require("vso-node-api/GalleryApi");
-import galleryifm = require("vso-node-api/interfaces/GalleryInterfaces");
+import gallerym = require("azure-devops-node-api/GalleryApi");
+import galleryifm = require("azure-devops-node-api/interfaces/GalleryInterfaces");
 import argm = require("../../../lib/arguments");
 import trace = require("../../../lib/trace");
 
@@ -29,8 +29,8 @@ export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<
 		this.registerCommandArgument("publisher", "Publisher ID", "ID of Publisher to delete.", args.StringArgument);
 	}
 
-	public exec(): Promise<DeletePublisherResult> {
-		let galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+	public async exec(): Promise<DeletePublisherResult> {
+		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 		return this.commandArgs.publisher.val().then(publisherName => {
 			return galleryApi.deletePublisher(publisherName).then(() => {
 				return <DeletePublisherResult>{

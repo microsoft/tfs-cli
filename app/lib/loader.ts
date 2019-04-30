@@ -52,6 +52,7 @@ export function load(execPath: string[], args): Promise<TfCommand<any, any>> {
 						"Command modules must export a function, getCommand, that takes no arguments and returns an instance of TfCommand",
 					);
 				}
+				
 				return commandModule.getCommand(args);
 			});
 		});

@@ -21,52 +21,27 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 	protected description = "Login and cache credentials using a PAT or basic auth.";
 	protected serverCommand = true;
 
-	public exec(): Promise<LoginResult> {
+	public async exec(): Promise<LoginResult> {
 		trace.debug("Login.exec");
-		let authHandler;
-		return this.commandArgs.serviceUrl.val().then(collectionUrl => {
-			return this.getCredentials(collectionUrl, false)
-				.then(handler => {
-					authHandler = handler;
-					return this.getWebApi();
-				})
-				.then(webApi => {
-					let agentApi = webApi.getTaskAgentApi();
+		return this.commandArgs.serviceUrl.val().then(async collectionUrl => {
+			const authHandler = await this.getCredentials(collectionUrl, false);
+			const webApi = await this.getWebApi();
+			const locationsApi = await webApi.getLocationsApi();
 
-					return agentApi
-						.connect()
-						.then(obj => {
-							let tfxCredStore = getCredentialStore("tfx");
-							let tfxCache = new DiskCache("tfx");
-							let credString;
-							if (authHandler.username === "OAuth") {
-								credString = "pat:" + authHandler.password;
-							} else {
-								credString = "basic:" + authHandler.username + ":" + authHandler.password;
-							}
-							return tfxCredStore.storeCredential(collectionUrl, "allusers", credString).then(() => {
-								return tfxCache
-									.setItem("cache", "connection", collectionUrl)
-									.then(() => ({ success: true } as LoginResult));
-							});
-						})
-						.catch(err => {
-							if (err && err.statusCode && err.statusCode === 401) {
-								trace.debug("Connection failed: invalid credentials.");
-								throw new Error("Invalid credentials.");
-							} else if (err) {
-								trace.debug("Connection failed.");
-								throw new Error(
-									"Connection failed. Check your internet connection & collection URL." +
-										os.EOL +
-										"Message: " +
-										err.message,
-								);
-							} else {
-								throw new Error("Unknown error logging in.");
-							}
-						});
-				});
+			try {
+				const connectionData = await locationsApi.getConnectionData();
+				let tfxCredStore = getCredentialStore("tfx");
+				let tfxCache = new DiskCache("tfx");
+				let credString;
+				if (authHandler.username === "OAuth") {
+					credString = "pat:" + authHandler.password;
+				} else {
+					credString = "basic:" + authHandler.username + ":" + authHandler.password;
+				}
+				await tfxCredStore.storeCredential(collectionUrl, "allusers", credString);
+				await tfxCache.setItem("cache", "connection", collectionUrl);
+				return { success: true } as LoginResult;
+			} catch (err) {}
 		});
 	}
 

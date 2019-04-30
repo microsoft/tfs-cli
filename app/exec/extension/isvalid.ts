@@ -3,7 +3,7 @@ import args = require("../../lib/arguments");
 import colors = require("colors");
 import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
-import galleryContracts = require("vso-node-api/interfaces/GalleryInterfaces");
+import galleryContracts = require("azure-devops-node-api/interfaces/GalleryInterfaces");
 import publishUtils = require("./_lib/publish");
 import trace = require("../../lib/trace");
 
@@ -38,7 +38,7 @@ export class ExtensionIsValid extends extBase.ExtensionBase<galleryContracts.Pub
 	}
 
 	public async exec(): Promise<string> {
-		const galleryApi = this.webApi.getGalleryApi(this.webApi.serverUrl);
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		const extInfo = await this.identifyExtension();
 		const version = await this.commandArgs.version.val();
