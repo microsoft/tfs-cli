@@ -11,6 +11,7 @@ import trace = require("../../lib/trace");
 
 import { readFile } from "fs";
 import { promisify } from "util";
+import { GalleryApi } from "azure-devops-node-api/GalleryApi";
 
 export function getCommand(args: string[]): TfCommand<ExtensionArguments, void> {
 	return new ExtensionBase<void>(args);
@@ -282,6 +283,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
 	}
+
+	/**** TEMPORARY until Marketplace fixes getResourceArea ****/
+	protected async getGalleryApi() {
+		const handler = await this.getCredentials(this.webApi.serverUrl, false);
+		return new GalleryApi(this.webApi.serverUrl, [handler]); // await this.webApi.getGalleryApi(this.webApi.serverUrl);
+	}
+	/**** TEMPORARY until Marketplace fixes getResourceArea ****/
 
 	public static async getMarketplaceUrl(): Promise<string[]> {
 		trace.debug("getMarketplaceUrl");

@@ -5,6 +5,7 @@ import colors = require("colors");
 import extBase = require("./default");
 import publishUtils = require("./_lib/publish");
 import trace = require("../../lib/trace");
+import { GalleryApi } from "azure-devops-node-api/GalleryApi";
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, ExtensionPublishResult> {
 	return new ExtensionPublish(args);
@@ -65,7 +66,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 	}
 
 	public async exec(): Promise<ExtensionPublishResult> {
-		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+		const galleryApi = await this.getGalleryApi();
 		let result = <ExtensionPublishResult>{};
 
 		const publishSettings = await this.getPublishSettings();

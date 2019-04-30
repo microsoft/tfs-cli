@@ -30,7 +30,7 @@ export class ExtensionPublisherDelete extends extPubBase.ExtensionPublisherBase<
 	}
 
 	public async exec(): Promise<DeletePublisherResult> {
-		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+		const galleryApi = await this.getGalleryApi();
 		return this.commandArgs.publisher.val().then(publisherName => {
 			return galleryApi.deletePublisher(publisherName).then(() => {
 				return <DeletePublisherResult>{
