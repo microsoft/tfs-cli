@@ -58,7 +58,7 @@ export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArgume
                     break;
                  default : trace.error("queue status allowd values are: enable / pause / disable");
                 } 
-                return api.updateDefinition(definition,definition.id,definition.project.name);
+                return api.then((bapi) => { return bapi.updateDefinition(definition, definition.id, definition.project.name); });
             });
             });
         });

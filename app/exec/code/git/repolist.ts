@@ -24,7 +24,7 @@ export class ListRepositories extends codedBase.CodeBase<codedBase.CodeArguments
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		return await gitApi.getRepositories(project);
+		return await gitApi.then((api) => { return api.getRepositories(project); });
 	};
 
 	public friendlyOutput(data: gi.GitRepository[]): void {

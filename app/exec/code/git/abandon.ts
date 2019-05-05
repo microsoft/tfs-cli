@@ -28,7 +28,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 		if (!pullRequestName) {
 			pullRequestId = await this.commandArgs.pullrequestid.val();
 		}
-		var gitRepositories = await gitApi.getRepositories(project);
+		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;
 		var myPullRequest
 
@@ -38,7 +38,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 				return;
 			};
 		});
-		var pullRequestes = await gitApi.getPullRequests(gitRepositorie.id, null);
+		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, null); });
 		var myPullRequestId
 		var count = 0;
 		pullRequestes.forEach(request => {
@@ -69,7 +69,7 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 		var updatedPullRequest: GR = new GR;
 		updatedPullRequest.status = 2 //abandoned;
 
-		return await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project)
+		return await gitApi.then((api) => { api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project) });
 	};
 
 	public friendlyOutput(data: gi.GitPullRequest): void {

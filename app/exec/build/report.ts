@@ -20,12 +20,16 @@ export class BuildReport extends buildBase.BuildBase<buildBase.BuildArguments, b
 
 	public exec(): Promise<buildContracts.BuildReportMetadata> {
 		trace.debug("build-logs.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
-				return buildapi.getBuild(buildId, project).then((build) => {
-					return buildapi.getBuildReport(build.project.name, build.id).then((report) => {				
-						return report
+				return buildapi.then((api) => {
+					return api.getBuild(buildId, project).then((build) => {
+						return buildapi.then((api) => {
+							return api.getBuildReport(build.project.name, build.id).then((report) => {				
+								return report
+							});
+						});
 					});
 				});
 			});

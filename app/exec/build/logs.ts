@@ -20,16 +20,20 @@ export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, bui
 
 	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-logs.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
-				return buildapi.getBuild(buildId, project).then((build) => {
-					return buildapi.getBuildLogsZip(build.project.name, build.id).then((stream) => {
-						var archiveName = build.definition.name + "-" + build.buildNumber + "_" + build.id + ".zip";
-						trace.info('Downloading ... ');
-						trace.info('File: %s Created', archiveName);
-						stream.pipe(fs.createWriteStream(archiveName));
-						return build;
+				return buildapi.then((api) => { 
+					return api.getBuild(buildId, project).then((build) => {
+						return buildapi.then((api) => {
+							return api.getBuildLogsZip(build.project.name, build.id).then((stream) => {
+								var archiveName = build.definition.name + "-" + build.buildNumber + "_" + build.id + ".zip";
+								trace.info('Downloading ... ');
+								trace.info('File: %s Created', archiveName);
+								stream.pipe(fs.createWriteStream(archiveName));
+								return build;
+							});
+						});
 					});
 				});
 			});

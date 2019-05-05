@@ -24,7 +24,7 @@ export class WorkItemLinks extends witBase.WorkItemBase<witContracts.WorkItem[]>
 		var witapi = this.webApi.getWorkItemTrackingApi();
 		return this.commandArgs.workItemId.val().then((workItemId) => {
 			ids[0] = workItemId;
-			return witapi.getWorkItems(ids,null,null,WorkItemExpand.All)
+			return witapi.then((api) => { return api.getWorkItems(ids, null, null, WorkItemExpand.All) });
 		});
 	}
 

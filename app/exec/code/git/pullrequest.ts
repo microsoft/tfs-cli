@@ -67,7 +67,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		var autoComplete = await this.commandArgs.autocomplete.val();
 		var delSources = await this.commandArgs.deletesourcebranch.val();
 
-		var gitRepositories = await gitApi.getRepositories(project);
+		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;
 		gitRepositories.forEach(repo => {
 			if (repo.name.toLowerCase() == repositoryName.toLowerCase()) {
@@ -80,7 +80,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			process.exit(1);
 		}
 		var gitRepositorieId = gitRepositorie.id
-		var pullRequests = await gitApi.getPullRequests(gitRepositorieId, null)
+		var pullRequests = await gitApi.then((api) => { return api.getPullRequests(gitRepositorieId, null) });
 		var myBranchComment = '';
 		var newPullrequest: GR = new GR;
 		newPullrequest.sourceRefName = 'refs/heads/' + source;
@@ -89,7 +89,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			newPullrequest.targetRefName = 'refs/heads/' + target;
 		else {
 			warn('No target branch specified, using master.')
-			var masterPath = await gitApi.getSuggestions(gitRepositorieId, project)
+			var masterPath = await gitApi.then((api) => { return api.getSuggestions(gitRepositorieId, project) });
 			target = gitRepositorie.defaultBranch.split('/')[gitRepositorie.defaultBranch.split('/').length - 1];
 			newPullrequest.targetRefName = gitRepositorie.defaultBranch;
 		}
@@ -99,7 +99,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		else {
 			var myBranch;
 			warn('No title specified, using last comment of source branch.')
-			var branches = await gitApi.getBranches(gitRepositorieId, project);
+			var branches = await gitApi.then((api) => { return api.getBranches(gitRepositorieId, project); });
 			branches.forEach(branch => {
 				if (branch.name == source) {
 					myBranch = branch;
@@ -117,15 +117,15 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		//Creating the request
 		if (!autoComplete)
-			return await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+			return await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project) });
 
-		var createdRequest = await gitApi.createPullRequest(newPullrequest, gitRepositorieId, project)
+		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project) });
 		var newPullrequest: GR = new GR;
 		if (delSources) {
 			newPullrequest.completionOptions.deleteSourceBranch = true
 		}
 		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
-		return await gitApi.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project);
+		return await gitApi.then((api) => { return api.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project); });
 	};
 
 	public friendlyOutput(data: gi.GitPullRequest): void {

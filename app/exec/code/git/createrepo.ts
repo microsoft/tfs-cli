@@ -37,7 +37,7 @@ export class CreateRepository extends codedBase.CodeBase<codedBase.CodeArguments
 		var repositoryName = await this.commandArgs.repositoryname.val();
 		var NewRepo:GR = new GR;
 		NewRepo.name = repositoryName;
-		return await gitApi.createRepository(NewRepo,project);
+		return await gitApi.then((api) => { return api.createRepository(NewRepo, project); });
 	};
 
 	public friendlyOutput(data: gi.GitRepository): void {

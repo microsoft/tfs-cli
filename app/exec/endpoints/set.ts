@@ -31,12 +31,18 @@ export class ShowEndpoint extends TfCommand<EndpointArguments, taskAgentContract
         return this.commandArgs.project.val().then((project) => {
             return this.commandArgs.id.val().then((id) =>{
                 return this.commandArgs.parameters.val().then((params) => {                   
-                    return coreapi.getProject(project).then((projectObj) =>{              
-                        return agentapi.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
-                            //trace.info(JSON.stringify(JSON.parse(params)));
-                            endpoint.authorization.parameters = JSON.parse(params);
-                            return agentapi.updateServiceEndpoint(endpoint,projectObj.name,endpoint.id).then(() => {
-                                return endpoint;
+                    return coreapi.then((api) => { 
+                    return api.getProject(project).then((projectObj) =>{              
+                        return agentapi.then((api)=>{ 
+                            return api.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
+                                //trace.info(JSON.stringify(JSON.parse(params)));
+                                endpoint.authorization.parameters = JSON.parse(params);
+                                    return agentapi.then((api) => {
+                                        return api.updateServiceEndpoint(endpoint,projectObj.name,endpoint.id).then(() => {
+                                            return endpoint;
+                                        });
+                                    });
+                                });
                             });
                         });
                     });

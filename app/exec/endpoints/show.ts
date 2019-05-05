@@ -30,9 +30,13 @@ export class ShowEndpoint extends TfCommand<EndpointArguments, taskAgentContract
         trace.debug("Searching for Service Endpoints ...");
         return this.commandArgs.project.val().then((project) => {
             return this.commandArgs.id.val().then((id) =>{
-                return coreapi.getProject(project).then((projectObj) =>{               
-                    return agentapi.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
-                        return endpoint;
+                return coreapi.then((api) => {
+                    return api. getProject(project).then((projectObj) =>{               
+                        return agentapi.then((api)=>{
+                            return api.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
+                                return endpoint;
+                            });
+                        });
                     });
                 });
             });

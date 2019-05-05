@@ -26,7 +26,7 @@ export class RequestOptions extends codedBase.CodeBase<codedBase.CodeArguments, 
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		repositoryName = await this.commandArgs.repositoryname.val();
-		var gitRepositories = await gitApi.getRepositories(project);
+		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var requestId = await this.commandArgs.pullrequestid.val();
 		var gitRepositorie;
 		gitRepositories.forEach(repo => {
@@ -35,7 +35,7 @@ export class RequestOptions extends codedBase.CodeBase<codedBase.CodeArguments, 
 				return;
 			};
 		});
-		var request = await gitApi.getPullRequest(gitRepositorie.id, +requestId);
+		var request = await gitApi.then((api) => { return api.getPullRequest(gitRepositorie.id, +requestId); });
 		var gprco = request.completionOptions as GPRCO;
 		gprco.requestId = request.pullRequestId;
 		return gprco;

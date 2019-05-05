@@ -29,7 +29,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		if (!pullRequestName) {
 			pullRequestId = await this.commandArgs.pullrequestid.val();
 		}
-		var gitRepositories = await gitApi.getRepositories(project);
+		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;
 		var myPullRequest
 
@@ -39,7 +39,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 				return;
 			};
 		});
-		var pullRequestes = await gitApi.getPullRequests(gitRepositorie.id, null);
+		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, null); });
 		var myPullRequestId
 		var count = 0;
 		pullRequestes.forEach(request => {
@@ -78,7 +78,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 			completionOptions.deleteSourceBranch = delSources
 			updatedPullRequest.completionOptions = completionOptions;
 		}
-		return await gitApi.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project);
+		return await gitApi.then((api) => { return api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project); });
 
 	};
 

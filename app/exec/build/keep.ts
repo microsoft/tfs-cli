@@ -23,7 +23,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 
 	public exec(): Promise<buildContracts.Build> {
 		trace.debug("keep-build.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return this._keepBuild(buildapi, buildId, project);
@@ -36,17 +36,19 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		trace.println();
 	}
 
-	private _keepBuild(buildapi: buildClient.IBuildApi, buildId: number, project: string) {
+	private _keepBuild(buildapi: Promise<buildClient.IBuildApi>, buildId: number, project: string) :Promise<buildContracts.Build> {
 		trace.info("Searching for build...")
-        return buildapi.getBuild(buildId,project).then((build: buildContracts.Build) => {
-            if (build.keepForever) {
-                trace.warn("Retention unlocked for %s", build.buildNumber);
-                build.keepForever = false;
-            } else {
-                trace.warn("Build %s Retained indefinatly", build.buildNumber);
-                build.keepForever = true;                  
-            }
-			return buildapi.updateBuild(build,build.id);
-        });
+        return buildapi.then((api) => { 
+			return api.getBuild(buildId,project).then((build: buildContracts.Build) => {
+				if (build.keepForever) {
+					trace.warn("Retention unlocked for %s", build.buildNumber);
+					build.keepForever = false;
+				} else {
+					trace.warn("Build %s Retained indefinatly", build.buildNumber);
+					build.keepForever = true;                  
+				}
+				return buildapi.then((api) => { return api.updateBuild(build, build.id); });
+			});
+		});
 	}
 }

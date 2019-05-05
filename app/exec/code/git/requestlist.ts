@@ -1,4 +1,3 @@
-import { ChangeListSearchCriteria } from 'azure-devops-node-api/interfaces/TfvcInterfaces';
 import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
 import args = require('../../../lib/arguments');
@@ -28,7 +27,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		repositoryName = await this.commandArgs.repositoryname.val();
 		var requestStatus = await this.commandArgs.requeststatus.val();
 		var top = await this.commandArgs.top.val();
-		var gitRepositories = await gitApi.getRepositories(project);
+		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;
 		gitRepositories.forEach(repo => {
 			if (repo.name.toLowerCase() == repositoryName.toLowerCase()) {
@@ -43,7 +42,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		else{
 			searchCriteria.status = 4;
 		}
-		return await gitApi.getPullRequests(gitRepositorie.id, searchCriteria, null, null, null, top);
+		return await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, searchCriteria, null, null, null, top); });
 	};
 
 	public friendlyOutput(data: gi.GitPullRequest[]): void {

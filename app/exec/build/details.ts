@@ -18,10 +18,10 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
 
 	public exec(): Promise<buildContracts.Build> {
 		trace.debug("build-details.exec");
-		var buildapi: buildClient.IBuildApi = this.webApi.getBuildApi();
+		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
-				return buildapi.getBuild(buildId, project);
+				return buildapi.then((api) => { return api.getBuild(buildId, project); });
 			});
 		});
 

@@ -23,10 +23,14 @@ export class ListEndpoints extends TfCommand<CoreArguments, taskAgentContracts.S
         var coreapi = this.webApi.getCoreApi(this.connection.getCollectionUrl())
         trace.debug("Searching for Service Endpoints ...");
         return this.commandArgs.project.val().then((project) => {
-            return coreapi.getProject(project).then((projectObj) =>{               
-                return agentapi.getServiceEndpoints(projectObj.id).then((endpoints) => {
-                    trace.debug("Retrieved " + endpoints.length + " build endpoints from server.");
-                    return endpoints;
+            return coreapi.then((api) =>{ 
+                return api.getProject(project).then((projectObj) =>{               
+                    return agentapi.then((api) => { 
+                        return api.getServiceEndpoints(projectObj.id).then((endpoints) => {
+                            trace.debug("Retrieved " + endpoints.length + " build endpoints from server.");
+                            return endpoints;
+                        });
+                    });
                 });
             });
         });

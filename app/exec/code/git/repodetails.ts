@@ -24,7 +24,7 @@ export class GetRepositoryDetails extends codedBase.CodeBase<codedBase.CodeArgum
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var id = await this.commandArgs.repositoryid.val();
-		return await gitApi.getRepository(id);
+		return await gitApi.then((api) => { return api.getRepository(id); });
 	};
 
 	public friendlyOutput(data: gi.GitRepository): void {

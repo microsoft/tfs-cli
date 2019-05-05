@@ -48,7 +48,7 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
                     var NewPool: AP = new AP;
                     NewPool.name = name;
                     NewPool.autoProvision = true;
-                        return agentapi.then((api) => { api.addAgentPool(NewPool).then((pool) => {
+                        return agentapi.then((api) => {return api.addAgentPool(NewPool).then((pool) => {
                             return pool;
                         });
                     });
@@ -66,8 +66,9 @@ export class CreatePool extends TfCommand<CreatePoolArguments, taskAgentContract
                         var NewPool: AP = new AP;
                         NewPool.name = name;
                         NewPool.autoProvision = true;
-                        return agentapi.addAgentPool(NewPool).then((pool) => {
+                        return agentapi.then((api) => {return api.addAgentPool(NewPool).then((pool) => {
                             return pool;
+                        });
                         });
                     }
 

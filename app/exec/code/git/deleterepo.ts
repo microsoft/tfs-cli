@@ -25,7 +25,7 @@ export class DeleteRepository extends codedBase.CodeBase<codedBase.CodeArguments
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
 		var repositoryid = await this.commandArgs.repositoryid.val();
-		return await gitApi.deleteRepository(repositoryid,project);
+		return await gitApi.then((api) => { return api.deleteRepository(repositoryid, project); });
 	};
 
 	public friendlyOutput(data: gi.GitRepository): void {
