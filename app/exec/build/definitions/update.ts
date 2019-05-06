@@ -45,7 +45,7 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
                     definition.revision = currentDefinition.revision;
 
                         trace.debug("Updating build definition %s...", definitionId);
-                        return api.then((defapi) => {return defapi.updateDefinition(definition, definitionId as number, project as string).then((definition) => {
+                        return api.then((defapi) => {return defapi.updateDefinition(definition, definitionId as number, project as string,currentDefinition.id,currentDefinition.revision).then((definition) => {
                             return definition;
                         });
                     });
