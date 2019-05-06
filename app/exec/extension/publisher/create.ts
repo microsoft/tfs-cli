@@ -26,7 +26,7 @@ export class ExtensionPublisherCreate extends extPubBase.ExtensionPublisherBase<
 	}
 
 	public async exec(): Promise<galleryInterfaces.Publisher> {
-		let galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
+		const galleryApi = await this.getGalleryApi();
 
 		return Promise.all([
 			this.commandArgs.publisher.val(),

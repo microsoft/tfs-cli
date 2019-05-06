@@ -482,8 +482,6 @@ export class PackagePublisher extends GalleryBase {
 		}
 
 		trace.debug("Polling for validation (%s retries remaining).", retries.toString());
-
-		// Compiler nonsense below. Sorry.
 		return delay(this.getValidationStatus(version), interval).then(status => {
 			trace.debug("--Retrieved validation status: %s", status);
 			if (status === PackagePublisher.validationPending) {
