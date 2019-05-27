@@ -38,14 +38,16 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
             const [project, definitionId, definitionPath] = values;
             // Get the current definition so we can grab the revision id
             trace.debug("Retrieving build definition %s...", definitionId);
-                return api.then((defapi) => {return defapi.getDefinition(definitionId as number, project as string).then(currentDefinition => {
+            return api.then((defapi) => {
+                return defapi.getDefinition(project as string, definitionId as number).then(currentDefinition => {
                     trace.debug("Reading build definition from %s...", definitionPath.toString());
                     let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
                     definition.id = currentDefinition.id;
                     definition.revision = currentDefinition.revision;
 
                         trace.debug("Updating build definition %s...", definitionId);
-                        return api.then((defapi) => {return defapi.updateDefinition(definition, definitionId as number, project as string,currentDefinition.id,currentDefinition.revision).then((definition) => {
+                    return api.then((defapi) => {
+                        return defapi.updateDefinition(definition, project as string, definitionId as number,currentDefinition.id,currentDefinition.revision).then((definition) => {
                             return definition;
                         });
                     });

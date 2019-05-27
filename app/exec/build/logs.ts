@@ -24,7 +24,7 @@ export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return buildapi.then((api) => { 
-					return api.getBuild(buildId, project).then((build) => {
+					return api.getBuild(project, buildId).then((build) => {
 						return buildapi.then((api) => {
 							return api.getBuildLogsZip(build.project.name, build.id).then((stream) => {
 								var archiveName = build.definition.name + "-" + build.buildNumber + "_" + build.id + ".zip";

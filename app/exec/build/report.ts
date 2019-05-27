@@ -24,7 +24,7 @@ export class BuildReport extends buildBase.BuildBase<buildBase.BuildArguments, b
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
 				return buildapi.then((api) => {
-					return api.getBuild(buildId, project).then((build) => {
+					return api.getBuild(project, buildId).then((build) => {
 						return buildapi.then((api) => {
 							return api.getBuildReport(build.project.name, build.id).then((report) => {				
 								return report

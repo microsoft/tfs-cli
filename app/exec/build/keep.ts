@@ -39,7 +39,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 	private _keepBuild(buildapi: Promise<buildClient.IBuildApi>, buildId: number, project: string) :Promise<buildContracts.Build> {
 		trace.info("Searching for build...")
         return buildapi.then((api) => { 
-			return api.getBuild(buildId,project).then((build: buildContracts.Build) => {
+			return api.getBuild(project, buildId).then((build: buildContracts.Build) => {
 				if (build.keepForever) {
 					trace.warn("Retention unlocked for %s", build.buildNumber);
 					build.keepForever = false;
@@ -47,7 +47,7 @@ export class BuildKeep extends buildBase.BuildBase<buildBase.BuildArguments, bui
 					trace.warn("Build %s Retained indefinatly", build.buildNumber);
 					build.keepForever = true;                  
 				}
-				return buildapi.then((api) => { return api.updateBuild(build, build.id); });
+				return buildapi.then((api) => { return api.updateBuild(build, project, build.id); });
 			});
 		});
 	}

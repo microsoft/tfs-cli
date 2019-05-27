@@ -44,7 +44,8 @@ export class ExportDefinition extends TfCommand<ExportDefinitionArguments, build
         ]).then((values) => {
             const [project, definitionId, definitionPath, overwrite, revision] = values;
             trace.debug("Retrieving build definition %s...", definitionId);
-            return api.then((defapi) => {return defapi.getDefinition(definitionId as number, project as string, revision as number).then((definition) => {
+            return api.then((defapi) => {
+                return defapi.getDefinition(project as string, definitionId as number, revision as number).then((definition) => {
                 var defpath = "";
                 if (!definitionPath) {
                     defpath = definition.name + '-' + definition.id + '-' + definition.revision + '.json';                   

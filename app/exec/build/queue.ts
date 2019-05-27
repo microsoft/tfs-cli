@@ -28,7 +28,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 			return this.commandArgs.definitionId.val(true).then(definitionId => {
 				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
-					definitionPromise = buildapi.getDefinition(definitionId, project);
+					definitionPromise = buildapi.getDefinition(project, definitionId);
 				} else {
 					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
 						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
@@ -129,7 +129,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 					var currentOperation:string ;
 					var time = setInterval(function(){
 						counter++;
-						return buildapi.updateBuild(queuedBuild,queuedBuild.id).then((updatedQueuedBuild) =>{
+						return buildapi.updateBuild(queuedBuild, project, queuedBuild.id).then((updatedQueuedBuild) =>{
 							if (updatedQueuedBuild.status == buildContracts.BuildStatus.Completed || (timeout != 0 && counter >= timeout)) {
 								if (updatedQueuedBuild.status != buildContracts.BuildStatus.Completed){
 									trace.println();

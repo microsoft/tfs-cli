@@ -1,10 +1,7 @@
 import { TfCommand, CoreArguments } from "../../lib/tfcommand";
-import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
-import args = require("../../lib/arguments");
 import trace = require('../../lib/trace');
 import taskAgentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
 import agentClient = require("azure-devops-node-api/TaskAgentApiBase");
-import corem = require('azure-devops-node-api/CoreApi');
 
 export function getCommand(args: string[]): ListEndpoints {
     return new ListEndpoints(args);
@@ -19,17 +16,17 @@ export class ListEndpoints extends TfCommand<CoreArguments, taskAgentContracts.S
     }
 
     public exec(): Promise<taskAgentContracts.ServiceEndpoint[]> {
-        var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
         var coreapi = this.webApi.getCoreApi(this.connection.getCollectionUrl())
         trace.debug("Searching for Service Endpoints ...");
-        return this.commandArgs.project.val().then((project) => {
-            return coreapi.then((api) =>{ 
-                return api.getProject(project).then((projectObj) =>{               
-                    return agentapi.then((api) => { 
-                        return api.getServiceEndpoints(projectObj.id).then((endpoints) => {
-                            trace.debug("Retrieved " + endpoints.length + " build endpoints from server.");
-                            return endpoints;
-                        });
+        return this.webApi.getTaskAgentApi(this.connection.getCollectionUrl()).then((agentapi: agentClient.ITaskAgentApiBase) => {
+            return this.commandArgs.project.val().then((project) => {
+                return coreapi.then((api) =>{ 
+                    return api.getProject(project).then((projectObj) =>{
+                        return agentapi.getServiceEndpoints(projectObj.id).then((endpoints) => {
+                                trace.debug("Retrieved " + endpoints.length + " build endpoints from server.");
+                                return endpoints;
+                            });
+                        //});//
                     });
                 });
             });

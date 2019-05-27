@@ -35,7 +35,8 @@ export class DeleteDefinition extends TfCommand<DeleteDefinitionArguments, build
         ]).then((values) => {
             const [project, definitionId] = values;
             trace.debug("Deleting build definition %s...", definitionId);
-                return api.then((defapi) => {return defapi.deleteDefinition(definitionId as number, project as string).then((definition) => {
+            return api.then((defapi) => {
+                return defapi.deleteDefinition(project as string,definitionId as number).then((definition) => {
                     return <buildContracts.DefinitionReference>{ id: definitionId }
                 });
             });

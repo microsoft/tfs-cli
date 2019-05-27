@@ -22,7 +22,7 @@ export class BuildDefinition extends buildBase.BuildBase<buildBase.BuildArgument
 			return this.commandArgs.definitionId.val().then((definitionId) => {
                 return this.commandArgs.definitionName.val().then((definitionName) => {
                     if (definitionId){  
-                        return buildapi.then((api) => {return api.getDefinition(definitionId,project,null,null) }); 
+						return buildapi.then((api) => { return api.getDefinition(project,definitionId,null,null) }); 
                     } else {
 						if (definitionName) {
 							return this._getDefinitionByName(definitionName, project, buildapi);

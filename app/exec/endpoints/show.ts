@@ -25,15 +25,14 @@ export class ShowEndpoint extends TfCommand<EndpointArguments, taskAgentContract
     }
 
     public exec(): Promise<taskAgentContracts.ServiceEndpoint> {
-        var agentapi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
         var coreapi = this.webApi.getCoreApi(this.connection.getCollectionUrl())
         trace.debug("Searching for Service Endpoints ...");
-        return this.commandArgs.project.val().then((project) => {
-            return this.commandArgs.id.val().then((id) =>{
-                return coreapi.then((api) => {
-                    return api. getProject(project).then((projectObj) =>{               
-                        return agentapi.then((api)=>{
-                            return api.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
+        return this.webApi.getTaskAgentApi(this.connection.getCollectionUrl()).then((agentapi: agentClient.ITaskAgentApiBase) => {
+            return this.commandArgs.project.val().then((project) => {
+                return this.commandArgs.id.val().then((id) =>{
+                    return coreapi.then((api) => {
+                        return api. getProject(project).then((projectObj) =>{               
+                            return agentapi.getServiceEndpointDetails(projectObj.id,id).then((endpoint) => {
                                 return endpoint;
                             });
                         });

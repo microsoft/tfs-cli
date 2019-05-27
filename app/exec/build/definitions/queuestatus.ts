@@ -36,7 +36,8 @@ export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArgume
             this.commandArgs.status.val(),
         ]).then((values) => {
             const [project, definitionId, status] = values;
-            return api.then((defapi) => {return defapi.getDefinition(definitionId as number, project as string).then((definition) => {
+            return api.then((defapi) => {
+                return defapi.getDefinition(project as string, definitionId as number).then((definition) => {
                 var currentStatus = buildContracts.DefinitionQueueStatus[definition.queueStatus];
                 if (!currentStatus){
                     currentStatus = buildContracts.DefinitionQueueStatus[0]
@@ -58,7 +59,7 @@ export class DefinitionQueueStatus extends TfCommand<DefinitionQueueStatusArgume
                     break;
                  default : trace.error("queue status allowd values are: enable / pause / disable");
                 } 
-                return api.then((bapi) => { return bapi.updateDefinition(definition, definition.id, definition.project.name); });
+                    return api.then((bapi) => { return bapi.updateDefinition(definition, definition.project.name, definition.id); });
             });
             });
         });

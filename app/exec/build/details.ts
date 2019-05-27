@@ -21,7 +21,7 @@ export class BuildDetails extends buildBase.BuildBase<buildBase.BuildArguments, 
 		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
-				return buildapi.then((api) => { return api.getBuild(buildId, project); });
+				return buildapi.then((api) => { return api.getBuild(project, buildId); });
 			});
 		});
 
