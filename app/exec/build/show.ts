@@ -22,7 +22,7 @@ export class BuildShow extends buildBase.BuildBase<buildBase.BuildArguments, bui
 		var buildapi: buildClient.IBuildApi = await this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then(project => {
 			return this.commandArgs.buildId.val().then(buildId => {
-				return buildapi.getBuild(buildId, project);
+				return buildapi.getBuild(project, buildId);
 			});
 		});
 	}

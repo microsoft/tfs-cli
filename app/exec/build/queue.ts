@@ -28,7 +28,7 @@ export class BuildQueue extends buildBase.BuildBase<buildBase.BuildArguments, bu
 			return this.commandArgs.definitionId.val(true).then(definitionId => {
 				let definitionPromise: Promise<buildContracts.DefinitionReference>;
 				if (definitionId) {
-					definitionPromise = buildapi.getDefinition(definitionId, project);
+					definitionPromise = buildapi.getDefinition(project, definitionId);
 				} else {
 					definitionPromise = this.commandArgs.definitionName.val().then(definitionName => {
 						trace.debug("No definition id provided, Searching for definitions with name: " + definitionName);
