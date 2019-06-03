@@ -44,7 +44,6 @@ export class ListEndpoints extends TfCommand<CoreArguments, taskAgentContracts.S
 
         data.forEach((endpoint) => {
             trace.println();
-            trace.info(JSON.stringify(endpoint))
             trace.info('name        : %s',endpoint.connectedServiceMetaData.friendlyName);
             trace.info('description : %s', endpoint.connectedServiceMetaData.description);
             trace.info('author      : %s', endpoint.connectedServiceMetaData.authenticatedBy.displayName);
