@@ -41,11 +41,21 @@ class GR implements gi.GitPullRequest {
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
 }
+class GSC implements gi.GitPullRequestSearchCriteria  {
+	creatorId?: string;
+	includeLinks?: boolean;
+	repositoryId?: string;
+	reviewerId?: string;
+	sourceRefName?: string;
+	sourceRepositoryId?: string;
+	status?: gi.PullRequestStatus;
+	targetRefName?: string;
+}
 
 class completionOptions implements gi.GitPullRequestCompletionOptions {
 	deleteSourceBranch: boolean;
 	mergeCommitMessage: string;
-	squashMerge: boolean;;
+	squashMerge: boolean;
 }
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
@@ -80,7 +90,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 			process.exit(1);
 		}
 		var gitRepositorieId = gitRepositorie.id
-		var pullRequests = await gitApi.then((api) => { return api.getPullRequests(gitRepositorieId, null) });
+		var searchCriteria = new GSC
+		var pullRequests = await gitApi.then((api) => { return api.getPullRequests(gitRepositorieId, searchCriteria) });
 		var myBranchComment = '';
 		var newPullrequest: GR = new GR;
 		newPullrequest.sourceRefName = 'refs/heads/' + source;
@@ -122,6 +133,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project) });
 		var newPullrequest: GR = new GR;
 		if (delSources) {
+			newPullrequest.completionOptions = new completionOptions
 			newPullrequest.completionOptions.deleteSourceBranch = true
 		}
 		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
@@ -138,7 +150,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		trace.info('id                    : %s', data.pullRequestId);
 		if (data.autoCompleteSetBy)
 		trace.info('AutoCompleteSetBy     : %s', data.autoCompleteSetBy.displayName);
-		if (data.completionOptions.deleteSourceBranch)
+		if (data.completionOptions && data.completionOptions.deleteSourceBranch)
 	    trace.info('Delete Source Branch  : %s', data.completionOptions.deleteSourceBranch);
 	}
 };
