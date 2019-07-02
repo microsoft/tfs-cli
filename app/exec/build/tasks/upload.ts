@@ -39,7 +39,9 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 					});
 					archive.directory(path.resolve(taskPath), false);
 
-					let agentApi = await this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+					const collectionUrl = this.connection.getCollectionUrl();
+					console.log("Collection URL: " + collectionUrl);
+					let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
 
 					archive.finalize();
 					return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
