@@ -40,6 +40,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 			"root",
 			"manifests",
 			"manifestGlobs",
+			"json5",
 			"override",
 			"overridesFile",
 			"bypassValidation",
