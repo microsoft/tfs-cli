@@ -5,6 +5,7 @@ import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccred
 import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./_lib/publish";
 import * as path from "path";
 import _ = require("lodash");
+import jju = require("jju");
 import args = require("../../lib/arguments");
 import https = require("https");
 import trace = require("../../lib/trace");
@@ -213,7 +214,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				let mergedOverrides = {};
 				let contentJSON = {};
 				try {
-					contentJSON = JSON.parse(content);
+					contentJSON = json5 ? jju.parse(content) : JSON.parse(content);
 				} catch (e) {
 					throw new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
 				}
