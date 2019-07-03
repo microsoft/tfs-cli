@@ -14,6 +14,7 @@ import { forwardSlashesPath, toZipItemName } from "./utils";
 import _ = require("lodash");
 import fs = require("fs");
 import glob = require("glob");
+import jju = require("jju");
 import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
 import path = require("path");
@@ -112,7 +113,7 @@ export class Merger {
 					promisify(readFile)(file, "utf8").then(data => {
 						const jsonData = data.replace(/^\uFEFF/, "");
 						try {
-							const result = JSON.parse(jsonData);
+							const result = this.settings.json5 ? jju.parse(jsonData) : JSON.parse(jsonData);
 							result.__origin = file; // save the origin in order to resolve relative paths later.
 							return result;
 						} catch (err) {
@@ -153,7 +154,14 @@ export class Merger {
 
 								updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
 									try {
-										const newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+										let newPartial: any;
+										if (this.settings.json5) {
+											const parsed = jju.parse(versionPartial);
+											parsed["version"] = newVersionString;
+											newPartial = jju.update(versionPartial, parsed);
+										} else {
+											newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+										}
 										return promisify(writeFile)(partial.__origin, newPartial);
 									} catch (e) {
 										trace.warn(

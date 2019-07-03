@@ -25,8 +25,9 @@ export interface ExtensionArguments extends CoreArguments {
 	bypassValidation: args.BooleanArgument;
 	description: args.StringArgument;
 	displayName: args.StringArgument;
-	extensionName: args.StringArgument;
 	extensionId: args.StringArgument;
+	extensionName: args.StringArgument;
+	json5: args.BooleanArgument;
 	locRoot: args.ExistingDirectoriesArgument;
 	manifestGlobs: args.ArrayArgument;
 	manifests: args.ArrayArgument;
@@ -87,6 +88,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"List of globs to find manifests (space separated).",
 			args.ArrayArgument,
 			null,
+		);
+		this.registerCommandArgument(
+			"json5",
+			"Extended JSON",
+			"Support extended JSON (aka JSON 5) for comments, unquoted strings, dangling commas, etc.",
+			args.BooleanArgument,
+			"false"
 		);
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument(
@@ -169,6 +177,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.bypassValidation.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true),
+			this.commandArgs.json5.val(true),
 		]).then<MergeSettings>(values => {
 			const [
 				root,
@@ -181,6 +190,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				bypassValidation,
 				publisher,
 				extensionId,
+				json5,
 			] = values;
 			if (publisher) {
 				_.set(override, "publisher", publisher);
@@ -217,6 +227,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 					overrides: mergedOverrides,
 					bypassValidation: bypassValidation,
 					revVersion: revVersion,
+					json5: json5,
 				};
 			});
 		});
