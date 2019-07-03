@@ -49,6 +49,7 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 			"root",
 			"manifests",
 			"manifestGlobs",
+			"json5",
 			"override",
 			"overridesFile",
 			"revVersion",

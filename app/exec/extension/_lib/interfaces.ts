@@ -164,6 +164,12 @@ export interface MergeSettings {
 	 * Path to the root of localized resource files
 	 */
 	locRoot: string;
+
+	/**
+	 * If true, treat JSON files as "Json 5" or "extended JSON",
+	 * which supports comments, unquoted keys, etc.
+	 */
+	json5: boolean;
 }
 
 export interface PackageSettings {

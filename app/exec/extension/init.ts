@@ -400,6 +400,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 				manifests: null,
 				overrides: {},
 				root: initPath,
+				json5: false,
 			},
 			{
 				locRoot: null,

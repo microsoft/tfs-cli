@@ -498,7 +498,8 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		if (continuedHierarchy === null) {
 			// Need help with a particular command
 			let singleArgData = (argName: string, maxArgLen: number) => {
-				let argKebab = _.kebabCase(argName);
+				// Lodash's kebab adds a dash between letters and numbers, so this is just a hack to avoid that.
+				let argKebab = argName === "json5" ? "json5" : _.kebabCase(argName);
 				const argObj = this.commandArgs[argName];
 				const shorthandArg = argObj.aliases.filter(a => a.length === 2 && a.substr(0, 1) === "-")[0];
 				if (shorthandArg) {
