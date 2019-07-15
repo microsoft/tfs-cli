@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"target": "es5",
+		"target": "es6",
 		"moduleResolution": "node",
 		"declaration": false,
 		"sourceMap": true,
@@ -16,7 +16,5 @@
 		"app/app.ts",
 		"app/exec/**/*.ts",
 		"typings/**/*.d.ts"
-		/*,
-		"node_modules/@types/q/index.d.ts" // We augment the definitions with a file under typings, so we need an explicit reference here.*/
 	]
 }

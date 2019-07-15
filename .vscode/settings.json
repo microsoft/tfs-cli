@@ -1,4 +1,3 @@
-// Place your settings in this file to overwrite default and user settings.
 {
     "files.exclude": {
         "**/.git": true,
@@ -8,5 +7,9 @@
         "tmp/": true
     },
 	"editor.insertSpaces": false,
-    "typescript.tsdk": "./node_modules/typescript/lib"
+	"typescript.tsdk": "./node_modules/typescript/lib",
+	"vsicons.presets.angular": false,
+	"editor.formatOnPaste": true,
+	"editor.minimap.enabled": true,
+	"editor.snippetSuggestions": "top"
 }

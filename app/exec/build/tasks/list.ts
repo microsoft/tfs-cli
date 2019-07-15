@@ -13,7 +13,7 @@ export class BuildTaskList extends tasksBase.BuildTaskBase<agentContracts.TaskDe
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
-		return ["all"];
+		return ["all","filter"];
 	}
 
 	public async exec(): Promise<agentContracts.TaskDefinition[]> {

@@ -4,7 +4,6 @@ import { EOL as eol } from "os";
 import args = require("../lib/arguments");
 import common = require("../lib/common");
 import path = require("path");
-
 import trace = require("../lib/trace");
 
 export function getCommand(args: string[]): Reset {

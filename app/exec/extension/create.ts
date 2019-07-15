@@ -3,7 +3,7 @@ import { VsixManifestBuilder } from "./_lib/vsix-manifest-builder";
 import { MergeSettings, PackageSettings } from "./_lib/interfaces";
 import { VsixWriter } from "./_lib/vsix-writer";
 import { TfCommand } from "../../lib/tfcommand";
-import colors = require("colors");
+import colors = require('colors');
 import extBase = require("./default");
 import trace = require("../../lib/trace");
 

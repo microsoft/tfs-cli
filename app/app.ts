@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import command = require("./lib/command");
 import common = require("./lib/common");
 import errHandler = require("./lib/errorhandler");
