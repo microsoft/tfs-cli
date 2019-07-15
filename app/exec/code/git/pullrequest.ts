@@ -56,6 +56,7 @@ class completionOptions implements gi.GitPullRequestCompletionOptions {
 	deleteSourceBranch: boolean;
 	mergeCommitMessage: string;
 	squashMerge: boolean;
+	mergeStrategy?: gi.GitPullRequestMergeStrategy;
 }
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
@@ -63,7 +64,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'deletesourcebranch'];
+		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'mergemethod',  'deletesourcebranch'];
 	}
 
 	public async exec(): Promise<any> {
@@ -76,6 +77,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		var title = await this.commandArgs.title.val();
 		var autoComplete = await this.commandArgs.autocomplete.val();
 		var delSources = await this.commandArgs.deletesourcebranch.val();
+		var tempmergeMethod = await this.commandArgs.mergemethod.val();
+		var mergeMethod = +tempmergeMethod
 
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;
@@ -135,6 +138,14 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		if (delSources) {
 			newPullrequest.completionOptions = new completionOptions
 			newPullrequest.completionOptions.deleteSourceBranch = true
+
+			if (mergeMethod < 1 && mergeMethod > 4)
+			{
+				errLog('Merge Method ' + mergeMethod + ' is not valid, should be one of 1 (NoFastForward),2 (Squash),3 (Rebase),4 (RebaseMerge)');
+				process.exit(1);
+			}
+
+			newPullrequest.completionOptions.mergeStrategy = gi.GitPullRequestMergeStrategy[gi.GitPullRequestMergeStrategy[mergeMethod]]
 		}
 		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
 		return await gitApi.then((api) => { return api.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project); });
