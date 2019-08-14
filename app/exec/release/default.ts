@@ -44,7 +44,7 @@ export class ReleaseBase<TArguments extends ReleaseArguments, TResult> extends T
 		);
 		this.registerCommandArgument("status", "Release Status", "Release status filter.", args.StringArgument, null);
 		this.registerCommandArgument("top", "Number of Releases", "Maximum number of Releases to return.", args.IntArgument, null);
-		this.registerCommandArgument("ReleaseId", "Release ID", "Identifies a particular Release.", args.IntArgument);
+		this.registerCommandArgument("releaseId", "Release ID", "Identifies a particular Release.", args.IntArgument);
         this.registerCommandArgument("parameters", "parameter file path or JSON string ", "Release process Parameters JSON file / string.", args.StringArgument,null);
         this.registerCommandArgument("priority", "Release queue priority", "Queue a Release with priority 1 [High] - 5 [Low] default = 3 [Normal]).", args.IntArgument, null);
 		this.registerCommandArgument("version","Release Sources Version", "the source version for the queued Release.",args.StringArgument,null);
