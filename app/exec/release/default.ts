@@ -61,6 +61,9 @@ export class ReleaseBase<TArguments extends ReleaseArguments, TResult> extends T
 		this.registerCommandArgument("timeout","max time to wait","Maximum time to wait for the Release to complete (in seconds).",args.IntArgument,"0");
 		this.registerCommandArgument("parallel", "max agent parallelism", "Maximum parallel agent runs.", args.IntArgument, null);
 		this.registerCommandArgument("waitForInProgressRequests", "Wait For Active Requests", "Waiting for active Agent jobs / requests", args.StringArgument,null);
+		this.registerCommandArgument("artifact", "Name of Artifact for release", "Name of Artifact for new release", args.StringArgument, null);
+		this.registerCommandArgument("manualEnvironments", "Manual environments", "List of manual environments in a new release (semi-column separated)", args.StringArgument, null);
+		
 }
 
 	public exec(cmd?: any): Promise<any> {
