@@ -45,7 +45,7 @@ export class ReleaseCreate extends releaseBase.ReleaseBase<releaseBase.ReleaseAr
 									releaseMetadata.artifacts = [artifactMetadata];
 									var manualEnvironmentlist = manualEnvironments ? manualEnvironments.split(";"): [];
 									manualEnvironmentlist.forEach(environment => {
-										console.log("setting environment %s to manual",environment)
+										trace.debug("setting environment %s to manual",environment)
 									});
 									releaseMetadata.manualEnvironments = manualEnvironmentlist;
 									return releaseapi.createRelease(releaseMetadata,project);

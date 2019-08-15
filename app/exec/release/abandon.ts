@@ -5,12 +5,12 @@ import releaseClient = require("azure-devops-node-api/ReleaseApi");
 import releaseContracts = require("azure-devops-node-api/interfaces/ReleaseInterfaces");
 import trace = require("../../lib/trace");
 
-export function getCommand(args: string[]): ReleaseShow {
-	return new ReleaseShow(args);
+export function getCommand(args: string[]): ReleaseAbandon {
+	return new ReleaseAbandon(args);
 }
 
-export class ReleaseShow extends releaseBase.ReleaseBase<releaseBase.ReleaseArguments, releaseContracts.Release> {
-	protected description = "Show release.";
+export class ReleaseAbandon extends releaseBase.ReleaseBase<releaseBase.ReleaseArguments, releaseContracts.Release> {
+	protected description = "Abandon release.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
@@ -22,7 +22,21 @@ export class ReleaseShow extends releaseBase.ReleaseBase<releaseBase.ReleaseArgu
 		var releaseapi: releaseClient.IReleaseApi = await this.webApi.getReleaseApi();
 		return this.commandArgs.project.val().then(project => {
 			return this.commandArgs.releaseId.val().then(releaseId => {
-				return releaseapi.getRelease(project, releaseId);
+				return releaseapi.getRelease(project, releaseId).then(release => {
+					const releaseReference = <releaseContracts.Release>({
+						name: release.name,
+						id: release.id,
+						environments: release.environments,
+						artifacts: release.artifacts,
+						variableGroups: release.variableGroups,
+						status: releaseContracts.ReleaseStatus.Abandoned
+						
+					});
+					return releaseapi.updateRelease(releaseReference,project,release.id).then(updatedRelease => {
+						return updatedRelease;
+					})
+					
+				});
 			});
 		});
 	}

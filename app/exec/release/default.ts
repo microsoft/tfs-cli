@@ -63,6 +63,7 @@ export class ReleaseBase<TArguments extends ReleaseArguments, TResult> extends T
 		this.registerCommandArgument("waitForInProgressRequests", "Wait For Active Requests", "Waiting for active Agent jobs / requests", args.StringArgument,null);
 		this.registerCommandArgument("artifact", "Name of Artifact for release", "Name of Artifact for new release", args.StringArgument, null);
 		this.registerCommandArgument("manualEnvironments", "Manual environments", "List of manual environments in a new release (semi-column separated)", args.StringArgument, null);
+		this.registerCommandArgument("environmentName", "Environment Name", "Name of the release environment", args.StringArgument, null);
 		
 }
 
