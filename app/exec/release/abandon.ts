@@ -29,8 +29,8 @@ export class ReleaseAbandon extends releaseBase.ReleaseBase<releaseBase.ReleaseA
 						environments: release.environments,
 						artifacts: release.artifacts,
 						variableGroups: release.variableGroups,
-						status: releaseContracts.ReleaseStatus.Abandoned
-						
+						status: releaseContracts.ReleaseStatus.Abandoned,
+						comment: "release abandoned from tfx"
 					});
 					return releaseapi.updateRelease(releaseReference,project,release.id).then(updatedRelease => {
 						return updatedRelease;
