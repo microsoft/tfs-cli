@@ -324,7 +324,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			.set("name", extensionName)
 			.set("version", "1.0.0")
 			.set("description", "Azure DevOps Extension")
-			.set("categories", ["Other"]);
+			.set("categories", ["Azure Repos", "Azure Boards", "Azure Pipelines", "Azure Test Plans", "Azure Artifacts"]);
 
 		const newPackageJson = jsonInPlace(packageJsonContents)
 			.set("repository.url", "")
