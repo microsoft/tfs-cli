@@ -3,6 +3,7 @@ import { MergeSettings, PackageSettings, PublishSettings } from "./_lib/interfac
 import { WebApi, getBasicHandler } from "azure-devops-node-api/WebApi";
 import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./_lib/publish";
+import * as httpClientModule from "typed-rest-client/HttpClient";
 import * as path from "path";
 import _ = require("lodash");
 import jju = require("jju");
@@ -95,7 +96,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"Extended JSON",
 			"Support extended JSON (aka JSON 5) for comments, unquoted strings, dangling commas, etc.",
 			args.BooleanArgument,
-			"false"
+			"false",
 		);
 		this.registerCommandArgument("outputPath", "Output path", "Path to write the VSIX.", args.StringArgument, "{auto}");
 		this.registerCommandArgument(
@@ -116,7 +117,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"shareWith",
 			"Share with",
 			"List of Azure DevOps organization(s) with which to share the extension (space separated).",
-			args.ArrayArgument, 
+			args.ArrayArgument,
 			null,
 		);
 		this.registerCommandArgument(
@@ -305,23 +306,29 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 
 	public static async getMarketplaceUrl(): Promise<string[]> {
 		trace.debug("getMarketplaceUrl");
+
 		const url = "https://app.vssps.visualstudio.com/_apis/resourceareas/69D21C00-F135-441B-B5CE-3626378E0819";
-		const response = await new Promise<string>((resolve, reject) => {
-			https
-				.get(url, resp => {
-					let data = "";
-					resp.on("data", chunk => {
-						data += chunk;
-					});
-					resp.on("end", () => {
-						resolve(data);
-					});
-				})
-				.on("error", err => {
-					reject(err);
-				});
-		});
-		const resourceArea = JSON.parse(response);
-		return [resourceArea["locationUrl"]];
+		const httpClient = new httpClientModule.HttpClient(
+			"node-Core-api",
+			[
+				{
+					prepareRequest(options) {},
+					canHandleAuthentication(response) {
+						return false;
+					},
+					handleAuthentication(httpClient, requestInfo, objs) {
+						return null;
+					},
+				},
+			],
+			{},
+		);
+		const response = await httpClient.get(url);
+		const responseBody = await response.readBody();
+		const resourceArea = JSON.parse(responseBody);
+		const location = resourceArea["locationUrl"];
+		trace.debug(`Result: ${location}`);
+
+		return [location];
 	}
 }
