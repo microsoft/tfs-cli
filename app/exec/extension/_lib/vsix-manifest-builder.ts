@@ -42,6 +42,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".eot": "application/vnd.ms-fontobject",
 		".gif": "image/gif",
 		".hbs": "text/x-handlebars-template",
+		".html": "text/html",
 		".jpeg": "image/jpeg",
 		".jpg": "image/jpeg",
 		".js": "application/javascript",
