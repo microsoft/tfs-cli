@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
+import releaseContracts = require('azure-devops-node-api/interfaces/ReleaseInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require('fs');
@@ -13,9 +13,9 @@ export interface CreateDefinitionArguments extends CoreArguments {
     definitionPath: args.StringArgument
 }
 
-export class CreateDefinition extends TfCommand<CreateDefinitionArguments, buildContracts.DefinitionReference> {
+export class CreateDefinition extends TfCommand<CreateDefinitionArguments, releaseContracts.ReleaseDefinition> {
     protected serverCommand = true;
-    protected description = "Create a build definition";
+    protected description = "Create a release definition";
 
     protected getHelpArgs(): string[] {
         return ["project", "definitionPath", "name"];
@@ -24,12 +24,12 @@ export class CreateDefinition extends TfCommand<CreateDefinitionArguments, build
     protected setCommandArgs(): void {
         super.setCommandArgs();
 
-        this.registerCommandArgument("name", "Name of the Build Definition", "", args.StringArgument);
-        this.registerCommandArgument("definitionPath", "Definition path", "Local path to a Build Definition.", args.ExistingFilePathsArgument);
+        this.registerCommandArgument("name", "Name of the release Definition", "", args.StringArgument);
+        this.registerCommandArgument("definitionPath", "Definition path", "Local path to a release Definition.", args.ExistingFilePathsArgument);
     }
 
-    public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi();
+    public exec(): Promise<releaseContracts.ReleaseDefinition> {
+        var api = this.webApi.getReleaseApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
@@ -37,21 +37,20 @@ export class CreateDefinition extends TfCommand<CreateDefinitionArguments, build
             this.commandArgs.definitionPath.val(),
         ]).then((values) => {
             const [project, name, definitionPath] = values;
-            let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
+            let definition: releaseContracts.ReleaseDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
             definition.name = name as string;
 
-            trace.debug("Creating build definition %s...", name);
-                return api.then((defapi) => { return defapi.createDefinition(definition, project as string).then((definition) => {
+            trace.debug("Creating release definition %s...", name);
+                return api.then((defapi) => { return defapi.createReleaseDefinition(definition, project as string).then((definition) => {
                     return definition;
                 });
             });
         });
     }
 
-    public friendlyOutput(definition: buildContracts.BuildDefinition): void {
+    public friendlyOutput(definition: releaseContracts.ReleaseDefinition): void {
         trace.println();
         trace.info('id            : %s', definition.id);
         trace.info('name          : %s', definition.name);
-        trace.info('type          : %s', definition.type == buildContracts.DefinitionType.Xaml ? "Xaml" : "Build");
     }
 }

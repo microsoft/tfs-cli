@@ -22,7 +22,7 @@ export class ListDefinitions extends TfCommand<CoreArguments, releaseContracts.R
 
         return this.commandArgs.project.val().then((project) => {
                 return api.then((defapi) => {return defapi.getReleaseDefinitions(project as string).then((definitions) => {
-                    trace.debug("Retrieved " + definitions.length + " release definitions from server.");
+                    if(definitions){ trace.debug("Retrieved " + definitions.length ? definitions.length : "0" + " release definitions from server. (project: " + project + ")");}
                     return definitions;
                 });
             });
