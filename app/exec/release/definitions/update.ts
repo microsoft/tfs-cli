@@ -1,5 +1,5 @@
 import { TfCommand, CoreArguments } from "../../../lib/tfcommand";
-import buildContracts = require('azure-devops-node-api/interfaces/BuildInterfaces');
+import releaseContracts = require('azure-devops-node-api/interfaces/ReleaseInterfaces');
 import args = require("../../../lib/arguments");
 import trace = require('../../../lib/trace');
 import fs = require("fs");
@@ -13,9 +13,9 @@ export interface UpdateDefinitionArguments extends CoreArguments {
     definitionPath: args.StringArgument
 }
 
-export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, buildContracts.DefinitionReference> {
+export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, releaseContracts.ReleaseDefinition> {
     protected serverCommand = true;
-    protected description = "Update build definition";
+    protected description = "Update release definition";
     protected getHelpArgs(): string[] {
         return ["project", "definitionId", "definitionPath"];
     }
@@ -27,8 +27,8 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
         this.registerCommandArgument("definitionPath", "Definition Path", "Local path to a Build Definition.", args.ExistingFilePathsArgument);
     }
 
-    public exec(): Promise<buildContracts.DefinitionReference> {
-        var api = this.webApi.getBuildApi();
+    public exec(): Promise<releaseContracts.ReleaseDefinition> {
+        var api = this.webApi.getReleaseApi();
 
         return Promise.all<number | string | boolean>([
             this.commandArgs.project.val(),
@@ -39,14 +39,14 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
             // Get the current definition so we can grab the revision id
             trace.debug("Retrieving build definition %s...", definitionId);
             return api.then((defapi) => {
-                return defapi.getDefinition(project as string, definitionId as number).then(currentDefinition => {
+                return defapi.getReleaseDefinition(project as string, definitionId as number).then(currentDefinition => {
                     trace.debug("Reading build definition from %s...", definitionPath.toString());
-                    let definition: buildContracts.BuildDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
+                    let definition: releaseContracts.ReleaseDefinition = JSON.parse(fs.readFileSync(definitionPath.toString(), 'utf-8'));
                     definition.id = currentDefinition.id;
                     definition.revision = currentDefinition.revision;
                     trace.debug("Updating build definition %s...", definitionId);
                     return api.then((defapi) => {
-                        return defapi.updateDefinition(definition, project as string, definitionId as number,currentDefinition.id,currentDefinition.revision).then((definition) => {
+                        return defapi.updateReleaseDefinition(definition, project as string).then((definition) => {
                             return definition;
                         });
                     });
@@ -55,7 +55,7 @@ export class UpdateDefinition extends TfCommand<UpdateDefinitionArguments, build
         });
     }
 
-    public friendlyOutput(definition: buildContracts.BuildDefinition): void {
+    public friendlyOutput(definition: releaseContracts.ReleaseDefinition): void {
         trace.println();
         trace.info('id            : %s', definition.id);
         trace.info('name          : %s', definition.name);
