@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.7.95",
+  "version": "0.7.96",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",

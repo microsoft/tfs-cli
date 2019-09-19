@@ -40,7 +40,6 @@ class GR implements gi.GitPullRequest {
 	title: string;
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
-	CommitsCriteria: CommitsCriteria = new CommitsCriteria;
 }
 class GSC implements gi.GitPullRequestSearchCriteria  {
 	creatorId?: string;
@@ -58,10 +57,6 @@ class completionOptions implements gi.GitPullRequestCompletionOptions {
 	mergeCommitMessage: string;
 	squashMerge: boolean;
 	mergeStrategy?: gi.GitPullRequestMergeStrategy;
-}
-
-class CommitsCriteria implements gi.GitQueryCommitsCriteria {
-	includeWorkItems: boolean;
 }
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
@@ -136,9 +131,9 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		//Creating the request
 		if (!autoComplete)
-			return await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project) });
+			return await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project , false, true) });
 
-		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project) });
+		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project, false, true) });
 		var newPullrequest: GR = new GR;
 		if (delSources) {
 			newPullrequest.completionOptions = new completionOptions
@@ -152,8 +147,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 			newPullrequest.completionOptions.mergeStrategy = gi.GitPullRequestMergeStrategy[gi.GitPullRequestMergeStrategy[mergeMethod]]
 		}
-		newPullrequest.CommitsCriteria = new CommitsCriteria;
-		newPullrequest.CommitsCriteria.includeWorkItems = true;
+
 		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
 		return await gitApi.then((api) => { return api.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project); });
 	};
