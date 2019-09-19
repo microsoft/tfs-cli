@@ -131,9 +131,9 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 		//Creating the request
 		if (!autoComplete)
-			return await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project , true) });
+			return await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project, true, true) });
 
-		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project, true) });
+		var createdRequest = await gitApi.then((api) => { return api.createPullRequest(newPullrequest, gitRepositorieId, project, true, true) });
 		var newPullrequest: GR = new GR;
 		if (delSources) {
 			newPullrequest.completionOptions = new completionOptions
