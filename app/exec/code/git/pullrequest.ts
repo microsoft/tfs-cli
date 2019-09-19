@@ -40,6 +40,7 @@ class GR implements gi.GitPullRequest {
 	title: string;
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
+	CommitsCriteria: CommitsCriteria = new CommitsCriteria;
 }
 class GSC implements gi.GitPullRequestSearchCriteria  {
 	creatorId?: string;
@@ -57,6 +58,10 @@ class completionOptions implements gi.GitPullRequestCompletionOptions {
 	mergeCommitMessage: string;
 	squashMerge: boolean;
 	mergeStrategy?: gi.GitPullRequestMergeStrategy;
+}
+
+class CommitsCriteria implements gi.GitQueryCommitsCriteria {
+	includeWorkItems: boolean;
 }
 
 export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, void> {
@@ -128,6 +133,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 
 		newPullrequest.title = myBranchComment;
+		newPullrequest.CommitsCriteria = new CommitsCriteria;
+		newPullrequest.CommitsCriteria.includeWorkItems = true;
 
 		//Creating the request
 		if (!autoComplete)
