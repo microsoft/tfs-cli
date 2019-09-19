@@ -133,8 +133,6 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		}
 
 		newPullrequest.title = myBranchComment;
-		newPullrequest.CommitsCriteria = new CommitsCriteria;
-		newPullrequest.CommitsCriteria.includeWorkItems = true;
 
 		//Creating the request
 		if (!autoComplete)
@@ -154,6 +152,8 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 
 			newPullrequest.completionOptions.mergeStrategy = gi.GitPullRequestMergeStrategy[gi.GitPullRequestMergeStrategy[mergeMethod]]
 		}
+		newPullrequest.CommitsCriteria = new CommitsCriteria;
+		newPullrequest.CommitsCriteria.includeWorkItems = true;
 		newPullrequest.autoCompleteSetBy = createdRequest.createdBy;
 		return await gitApi.then((api) => { return api.updatePullRequest(newPullrequest, gitRepositorieId, createdRequest.pullRequestId, project); });
 	};
