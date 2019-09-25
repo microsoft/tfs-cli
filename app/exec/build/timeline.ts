@@ -8,12 +8,12 @@ import fs = require("fs");
 import { TLSSocket } from "tls";
 import { Stream } from "stream";
 
-export function getCommand(args: string[]): BuildLogs {
-	return new BuildLogs(args);
+export function getCommand(args: string[]): BuildTimeline {
+	return new BuildTimeline(args);
 }
 
-export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
-	protected description = "Download build logs to zip archive.";
+export class BuildTimeline extends buildBase.BuildBase<buildBase.BuildArguments, buildContracts.Build> {
+	protected description = "Download build timeline records to json file.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
@@ -21,7 +21,7 @@ export class BuildLogs extends buildBase.BuildBase<buildBase.BuildArguments, bui
 	}
 
 	public exec(): Promise<buildContracts.Timeline> {
-		trace.debug("build-logs.exec");
+		trace.debug("build-timeline.exec");
 		var buildapi = this.webApi.getBuildApi();
 		return this.commandArgs.project.val().then((project) => {
 			return this.commandArgs.buildId.val().then((buildId) => {
