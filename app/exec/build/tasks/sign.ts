@@ -1,27 +1,38 @@
+import fs = require("fs");
+import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
+import { resolve } from "url";
 
 export interface TaskSignResult {
 	signingSuccessful: boolean;
 }
 
-export class TaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
+export function getCommand(args: string[]): BuildTaskSign {
+	return new BuildTaskSign(args);
+}
+
+export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
+	protected description = "Sign one or more build tasks.";
+	protected serverCommand = true;
+
 	constructor(args: string[]) {
 		super(args);
 	}
 
-	// tfx build tasks sign --taskZipPath .\Foo\foo.zip
-	// tfx build tasks sign --taskSigningManifestPath .\Foo\manifest.json
+	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
+	// tfx build tasks sign --task-path ./Foo
+	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
 		const taskZipPath: string | null = await this.commandArgs.taskZipPath.val();
-		const taskSigningManifestPath: string | null = await this.commandArgs.taskSigningManifestPath.val();
+		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
 
-		if (taskZipPath && taskSigningManifestPath) {
-			throw new Error('Cannot provide both taskZipPath and taskSigningManifestPath.');
+		if (taskZipPath && manifestPath) {
+			throw new Error('Cannot provide both taskZipPath and manifestPath.');
 		}
 
-		if (!taskZipPath && !taskSigningManifestPath) {
-			throw new Error('Must provide either taskZipPath or taskSigningManifestPath.');
+		if (!taskZipPath && !manifestPath) {
+			throw new Error('Must provide either taskZipPath or manifestPath.');
 		}
 
 		// verify that we can find NuGet
@@ -30,12 +41,30 @@ export class TaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			throw new Error('Unable to find NuGet. Please add NuGet to the PATH before continuing.');
 		}
 
+		// Sign a single task
 		if (taskZipPath) {
-			// Sign a single zip
+			const resolvedTaskPath: string = path.resolve(taskZipPath);
+
+			console.log(`resolved: ${resolvedTaskPath}`);
+
+			const tempFolder: string = '';
+
+			// Create temp folder
+			fs.mkdirSync('');
+
+			// Copy task contents
+			// Zip
+			// Rename to nupkg
+			// Sign
+			// Rename to zip
+			// Extract
+			// Copy signature file to original task
+
+			// Delete temp folder
 
 		}
 
-		if (taskSigningManifestPath) {
+		if (manifestPath) {
 			// Process the manifest file
 
 		}
@@ -52,7 +81,6 @@ export class TaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["taskZipPath", "taskSigningManifestPath"];
+		return ["taskPath", "manifestPath"];
 	}
-
 }
