@@ -1,3 +1,4 @@
+var extract = require('extract-zip')
 import fs = require("fs");
 import path = require("path");
 import shell = require("shelljs");
@@ -78,13 +79,15 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			shell.exec(`${nuGetPath} sign ${taskTempNupkgPath} -CertificatePath ${certificatePath}`);
 			
 			// Rename to zip
+			fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 			
-			
-			// Extract
-			
+			// Extract into new temp task folder
+			const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
+			fs.mkdirSync(taskAfterSignTempFolder);
+			await extract(taskTempZipPath, taskAfterSignTempFolder);
 			
 			// Copy signature file to original task
-
+			
 
 			// Delete temp folder
 			//fs.rmdirSync(tempFolder);
