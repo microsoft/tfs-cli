@@ -52,28 +52,17 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			console.log(`resolved: ${resolvedTaskPath}`);
 
 			const tempFolder: string = 'C:\\temp';
+			const taskTempFolder: string = path.join(tempFolder, 'task');
 
 			// Create temp folder
 			fs.mkdirSync(tempFolder);
+			fs.mkdirSync(taskTempFolder);
 
 			// Copy task contents to temp folder
-			shell.cp('-R', taskZipPath, tempFolder);
+			shell.cp('-R', taskZipPath, taskTempFolder);
 
 			// Zip
-			var a = new zip();
-			var foo = a.folder(tempFolder);
-			var content = await foo.generateAsync({type:"nodebuffer"});
-			fs.writeFileSync('foo.zip', content); // TODO: Write in the temp path. Change temp path to have nested \task folder?
-
-			/////////////
-			zipFolder('/path/to/the/folder', '/path/to/archive.zip', function(err) {
-				if(err) {
-					console.log('oh no!', err);
-				} else {
-					console.log('EXCELLENT');
-				}
-			});
-			/////////////
+			await zipFolder(taskTempFolder, path.join(tempFolder, 'task.zip'));
 
 			// Rename to nupkg
 			
