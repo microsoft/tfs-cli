@@ -3,6 +3,8 @@ import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import { resolve } from "url";
+import zip = require("jszip");
+var zipFolder = require("zip-folder");
 
 export interface TaskSignResult {
 	signingSuccessful: boolean;
@@ -24,6 +26,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	// tfx build tasks sign --task-path ./Foo
 	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
+		console.log('starting');
+
 		const taskZipPath: string | null = await this.commandArgs.taskZipPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
 
@@ -47,17 +51,42 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 			console.log(`resolved: ${resolvedTaskPath}`);
 
-			const tempFolder: string = '';
+			const tempFolder: string = 'C:\\temp';
 
 			// Create temp folder
-			fs.mkdirSync('');
+			fs.mkdirSync(tempFolder);
 
-			// Copy task contents
+			// Copy task contents to temp folder
+			shell.cp('-R', taskZipPath, tempFolder);
+
 			// Zip
+			var a = new zip();
+			var foo = a.folder(tempFolder);
+			var content = await foo.generateAsync({type:"nodebuffer"});
+			fs.writeFileSync('foo.zip', content); // TODO: Write in the temp path. Change temp path to have nested \task folder?
+
+			/////////////
+			zipFolder('/path/to/the/folder', '/path/to/archive.zip', function(err) {
+				if(err) {
+					console.log('oh no!', err);
+				} else {
+					console.log('EXCELLENT');
+				}
+			});
+			/////////////
+
 			// Rename to nupkg
+			
+			
 			// Sign
+			
+			
 			// Rename to zip
+			
+			
 			// Extract
+			
+			
 			// Copy signature file to original task
 
 			// Delete temp folder
