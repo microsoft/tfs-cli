@@ -24,29 +24,29 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
-	// tfx build tasks sign --task-path ./Foo --cert-path C:/mycert
+	// tfx build tasks sign --task-path ./Foo --certificate-path C:/mycert
 	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
 		console.log('starting');
 
-		console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
-		console.log(`manifestPath: ${JSON.stringify(this.commandArgs.manifestPath)}`);
-		console.log(`certificatepath: ${JSON.stringify(this.commandArgs.certificatePath)}`);
+		// console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
+		// console.log(`manifestPath: ${JSON.stringify(this.commandArgs.manifestPath)}`);
+		// console.log(`certificatepath: ${JSON.stringify(this.commandArgs.certificatePath)}`);
 
 		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
 		const certificatePath: string | null = await this.commandArgs.certificatePath.val();
 
 		if (taskZipPath && manifestPath) {
-			throw new Error('Cannot provide both taskZipPath and manifestPath.');
+			throw new Error('Cannot provide both --task-path and --manifest-path.');
 		}
 
 		if (!taskZipPath && !manifestPath) {
-			throw new Error('Must provide either taskZipPath or manifestPath.');
+			throw new Error('Must provide either --task-path and --manifest-path.');
 		}
 
 		if (taskZipPath && !certificatePath) {
-			throw new Error('--cert-path must be provided when --task-path is provided.');
+			throw new Error('--certificate-path must be provided when --task-path is provided.');
 		}
 
 		// verify that we can find NuGet
