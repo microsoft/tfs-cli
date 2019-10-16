@@ -29,7 +29,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	public async exec(): Promise<TaskSignResult> {
 		console.log('starting');
 
-		const taskZipPath: string | null = await this.commandArgs.taskZipPath.val();
+		console.log(`taskzippath: ${this.commandArgs.taskPath}, manifestPath: ${this.commandArgs.manifestPath}, certificatepath: ${this.commandArgs.certPath}`)
+
+		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
 		const certificatePath: string | null = await this.commandArgs.certificatePath.val();
 
@@ -53,7 +55,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		// Sign a single task
 		if (taskZipPath) {
-			const resolvedTaskPath: string = path.resolve(taskZipPath); // Need to do this? Paths could be relative for either.
+			// TODO: Fix array usage. Just want first item.
+			const resolvedTaskPath: string = path.resolve(taskZipPath[0]); // Need to do this? Paths could be relative for either.
 
 			console.log(`resolved: ${resolvedTaskPath}`);
 
