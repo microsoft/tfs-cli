@@ -106,7 +106,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// - We are copying CmdLineV2, we need to cut off the end task folder name
 			// -- Or update code to accomodate it
 
-
+			
+			// TODO: Update to pass cert password in cli
 
 
 
