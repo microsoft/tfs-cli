@@ -4,8 +4,10 @@ import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import { resolve } from "url";
-import zip = require("jszip");
+var JSZip = require("jszip");
 var zipFolder = require("zip-folder");
+import zipdir = require('zip-dir');
+var archiver = require('archiver');
 
 export interface TaskSignResult {
 	signingSuccessful: boolean;
@@ -27,17 +29,12 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	// tfx build tasks sign --task-path ./Foo --certificate-path C:/mycert.cer
 	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
-		console.log('starting');
-
 		// console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
 		// console.log(`manifestPath: ${JSON.stringify(this.commandArgs.manifestPath)}`);
 		// console.log(`certificatepath: ${JSON.stringify(this.commandArgs.certificatePath)}`);
 
 		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
-
-		console.log(`manifest: ${JSON.stringify(manifestPath)}`);
-
 		const certificatePath: string | null = await this.commandArgs.certificatePath.val();
 
 		if (taskZipPath && manifestPath) {
@@ -65,40 +62,57 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 			console.log(`resolved: ${resolvedTaskPath}`);
 
-			const tempFolder: string = 'C:\\temp';
+			const tempFolder: string = 'C:\\temp2\\testing';
 			const taskTempFolder: string = path.join(tempFolder, 'task');
 			const taskTempZipPath: string = path.join(tempFolder, 'task.zip');
 			const taskTempNupkgPath: string = path.join(tempFolder, 'task.nupkg');
 
 			// Create temp folder
+			// TODO: Get rid of this?
+			if (fs.existsSync(tempFolder)) {
+				fs.rmdirSync(tempFolder);
+			}
+
 			fs.mkdirSync(tempFolder);
 			fs.mkdirSync(taskTempFolder);
 
 			// Copy task contents to temp folder
+			console.log('Copy task contents to temp folder');
 			shell.cp('-R', taskZipPath, taskTempFolder);
 
 			// Zip
-			await zipFolder(taskTempFolder, taskTempZipPath);
+			console.log('Zip');
+			await this.zipDirectory(taskTempFolder, taskTempZipPath);
 
 			// Rename to nupkg
+			console.log('Rename to nupkg');
 			fs.renameSync(taskTempZipPath, taskTempNupkgPath);
 			
 			// Sign
-			shell.exec(`${nuGetPath} sign ${taskTempNupkgPath} -CertificatePath ${certificatePath}`);
+			console.log('Sign');
+			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath}`;
+			console.log(`command: ${command}`);
+			var foo: shell.ExecOutputReturnValue = await shell.exec(command);
+			console.log(`sign result: ${JSON.stringify(foo)}`);
 			
-			// Rename to zip
-			fs.renameSync(taskTempNupkgPath, taskTempZipPath);
+			// // Rename to zip
+			// console.log('Rename to zip');
+			// fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 			
-			// Extract into new temp task folder
-			const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
-			fs.mkdirSync(taskAfterSignTempFolder);
-			await extract(taskTempZipPath, taskAfterSignTempFolder);
+			// // Extract into new temp task folder
+			// console.log('Extract into new temp task folder');
+			// const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
+			// fs.mkdirSync(taskAfterSignTempFolder);
+			// console.log('folder created');
+			// await extract(taskTempZipPath, taskAfterSignTempFolder);
 			
-			// Copy signature file to original task
-			
+			// // Copy signature file to original task
+			// console.log('Copy signature file to original task -- TODO');
+			// // TODO: Copy signature
 
-			// Delete temp folder
-			//fs.rmdirSync(tempFolder);
+			// // Delete temp folder
+			// //fs.rmdirSync(tempFolder);
+			console.log('done');
 		}
 
 		if (manifestPath) {
@@ -115,6 +129,41 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 
 		return result;
+	}
+
+	private zipArchive(path: string): void {
+		var zip = new JSZip();
+		zip.file("Hello.txt", "Hello World\n");
+		var img = zip.folder("images");
+		img.file('');
+
+
+		zip.generateAsync({type:"blob"})
+			.then(function(content) {
+				// see FileSaver.js
+				//saveAs(content, "example.zip");
+			});
+
+
+
+		
+
+	}
+
+	private zipDirectory(source, out): Promise<any> {
+		const archive = archiver('zip', { zlib: { level: 9 }});
+		const stream = fs.createWriteStream(out);
+
+		return new Promise((resolve, reject) => {
+			archive
+			.directory(source, false)
+			.on('error', err => reject(err))
+			.pipe(stream)
+			;
+
+			stream.on('close', () => resolve());
+			archive.finalize();
+		});
 	}
 
 	protected getHelpArgs(): string[] {
