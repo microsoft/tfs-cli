@@ -24,7 +24,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
-	// tfx build tasks sign --task-path ./Foo --certificate-path C:/mycert
+	// tfx build tasks sign --task-path ./Foo --certificate-path C:/mycert.cer
 	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
 		console.log('starting');
@@ -35,6 +35,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
+
+		console.log(`manifest: ${JSON.stringify(manifestPath)}`);
+
 		const certificatePath: string | null = await this.commandArgs.certificatePath.val();
 
 		if (taskZipPath && manifestPath) {
@@ -58,7 +61,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		// Sign a single task
 		if (taskZipPath) {
 			// TODO: Fix array usage. Just want first item.
-			const resolvedTaskPath: string = path.resolve(taskZipPath[0]); // Need to do this? Paths could be relative for either.
+			const resolvedTaskPath: string = path.resolve(taskZipPath[0]); // Need to do this? Paths could be relative for either. Does it matter?
 
 			console.log(`resolved: ${resolvedTaskPath}`);
 
