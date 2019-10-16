@@ -33,6 +33,9 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("friendlyName", "Friendly Task Name", null, args.StringArgument);
 		this.registerCommandArgument("description", "Task Description", null, args.StringArgument);
 		this.registerCommandArgument("author", "Task Author", null, args.StringArgument);
+
+		this.registerCommandArgument("manifestPath", "Manifest path", "Path to the manifest file", args.ExistingFilePathsArgument);
+		this.registerCommandArgument("certificatePath", "Certificate path", "Path to the task signing certificate", args.ExistingFilePathsArgument);
 	}
 
 	public exec(cmd?: any): Promise<any> {

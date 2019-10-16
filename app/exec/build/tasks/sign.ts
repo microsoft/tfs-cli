@@ -29,7 +29,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	public async exec(): Promise<TaskSignResult> {
 		console.log('starting');
 
-		console.log(`taskzippath: ${this.commandArgs.taskPath}, manifestPath: ${this.commandArgs.manifestPath}, certificatepath: ${this.commandArgs.certPath}`)
+		console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
+		console.log(`manifestPath: ${JSON.stringify(this.commandArgs.manifestPath)}`);
+		console.log(`certificatepath: ${JSON.stringify(this.commandArgs.certificatePath)}`);
 
 		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
 		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
