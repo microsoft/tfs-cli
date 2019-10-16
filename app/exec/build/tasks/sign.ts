@@ -90,10 +90,38 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			
 			// Sign
 			console.log('Sign');
-			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath}`;
+			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
 			console.log(`command: ${command}`);
 			var foo: shell.ExecOutputReturnValue = await shell.exec(command);
 			console.log(`sign result: ${JSON.stringify(foo)}`);
+
+
+
+
+
+
+			// Signature worked
+			// Need to copy p7z to root of zip
+			// Need to update code when we copy task contents to temp folder
+			// - We are copying CmdLineV2, we need to cut off the end task folder name
+			// -- Or update code to accomodate it
+
+
+
+
+
+
+
+
+
+
+
+
+
+			// TODO: Change from .cer to .pfx which has the private key.
+			// TODO: How do we export the private key?
+
+
 			
 			// // Rename to zip
 			// console.log('Rename to zip');
