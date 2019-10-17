@@ -18,6 +18,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
+    "adm-zip": "0.4.13",
     "app-root-path": "1.0.0",
     "archiver": "2.0.3",
     "async": "^1.4.0",

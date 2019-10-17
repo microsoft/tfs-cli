@@ -8,6 +8,7 @@ var JSZip = require("jszip");
 var zipFolder = require("zip-folder");
 import zipdir = require('zip-dir');
 var archiver = require('archiver');
+var admZip = require('adm-zip');
 
 export interface TaskSignResult {
 	signingSuccessful: boolean;
@@ -103,12 +104,19 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			console.log('Rename to zip');
 			fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 			
-			// // Extract into new temp task folder
-			// console.log('Extract into new temp task folder');
-			// const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
-			// fs.mkdirSync(taskAfterSignTempFolder);
-			// console.log('folder created');
-			// await extract(taskTempZipPath, taskAfterSignTempFolder);
+
+
+
+
+
+
+
+			// Extract into new temp task folder
+			console.log('Extract into new temp task folder');
+			const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
+			fs.mkdirSync(taskAfterSignTempFolder);
+			var zip = new admZip(taskTempZipPath);
+        	zip.extractAllTo(taskAfterSignTempFolder);
 			
 			// // Copy signature file to original task
 			// console.log('Copy signature file to original task -- TODO');
