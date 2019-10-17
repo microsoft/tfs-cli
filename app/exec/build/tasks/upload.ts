@@ -14,49 +14,60 @@ export function getCommand(args: string[]): BuildTaskUpload {
 
 var c_taskJsonFile: string = "task.json";
 
-export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
-	protected description = "Upload a Build Task.";
+export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition[]> {
+	protected description = "Upload Build Tasks.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
 		return ["taskPath", "overwrite"];
 	}
 
-	public async exec(): Promise<agentContracts.TaskDefinition> {
-		return this.commandArgs.taskPath.val().then(taskPaths => {
-			let taskPath = taskPaths[0];
-			return this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>(overwrite => {
-				vm.exists(taskPath, "specified directory " + taskPath + " does not exist.");
-				//directory is good, check json
+	public async exec(): Promise<agentContracts.TaskDefinition[]> {
+		return this.commandArgs.taskPath.val().then(async (taskPaths) => {
+			let definitionArr: agentContracts.TaskDefinition[] = [];
 
-				let tp = path.join(taskPath, c_taskJsonFile);
-				return vm.validate(tp, "no " + c_taskJsonFile + " in specified directory").then(async taskJson => {
-					let archive = archiver("zip");
-					archive.on("error", function(error) {
-						trace.debug("Archiving error: " + error.message);
-						error.message = "Archiving error: " + error.message;
-						throw error;
-					});
-					archive.directory(path.resolve(taskPath), false);
+			const collectionUrl = this.connection.getCollectionUrl();
+			console.log("Collection URL: " + collectionUrl);
+			let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
 
-					const collectionUrl = this.connection.getCollectionUrl();
-					console.log("Collection URL: " + collectionUrl);
-					let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
-
-					archive.finalize();
-					return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
-						trace.debug("Success");
-						return <agentContracts.TaskDefinition>{
-							sourceLocation: taskPath,
-						};
+			for (let i = 0; i < taskPaths.length; i++) {
+				let taskPath = taskPaths[i];
+				console.log("Uploading task: " + taskPath);
+				let definition: agentContracts.TaskDefinition | null = await this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>(overwrite => {
+					vm.exists(taskPath, "specified directory " + taskPath + " does not exist.");
+					//directory is good, check json
+	
+					let tp = path.join(taskPath, c_taskJsonFile);
+					return vm.validate(tp, "no " + c_taskJsonFile + " in specified directory").then(async taskJson => {
+						let archive = archiver("zip");
+						archive.on("error", function(error) {
+							trace.debug("Archiving error: " + error.message);
+							error.message = "Archiving error: " + error.message;
+							throw error;
+						});
+						archive.directory(path.resolve(taskPath), false);
+	
+						archive.finalize();
+						return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
+							trace.debug("Success");
+							return <agentContracts.TaskDefinition>{
+								sourceLocation: taskPath,
+							};
+						});
 					});
 				});
-			});
+				if (definition) {
+					definitionArr.push(definition);
+				}
+			}
+			return definitionArr;
 		});
 	}
 
-	public friendlyOutput(data: agentContracts.TaskDefinition): void {
+	public friendlyOutput(dataArray: agentContracts.TaskDefinition[]): void {
 		trace.println();
-		trace.success("Task at %s uploaded successfully!", data.sourceLocation);
+		dataArray.forEach(data => {
+			trace.success("Task at %s uploaded successfully!", data.sourceLocation);
+		})
 	}
 }
