@@ -9,6 +9,7 @@ var zipFolder = require("zip-folder");
 import zipdir = require('zip-dir');
 var archiver = require('archiver');
 var admZip = require('adm-zip');
+import trace = require("../../../lib/trace");
 
 export interface TaskSignResult {
 	signingSuccessful: boolean;
@@ -24,6 +25,10 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 	constructor(args: string[]) {
 		super(args);
+	}
+
+	protected getHelpArgs(): string[] {
+		return ["taskPath", "manifestPath"];
 	}
 
 	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
@@ -133,8 +138,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		// TODO: Do we want to generate a manifest file optionally for them?
 		// TODO: Should we allow them to pass a flag if it's in the box?
 
-		const result: TaskSignResult = <TaskSignResult>{};
-
+		const result: TaskSignResult = <TaskSignResult> { signingSuccessful: true };
 		return result;
 	}
 
@@ -154,7 +158,13 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		});
 	}
 
-	protected getHelpArgs(): string[] {
-		return ["taskPath", "manifestPath"];
+	public friendlyOutput(data: TaskSignResult): void {
+		trace.println();
+
+		if (data.signingSuccessful) {
+			trace.success("Task signed successfully!");
+		} else {
+			trace.error("Task signing failed.");
+		}
 	}
 }
