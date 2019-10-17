@@ -57,6 +57,12 @@ It's task is in the
 ~$ tfx build tasks upload --task-path ./CreateOctopusRelease
 ```
 
+You can also upload multiple tasks at once
+
+```bash
+~$ tfx build tasks upload --task-path ./CreateOctopusRelease ./DeleteOctopusRelease
+```
+
 Build tasks are cached by version on the agent. The implementation by that version is considered to be immutable. If you are changing the implementation and uploading, bump at least the patch version.
 
 ## List
