@@ -101,7 +101,10 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// Sign
 			console.log('Sign');
 			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
-			var foo: shell.ExecOutputReturnValue = await shell.exec(command, { silent: true });
+			//const { stdout, stderr, code } = shell.exec(command, { silent: true });
+			const result = shell.exec(command, { silent: true });
+			// TODO: Check stdout to see if there's an error, if there is set the result accordingly. And print out the error.
+
 			//console.log(`sign result: ${JSON.stringify(foo)}`);
 
 			// TODO: Update to pass cert password in cli
