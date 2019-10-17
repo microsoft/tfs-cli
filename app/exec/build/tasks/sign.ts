@@ -101,13 +101,10 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// Sign
 			console.log('Sign');
 			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
-			//const { stdout, stderr, code } = shell.exec(command, { silent: true });
 			const result = shell.exec(command, { silent: true });
 			// TODO: Check stdout to see if there's an error, if there is set the result accordingly. And print out the error.
 
-			//console.log(`sign result: ${JSON.stringify(foo)}`);
-
-			// TODO: Update to pass cert password in cli
+			// TODO: Update to pass cert password in cli? Or just always use a manifest
 			
 			// Rename to zip
 			console.log('Rename to zip');
@@ -119,14 +116,13 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			fs.mkdirSync(taskAfterSignTempFolder);
 			var zip = new admZip(taskTempZipPath);
 			zip.extractAllTo(taskAfterSignTempFolder);
-			
 
-
-
-			
-			// // Copy signature file to original task
-			// console.log('Copy signature file to original task -- TODO');
-			// // TODO: Copy signature
+			// Copy signature file to original task
+			console.log('Copy signature file to original task -- TODO');
+			const signatureFileName: string = '.signature.p7s';
+			const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
+			const signatureFileDestination: string = path.join(taskZipPath[0], signatureFileName);
+			fs.copyFileSync(signatureFileSource, signatureFileDestination); // TODO: Make sure this overrides existing files.
 
 			// // Delete temp folder
 			// //fs.rmdirSync(tempFolder);
