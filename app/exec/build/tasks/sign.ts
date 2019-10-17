@@ -57,6 +57,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		}
 
 		// Sign a single task
+		// TODO: Just always use a manifest file?
 		if (taskZipPath) {
 			// TODO: Fix array usage. Just want first item.
 			const resolvedTaskPath: string = path.resolve(taskZipPath[0]); // Need to do this? Paths could be relative for either. Does it matter?
@@ -96,27 +97,24 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			console.log('Sign');
 			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
 			var foo: shell.ExecOutputReturnValue = await shell.exec(command);
-			console.log(`sign result: ${JSON.stringify(foo)}`);
+			//console.log(`sign result: ${JSON.stringify(foo)}`);
 
 			// TODO: Update to pass cert password in cli
 			
 			// Rename to zip
 			console.log('Rename to zip');
 			fs.renameSync(taskTempNupkgPath, taskTempZipPath);
-			
-
-
-
-
-
-
 
 			// Extract into new temp task folder
 			console.log('Extract into new temp task folder');
 			const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
 			fs.mkdirSync(taskAfterSignTempFolder);
 			var zip = new admZip(taskTempZipPath);
-        	zip.extractAllTo(taskAfterSignTempFolder);
+			zip.extractAllTo(taskAfterSignTempFolder);
+			
+
+
+
 			
 			// // Copy signature file to original task
 			// console.log('Copy signature file to original task -- TODO');
