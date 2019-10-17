@@ -26,7 +26,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
-	// tfx build tasks sign --task-path ./Foo --certificate-path C:/mycert.cer
+	// node tfx-cli.js build tasks sign --task-path E:\github\vsts-tasks\_build\Tasks\CmdLineV2 --certificate-path C:\certs\user.pfx
 	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
 		// console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
@@ -63,7 +63,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			console.log(`resolved: ${resolvedTaskPath}`);
 
 			const tempFolder: string = 'C:\\temp2\\testing';
-			const taskTempFolder: string = path.join(tempFolder, 'task');
+			let taskTempFolder: string = path.join(tempFolder, 'task');
 			const taskTempZipPath: string = path.join(tempFolder, 'task.zip');
 			const taskTempNupkgPath: string = path.join(tempFolder, 'task.nupkg');
 
@@ -80,6 +80,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			console.log('Copy task contents to temp folder');
 			shell.cp('-R', taskZipPath, taskTempFolder);
 
+			// Task temp folder is now task\PREVIOUS_NAME
+			taskTempFolder = path.join(taskTempFolder, path.basename(taskZipPath[0]));
+
 			// Zip
 			console.log('Zip');
 			await this.zipDirectory(taskTempFolder, taskTempZipPath);
@@ -91,42 +94,14 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// Sign
 			console.log('Sign');
 			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
-			console.log(`command: ${command}`);
 			var foo: shell.ExecOutputReturnValue = await shell.exec(command);
 			console.log(`sign result: ${JSON.stringify(foo)}`);
 
-
-
-
-
-
-			// Signature worked
-			// Need to copy p7z to root of zip
-			// Need to update code when we copy task contents to temp folder
-			// - We are copying CmdLineV2, we need to cut off the end task folder name
-			// -- Or update code to accomodate it
-
-			
 			// TODO: Update to pass cert password in cli
-
-
-
-
-
-
-
-
-
-
-
-			// TODO: Change from .cer to .pfx which has the private key.
-			// TODO: How do we export the private key?
-
-
 			
-			// // Rename to zip
-			// console.log('Rename to zip');
-			// fs.renameSync(taskTempNupkgPath, taskTempZipPath);
+			// Rename to zip
+			console.log('Rename to zip');
+			fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 			
 			// // Extract into new temp task folder
 			// console.log('Extract into new temp task folder');
@@ -154,29 +129,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		const result: TaskSignResult = <TaskSignResult>{};
 
-		//shell.exec
-
-
 		return result;
-	}
-
-	private zipArchive(path: string): void {
-		var zip = new JSZip();
-		zip.file("Hello.txt", "Hello World\n");
-		var img = zip.folder("images");
-		img.file('');
-
-
-		zip.generateAsync({type:"blob"})
-			.then(function(content) {
-				// see FileSaver.js
-				//saveAs(content, "example.zip");
-			});
-
-
-
-		
-
 	}
 
 	private zipDirectory(source, out): Promise<any> {
@@ -185,9 +138,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		return new Promise((resolve, reject) => {
 			archive
-			.directory(source, false)
-			.on('error', err => reject(err))
-			.pipe(stream)
+				.directory(source, false)
+				.on('error', err => reject(err))
+				.pipe(stream)
 			;
 
 			stream.on('close', () => resolve());
