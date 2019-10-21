@@ -1,9 +1,11 @@
 import admZip = require("adm-zip");
 import archiver = require("archiver");
+const del = require('del');
 import fs = require("fs");
+var ncp = require('ncp').ncp;
 import os = require('os');
 import path = require("path");
-import rimraf = require("rimraf");
+//import rimraf = require("rimraf");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
@@ -18,7 +20,6 @@ export function getCommand(args: string[]): BuildTaskSign {
 
 export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	protected description = "Sign a task.";
-	protected serverCommand = true;
 
 	constructor(args: string[]) {
 		super(args);
@@ -50,7 +51,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		// Create temp folder
 		if (fs.existsSync(tempFolder)) {
-			rimraf.sync(tempFolder);
+			await del(tempFolder, { force: true });
 		}
 
 		fs.mkdirSync(tempFolder);
@@ -66,7 +67,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix;
 		if (needToUpdateTaskJson) {
 			const taskJsonPath: string = path.join(taskTempFolder, 'task.json');
-
+			console.log(taskJsonPath);
 			const data: string = fs.readFileSync(taskJsonPath, 'utf8');
 			let taskJson: any = JSON.parse(data);
 
@@ -75,9 +76,12 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			}
 
 			if (newNameSuffix) {
-				taskJson.name += newNameSuffix;
+				taskJson.name = `${taskJson.name}${newNameSuffix}`;
 			}
 
+			console.log(JSON.stringify(taskJson));
+
+			// TODO: Change all sync calls to await with async
 			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
 		}
 
@@ -92,10 +96,10 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		const execResult: any = shell.exec(command, { silent: true });
 		if (execResult.code === 1) { 
 			trace.info(execResult.output);
-
-			rimraf.sync(tempFolder);
-
-			return <TaskSignResult> { signingSuccessful: false };
+			await del(tempFolder, { force: true });
+		
+			const result: TaskSignResult = { signingSuccessful: false };
+			return result;
 		}
 
 		// Rename to zip
@@ -108,15 +112,19 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		zip.extractAllTo(taskAfterSignTempFolder);
 
 		// Copy signature file to original task
-		const signatureFileName: string = '.signature.p7s';
-		const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
-		const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
-		fs.copyFileSync(signatureFileSource, signatureFileDestination);
+		// const signatureFileName: string = '.signature.p7s';
+		// const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
+		// const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
+		// fs.copyFileSync(signatureFileSource, signatureFileDestination);
+
+		// Copy task contents
+		// This can include the new signature file as well as a modified task.json
+		await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
 
 		// Delete temp folder
-		rimraf.sync(tempFolder);
+		await del(tempFolder, { force: true });
 
-		const result: TaskSignResult = <TaskSignResult> { signingSuccessful: true };
+		const result: TaskSignResult = { signingSuccessful: true };
 		return result;
 	}
 
@@ -128,6 +136,17 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		} else {
 			trace.error("Task signing failed.");
 		}
+	}
+
+	private ncpAsync(src: string, dest: string): Promise<void> {
+		return new Promise(function (resolve, reject) {
+			ncp(src, dest, function (err) {
+				if (err) {
+				  reject(err);
+				}
+				resolve();
+			   });
+		});
 	}
 
 	private zipDirectory(source: string, out: string): Promise<any> {
