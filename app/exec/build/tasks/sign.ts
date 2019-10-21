@@ -76,7 +76,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			}
 
 			if (newNameSuffix) {
-				taskJson.name = `${taskJson.name}${newNameSuffix.replace("'", "")}`;
+				taskJson.name = `${taskJson.name}${newNameSuffix}`;
 			}
 
 			// TODO: Change all sync calls to await with async
