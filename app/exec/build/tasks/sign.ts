@@ -5,7 +5,6 @@ import fs = require("fs");
 var ncp = require('ncp').ncp;
 import os = require('os');
 import path = require("path");
-//import rimraf = require("rimraf");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
@@ -29,7 +28,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		return ["taskPath", "manifestPath"]; // TODO: Add other parameters here, test usage of help command for sign
 	}
 
-	// tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix '- SIGNED'
+	// tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix ' - SIGNED'
 	// --new-guid and --new-name-suffix are optional
 	public async exec(): Promise<TaskSignResult> {
 		const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
@@ -75,7 +74,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			}
 
 			if (newNameSuffix) {
-				taskJson.name = `${taskJson.name}${newNameSuffix.replace("'", "")}`;
+				taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
 			}
 
 			// TODO: Change all sync calls to await with async
@@ -107,12 +106,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		fs.mkdirSync(taskAfterSignTempFolder);
 		var zip = new admZip(taskTempZipPath);
 		zip.extractAllTo(taskAfterSignTempFolder);
-
-		// Copy signature file to original task
-		// const signatureFileName: string = '.signature.p7s';
-		// const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
-		// const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
-		// fs.copyFileSync(signatureFileSource, signatureFileDestination);
 
 		// Copy task contents
 		// This can include the new signature file as well as a modified task.json
