@@ -76,10 +76,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			}
 
 			if (newNameSuffix) {
-				taskJson.name = `${taskJson.name}${newNameSuffix}`;
+				taskJson.name = `${taskJson.name}${newNameSuffix.replace("'", "")}`;
 			}
-
-			console.log(JSON.stringify(taskJson));
 
 			// TODO: Change all sync calls to await with async
 			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
