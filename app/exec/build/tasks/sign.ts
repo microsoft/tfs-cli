@@ -67,7 +67,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix;
 		if (needToUpdateTaskJson) {
 			const taskJsonPath: string = path.join(taskTempFolder, 'task.json');
-			console.log(taskJsonPath);
 			const data: string = fs.readFileSync(taskJsonPath, 'utf8');
 			let taskJson: any = JSON.parse(data);
 
