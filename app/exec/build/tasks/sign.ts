@@ -36,12 +36,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	public async exec(): Promise<TaskSignResult> {
 		const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
 		const taskZipPath = taskZipsPath[0];
-		
-		let certFingerprint: string | null = await this.commandArgs.certFingerprint.val();
-		const certFingerprintArg: any = await this.commandArgs.certFingerprint;
-		if (certFingerprintArg) {
-			certFingerprint = certFingerprintArg.val();
-		}
+		const certFingerprint: string | null = await this.commandArgs.certFingerprint.val();
 
 		let newGuid: string | null = null;
 		const newGuidArg: any = await this.commandArgs.newGuid;
@@ -49,7 +44,11 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			newGuid = newGuidArg.val()
 		}
 
-		const newNameSuffix: string | null = await this.commandArgs.newNameSuffix.val();
+		let newNameSuffix: string | null = null;
+		const newNameSuffixArg: any = await this.commandArgs.newNameSuffix;
+		if (newNameSuffixArg) {
+			newNameSuffix = newNameSuffixArg.val();
+		}
 
 		// verify that we can find NuGet
 		const nuGetPath: string = shell.which('nuget');
@@ -97,7 +96,20 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		// Sign
 		console.log('Sign');
 		const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint ${certFingerprint} -NonInteractive`;
-		const execResult = shell.exec(command, { silent: true });
+		//const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint BADCERT -NonInteractive`;
+		const execResult: any = shell.exec(command, { silent: true });
+		if (execResult.code === 1) { 
+			trace.info(execResult.output);
+
+			// TODO: Cleanup.
+
+			return <TaskSignResult> { signingSuccessful: false };
+		}
+		// var version = exec('node --version', {silent:true}).stdout;
+		// .code
+
+
+
 		// TODO: Check stdout to see if there's an error, if there is set the result accordingly. And print out the error.
 		// TODO: Test this by passing a cert that doesn't exist.
 
