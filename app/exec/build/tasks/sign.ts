@@ -93,7 +93,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 				taskJson.name += newNameSuffix;
 			}
 
-			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson));
+			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
 		}
 
 		// Zip
