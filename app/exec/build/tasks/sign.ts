@@ -29,8 +29,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		return ["taskPath", "manifestPath"]; // TODO: Add other parameters here, test usage of help command for sign
 	}
 
-	// TODO: tfx not node tfx-cli.js
-	// node tfx-cli.js build tasks sign --task-path E:\github\vsts-tasks\_build\Tasks\CmdLineV2 --cert-fingerprint 515521DB5C8C3FCFDBD62C1D5DFA2583EE3E1BB5 --new-guid 87AC3A14-3F27-49B9-91D6-8E27D4475354 --new-name-suffix '- SIGNED'
+	// tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix '- SIGNED'
+	// --new-guid and --new-name-suffix are optional
 	public async exec(): Promise<TaskSignResult> {
 		const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
 		const taskZipPath = taskZipsPath[0];
@@ -75,7 +75,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			}
 
 			if (newNameSuffix) {
-				taskJson.name = `${taskJson.name}${newNameSuffix}`;
+				taskJson.name = `${taskJson.name}${newNameSuffix.replace("'", "")}`;
 			}
 
 			// TODO: Change all sync calls to await with async
