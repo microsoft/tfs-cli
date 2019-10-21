@@ -46,9 +46,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			throw new Error('Unable to find NuGet. Please add NuGet to the PATH before continuing.');
 		}
 
-		// TODO: Fix array usage. Just want first item.
-		const resolvedTaskPath: string = path.resolve(taskZipPath); // Need to do this? Paths could be relative for either. Does it matter?
-
 		const tempFolder: string = 'C:\\temp2\\testing';
 		let taskTempFolder: string = path.join(tempFolder, 'task');
 		const taskTempZipPath: string = path.join(tempFolder, 'task.zip');
@@ -105,7 +102,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		zip.extractAllTo(taskAfterSignTempFolder);
 
 		// Copy signature file to original task
-		console.log('Copy signature file to original task -- TODO');
+		console.log('Copy signature file to original task');
 		const signatureFileName: string = '.signature.p7s';
 		const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
 		const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
