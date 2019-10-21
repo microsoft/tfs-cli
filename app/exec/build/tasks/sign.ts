@@ -71,7 +71,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		fs.mkdirSync(taskTempFolder);
 
 		// Copy task contents to temp folder
-		console.log('Copy task contents to temp folder');
 		shell.cp('-R', taskZipPath, taskTempFolder);
 
 		// Task temp folder is now task\PREVIOUS_NAME
@@ -101,46 +100,33 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		await this.zipDirectory(taskTempFolder, taskTempZipPath);
 
 		// Rename to nupkg
-		console.log('Rename to nupkg');
 		fs.renameSync(taskTempZipPath, taskTempNupkgPath);
 		
 		// Sign
-		console.log('Sign');
 		const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint ${certFingerprint} -NonInteractive`;
-		//const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint BADCERT -NonInteractive`;
 		const execResult: any = shell.exec(command, { silent: true });
 		if (execResult.code === 1) { 
 			trace.info(execResult.output);
 
-			// TODO: Cleanup.
+			// TODO: Cleanup temp folders.
 
 			return <TaskSignResult> { signingSuccessful: false };
 		}
-		// var version = exec('node --version', {silent:true}).stdout;
-		// .code
-
-
-
-		// TODO: Check stdout to see if there's an error, if there is set the result accordingly. And print out the error.
-		// TODO: Test this by passing a cert that doesn't exist.
 
 		// Rename to zip
-		console.log('Rename to zip');
 		fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 
 		// Extract into new temp task folder
-		console.log('Extract into new temp task folder');
 		const taskAfterSignTempFolder: string = path.join(tempFolder, 'task-after-sign');
 		fs.mkdirSync(taskAfterSignTempFolder);
 		var zip = new admZip(taskTempZipPath);
 		zip.extractAllTo(taskAfterSignTempFolder);
 
 		// Copy signature file to original task
-		console.log('Copy signature file to original task');
 		const signatureFileName: string = '.signature.p7s';
 		const signatureFileSource: string = path.join(taskAfterSignTempFolder, signatureFileName);
 		const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
-		fs.copyFileSync(signatureFileSource, signatureFileDestination); // TODO: Make sure this overrides existing files.
+		fs.copyFileSync(signatureFileSource, signatureFileDestination);
 
 		// // Delete temp folder
 		// //fs.rmdirSync(tempFolder);
