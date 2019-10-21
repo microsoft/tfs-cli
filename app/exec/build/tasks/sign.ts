@@ -37,18 +37,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
 		const taskZipPath = taskZipsPath[0];
 		const certFingerprint: string | null = await this.commandArgs.certFingerprint.val();
-
-		let newGuid: string | null = null;
-		const newGuidArg: any = await this.commandArgs.newGuid;
-		if (newGuidArg) {
-			newGuid = newGuidArg.val()
-		}
-
-		let newNameSuffix: string | null = null;
-		const newNameSuffixArg: any = await this.commandArgs.newNameSuffix;
-		if (newNameSuffixArg) {
-			newNameSuffix = newNameSuffixArg.val();
-		}
+		const newGuid: string | null = await this.commandArgs.newGuid.val();
+		const newNameSuffix: string | null = await this.commandArgs.newNameSuffix.val();
 
 		// verify that we can find NuGet
 		const nuGetPath: string = shell.which('nuget');
@@ -96,7 +86,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		}
 
 		// Zip
-		console.log('Zip');
 		await this.zipDirectory(taskTempFolder, taskTempZipPath);
 
 		// Rename to nupkg
@@ -130,7 +119,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		// // Delete temp folder
 		// //fs.rmdirSync(tempFolder);
-		console.log('done');
 
 		const result: TaskSignResult = <TaskSignResult> { signingSuccessful: true };
 		return result;
