@@ -1,14 +1,11 @@
-// var extract = require('extract-zip')
+import admZip = require("adm-zip");
+import archiver = require("archiver");
 import fs = require("fs");
+import os = require('os');
 import path = require("path");
+import rimraf = require("rimraf");
 import shell = require("shelljs");
 import tasksBase = require("./default");
-// import { resolve } from "url";
-// var JSZip = require("jszip");
-// var zipFolder = require("zip-folder");
-// import zipdir = require('zip-dir');
-var archiver = require('archiver');
-var admZip = require('adm-zip');
 import trace = require("../../../lib/trace");
 
 export interface TaskSignResult {
@@ -20,7 +17,7 @@ export function getCommand(args: string[]): BuildTaskSign {
 }
 
 export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
-	protected description = "Sign one or more build tasks.";
+	protected description = "Sign a task.";
 	protected serverCommand = true;
 
 	constructor(args: string[]) {
@@ -46,15 +43,14 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			throw new Error('Unable to find NuGet. Please add NuGet to the PATH before continuing.');
 		}
 
-		const tempFolder: string = 'C:\\temp2\\testing';
+		const tempFolder: string = fs.mkdtempSync(path.join(os.tmpdir(), 'task-'));
 		let taskTempFolder: string = path.join(tempFolder, 'task');
 		const taskTempZipPath: string = path.join(tempFolder, 'task.zip');
 		const taskTempNupkgPath: string = path.join(tempFolder, 'task.nupkg');
 
 		// Create temp folder
-		// TODO: Get rid of this?
 		if (fs.existsSync(tempFolder)) {
-			fs.rmdirSync(tempFolder);
+			rimraf.sync(tempFolder);
 		}
 
 		fs.mkdirSync(tempFolder);
@@ -72,7 +68,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			const taskJsonPath: string = path.join(taskTempFolder, 'task.json');
 
 			const data: string = fs.readFileSync(taskJsonPath, 'utf8');
-			let taskJson = JSON.parse(data);
+			let taskJson: any = JSON.parse(data);
 
 			if (newGuid) {
 				taskJson.id = newGuid;
@@ -97,7 +93,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		if (execResult.code === 1) { 
 			trace.info(execResult.output);
 
-			// TODO: Cleanup temp folders.
+			rimraf.sync(tempFolder);
 
 			return <TaskSignResult> { signingSuccessful: false };
 		}
@@ -117,14 +113,24 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		const signatureFileDestination: string = path.join(taskZipPath, signatureFileName);
 		fs.copyFileSync(signatureFileSource, signatureFileDestination);
 
-		// // Delete temp folder
-		// //fs.rmdirSync(tempFolder);
+		// Delete temp folder
+		rimraf.sync(tempFolder);
 
 		const result: TaskSignResult = <TaskSignResult> { signingSuccessful: true };
 		return result;
 	}
 
-	private zipDirectory(source, out): Promise<any> {
+	public friendlyOutput(data: TaskSignResult): void {
+		trace.println();
+
+		if (data.signingSuccessful) {
+			trace.success("Task signed successfully!");
+		} else {
+			trace.error("Task signing failed.");
+		}
+	}
+
+	private zipDirectory(source: string, out: string): Promise<any> {
 		const archive = archiver('zip', { zlib: { level: 9 }});
 		const stream = fs.createWriteStream(out);
 
@@ -138,15 +144,5 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			stream.on('close', () => resolve());
 			archive.finalize();
 		});
-	}
-
-	public friendlyOutput(data: TaskSignResult): void {
-		trace.println();
-
-		if (data.signingSuccessful) {
-			trace.success("Task signed successfully!");
-		} else {
-			trace.error("Task signing failed.");
-		}
 	}
 }
