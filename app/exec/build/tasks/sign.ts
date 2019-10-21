@@ -78,11 +78,22 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		taskTempFolder = path.join(taskTempFolder, path.basename(taskZipPath));
 
 		// Update guid/name
-		const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix; // TODO: Is !! correct? What else can we use.
+		const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix;
 		if (needToUpdateTaskJson) {
-			// newGuid
-			// newNameSuffix -- idempontent, only set if it's not already the suffix? maybe not. will always be on new task.
+			const taskJsonPath: string = path.join(taskTempFolder, 'task.json');
 
+			const data: string = fs.readFileSync(taskJsonPath, 'utf8');
+			let taskJson = JSON.parse(data);
+
+			if (newGuid) {
+				taskJson.id = newGuid;
+			}
+
+			if (newNameSuffix) {
+				taskJson.name += newNameSuffix;
+			}
+
+			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson));
 		}
 
 		// Zip
