@@ -36,8 +36,19 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	public async exec(): Promise<TaskSignResult> {
 		const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
 		const taskZipPath = taskZipsPath[0];
-		const certFingerprint: string | null = await this.commandArgs.certFingerprint.val();
-		const newGuid: string | null = await this.commandArgs.newGuid.val();
+		
+		let certFingerprint: string | null = await this.commandArgs.certFingerprint.val();
+		const certFingerprintArg: any = await this.commandArgs.certFingerprint;
+		if (certFingerprintArg) {
+			certFingerprint = certFingerprintArg.val();
+		}
+
+		let newGuid: string | null = null;
+		const newGuidArg: any = await this.commandArgs.newGuid;
+		if (newGuidArg) {
+			newGuid = newGuidArg.val()
+		}
+
 		const newNameSuffix: string | null = await this.commandArgs.newNameSuffix.val();
 
 		// verify that we can find NuGet
