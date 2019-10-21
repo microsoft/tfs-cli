@@ -28,32 +28,23 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["taskPath", "manifestPath"];
+		return ["taskPath", "manifestPath"]; // TODO: Add other parameters here, test usage of help command for sign
 	}
 
-	// TODO: Task path needs to be non zipped so we can use tfx build tasks upload --task-path ./Foo after
+	// TODO: tfx not node tfx-cli.js
 	// node tfx-cli.js build tasks sign --task-path E:\github\vsts-tasks\_build\Tasks\CmdLineV2 --certificate-path C:\certs\user.pfx
-	// tfx build tasks sign --manifest-path ./Foo/manifest.json
 	public async exec(): Promise<TaskSignResult> {
-		// console.log(`taskzippath: ${JSON.stringify(this.commandArgs.taskPath)}`);
-		// console.log(`manifestPath: ${JSON.stringify(this.commandArgs.manifestPath)}`);
-		// console.log(`certificatepath: ${JSON.stringify(this.commandArgs.certificatePath)}`);
-
+		// -- cert-fingerprint 515521DB5C8C3FCFDBD62C1D5DFA2583EE3E1BB5
+		// -- new-guid 87AC3A14-3F27-49B9-91D6-8E27D4475354
+		// -- new-name-suffix '- SIGNED'
 		const taskZipPath: string[] | null = await this.commandArgs.taskPath.val();
-		const manifestPath: string | null = await this.commandArgs.manifestPath.val();
 		const certificatePath: string | null = await this.commandArgs.certificatePath.val();
 
-		if (taskZipPath && manifestPath) {
-			throw new Error('Cannot provide both --task-path and --manifest-path.');
-		}
 
-		if (!taskZipPath && !manifestPath) {
-			throw new Error('Must provide either --task-path and --manifest-path.');
-		}
+		// TODO: Implement modifying task.json to change guid and add new name
+		const newGuid: string = '87AC3A14-3F27-49B9-91D6-8E27D4475354';
+		const newNameSuffix: string = '- SIGNED';
 
-		if (taskZipPath && !certificatePath) {
-			throw new Error('--certificate-path must be provided when --task-path is provided.');
-		}
 
 		// verify that we can find NuGet
 		const nuGetPath: string = shell.which('nuget');
@@ -63,11 +54,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
 		// Sign a single task
 		// TODO: Just always use a manifest file?
-		if (taskZipPath) {
+		if (taskZipPath) { // TODO: Drop this if.
 			// TODO: Fix array usage. Just want first item.
 			const resolvedTaskPath: string = path.resolve(taskZipPath[0]); // Need to do this? Paths could be relative for either. Does it matter?
-
-			console.log(`resolved: ${resolvedTaskPath}`);
 
 			const tempFolder: string = 'C:\\temp2\\testing';
 			let taskTempFolder: string = path.join(tempFolder, 'task');
@@ -90,6 +79,14 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// Task temp folder is now task\PREVIOUS_NAME
 			taskTempFolder = path.join(taskTempFolder, path.basename(taskZipPath[0]));
 
+			// Update guid/name
+			const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix; // TODO: Is !! correct? What else can we use.
+			if (needToUpdateTaskJson) {
+				// newGuid
+				// newNameSuffix -- idempontent, only set if it's not already the suffix? maybe not. will always be on new task.
+
+			}
+
 			// Zip
 			console.log('Zip');
 			await this.zipDirectory(taskTempFolder, taskTempZipPath);
@@ -100,7 +97,15 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			
 			// Sign
 			console.log('Sign');
-			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
+			//const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificatePath ${certificatePath} -CertificatePassword 1234 -NonInteractive`; // TODO: Pass to cli
+			const fingerprint: string = '515521DB5C8C3FCFDBD62C1D5DFA2583EE3E1BB5';
+			const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint ${fingerprint} -NonInteractive`; // TODO: Pass to cli
+			
+
+			// CertificateFingerprint
+
+
+
 			const result = shell.exec(command, { silent: true });
 			// TODO: Check stdout to see if there's an error, if there is set the result accordingly. And print out the error.
 
@@ -128,14 +133,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			// //fs.rmdirSync(tempFolder);
 			console.log('done');
 		}
-
-		if (manifestPath) {
-			// Process the manifest file
-
-		}
-
-		// TODO: Do we want to generate a manifest file optionally for them?
-		// TODO: Should we allow them to pass a flag if it's in the box?
 
 		const result: TaskSignResult = <TaskSignResult> { signingSuccessful: true };
 		return result;
