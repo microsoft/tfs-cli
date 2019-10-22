@@ -1,6 +1,6 @@
 import admZip = require("adm-zip");
 import archiver = require("archiver");
-const del = require('del');
+import del = require('del');
 import fs = require("fs");
 var ncp = require('ncp').ncp;
 import os = require('os');
@@ -77,7 +77,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 				taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
 			}
 
-			// TODO: Change all sync calls to await with async
 			fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
 		}
 
@@ -89,6 +88,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		
 		// Sign
 		const command: string = `"${nuGetPath}" sign ${taskTempNupkgPath} -CertificateFingerprint ${certFingerprint} -NonInteractive`;
+		trace.info(`Executing command: '${command}'`);
 		const execResult: any = shell.exec(command, { silent: true });
 		if (execResult.code === 1) { 
 			trace.info(execResult.output);
@@ -98,7 +98,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 			return result;
 		}
 
-		// Rename to zip
+		// Rename .nupkg back to to .zip
 		fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 
 		// Extract into new temp task folder
@@ -128,6 +128,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		}
 	}
 
+	// Wrap ncp in Promise so we can async it
 	private ncpAsync(src: string, dest: string): Promise<void> {
 		return new Promise(function (resolve, reject) {
 			ncp(src, dest, function (err) {
@@ -139,6 +140,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 		});
 	}
 
+	// Helper function to zip a directory
 	private zipDirectory(source: string, out: string): Promise<any> {
 		const archive = archiver('zip', { zlib: { level: 9 }});
 		const stream = fs.createWriteStream(out);
