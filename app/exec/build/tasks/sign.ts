@@ -25,7 +25,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 	}
 
 	protected getHelpArgs(): string[] {
-		return ["taskPath", "manifestPath"]; // TODO: Add other parameters here, test usage of help command for sign
+		return ["certFingerprint", "taskPath", "newGuid", "newNameSuffix"];
 	}
 
 	// tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix ' - SIGNED'
