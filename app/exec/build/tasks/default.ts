@@ -35,8 +35,8 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("author", "Task Author", null, args.StringArgument);
 
 		this.registerCommandArgument("certFingerprint", "Certificate fingerprint", "Fingerprint of the signing certificate", args.StringArgument);
-		this.registerCommandArgument("newGuid", "New guid", "New guid for the task we are signing", args.StringArgument, null);
-		this.registerCommandArgument("newNameSuffix", "New name suffix", "Suffix to add to the task name", args.StringArgument, null);
+		this.registerCommandArgument("newGuid", "New guid", "(optional) New guid for the task we are signing", args.StringArgument, null);
+		this.registerCommandArgument("newNameSuffix", "New name suffix", "(optional) Suffix to add to the task name", args.StringArgument, null);
 	}
 
 	public exec(cmd?: any): Promise<any> {

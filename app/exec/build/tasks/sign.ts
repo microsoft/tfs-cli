@@ -1,8 +1,8 @@
 import admZip = require("adm-zip");
 import archiver = require("archiver");
-import del = require("del");
+//import del = require("del");
 import fs = require("fs");
-var ncp = require("ncp").ncp;
+var ncp = require('ncp').ncp;
 import os = require("os");
 import path = require("path");
 import shell = require("shelljs");
@@ -55,11 +55,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     const taskTempNupkgPath: string = path.join(tempFolder, "task.nupkg");
 
     // Create temp folder
-    if (fs.existsSync(tempFolder)) {
-      await del(tempFolder, { force: true });
-    }
-
-    fs.mkdirSync(tempFolder);
     fs.mkdirSync(taskTempFolder);
 
     // Copy task contents to temp folder
@@ -98,7 +93,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     const execResult: any = shell.exec(command, { silent: true });
     if (execResult.code === 1) {
       trace.info(execResult.output);
-      await del(tempFolder, { force: true });
+	  //await del(tempFolder, { force: true });
+	  shell.rm('-rf', tempFolder);
 
       const result: TaskSignResult = { signingSuccessful: false };
       return result;
@@ -113,7 +109,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
       "task-after-sign"
     );
     fs.mkdirSync(taskAfterSignTempFolder);
-    var zip = new admZip(taskTempZipPath);
+    const zip = new admZip(taskTempZipPath);
     zip.extractAllTo(taskAfterSignTempFolder);
 
     // Copy task contents
@@ -121,7 +117,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
 
     // Delete temp folder
-    await del(tempFolder, { force: true });
+	//await del(tempFolder, { force: true });
+	shell.rm('-rf', tempFolder);
 
     const result: TaskSignResult = { signingSuccessful: true };
     return result;
