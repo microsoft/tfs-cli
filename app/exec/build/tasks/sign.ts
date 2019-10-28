@@ -3,7 +3,7 @@ import archiver = require("archiver");
 //import del = require("del");
 import { extractZip } from "../../../lib/zipUtils";
 import fs = require("fs");
-//var ncp = require('ncp').ncp;
+var ncp = require('ncp').ncp; // shell cp says "cp: omitting directory 'C:/Users/stephen/AppData/Local/Temp/task-FR6WUc/task-after-sign'"
 import os = require("os");
 import path = require("path");
 import shell = require("shelljs");
@@ -120,8 +120,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
     // Copy task contents
     // This can include the new signature file as well as a modified task.json
-    //await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
-    shell.cp('-R', taskAfterSignTempFolder, taskZipPath)
+    await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
+    //shell.cp('-R', taskAfterSignTempFolder, taskZipPath)
 
     // Delete temp folder
     //await del(tempFolder, { force: true });
@@ -143,16 +143,16 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
   }
 
   // Wrap ncp in Promise so we can async it
-  // private ncpAsync(src: string, dest: string): Promise<void> {
-  //   return new Promise(function(resolve, reject) {
-  //     ncp(src, dest, function(err) {
-  //       if (err) {
-  //         reject(err);
-  //       }
-  //       resolve();
-  //     });
-  //   });
-  // }
+  private ncpAsync(src: string, dest: string): Promise<void> {
+    return new Promise(function(resolve, reject) {
+      ncp(src, dest, function(err) {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    });
+  }
 
   // Write nuspec file into contents of task
   // This allows nuget to verify the signature of the package
