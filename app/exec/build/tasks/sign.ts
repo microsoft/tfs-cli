@@ -160,20 +160,20 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
   private writeNuspecFile(nuspecFilePath: string, certFingerprint: string): void {
     let contents: string = '';
 
-    contents += '<?xml version="1.0" encoding="utf-8"?>;';
-    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">';
-    contents += '    <metadata>';
-    contents += '        <!-- Required elements-->';
-    contents += '        <id></id>';
-    contents += '        <version></version>';
-    contents += '        <description></description>';
-    contents += '        <authors></authors>';
-    contents += '';
-    contents += '        <!-- Optional elements -->';
-    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>`;
-    contents += '    </metadata>';
-    contents += `    <!-- Optional 'files' node -->`;
-    contents += '</package>';
+    contents += `<?xml version="1.0" encoding="utf-8"?>;${os.EOL}`;
+    contents += `<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">${os.EOL}`;
+    contents += `    <metadata>${os.EOL}`;
+    contents += `        <!-- Required elements-->${os.EOL}`;
+    contents += `        <id></id>${os.EOL}`;
+    contents += `        <version></version>${os.EOL}`;
+    contents += `        <description></description>${os.EOL}`;
+    contents += `        <authors></authors>${os.EOL}`;
+    contents += `${os.EOL}`;
+    contents += `        <!-- Optional elements -->${os.EOL}`;
+    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`;
+    contents += `    </metadata>${os.EOL}`;
+    contents += `    <!-- Optional 'files' node -->${os.EOL}`;
+    contents += `</package>${os.EOL}`;
 
     fs.writeFileSync(nuspecFilePath, contents);
   }
