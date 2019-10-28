@@ -26,7 +26,7 @@ export function extractZip(zipPath: string, destinationPath: string): Promise<vo
 								return;
 							}
 							trace.debug("Creating folder if it doesn't exist: " + path.dirname(fullPath));
-							await this.createFolderIfNotExists(path.dirname(fullPath));
+							await createFolderIfNotExists(path.dirname(fullPath));
 							fs.writeFile(fullPath, buffer, err => {
 								if (err) {
 									console.log("err: " + err);

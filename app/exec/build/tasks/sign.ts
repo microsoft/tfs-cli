@@ -121,11 +121,12 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     // Copy task contents
     // This can include the new signature file as well as a modified task.json
     //await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
-    shell.cp(taskAfterSignTempFolder, taskZipPath)
+    shell.cp('-R', taskAfterSignTempFolder, taskZipPath)
 
     // Delete temp folder
     //await del(tempFolder, { force: true });
     shell.rm('-rf', tempFolder);
+      // causes ENOTEMPTY a lot on Windows
 
     const result: TaskSignResult = { signingSuccessful: true };
     return result;
