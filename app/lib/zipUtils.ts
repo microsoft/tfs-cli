@@ -3,7 +3,6 @@ import * as jszip from "jszip";
 import path = require("path");
 import * as trace from "./trace";
 
-
 /**
  * Extract the contents of a zip file.
  */
@@ -39,21 +38,5 @@ export function extractZip(zipPath: string, destinationPath: string): Promise<vo
 				resolve();
 			}
 		});
-	});
-}
-
-
-
-/**
- * Given a valid path, resolves true if the file represented by the path
- * can be written to. Files that do not exist are assumed writable.
- */
-export function canWriteTo(path: string): Promise<boolean> {
-	return exists(path).then(exists => {
-		if (exists) {
-			return fileAccess(path, W_OK);
-		} else {
-			return true;
-		}
 	});
 }
