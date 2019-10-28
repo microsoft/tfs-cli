@@ -226,6 +226,11 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 			// Crack open the zip file.
 			try {
+				await extractZip(downloadedZipPath);
+
+
+
+
 				await new Promise((resolve, reject) => {
 					fs.readFile(downloadedZipPath, async (err, data) => {
 						if (err) {

@@ -2,12 +2,14 @@ import admZip = require("adm-zip");
 import archiver = require("archiver");
 //import del = require("del");
 import fs = require("fs");
-var ncp = require('ncp').ncp;
+//var ncp = require('ncp').ncp;
 import os = require("os");
 import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
+
+import { extractZip } from "../../../lib/zipUtils";
 
 export interface TaskSignResult {
   signingSuccessful: boolean;
@@ -81,6 +83,10 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
       fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
     }
 
+    // Write nuspec file
+    const nuspecPath: string = path.join(taskTempFolder, ".nuspec");
+    this.writeNuspecFile(nuspecPath, certFingerprint);
+
     // Zip
     await this.zipDirectory(taskTempFolder, taskTempZipPath);
 
@@ -93,8 +99,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     const execResult: any = shell.exec(command, { silent: true });
     if (execResult.code === 1) {
       trace.info(execResult.output);
-	  //await del(tempFolder, { force: true });
-	  shell.rm('-rf', tempFolder);
+      //await del(tempFolder, { force: true });
+      shell.rm('-rf', tempFolder);
 
       const result: TaskSignResult = { signingSuccessful: false };
       return result;
@@ -114,11 +120,12 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
     // Copy task contents
     // This can include the new signature file as well as a modified task.json
-    await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
+    //await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
+    shell.cp(taskAfterSignTempFolder, taskZipPath)
 
     // Delete temp folder
-	//await del(tempFolder, { force: true });
-	shell.rm('-rf', tempFolder);
+    //await del(tempFolder, { force: true });
+    shell.rm('-rf', tempFolder);
 
     const result: TaskSignResult = { signingSuccessful: true };
     return result;
@@ -135,15 +142,39 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
   }
 
   // Wrap ncp in Promise so we can async it
-  private ncpAsync(src: string, dest: string): Promise<void> {
-    return new Promise(function(resolve, reject) {
-      ncp(src, dest, function(err) {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-    });
+  // private ncpAsync(src: string, dest: string): Promise<void> {
+  //   return new Promise(function(resolve, reject) {
+  //     ncp(src, dest, function(err) {
+  //       if (err) {
+  //         reject(err);
+  //       }
+  //       resolve();
+  //     });
+  //   });
+  // }
+
+  // Write nuspec file into contents of task
+  // This allows nuget to verify the signature of the package
+  // We also use this file to store what cert was used to sign the package
+  private writeNuspecFile(nuspecFilePath: string, certFingerprint: string): void {
+    let contents: string = '';
+
+    contents += '<?xml version="1.0" encoding="utf-8"?>;';
+    contents += '<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">';
+    contents += '    <metadata>';
+    contents += '        <!-- Required elements-->';
+    contents += '        <id></id>';
+    contents += '        <version></version>';
+    contents += '        <description></description>';
+    contents += '        <authors></authors>';
+    contents += '';
+    contents += '        <!-- Optional elements -->';
+    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>`;
+    contents += '    </metadata>';
+    contents += `    <!-- Optional 'files' node -->`;
+    contents += '</package>';
+
+    fs.writeFileSync(nuspecFilePath, contents);
   }
 
   // Helper function to zip a directory
