@@ -2,6 +2,7 @@ import fs = require("fs");
 import * as jszip from "jszip";
 import path = require("path");
 import * as trace from "./trace";
+import * as mkdirp from "mkdirp";
 
 /**
  * Extract the contents of a zip file.
@@ -39,4 +40,21 @@ export function extractZip(zipPath: string, destinationPath: string): Promise<vo
 			}
 		});
 	});
+}
+
+// TODO: Move to fsUtils
+async function createFolderIfNotExists(folderPath: string) {
+	try {
+		await new Promise((resolve, reject) => {
+			mkdirp(folderPath, err => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
+	} catch {
+		// folder already exists, perhaps. Or maybe we can't write to it.
+	}
 }
