@@ -1,4 +1,4 @@
-//import admZip = require("adm-zip");
+import admZip = require("adm-zip");
 import archiver = require("archiver");
 //import del = require("del");
 import { extractZip } from "../../../lib/zipUtils";
@@ -114,9 +114,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
       "task-after-sign"
     );
     fs.mkdirSync(taskAfterSignTempFolder);
-    // const zip = new admZip(taskTempZipPath);
-    // zip.extractAllTo(taskAfterSignTempFolder);
-    await extractZip(taskTempZipPath, taskAfterSignTempFolder);
+    const zip = new admZip(taskTempZipPath);
+    zip.extractAllTo(taskAfterSignTempFolder);
+    //await extractZip(taskTempZipPath, taskAfterSignTempFolder);
 
     // Copy task contents
     // This can include the new signature file as well as a modified task.json
