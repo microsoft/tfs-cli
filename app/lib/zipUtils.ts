@@ -7,7 +7,7 @@ import * as trace from "./trace";
 /**
  * Extract the contents of a zip file.
  */
-export function extractZip(zipPath: string): Promise<void> {
+export function extractZip(zipPath: string, destinationPath: string): Promise<void> {
 	return new Promise((resolve, reject) => {
 		fs.readFile(zipPath, async (err, data) => {
 			if (err) {
@@ -20,7 +20,7 @@ export function extractZip(zipPath: string): Promise<void> {
 						await zip.files[fileName].async("nodebuffer").then(async buffer => {
 							trace.debug("Writing buffer for " + fileName);
 							const noLeadingFolderFileName = fileName.substr(fileName.indexOf("/"));
-							const fullPath = path.join(initPath, noLeadingFolderFileName);
+							const fullPath = path.join(destinationPath, noLeadingFolderFileName);
 							if (fullPath.endsWith("\\")) {
 								// don't need to "write" the folders since they are handled by createFolderIfNotExists().
 								return;
