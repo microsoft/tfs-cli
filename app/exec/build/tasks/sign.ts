@@ -79,10 +79,12 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
         taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
       }
 
+      // TODO: Re-enable this later
       fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
     }
 
     // Write nuspec file
+    trace.info("writing nuspec file");
     const nuspecPath: string = path.join(taskTempFolder, ".nuspec");
     this.writeNuspecFile(nuspecPath, certFingerprint);
 
@@ -109,24 +111,39 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     fs.renameSync(taskTempNupkgPath, taskTempZipPath);
 
     // Extract into new temp task folder
-    const taskAfterSignTempFolder: string = path.join(
-      tempFolder,
-      "task-after-sign"
-    );
-    fs.mkdirSync(taskAfterSignTempFolder);
-    const zip = new admZip(taskTempZipPath);
-    zip.extractAllTo(taskAfterSignTempFolder);
+    // const taskAfterSignTempFolder: string = path.join(
+    //   tempFolder,
+    //   "task-after-sign"
+    // );
+    // fs.mkdirSync(taskAfterSignTempFolder);
+    // const zip = new admZip(taskTempZipPath);
+    // zip.extractAllTo(taskAfterSignTempFolder);
     //await extractZip(taskTempZipPath, taskAfterSignTempFolder);
 
     // Copy task contents
     // This can include the new signature file as well as a modified task.json
-    await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
+    // trace.info("copying task contents");
+    // await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
     //shell.cp('-r', taskAfterSignTempFolder, taskZipPath)
 
+    trace.info("uploading task definition");
+    const collectionUrl = this.connection.getCollectionUrl();
+    let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
+    const overwrite: boolean = false;
+
+
+    // let archive = archiver("zip");
+    // archive.file()
+    const archive = fs.createReadStream(taskTempZipPath);
+
+    await agentApi.uploadTaskDefinition(null, <any>archive, newGuid, overwrite); // TODO: Handle where the GUID isn't passed and we use existing task id.
+
     // Delete temp folder
+    trace.info("deleting temp folder");
     //await del(tempFolder, { force: true });
     shell.rm('-rf', tempFolder);
       // causes ENOTEMPTY a lot on Windows
+    trace.info("done deleting temp folder");
 
     const result: TaskSignResult = { signingSuccessful: true };
     return result;
@@ -170,7 +187,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     contents += `        <authors>This is used for signing only.</authors>${os.EOL}`;
     contents += `${os.EOL}`;
     contents += `        <!-- Optional elements -->${os.EOL}`;
-    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`;
+    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
     contents += `    </metadata>${os.EOL}`;
     contents += `    <!-- Optional 'files' node -->${os.EOL}`;
     contents += `</package>`;
