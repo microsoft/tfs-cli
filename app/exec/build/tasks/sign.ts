@@ -128,20 +128,23 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
 
     trace.info("uploading task definition");
     const collectionUrl = this.connection.getCollectionUrl();
+    console.log("Collection URL: " + collectionUrl);
     let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
     const overwrite: boolean = false;
 
-
+    trace.info("creating read stream");
     // let archive = archiver("zip");
     // archive.file()
     const archive = fs.createReadStream(taskTempZipPath);
 
+    trace.info("uploading task definition");
     await agentApi.uploadTaskDefinition(null, <any>archive, newGuid, overwrite); // TODO: Handle where the GUID isn't passed and we use existing task id.
 
     // Delete temp folder
     trace.info("deleting temp folder");
     //await del(tempFolder, { force: true });
-    shell.rm('-rf', tempFolder);
+    //shell.rm('-rf', tempFolder);
+    trace.info(`temp folder: ${tempFolder}`); // TODO: Remove this, uncomment line above.
       // causes ENOTEMPTY a lot on Windows
     trace.info("done deleting temp folder");
 
@@ -160,16 +163,16 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
   }
 
   // Wrap ncp in Promise so we can async it
-  private ncpAsync(src: string, dest: string): Promise<void> {
-    return new Promise(function(resolve, reject) {
-      ncp(src, dest, function(err) {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-    });
-  }
+  // private ncpAsync(src: string, dest: string): Promise<void> {
+  //   return new Promise(function(resolve, reject) {
+  //     ncp(src, dest, function(err) {
+  //       if (err) {
+  //         reject(err);
+  //       }
+  //       resolve();
+  //     });
+  //   });
+  // }
 
   // Write nuspec file into contents of task
   // This allows nuget to verify the signature of the package
@@ -187,7 +190,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     contents += `        <authors>This is used for signing only.</authors>${os.EOL}`;
     contents += `${os.EOL}`;
     contents += `        <!-- Optional elements -->${os.EOL}`;
-    contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
+    //contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
+    contents += `        <certificateFingerprint>F25A1708C41B49011641458B2108F230F0B968484E329ED6018BD5E8A279AABD</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
     contents += `    </metadata>${os.EOL}`;
     contents += `    <!-- Optional 'files' node -->${os.EOL}`;
     contents += `</package>`;
