@@ -127,6 +127,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     //shell.cp('-r', taskAfterSignTempFolder, taskZipPath)
 
     trace.info("uploading task definition");
+    this.ensureInitialized(); // TODO: Why doesn't upload need this?
+    trace.info(JSON.stringify(this.connection));
     const collectionUrl = this.connection.getCollectionUrl();
     console.log("Collection URL: " + collectionUrl);
     let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
