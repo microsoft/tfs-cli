@@ -52,6 +52,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     }
 
     const tempFolder: string = fs.mkdtempSync(path.join(os.tmpdir(), "task-"));
+    trace.info(`temp folder: ${tempFolder}`);
     let taskTempFolder: string = path.join(tempFolder, "task");
     const taskTempZipPath: string = path.join(tempFolder, "task.zip");
     const taskTempNupkgPath: string = path.join(tempFolder, "task.nupkg");
@@ -68,20 +69,19 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     // Update guid/name
     const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix;
     if (needToUpdateTaskJson) {
+
+      // TODO: If there's a task.loc.json, need to modify that too.
+
       const taskJsonPath: string = path.join(taskTempFolder, "task.json");
-      const data: string = fs.readFileSync(taskJsonPath, "utf8");
-      let taskJson: any = JSON.parse(data);
+      const taskLocJsonPath: string = path.join(taskTempFolder, "task.loc.json");
 
-      if (newGuid) {
-        taskJson.id = newGuid;
+      if (fs.existsSync(taskJsonPath)) {
+        this.updateTaskMetadata(taskJsonPath, newGuid, newNameSuffix);
       }
 
-      if (newNameSuffix) {
-        taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
+      if (fs.existsSync(taskLocJsonPath)) {
+        this.updateTaskMetadata(taskLocJsonPath, newGuid, newNameSuffix);
       }
-
-      // TODO: Re-enable this later
-      fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 4));
     }
 
     // Write nuspec file
@@ -169,6 +169,23 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     } else {
       trace.error("Task signing failed.");
     }
+  }
+
+  // Update name and name suffix for task metadata
+  // This file can be either task.json or task.loc.json
+  private updateTaskMetadata(path: string, newGuid: string | null, newNameSuffix: string | null) {
+    const data: string = fs.readFileSync(path, "utf8");
+      let taskJson: any = JSON.parse(data);
+
+      if (newGuid) {
+        taskJson.id = newGuid;
+      }
+
+      if (newNameSuffix) {
+        taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
+      }
+
+      fs.writeFileSync(path, JSON.stringify(taskJson, null, 4));
   }
 
   // Wrap ncp in Promise so we can async it
