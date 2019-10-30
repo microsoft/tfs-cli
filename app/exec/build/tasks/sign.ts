@@ -69,9 +69,6 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     // Update guid/name
     const needToUpdateTaskJson: boolean = !!newGuid || !!newNameSuffix;
     if (needToUpdateTaskJson) {
-
-      // TODO: If there's a task.loc.json, need to modify that too.
-
       const taskJsonPath: string = path.join(taskTempFolder, "task.json");
       const taskLocJsonPath: string = path.join(taskTempFolder, "task.loc.json");
 
@@ -82,6 +79,22 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
       if (fs.existsSync(taskLocJsonPath)) {
         this.updateTaskMetadata(taskLocJsonPath, newGuid, newNameSuffix);
       }
+
+      // \ef505e8e-03bc-4ce1-97b5-93098dee5b30.1.160.3\Strings\resources.resjson\en-US\resources.resjson"
+      const resourcesPath: string = path.join(taskTempFolder, "Strings", "resources.resjson", "en-US", "resources.resjson");
+      if (fs.existsSync(resourcesPath)) {
+        trace.info("resources file exists, modifying");
+
+        const data: string = fs.readFileSync(resourcesPath, "utf8");
+        let taskJson: any = JSON.parse(data);
+
+        taskJson["loc.friendlyName"] = `${taskJson["loc.friendlyName"]} ${newNameSuffix.replace(/'/g, "")}`;
+
+        fs.writeFileSync(resourcesPath, JSON.stringify(taskJson, null, 4));
+      }
+
+      // TODO: Do we need to change friendlyName in Strings\resources.resjson\en-US\resources.resjson?
+      // Does localization run for tfx installed tasks?
     }
 
     // Write nuspec file
@@ -181,8 +194,20 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
         taskJson.id = newGuid;
       }
 
-      if (newNameSuffix) {
-        taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`;
+      if (newNameSuffix) { // dont replace for loc for now, see if it works. Maybe we just replace id for loc?
+        // "loc.friendlyName": "Use Node.js ecosystem",
+        // 
+        taskJson.name = `${taskJson.name}${newNameSuffix.replace(/'/g, "")}`; // updating the name for use in yaml
+
+        // Don't update if it's a loc string.
+        // Maybe we need to update the en-us string?
+        if (taskJson.friendlyName.indexOf("loc.") === -1) {
+          // update friendly name if this isn't a loc file
+          // this is what user created tasks have
+          taskJson.friendlyName = `${taskJson.friendlyName} ${newNameSuffix.replace(/'/g, "")}`; // updating friendly name for use in the ui
+        } else {
+          // if there is a loc file, we want to modify the localization file instead
+        }
       }
 
       fs.writeFileSync(path, JSON.stringify(taskJson, null, 4));
