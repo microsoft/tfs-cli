@@ -20,6 +20,7 @@ export function getCommand(args: string[]): BuildTaskSign {
 
 export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
   protected description = "Sign a task.";
+  protected serverCommand = true;
 
   constructor(args: string[]) {
     super(args);
@@ -126,15 +127,20 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     // await this.ncpAsync(taskAfterSignTempFolder, taskZipPath);
     //shell.cp('-r', taskAfterSignTempFolder, taskZipPath)
 
-    trace.info("uploading task definition");
-    trace.info(JSON.stringify(this.connection));
-    this.ensureInitialized(); // TODO: Why doesn't upload need this?
-    trace.info(JSON.stringify(this.connection));
+    // await this.ensureInitialized();
+    trace.info("done running ensure initialized");
+
     const collectionUrl = this.connection.getCollectionUrl();
     console.log("Collection URL: " + collectionUrl);
     let agentApi = await this.webApi.getTaskAgentApi(collectionUrl);
-    const overwrite: boolean = false;
 
+
+
+
+
+
+
+    const overwrite: boolean = false;
     trace.info("creating read stream");
     // let archive = archiver("zip");
     // archive.file()
