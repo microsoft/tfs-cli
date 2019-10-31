@@ -242,6 +242,7 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     contents += `${os.EOL}`;
     contents += `        <!-- Optional elements -->${os.EOL}`;
     //contents += `        <certificateFingerprint>${certFingerprint}</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
+    // TODO: Can we drop this and use verify and pass in multiple fingerprints to do validation instead? Test that.
     contents += `        <certificateFingerprint>F25A1708C41B49011641458B2108F230F0B968484E329ED6018BD5E8A279AABD</certificateFingerprint>${os.EOL}`; // TODO: When we sign I think we need to pass the sha256, that is what needs to be stored here as that's what we use to verify. Not the thumbprint.
     contents += `    </metadata>${os.EOL}`;
     contents += `    <!-- Optional 'files' node -->${os.EOL}`;
