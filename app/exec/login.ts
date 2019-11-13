@@ -41,7 +41,22 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 				await tfxCredStore.storeCredential(collectionUrl, "allusers", credString);
 				await tfxCache.setItem("cache", "connection", collectionUrl);
 				return { success: true } as LoginResult;
-			} catch (err) {}
+			} catch (err) {
+				if (err && err.statusCode && err.statusCode === 401) {
+					trace.debug("Connection failed: invalid credentials.");
+					throw new Error("Invalid credentials. " + err.message);
+				} else if (err) {
+					trace.debug("Connection failed.");
+					throw new Error(
+						"Connection failed. Check your internet connection & collection URL." +
+							os.EOL +
+							"Message: " +
+							err.message,
+					);
+				} else {
+					throw new Error("Unknown error logging in.");
+				}
+			}
 		});
 	}
 
