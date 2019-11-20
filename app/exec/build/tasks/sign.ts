@@ -30,7 +30,9 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     return ["certFingerprint", "taskPath", "newGuid", "newNameSuffix"];
   }
 
-  // tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix ' - SIGNED'
+  // tfx build tasks sign --task-path {TASK_PATH} --cert-fingerprint {FINGERPRINT} --new-guid {GUID} --new-name-suffix 'SIGNED'
+  // tfx build tasks sign --task-path "D:\customtask" --cert-fingerprint 6E45D9EEE6227589D9AD56D3F29C096F84153284 --new-guid F256057D-52CB-4E38-8974-BCD36D618834 --new-name-suffix 'SIGNED'
+  // node tfx-cli.js build tasks sign --task-path "D:\customtask" --cert-fingerprint 6E45D9EEE6227589D9AD56D3F29C096F84153284 --new-guid F256057D-52CB-4E38-8974-BCD36D618834 --new-name-suffix 'SIGNED'
   // --new-guid and --new-name-suffix are optional
   public async exec(): Promise<TaskSignResult> {
     const taskZipsPath: string[] | null = await this.commandArgs.taskPath.val();
@@ -158,6 +160,8 @@ export class BuildTaskSign extends tasksBase.BuildTaskBase<TaskSignResult> {
     // let archive = archiver("zip");
     // archive.file()
     const archive = fs.createReadStream(taskTempZipPath);
+
+    fs.copyFileSync(taskTempZipPath, 'D:\\runningagent\\_work\\_taskzips2\\foo.zip');
 
     trace.info("uploading task definition");
     await agentApi.uploadTaskDefinition(null, <any>archive, newGuid, overwrite); // TODO: Handle where the GUID isn't passed and we use existing task id.
