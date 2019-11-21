@@ -41,7 +41,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 
 		if (taskZipPath) {
 			// User provided an already zipped task, upload that.
-			const data: Buffer = fs.readFileSync("hello.zip");
+			const data: Buffer = fs.readFileSync(taskZipPath);
 			const z: zip = await zip.loadAsync(data);
 
 			// find task.json inside zip, make sure its there then deserialize content
