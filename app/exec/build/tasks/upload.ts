@@ -48,7 +48,6 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 			const fileContent: string = await z.files[c_taskJsonFile].async('text');
 			const taskJson: TaskJson = JSON.parse(fileContent);
 
-			// set variables
 			sourceLocation = taskZipPath;
 			taskId = taskJson.id;
 			taskStream = z.generateNodeStream();
@@ -69,7 +68,6 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 			archive.directory(path.resolve(taskPath), false);
 			archive.finalize();
 
-			// set variables
 			sourceLocation = taskPath;
 			taskId = taskJson.id;
 			taskStream = archive;
