@@ -51,7 +51,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 			// set variables
 			sourceLocation = taskZipPath;
 			taskId = taskJson.id;
-			taskStream = null;
+			taskStream = z.generateNodeStream();
 		} else {
 			// User provided the path to a directory with the task content
 			const taskPath: string = taskPaths[0];
@@ -67,9 +67,9 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 				throw error;
 			});
 			archive.directory(path.resolve(taskPath), false);
-
 			archive.finalize();
 
+			// set variables
 			sourceLocation = taskPath;
 			taskId = taskJson.id;
 			taskStream = archive;
