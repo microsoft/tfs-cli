@@ -74,7 +74,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		}
 
 		const collectionUrl: string = this.connection.getCollectionUrl();
-		console.log("Collection URL: " + collectionUrl);
+		trace.info("Collection URL: " + collectionUrl);
 		const agentApi: ITaskAgentApi = await this.webApi.getTaskAgentApi(collectionUrl);
 
 		await agentApi.uploadTaskDefinition(null, taskStream, taskId, overwrite);
