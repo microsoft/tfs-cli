@@ -26,7 +26,7 @@ export class BuildTaskBase<T> extends buildBase.BuildBase<TaskArguments, T> {
 		this.registerCommandArgument("all", "All Tasks?", "Get all build tasks.", args.BooleanArgument, "false");
 		this.registerCommandArgument("taskId", "Task ID", "Identifies a particular Build Task.", args.StringArgument);
 		this.registerCommandArgument("taskPath", "Task path", "Local path to a Build Task.", args.ExistingDirectoriesArgument, null);
-		this.registerCommandArgument("taskZipPath", "Task zip path", "Location path to an already zipped path", args.StringArgument, null);
+		this.registerCommandArgument("taskZipPath", "Task zip path", "Local path to an already zipped task", args.StringArgument, null);
 		this.registerCommandArgument("overwrite", "Overwrite?", "Overwrite existing Build Task.", args.BooleanArgument, "false");
 
 		this.registerCommandArgument("taskName", "Task Name", "Name of the Build Task.", args.StringArgument);
