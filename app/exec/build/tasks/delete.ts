@@ -1,6 +1,4 @@
-import { TfCommand } from "../../../lib/tfcommand";
 import agentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
-import args = require("../../../lib/arguments");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
 
