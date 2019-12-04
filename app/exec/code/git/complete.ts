@@ -39,7 +39,10 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 				return;
 			};
 		});
-		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, null); });
+		var searchCriteria: SearchCriteria = new SearchCriteria;
+		searchCriteria.status = 4;
+
+		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, searchCriteria); });
 		var myPullRequestId
 		var count = 0;
 		pullRequestes.forEach(request => {
@@ -73,11 +76,14 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		updatedPullRequest.lastMergeSourceCommit = myPullRequest.lastMergeSourceCommit;
 		updatedPullRequest.status = 3; //completed;
 		var completionOptions: CO = new CO;
+		completionOptions.bypassPolicy = true;
+		completionOptions.bypassReason = "force";
 		if (delSources) {
 			trace.debug('delete source branch option selected')
 			completionOptions.deleteSourceBranch = delSources
 			updatedPullRequest.completionOptions = completionOptions;
 		}
+		updatedPullRequest.completionOptions = completionOptions;
 		return await gitApi.then((api) => { return api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project); });
 
 	};
@@ -132,4 +138,19 @@ class CO implements gi.GitPullRequestCompletionOptions {
 	deleteSourceBranch: boolean;
 	mergeCommitMessage: string;
 	squashMerge: boolean;
+	bypassPolicy: boolean;
+	bypassReason: string;
+}
+
+class SearchCriteria implements gi.GitPullRequestSearchCriteria {
+	creatorId: string;
+    /**
+     * Whether to include the _links field on the shallow references
+     */
+	includeLinks: boolean;
+	repositoryId: string;
+	reviewerId: string;
+	sourceRefName: string;
+	status: gi.PullRequestStatus;
+	targetRefName: string;
 }
