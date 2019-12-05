@@ -34,7 +34,7 @@ export class CreateRepository extends codedBase.CodeBase<codedBase.CodeArguments
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var repositoryName = await this.commandArgs.repositoryname.val();
+		var repositoryName = await this.commandArgs.repositoryName.val();
 		var NewRepo:GR = new GR;
 		NewRepo.name = repositoryName;
 		return await gitApi.then((api) => { return api.createRepository(NewRepo, project); });

@@ -22,13 +22,13 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 	public async exec(): Promise<any> {
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var delSources = await this.commandArgs.deletesourcebranch.val();
-		var repositoryName = await this.commandArgs.repositoryname.val();
-		var pullRequestName = await this.commandArgs.pullrequestname.val();
+		var delSources = await this.commandArgs.deleteSourceBranch.val();
+		var repositoryName = await this.commandArgs.repositoryName.val();
+		var pullRequestName = await this.commandArgs.pullrequestName.val();
 		var bypass = await this.commandArgs.bypass.val();
 		var pullRequestId;
 		if (!pullRequestName) {
-			pullRequestId = await this.commandArgs.pullrequestid.val();
+			pullRequestId = await this.commandArgs.pullrequestId.val();
 		}
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;

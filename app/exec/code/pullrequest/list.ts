@@ -24,14 +24,14 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		repositoryName = await this.commandArgs.repositoryname.val();
-		var requestStatus = await this.commandArgs.requeststatus.val();
+		repositoryName = await this.commandArgs.repositoryName.val();
+		var requestStatus = await this.commandArgs.requestStatus.val();
 		var top = await this.commandArgs.top.val();
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
-		var gitRepositorie;
+		var gitRepository;
 		gitRepositories.forEach(repo => {
 			if (repo.name.toLowerCase() == repositoryName.toLowerCase()) {
-				gitRepositorie = repo;
+				gitRepository = repo;
 				return;
 			};
 		});
@@ -42,7 +42,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		else{
 			searchCriteria.status = 4;
 		}
-		return await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, searchCriteria, null, null, null, top); });
+		return await gitApi.then((api) => { return api.getPullRequests(gitRepository.id, searchCriteria, null, null, null, top); });
 	};
 
 	public friendlyOutput(data: gi.GitPullRequest[]): void {

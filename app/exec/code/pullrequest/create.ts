@@ -71,13 +71,13 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var repositoryName = await this.commandArgs.repositoryname.val();
+		var repositoryName = await this.commandArgs.repositoryName.val();
 		var source = await this.commandArgs.source.val();
 		var target = await this.commandArgs.target.val();
 		var title = await this.commandArgs.title.val();
 		var autoComplete = await this.commandArgs.autocomplete.val();
-		var delSources = await this.commandArgs.deletesourcebranch.val();
-		var tempmergeMethod = await this.commandArgs.mergemethod.val();
+		var delSources = await this.commandArgs.deleteSourceBranch.val();
+		var tempmergeMethod = await this.commandArgs.mergeMethod.val();
 		var mergeMethod = +tempmergeMethod
 
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });

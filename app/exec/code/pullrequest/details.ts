@@ -25,18 +25,18 @@ export class RequestDetails extends codedBase.CodeBase<codedBase.CodeArguments, 
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		repositoryName = await this.commandArgs.repositoryname.val();
+		repositoryName = await this.commandArgs.repositoryName.val();
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
-		var requestId = await this.commandArgs.pullrequestid.val();
-		var gitRepositorie;
+		var requestId = await this.commandArgs.pullrequestId.val();
+		var gitRepository;
 		gitRepositories.forEach(repo => {
 			if (repo.name.toLowerCase() == repositoryName.toLowerCase()) {
-				gitRepositorie = repo;
+				gitRepository = repo;
 				return;
 			};
 		});
 
-		return await gitApi.then((api) => { return api.getPullRequest(gitRepositorie.id, +requestId); });
+		return await gitApi.then((api) => { return api.getPullRequest(gitRepository.id, +requestId); });
 	};
 	
 	public friendlyOutput(req: gi.GitPullRequest): void {

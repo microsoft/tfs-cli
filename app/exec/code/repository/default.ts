@@ -10,15 +10,15 @@ export interface CodeArguments extends CoreArguments {
 	source: args.StringArgument;
 	target: args.StringArgument;
 	title: args.StringArgument;
-	repositoryname: args.StringArgument;
-	pullrequestid: args.StringArgument;
-	pullrequestname: args.StringArgument;
-	requeststatus: args.StringArgument;
+	repositoryName: args.StringArgument;
+	pullrequestId: args.StringArgument;
+	pullrequestName: args.StringArgument;
+	requestStatus: args.StringArgument;
 	top: args.IntArgument;
-	deletesourcebranch: args.BooleanArgument;
-	repositoryid: args.StringArgument;
+	deleteSourceBranch: args.BooleanArgument;
+	repositoryId: args.StringArgument;
 	autocomplete: args.BooleanArgument;
-	mergemethod: args.StringArgument;
+	mergeMethod: args.StringArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {

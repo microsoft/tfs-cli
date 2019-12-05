@@ -22,11 +22,11 @@ export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	public async exec(): Promise<any> {
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var repositoryName = await this.commandArgs.repositoryname.val();
-		var pullRequestName = await this.commandArgs.pullrequestname.val();
+		var repositoryName = await this.commandArgs.repositoryName.val();
+		var pullRequestName = await this.commandArgs.pullrequestName.val();
 		var pullRequestId;
 		if (!pullRequestName) {
-			pullRequestId = await this.commandArgs.pullrequestid.val();
+			pullRequestId = await this.commandArgs.pullrequestId.val();
 		}
 		var gitRepositories = await gitApi.then((api) => { return api.getRepositories(project); });
 		var gitRepositorie;

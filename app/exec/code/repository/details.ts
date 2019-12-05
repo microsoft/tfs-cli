@@ -17,13 +17,13 @@ export class GetRepositoryDetails extends codedBase.CodeBase<codedBase.CodeArgum
 	protected description = "Get a git repository details";
 
 	protected getHelpArgs(): string[] {
-		return ["repositoryid"];
+		return ["repositoryId"];
 	}
 
 	public async exec(): Promise<any> {
 		//getting variables.
 		var gitApi = this.webApi.getGitApi();
-		var id = await this.commandArgs.repositoryid.val();
+		var id = await this.commandArgs.repositoryId.val();
 		return await gitApi.then((api) => { return api.getRepository(id); });
 	};
 
