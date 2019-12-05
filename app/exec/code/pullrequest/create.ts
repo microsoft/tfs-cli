@@ -1,6 +1,6 @@
 import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
-import args = require("../../../lib/arguments");
+import args = require('../../../lib/arguments');
 import trace = require('../../../lib/trace');
 import gi = require('azure-devops-node-api/interfaces/GitInterfaces');
 import git_Api = require('azure-devops-node-api/GitApi')
@@ -64,7 +64,7 @@ export class PullRequest extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Create a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", 'source', 'target', 'title', 'autocomplete', 'mergemethod',  'deletesourcebranch'];
+		return ["project", "repositoryName", 'source', 'target', 'title', 'autocomplete', 'mergeMethod',  'deleteSourceBranch'];
 	}
 
 	public async exec(): Promise<any> {

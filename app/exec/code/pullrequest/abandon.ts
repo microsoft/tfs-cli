@@ -1,4 +1,4 @@
-import { PullRequest } from './pullrequest';
+import { PullRequest } from './create';
 import { PullRequestAsyncStatus } from 'azure-devops-node-api/interfaces/GitInterfaces';
 import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
@@ -9,20 +9,19 @@ import git_Api = require('azure-devops-node-api/GitApi');
 import VSSInterfaces = require('azure-devops-node-api/interfaces/common/VSSInterfaces');
 import codedBase = require('./default');
 
-export function getCommand(args: string[]): Complete {
-	return new Complete(args);
+export function getCommand(args: string[]): Abandon {
+	return new Abandon(args);
 }
 
-export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> {
+export class Abandon extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Complete a pull request";
+	protected description = "Abandon a pull request";
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", "pullrequestname", "pullrequestid", "deletesourcebranch"];
+		return ["project", "repositoryName", "pullrequestName", "pullrequestId"];
 	}
 	public async exec(): Promise<any> {
 		var gitApi = this.webApi.getGitApi();
 		var project = await this.commandArgs.project.val();
-		var delSources = await this.commandArgs.deletesourcebranch.val();
 		var repositoryName = await this.commandArgs.repositoryname.val();
 		var pullRequestName = await this.commandArgs.pullrequestname.val();
 		var pullRequestId;
@@ -39,10 +38,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 				return;
 			};
 		});
-		var searchCriteria: SearchCriteria = new SearchCriteria;
-		searchCriteria.status = 4;
-
-		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, searchCriteria); });
+		var pullRequestes = await gitApi.then((api) => { return api.getPullRequests(gitRepositorie.id, null); });
 		var myPullRequestId
 		var count = 0;
 		pullRequestes.forEach(request => {
@@ -69,25 +65,12 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 			errLog('More then one pullrequest was found, please use Pull Request Id')
 			process.exit(1);
 		}
-		//console.log(myPullRequest);
 		pullRequestId = myPullRequestId;
-
 		var updatedPullRequest: GR = new GR;
-		updatedPullRequest.lastMergeSourceCommit = myPullRequest.lastMergeSourceCommit;
-		updatedPullRequest.status = 3; //completed;
-		var completionOptions: CO = new CO;
-		completionOptions.bypassPolicy = true;
-		completionOptions.bypassReason = "force";
-		if (delSources) {
-			trace.debug('delete source branch option selected')
-			completionOptions.deleteSourceBranch = delSources
-			updatedPullRequest.completionOptions = completionOptions;
-		}
-		updatedPullRequest.completionOptions = completionOptions;
-		return await gitApi.then((api) => { return api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project); });
+		updatedPullRequest.status = 2 //abandoned;
 
+		return await gitApi.then((api) => { api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project) });
 	};
-
 
 	public friendlyOutput(data: gi.GitPullRequest): void {
 		if (!data) {
@@ -95,15 +78,14 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		}
 
 		console.log(' ');
-		success('Pull request completed');
+		success('Pull request abandoned');
 		console.log('');
 		trace.info('Title    : %s', data.title);
 		trace.info('id       : %s', data.pullRequestId);
 
 	}
 };
-
-
+//Classes
 class GR implements gi.GitPullRequest {
 	_links: any;
 	artifactId: string;
@@ -112,7 +94,7 @@ class GR implements gi.GitPullRequest {
 	closedDate: Date;
 	codeReviewId: number;
 	commits: gi.GitCommitRef[];
-	completionOptions: gi.GitPullRequestCompletionOptions;
+	completionOptions: CO = new CO;
 	completionQueueTime: Date;
 	createdBy: VSSInterfaces.IdentityRef;
 	creationDate: Date;
@@ -134,23 +116,9 @@ class GR implements gi.GitPullRequest {
 	url: string;
 	workItemRefs: VSSInterfaces.ResourceRef[];
 }
+
 class CO implements gi.GitPullRequestCompletionOptions {
 	deleteSourceBranch: boolean;
 	mergeCommitMessage: string;
 	squashMerge: boolean;
-	bypassPolicy: boolean;
-	bypassReason: string;
-}
-
-class SearchCriteria implements gi.GitPullRequestSearchCriteria {
-	creatorId: string;
-    /**
-     * Whether to include the _links field on the shallow references
-     */
-	includeLinks: boolean;
-	repositoryId: string;
-	reviewerId: string;
-	sourceRefName: string;
-	status: gi.PullRequestStatus;
-	targetRefName: string;
 }

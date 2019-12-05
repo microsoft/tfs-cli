@@ -1,6 +1,6 @@
 import { success, warn } from '../../../lib/trace';
 import { errLog } from '../../../lib/errorhandler';
-import args = require("../../../lib/arguments");
+import args = require('../../../lib/arguments');
 import trace = require('../../../lib/trace');
 import gi = require('azure-devops-node-api/interfaces/GitInterfaces');
 import git_Api = require('azure-devops-node-api/GitApi')
@@ -17,7 +17,7 @@ export class DeleteRepository extends codedBase.CodeBase<codedBase.CodeArguments
 	protected description = "Create a git repository";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryid"];
+		return ["project", "repositoryId"];
 	}
 
 	public async exec(): Promise<any> {

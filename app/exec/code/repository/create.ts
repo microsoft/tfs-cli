@@ -27,7 +27,7 @@ export class CreateRepository extends codedBase.CodeBase<codedBase.CodeArguments
 	protected description = "Create a git repository";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname"];
+		return ["project", "repositoryName"];
 	}
 
 	public async exec(): Promise<any> {

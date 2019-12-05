@@ -15,10 +15,10 @@ export function getCommand(args: string[]): RequestOptions {
 
 export class RequestOptions extends codedBase.CodeBase<codedBase.CodeArguments, void> {
 	protected serverCommand = true;
-	protected description = "Get a list of pull requests";
+	protected description = "view options of a pull request";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname","pullrequestid"];
+		return ["project", "repositoryName","pullrequestId"];
 	}
 
 	public async exec(): Promise<any> {

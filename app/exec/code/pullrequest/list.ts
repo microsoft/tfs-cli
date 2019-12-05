@@ -17,7 +17,7 @@ export class RequestList extends codedBase.CodeBase<codedBase.CodeArguments, voi
 	protected description = "Get a list of pull requests";
 
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryname", "requeststatus", "top"];
+		return ["project", "repositoryName", "requestStatus", "top"];
 	}
 
 	public async exec(): Promise<any> {
