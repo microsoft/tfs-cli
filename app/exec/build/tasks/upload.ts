@@ -40,11 +40,8 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		}
 
 		if (taskZipPath) {
-			//var readStream = fs.createReadStream(taskZipPath);
-
 			// User provided an already zipped task, upload that.
 			const data: Buffer = fs.readFileSync(taskZipPath);
-			console.log(`initial file buffer size: ${data.byteLength}`);
 			const z: zip = await zip.loadAsync(data);
 
 			// find task.json inside zip, make sure its there then deserialize content
@@ -53,14 +50,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 
 			sourceLocation = taskZipPath;
 			taskId = taskJson.id;
-			//taskStream = z.generateNodeStream();
 			taskStream = fs.createReadStream(taskZipPath);
-
-			// console.log('writing new stream to file');
-			// const reloadedZip: string = 'D:\\reloaded.zip';
-			// fs.writeFileSync(reloadedZip, taskStream);
-			// const reloadedData = fs.readFileSync(reloadedZip);
-			// console.log(`reloaded file buffer size: ${reloadedData.byteLength}`);
 		} else {
 			// User provided the path to a directory with the task content
 			const taskPath: string = taskPaths[0];
@@ -86,9 +76,6 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 		const collectionUrl: string = this.connection.getCollectionUrl();
 		trace.info("Collection URL: " + collectionUrl);
 		const agentApi: ITaskAgentApi = await this.webApi.getTaskAgentApi(collectionUrl);
-
-		// console.log('returning early');
-		// return <agentContracts.TaskDefinition> { sourceLocation: sourceLocation, };
 
 		await agentApi.uploadTaskDefinition(null, taskStream, taskId, overwrite);
 		trace.debug("Success");
