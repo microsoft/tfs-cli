@@ -50,7 +50,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 
 			sourceLocation = taskZipPath;
 			taskId = taskJson.id;
-			taskStream = z.generateNodeStream();
+			taskStream = fs.createReadStream(taskZipPath);
 		} else {
 			// User provided the path to a directory with the task content
 			const taskPath: string = taskPaths[0];
