@@ -15,11 +15,8 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 ### Arguments
 
 * `--root`: Root directory.
-* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function.  
-	 The function takes an environment as a parameter and must return the manifest JSON object.  
-	 Environment variables are specified with the env command line parameter.
-	 If this is present then the manifests, manifest-globs, json5, override, and overrides-file arguments are ignored.
-* `--env`: Environment variables passed to the manifestJs module.  Space separated key-value pairs, e.g. `--env mode=prod size=large`
+* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function. If present then the manifests, manifest-globs, json5, override, and overrides-file arguments are ignored.
+* `--env`: Environment variables passed to the manifestJs module.
 * `--manifests`: List of individual manifest files (space separated).
 * `--manifest-globs`: List of globs to find manifests (space separated).
 * `--override`: JSON string which is merged into the manifests, overriding any values.
@@ -50,6 +47,10 @@ tfx extension create --rev-version
 The version included in the packaged .VSIX and in the source manifest file is now `0.4.1`.
 
 #### Manifest JS file
+
+Eventually you will find the need to disambiguate in your manifest contents between development and production builds. Use the manifest-js option to supply a Node.JS CommonJS module and export a function. The function will be invoked with an environment property bag as a parameter, and must return the manifest JSON object.
+
+Environment variables for the property bag are specified with the `--env` command line parameter.  These are space separated key-value pairs, e.g. `--env mode=production rootpath="c:\program files" size=large`.
 
 An example manifest JS file might look like the following:
 
