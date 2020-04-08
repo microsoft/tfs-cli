@@ -25,6 +25,8 @@ export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourc
 	protected getHelpArgs(): string[] {
 		return [
 			"root",
+			"manifestJs",
+			"env",
 			"manifests",
 			"manifestGlobs",
 			"override",

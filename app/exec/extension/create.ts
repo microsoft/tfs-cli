@@ -47,6 +47,8 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 	protected getHelpArgs(): string[] {
 		return [
 			"root",
+			"manifestJs",
+			"env",
 			"manifests",
 			"manifestGlobs",
 			"json5",

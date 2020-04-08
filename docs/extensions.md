@@ -15,6 +15,11 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 ### Arguments
 
 * `--root`: Root directory.
+* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function.  
+	 The function takes an environment as a parameter and must return the manifest JSON object.  
+	 Environment variables are specified with the env command line parameter.
+	 If this is present then the manifests, manifest-globs, json5, override, and overrides-file arguments are ignored.
+* `--env`: Environment variables passed to the manifestJs module.  Space separated key-value pairs, e.g. `--env mode=prod size=large`
 * `--manifests`: List of individual manifest files (space separated).
 * `--manifest-globs`: List of globs to find manifests (space separated).
 * `--override`: JSON string which is merged into the manifests, overriding any values.
@@ -31,7 +36,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 #### Package for a different publisher 
 
 ```
-tfx extension create --publisher mypublisher --manifest-globs myextension.json
+tfx extension create --publisher mypublisher --manifest-js myextension.config.js --env mode=production
 ```
 
 #### Increment (rev) the patch segment of the extension version
@@ -44,9 +49,39 @@ tfx extension create --rev-version
 
 The version included in the packaged .VSIX and in the source manifest file is now `0.4.1`.
 
-### Tips
+#### Manifest JS file
 
-1. This tool will merge any number of manifest files (all in JSON format), which will then specify how to package your Extension. See the [Manifest Reference documentation](https://docs.microsoft.com/azure/devops/extend/develop/manifest?view=vsts)
+An example manifest JS file might look like the following:
+
+```
+module.exports = (env) => {
+	let [idPostfix, namePostfix] = (env.mode == "development") ? ["-dev", " [DEV]"] : ["", ""];
+
+	let manifest = {
+		manifestVersion: 1,
+		id: `myextensionidentifier${idPostfix}`,
+		name: `My Great Extension${namePostfix}`,
+		...
+		contributions: [
+			{
+				id: "mywidgetidentifier",
+				properties: {
+					name: `Super Widget${namePostfix}`,
+					...
+				},
+				...
+			}
+		]
+	}
+
+	if (env.mode == 'development') {
+		manifest.baseUri = "https://localhost:3000";
+	}
+
+	return manifest;
+}
+```
+
 
 ## Publish an extension
 
@@ -67,7 +102,7 @@ In addition to all of the `extension create` options, the following options are 
 ### Example
 
 ```
-tfx extension publish --publisher mypublisher --manifest-globs myextension.json --share-with myaccount
+tfx extension publish --publisher mypublisher --manifest-js myextension.config.js --env mode=development --share-with myaccount
 ```
 
 ### Tips
