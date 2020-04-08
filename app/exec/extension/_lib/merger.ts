@@ -127,11 +127,13 @@ export class Merger {
 	public async merge(): Promise<VsixComponents> {
 		trace.debug("merger.merge");
 
-		const manifestPromises: Promise<any>[] = [];
 		let overridesProvided = false;
+		const manifestPromises: Promise<any>[] = [];
 
 		if (this.settings.manifestJs) {
-			manifestPromises.push(Promise.resolve(this.loadManifestJs()));
+			const result = this.loadManifestJs();
+			result.__origin = this.settings.manifestJs; // save the origin in order to resolve relative paths later.
+			manifestPromises.push(Promise.resolve(result));
 		} else {
 			let manifestFiles = await this.gatherManifests();
 			manifestFiles.forEach(file => {
