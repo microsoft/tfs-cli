@@ -48,7 +48,7 @@ The version included in the packaged .VSIX and in the source manifest file is no
 
 #### Manifest JS file
 
-Eventually you will find the need to disambiguate in your manifest contents between development and production builds. Use the manifest-js option to supply a Node.JS CommonJS module and export a function. The function will be invoked with an environment property bag as a parameter, and must return the manifest JSON object.
+Eventually you will find the need to disambiguate in your manifest contents between development and production builds. Use the `--manifest-js` option to supply a Node.JS CommonJS module and export a function. The function will be invoked with an environment property bag as a parameter, and must return the manifest JSON object.
 
 Environment variables for the property bag are specified with the `--env` command line parameter.  These are space separated key-value pairs, e.g. `--env mode=production rootpath="c:\program files" size=large`.
 
