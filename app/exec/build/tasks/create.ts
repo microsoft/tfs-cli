@@ -1,6 +1,4 @@
-import { TfCommand } from "../../../lib/tfcommand";
 import check = require("validator");
-import common = require("../../../lib/common");
 import fs = require("fs");
 
 import path = require("path");
@@ -11,7 +9,7 @@ import uuid = require("uuid");
 
 export interface TaskCreateResult {
 	taskPath: string;
-	definition: TaskDefinition
+	definition: TaskDefinition;
 }
 
 export interface TaskDefinition {
@@ -24,7 +22,7 @@ export interface TaskDefinition {
 	category: string;
 	visibility: string[];
 	demands: any[];
-	version: { Major: string, Minor: string, Patch: string };
+	version: { Major: string; Minor: string; Patch: string };
 	minimumAgentVersion: string;
 	instanceNameFormat: string;
 }
@@ -36,7 +34,7 @@ export function getCommand(args: string[]): TaskCreate {
 export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 	protected description = "Create files for new Build Task";
 	protected serverCommand = false;
-	
+
 	constructor(args: string[]) {
 		super(args);
 	}
@@ -45,7 +43,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 		return ["taskName", "friendlyName", "description", "author"];
 	}
 
-	public exec(): Promise<TaskCreateResult> {
+	public async exec(): Promise<TaskCreateResult> {
 		trace.debug("build-create.exec");
 
 		return Promise.all([
@@ -53,7 +51,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 			this.commandArgs.friendlyName.val(),
 			this.commandArgs.description.val(),
 			this.commandArgs.author.val(),
-		]).then((values) => {
+		]).then(values => {
 			const [taskName, friendlyName, description, author] = values;
 			if (!taskName || !check.isAlphanumeric(taskName)) {
 				throw new Error("name is a required alphanumeric string with no spaces");
@@ -98,7 +96,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 			def.category = "Utility";
 			def.visibility = ["Build", "Release"];
 			def.demands = [];
-			def.version = { Major: "0", Minor: "1", Patch: "0"};
+			def.version = { Major: "0", Minor: "1", Patch: "0" };
 			def.minimumAgentVersion = "1.95.0";
 			def.instanceNameFormat = taskName + " $(message)";
 
@@ -108,8 +106,8 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 				label: "Working Directory",
 				defaultValue: "",
 				required: false,
-				helpMarkDown: "Current working directory when " + taskName + " is run."
-			}
+				helpMarkDown: "Current working directory when " + taskName + " is run.",
+			};
 
 			let msgInput = {
 				name: "msg",
@@ -117,20 +115,20 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 				label: "Message",
 				defaultValue: "Hello World",
 				required: true,
-				helpMarkDown: "Message to echo out"
-			}
+				helpMarkDown: "Message to echo out",
+			};
 
 			def.inputs = [cwdInput, msgInput];
 
 			def.execution = {
 				Node: {
 					target: "sample.js",
-					argumentFormat: ""
+					argumentFormat: "",
 				},
 				PowerShell3: {
-					target: "sample.ps1"
-				}
-			}
+					target: "sample.ps1",
+				},
+			};
 
 			ret.definition = def;
 
@@ -141,8 +139,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 				let defStr = JSON.stringify(def, null, 2);
 				trace.debug(defStr);
 				fs.writeFileSync(defPath, defStr);
-			}
-			catch(err) {
+			} catch (err) {
 				throw new Error("Failed creating task: " + err.message);
 			}
 			trace.debug("created definition file.");
@@ -154,7 +151,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 				trace.debug("dest: " + dest);
 				shell.cp(src, dest);
 				trace.debug(fileName + " copied");
-			}
+			};
 
 			trace.debug("creating temporary icon");
 			copyResource("icon.png");

@@ -3,8 +3,8 @@ import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
 import trace = require("../../lib/trace");
 import witBase = require("./default");
-import witClient = require("vso-node-api/WorkItemTrackingApi");
-import witContracts = require("vso-node-api/interfaces/WorkItemTrackingInterfaces");
+import witClient = require("azure-devops-node-api/WorkItemTrackingApi");
+import witContracts = require("azure-devops-node-api/interfaces/WorkItemTrackingInterfaces");
 
 export function getCommand(args: string[]): WorkItemShow {
 	return new WorkItemShow(args);
@@ -18,10 +18,10 @@ export class WorkItemShow extends witBase.WorkItemBase<witContracts.WorkItem> {
 		return ["workItemId"];
 	}
 
-	public exec(): Promise<witContracts.WorkItem> {
-		var witapi: witClient.IWorkItemTrackingApi = this.webApi.getWorkItemTrackingApi();
-		return this.commandArgs.workItemId.val().then((workItemId) => {
-			return witapi.getWorkItem(workItemId)
+	public async exec(): Promise<witContracts.WorkItem> {
+		var witapi: witClient.IWorkItemTrackingApi = await this.webApi.getWorkItemTrackingApi();
+		return this.commandArgs.workItemId.val().then(workItemId => {
+			return witapi.getWorkItem(workItemId);
 		});
 	}
 

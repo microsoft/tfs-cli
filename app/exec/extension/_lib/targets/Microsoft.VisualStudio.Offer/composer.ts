@@ -4,6 +4,4 @@ import { VsixComponents } from "../../merger";
 import { VsixManifestBuilder } from "../../vsix-manifest-builder";
 import _ = require("lodash");
 
-export class VSOfferComposer extends ExtensionComposer {
-	
-}
+export class VSOfferComposer extends ExtensionComposer {}

@@ -1,61 +1,89 @@
-import { TfCommand } from "../../../lib/tfcommand";
-import agentContracts = require('vso-node-api/interfaces/TaskAgentInterfaces');
-import archiver = require('archiver');
-import args = require("../../../lib/arguments");
-import fs = require('fs');
-import path = require('path');
-import Q = require('q');
+import agentContracts = require("azure-devops-node-api/interfaces/TaskAgentInterfaces");
+import archiver = require("archiver");
+import fs = require("fs");
+import path = require("path");
 import tasksBase = require("./default");
-import trace = require('../../../lib/trace');
-import vm = require('../../../lib/jsonvalidate')
+import trace = require("../../../lib/trace");
+import vm = require("../../../lib/jsonvalidate");
+import { ITaskAgentApi } from "azure-devops-node-api/TaskAgentApi";
+import zip = require("jszip");
 
 export function getCommand(args: string[]): BuildTaskUpload {
 	return new BuildTaskUpload(args);
 }
 
-var c_taskJsonFile: string = 'task.json';
+var c_taskJsonFile: string = "task.json";
+
+interface TaskJson {
+	id: string;
+}
 
 export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
 	protected description = "Upload a Build Task.";
 	protected serverCommand = true;
 
 	protected getHelpArgs(): string[] {
-		return ["taskPath", "overwrite"];
+		return ["taskPath", "taskZipPath", "overwrite"];
 	}
 
-	public exec(): Promise<agentContracts.TaskDefinition> {
-		return this.commandArgs.taskPath.val().then((taskPaths) => {
-			let taskPath = taskPaths[0];
-			return this.commandArgs.overwrite.val().then<agentContracts.TaskDefinition>((overwrite) => {
-				vm.exists(taskPath, 'specified directory ' + taskPath + ' does not exist.');
-				//directory is good, check json
+	public async exec(): Promise<agentContracts.TaskDefinition> {
+		const taskPaths = await this.commandArgs.taskPath.val();
+		const taskZipPath = await this.commandArgs.taskZipPath.val();
+		const overwrite = await this.commandArgs.overwrite.val();
 
-				let tp = path.join(taskPath, c_taskJsonFile);
-				return vm.validate(tp, 'no ' + c_taskJsonFile + ' in specified directory').then((taskJson) => {
-					let archive = archiver('zip');
-					archive.on('error', function(error) {
-						trace.debug('Archiving error: ' + error.message);
-						error.message = 'Archiving error: ' + error.message;
-						throw error;
-					});
-					archive.directory(path.resolve(taskPath), false);
+		let taskStream: NodeJS.ReadableStream = null;
+		let taskId: string = null;
+		let sourceLocation: string = null;
 
-					let agentApi = this.webApi.getTaskAgentApi(this.connection.getCollectionUrl());
+		if (!taskZipPath && !taskPaths) {
+			throw new Error("You must specify either --task-path or --task-zip-path.");
+		}
 
-					archive.finalize();
-					return agentApi.uploadTaskDefinition(null, <any>archive, taskJson.id, overwrite).then(() => {
-						trace.debug('Success');
-						return <agentContracts.TaskDefinition>{
-							sourceLocation: taskPath
-						};
-					});
-				});
+		if (taskZipPath) {
+			// User provided an already zipped task, upload that.
+			const data: Buffer = fs.readFileSync(taskZipPath);
+			const z: zip = await zip.loadAsync(data);
+
+			// find task.json inside zip, make sure its there then deserialize content
+			const fileContent: string = await z.files[c_taskJsonFile].async('text');
+			const taskJson: TaskJson = JSON.parse(fileContent);
+
+			sourceLocation = taskZipPath;
+			taskId = taskJson.id;
+			taskStream = fs.createReadStream(taskZipPath);
+		} else {
+			// User provided the path to a directory with the task content
+			const taskPath: string = taskPaths[0];
+			vm.exists(taskPath, "specified directory " + taskPath + " does not exist.");
+
+			const taskJsonPath: string = path.join(taskPath, c_taskJsonFile);
+			const taskJson: TaskJson = await vm.validate(taskJsonPath, "no " + c_taskJsonFile + " in specified directory");
+
+			const archive = archiver("zip");
+			archive.on("error", function(error) {
+				trace.debug("Archiving error: " + error.message);
+				error.message = "Archiving error: " + error.message;
+				throw error;
 			});
-		});
+			archive.directory(path.resolve(taskPath), false);
+			archive.finalize();
+
+			sourceLocation = taskPath;
+			taskId = taskJson.id;
+			taskStream = archive;
+		}
+
+		const collectionUrl: string = this.connection.getCollectionUrl();
+		trace.info("Collection URL: " + collectionUrl);
+		const agentApi: ITaskAgentApi = await this.webApi.getTaskAgentApi(collectionUrl);
+
+		await agentApi.uploadTaskDefinition(null, taskStream, taskId, overwrite);
+		trace.debug("Success");
+		return <agentContracts.TaskDefinition> { sourceLocation: sourceLocation, };
 	}
 
 	public friendlyOutput(data: agentContracts.TaskDefinition): void {
 		trace.println();
-		trace.success('Task at %s uploaded successfully!', data.sourceLocation);
+		trace.success("Task at %s uploaded successfully!", data.sourceLocation);
 	}
 }

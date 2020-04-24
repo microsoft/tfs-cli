@@ -9,11 +9,11 @@ export var X_OK = fs.constants ? fs.constants.X_OK : (fs as any).X_OK; // back-c
 export var F_OK = fs.constants ? fs.constants.F_OK : (fs as any).F_OK; // back-compat
 
 export function exists(path: string): Promise<boolean> {
-    return new Promise(resolve => {
-        fs.exists(path, fileExists => {
-            resolve(fileExists);
-        });
-    });
+	return new Promise(resolve => {
+		fs.exists(path, fileExists => {
+			resolve(fileExists);
+		});
+	});
 }
 
 /**
@@ -21,15 +21,15 @@ export function exists(path: string): Promise<boolean> {
  * with the given mode (F_OK, R_OK, W_OK, X_OK)
  */
 export function fileAccess(path: string, mode: number = F_OK): Promise<boolean> {
-    return new Promise(resolve => {
-        fs.access(path, mode, err => {
-            if (err) {
-                resolve(false);
-            } else {
-                resolve(true);
-            }
-        });
-    });
+	return new Promise(resolve => {
+		fs.access(path, mode, err => {
+			if (err) {
+				resolve(false);
+			} else {
+				resolve(true);
+			}
+		});
+	});
 }
 
 /**
@@ -37,11 +37,11 @@ export function fileAccess(path: string, mode: number = F_OK): Promise<boolean> 
  * can be written to. Files that do not exist are assumed writable.
  */
 export function canWriteTo(path: string): Promise<boolean> {
-    return exists(path).then(exists => {
-        if (exists) {
-            return fileAccess(path, W_OK);
-        } else {
-            return true;
-        }
-    });
+	return exists(path).then(exists => {
+		if (exists) {
+			return fileAccess(path, W_OK);
+		} else {
+			return true;
+		}
+	});
 }

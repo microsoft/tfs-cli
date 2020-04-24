@@ -14,33 +14,38 @@ export function getCommand(args: string[]): Reset {
 
 export class Reset extends TfCommand<CoreArguments, void> {
 	protected description = "Log out and clear cached credential.";
-	protected getHelpArgs() {return [];}
+	protected getHelpArgs() {
+		return [];
+	}
 	protected serverCommand = false;
-	
+
 	constructor(args: string[]) {
 		super(args);
 	}
 
-	public exec(): Promise<void> {
+	public async exec(): Promise<void> {
 		return Promise.resolve<void>(null);
 	}
-	
+
 	public dispose(): Promise<void> {
 		let diskCache = new DiskCache("tfx");
-		return diskCache.itemExists("cache", "connection").then((isCachedConnection) => {
+		return diskCache.itemExists("cache", "connection").then(isCachedConnection => {
 			if (isCachedConnection) {
-				return diskCache.getItem("cache", "connection").then((cachedConnection) => {
-					let store = credStore.getCredentialStore("tfx");
-					return store.credentialExists(cachedConnection, "allusers").then((isCredential) => {
-						if (isCredential) {
-							return store.clearCredential(cachedConnection, "allusers");
-						} else {
-							return Promise.resolve<void>(null);
-						}
+				return diskCache
+					.getItem("cache", "connection")
+					.then(cachedConnection => {
+						let store = credStore.getCredentialStore("tfx");
+						return store.credentialExists(cachedConnection, "allusers").then(isCredential => {
+							if (isCredential) {
+								return store.clearCredential(cachedConnection, "allusers");
+							} else {
+								return Promise.resolve<void>(null);
+							}
+						});
+					})
+					.then(() => {
+						return diskCache.deleteItem("cache", "connection");
 					});
-				}).then(() => {
-					return diskCache.deleteItem("cache", "connection");
-				})
 			} else {
 				return Promise.resolve<void>(null);
 			}
