@@ -184,8 +184,10 @@ export class VsixWriter {
 					if (itemName.indexOf(" "))
 						if (!builder.files[path].content) {
 							let readFilePromise = promisify(readFile)(path).then(result => {
-								vsix.file(itemName, result);
-								seenPartNames.add(itemName);
+								if (!seenPartNames.has(itemName)) {
+									vsix.file(itemName, result);
+									seenPartNames.add(itemName);
+								}
 								if ((builder.files[path] as any)._additionalPackagePaths) {
 									for (const p of (builder.files[path] as any)._additionalPackagePaths) {
 										let additionalItemName = toZipItemName(p);
@@ -198,8 +200,10 @@ export class VsixWriter {
 							});
 							readFilePromises.push(readFilePromise);
 						} else {
-							vsix.file(itemName, builder.files[path].content);
-							seenPartNames.add(itemName);
+							if (!seenPartNames.has(itemName)) {
+								vsix.file(itemName, builder.files[path].content);
+								seenPartNames.add(itemName);
+							}
 							if ((builder.files[path] as any)._additionalPackagePaths) {
 								for (const p of (builder.files[path] as any)._additionalPackagePaths) {
 									let additionalItemName = toZipItemName(p);

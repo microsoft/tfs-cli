@@ -798,13 +798,15 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			Object.keys(this.files).forEach(filePath => {
 				if (this.files[filePath].contentType) {
 					let partName = "/" + toZipItemName(this.files[filePath].partName);
-					contentTypes.Types.Override.push({
-						$: {
-							ContentType: this.files[filePath].contentType,
-							PartName: partName,
-						},
-					});
-					seenPartNames.add(partName);
+					if (!seenPartNames.has(partName)) {
+						contentTypes.Types.Override.push({
+							$: {
+								ContentType: this.files[filePath].contentType,
+								PartName: partName,
+							},
+						});
+						seenPartNames.add(partName);
+					}
 					if ((this.files[filePath] as any)._additionalPackagePaths) {
 						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {							
 							let additionalPartName =  "/" + toZipItemName(additionalPath);
