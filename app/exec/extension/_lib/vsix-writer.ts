@@ -150,6 +150,7 @@ export class VsixWriter {
 		let vsix = new zip();
 
 		let builderPromises: Promise<void>[] = [];
+		let seenPartNames = new Set();
 		this.manifestBuilders.forEach(builder => {
 			// Avoid the error EMFILE: too many open files
 			const addPackageFilesBatch = (
@@ -183,19 +184,33 @@ export class VsixWriter {
 					if (itemName.indexOf(" "))
 						if (!builder.files[path].content) {
 							let readFilePromise = promisify(readFile)(path).then(result => {
-								vsix.file(itemName, result);
+								if (!seenPartNames.has(itemName)) {
+									vsix.file(itemName, result);
+									seenPartNames.add(itemName);
+								}
 								if ((builder.files[path] as any)._additionalPackagePaths) {
 									for (const p of (builder.files[path] as any)._additionalPackagePaths) {
-										vsix.file(p, result);
+										let additionalItemName = toZipItemName(p);
+										if (!seenPartNames.has(additionalItemName)) {
+											vsix.file(additionalItemName, result);
+											seenPartNames.add(additionalItemName);
+										}
 									}
 								}
 							});
 							readFilePromises.push(readFilePromise);
 						} else {
-							vsix.file(itemName, builder.files[path].content);
+							if (!seenPartNames.has(itemName)) {
+								vsix.file(itemName, builder.files[path].content);
+								seenPartNames.add(itemName);
+							}
 							if ((builder.files[path] as any)._additionalPackagePaths) {
 								for (const p of (builder.files[path] as any)._additionalPackagePaths) {
-									vsix.file(p, builder.files[path].content);
+									let additionalItemName = toZipItemName(p);
+									if (!seenPartNames.has(additionalItemName)) {
+										vsix.file(additionalItemName, builder.files[path].content);
+										seenPartNames.add(additionalItemName);
+									}
 								}
 							}
 							readFilePromises.push(Promise.resolve<void>(null));
