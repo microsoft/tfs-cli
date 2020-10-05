@@ -58,7 +58,7 @@ export class ReleaseGetList extends releaseBase.ReleaseBase<releaseBase.ReleaseA
 
 	public friendlyOutput(data: releaseContracts.Release[]): void {
 		if (!data) {
-			throw new Error("no build supplied");
+			throw new Error("no release supplied");
 		}
 
 		if (!(data instanceof Array)) {
