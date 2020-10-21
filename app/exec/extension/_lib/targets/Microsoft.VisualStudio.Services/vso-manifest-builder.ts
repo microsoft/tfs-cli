@@ -89,16 +89,6 @@ export class VsoManifestBuilder extends ManifestBuilder {
 					this.singleValueProperty("eventCallbacks", value, key, override);
 				}
 				break;
-			case "constraints":
-				if (_.isArray(value)) {
-					if (!this.data.constraints) {
-						this.data.constraints = [];
-					}
-					this.data.constraints = this.data.constraints.concat(value);
-				} else {
-					throw new Error(`"constraints" must be an array of ContributionConstraint objects.`);
-				}
-				break;
 			case "restrictedto":
 				if (_.isArray(value)) {
 					this.singleValueProperty("restrictedTo", value, key, override, true);
