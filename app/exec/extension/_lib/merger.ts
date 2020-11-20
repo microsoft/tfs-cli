@@ -160,7 +160,7 @@ export class Merger {
 											parsed["version"] = newVersionString;
 											newPartial = jju.update(versionPartial, parsed);
 										} else {
-											newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
+											newPartial = jsonInPlace(versionPartial).set("version", newVersionString).toString();
 										}
 										return promisify(writeFile)(partial.__origin, newPartial);
 									} catch (e) {
