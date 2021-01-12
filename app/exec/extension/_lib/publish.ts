@@ -285,7 +285,7 @@ export class SharingManager extends GalleryBase {
 
 			try {
 				let verData = await client.vsoClient.getVersioningData(
-					"5.1-preview.1",
+					"6.1-preview.1",
 					"gallery",
 					"a1e66d8f-f5de-4d16-8309-91a4e015ee46",
 					routeValues);
@@ -445,7 +445,7 @@ export class PackagePublisher extends GalleryBase {
 		};
 
 		const verData = await this.galleryClient.vsoClient.getVersioningData(
-			"5.1-preview.2",
+			"6.1-preview.2",
 			"gallery",
 			"e11ea35a-16fe-4b80-ab11-c4cab88a0966",
 			routeValues,

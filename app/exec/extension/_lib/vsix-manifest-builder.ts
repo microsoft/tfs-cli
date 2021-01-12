@@ -794,22 +794,31 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			});
 		}
 		return contentTypePromise.then(() => {
+			let seenPartNames = new Set();
 			Object.keys(this.files).forEach(filePath => {
 				if (this.files[filePath].contentType) {
-					contentTypes.Types.Override.push({
-						$: {
-							ContentType: this.files[filePath].contentType,
-							PartName: "/" + toZipItemName(this.files[filePath].partName),
-						},
-					});
+					let partName = "/" + toZipItemName(this.files[filePath].partName);
+					if (!seenPartNames.has(partName)) {
+						contentTypes.Types.Override.push({
+							$: {
+								ContentType: this.files[filePath].contentType,
+								PartName: partName,
+							},
+						});
+						seenPartNames.add(partName);
+					}
 					if ((this.files[filePath] as any)._additionalPackagePaths) {
-						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {
-							contentTypes.Types.Override.push({
-								$: {
-									ContentType: this.files[filePath].contentType,
-									PartName: "/" + toZipItemName(additionalPath),
-								},
-							});
+						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {							
+							let additionalPartName =  "/" + toZipItemName(additionalPath);
+							if (!seenPartNames.has(additionalPartName)) {
+								contentTypes.Types.Override.push({
+									$: {
+										ContentType: this.files[filePath].contentType,
+										PartName: additionalPartName,
+									},
+								});
+								seenPartNames.add(additionalPartName);
+							}
 						}
 					}
 				}
