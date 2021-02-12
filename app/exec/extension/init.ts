@@ -239,7 +239,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 										trace.debug("Writing buffer for " + fileName);
 										const noLeadingFolderFileName = fileName.substr(fileName.indexOf("/"));
 										const fullPath = path.join(initPath, noLeadingFolderFileName);
-										if (fullPath.endsWith("\\")) {
+										if (fullPath.endsWith("\\") || fullPath.endsWith("/")) {
 											// don't need to "write" the folders since they are handled by createFolderIfNotExists().
 											return;
 										}
