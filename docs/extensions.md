@@ -80,7 +80,6 @@ tfx extension publish --publisher mypublisher --manifest-globs myextension.json 
 
 ## Other commands
 
-* `tfx extension publisher`: Commands for creating and managing publishers.
 * `tfx extension install`: Install a Visual Studio Services Extension to a list of VSTS Accounts.
 * `tfx extension show`: Show information about a published extension.
 * `tfx extension share`: Share an extension with an account.
