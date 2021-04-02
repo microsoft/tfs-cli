@@ -30,7 +30,7 @@ export interface ExtensionArguments extends CoreArguments {
 	extensionName: args.StringArgument;
 	json5: args.BooleanArgument;
 	locRoot: args.ExistingDirectoriesArgument;
-	manifestJs: args.StringArgument;
+	manifestJs: args.ReadableFilePathsArgument;
 	env: args.ArrayArgument;
 	manifestGlobs: args.ArrayArgument;
 	manifests: args.ArrayArgument;
