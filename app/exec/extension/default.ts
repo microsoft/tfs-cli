@@ -82,7 +82,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"manifestJs",
 			"Manifest JS file",
 			"A manifest in the form of a JS file with an exported function that can be called by node and will return the manifest JSON object.",
-			args.StringArgument,
+			args.ReadableFilePathsArgument,
 			null,
 		);
 		this.registerCommandArgument(
