@@ -397,6 +397,8 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 				revVersion: false,
 				bypassValidation: includedSamples.length === 0, // need to bypass validation when there are no contributions
 				locRoot: null,
+				manifestJs: null,
+				env: null,
 				manifests: null,
 				overrides: {},
 				root: initPath,

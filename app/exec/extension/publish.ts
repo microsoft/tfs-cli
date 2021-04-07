@@ -38,6 +38,8 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 	protected getHelpArgs(): string[] {
 		return [
 			"root",
+			"manifestJs",
+			"env",
 			"manifests",
 			"manifestGlobs",
 			"json5",
