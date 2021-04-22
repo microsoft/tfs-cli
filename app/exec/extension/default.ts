@@ -186,7 +186,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		return Promise.all([
 			this.commandArgs.root.val(),
 			this.commandArgs.locRoot.val(),
-			this.commandArgs.manifestJs.val(),
+			this.commandArgs.manifestJs.val().then(files => files && files.length ? files[0] : null),
 			this.commandArgs.env.val(),
 			this.commandArgs.manifests.val(),
 			this.commandArgs.manifestGlobs.val(),
