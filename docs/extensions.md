@@ -15,7 +15,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 ### Arguments
 
 * `--root`: Root directory.
-* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function. If present then the manifests, manifest-globs, json5, override, and overrides-file arguments are ignored.
+* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function. If present then the manifests and manifest-globs arguments are ignored.
 * `--env`: Environment variables passed to the manifestJs module.
 * `--manifests`: List of individual manifest files (space separated).
 * `--manifest-globs`: List of globs to find manifests (space separated).
