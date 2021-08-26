@@ -2,10 +2,6 @@
 
 You can create, list, upload and delete build tasks with tfx.
 
-[![Managing VSTS Tasks](http://img.youtube.com/vi/u_4ZJcEE3S4/0.jpg)](https://youtu.be/u_4ZJcEE3S4 "Managing VSTS Build Tasks")
-
-[Video Link](https://youtu.be/u_4ZJcEE3S4)
-
 ## Permissions
 You need to be in the top level Agent Pool Administrators group to manipulate tasks
 [See here](https://msdn.microsoft.com/Library/vs/alm/Build/agents/admin)
