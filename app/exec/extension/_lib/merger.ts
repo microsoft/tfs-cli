@@ -152,12 +152,12 @@ export class Merger {
 					}),
 				);
 			});
+		}
 
-			// Add the overrides if necessary
-			if (this.settings.overrides) {
-				overridesProvided = true;
-				manifestPromises.push(Promise.resolve(this.settings.overrides));
-			}			
+		// Add the overrides if necessary
+		if (this.settings.overrides) {
+			overridesProvided = true;
+			manifestPromises.push(Promise.resolve(this.settings.overrides));
 		}
 
 		return Promise.all(manifestPromises).then(partials => {
