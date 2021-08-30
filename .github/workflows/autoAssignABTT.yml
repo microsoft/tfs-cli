@@ -18,7 +18,7 @@ jobs:
         labels: |
           Area: tfx-cli
           triage
-    - name: "Assign issues with 'Area: ABTT' label to project board"
+    - name: "Assign newly opened issues to project board"
       uses: srggrs/assign-one-project-github-action@1.2.0
       with:
         project: 'https://github.com/orgs/microsoft/projects/48'
