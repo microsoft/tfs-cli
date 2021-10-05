@@ -220,7 +220,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				_.set(override, "extensionid", extensionId);
 			}
 			let overrideFileContent = Promise.resolve("");
-			if (overridesFile && overridesFile.length > 0 && !manifestJs) {
+			if (overridesFile && overridesFile.length > 0) {
 				overrideFileContent = promisify(readFile)(overridesFile[0], "utf8");
 			}
 			return overrideFileContent.then(contentStr => {

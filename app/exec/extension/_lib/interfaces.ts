@@ -139,7 +139,7 @@ export interface MergeSettings {
 	 * Manifest in the form of a standard Node.js CommonJS module with an exported function.  
 	 * The function takes an environment as a parameter and must return the manifest JSON object.  
 	 * Environment variables are specified with the env command line parameter.
-	 * If this is present then manifests, manifestGlobs, json5, override, and overridesFile are ignored.
+	 * If this is present then manifests and manifestGlobs are ignored.
 	 */
 	manifestJs: string;
 
