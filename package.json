@@ -52,7 +52,7 @@
     "@types/lodash": "~4.14.110",
     "@types/mkdirp": "^1.0.2",
     "@types/node": "~8.5.1",
-    "@types/shelljs": "^0.3.30",
+    "@types/shelljs": "^0.8.11",
     "@types/uuid": "^2.0.29",
     "@types/validator": "^4.5.27",
     "@types/winreg": "^1.2.29",
