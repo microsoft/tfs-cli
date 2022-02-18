@@ -69,15 +69,7 @@ export namespace LocPrep {
 				}
 			})
 			.then(determinedPath => {
-				return new Promise((resolve, reject) => {
-					mkdirp(path.dirname(determinedPath), (err, made) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve(made);
-						}
-					});
-				}).then(() => {
+				return mkdirp(path.dirname(determinedPath)).then(() => {
 					return promisify(writeFile)(determinedPath, JSON.stringify(resources, null, 4), "utf8");
 				});
 			});

@@ -128,7 +128,7 @@ export class VsixWriter {
 				throw new Error("--output-path must be a directory when using --metadata-only.");
 			}
 			if (!pathExists) {
-				await promisify(mkdirp)(outputPath, undefined);
+				await mkdirp(outputPath);
 			}
 
 			for (const builder of this.manifestBuilders) {
@@ -138,7 +138,7 @@ export class VsixWriter {
 						const content = fileObj.content || (await promisify(readFile)(fileObj.path, "utf-8"));
 						const writePath = path.join(this.settings.outputPath, fileObj.partName);
 						const folder = path.dirname(writePath);
-						await promisify(mkdirp)(folder, undefined);
+						await mkdirp(folder);
 						await promisify(writeFile)(writePath, content, "utf-8");
 					}
 				}
@@ -245,15 +245,7 @@ export class VsixWriter {
 		return Promise.all(builderPromises).then(() => {
 			trace.debug("Writing vsix to: %s", outputPath);
 
-			return new Promise((resolve, reject) => {
-				mkdirp(path.dirname(outputPath), (err, made) => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve(made);
-					}
-				});
-			}).then(async () => {
+			return mkdirp(path.dirname(outputPath)).then(async () => {
 				let buffer = await vsix.generateAsync({
 					type: "nodebuffer",
 					compression: "DEFLATE",

@@ -1,7 +1,6 @@
 import { defer } from "./promiseUtils";
 
 var fs = require("fs");
-var shell = require("shelljs");
 var check = require("validator");
 var trace = require("./trace");
 

@@ -465,15 +465,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 	private async createFolderIfNotExists(folderPath: string) {
 		try {
-			await new Promise((resolve, reject) => {
-				mkdirp(folderPath, err => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
-				});
-			});
+			await mkdirp(folderPath);
 		} catch {
 			// folder already exists, perhaps. Or maybe we can't write to it.
 		}
