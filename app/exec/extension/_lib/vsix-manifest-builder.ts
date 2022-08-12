@@ -728,7 +728,8 @@ export class VsixManifestBuilder extends ManifestBuilder {
 									}
 								} else {
 									if (typeof stdout === "string") {
-										let magicMime = _.trimEnd(stdout.substr(stdout.lastIndexOf(" ") + 1), "\n");
+										const firstLine = stdout.split("\n")[0]
+										const magicMime = firstLine.substring(firstLine.lastIndexOf(" ") + 1);
 										trace.debug("Magic mime type for %s is %s.", fileName, magicMime);
 										if (magicMime) {
 											if (extension) {
