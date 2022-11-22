@@ -98,17 +98,45 @@ export class Merger {
 		}
 	}
 
+	private loadManifestJs(): any {
+		trace.debug("merger.manifestJs");
+
+		// build environment object from --env parameter
+		const env = {};
+		(this.settings.env || []).forEach(kvp => { 
+			const [key, ...value] = kvp.split('=');
+			env[key] = value.join('=');
+		});
+
+		const fullJsFile = path.resolve(this.settings.manifestJs);
+		const manifestModuleFn = require(fullJsFile);
+		if (!manifestModuleFn || typeof manifestModuleFn != "function") {
+			throw new Error(`Missing export function from manifest-js file ${fullJsFile}`)
+		}
+		const manifestData = manifestModuleFn(env);
+		if (!manifestData) {
+			throw new Error(`The export function from manifest-js file ${fullJsFile} must return the manifest object`)
+		}
+		return manifestData;
+	}	
+
 	/**
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
 	 * @return Q.Promise<SplitManifest> An object containing the two manifests
 	 */
-	public merge(): Promise<VsixComponents> {
+	public async merge(): Promise<VsixComponents> {
 		trace.debug("merger.merge");
 
-		return this.gatherManifests().then(files => {
-			let overridesProvided = false;
-			const manifestPromises: Promise<any>[] = [];
-			files.forEach(file => {
+		let overridesProvided = false;
+		const manifestPromises: Promise<any>[] = [];
+
+		if (this.settings.manifestJs) {
+			const result = this.loadManifestJs();
+			result.__origin = this.settings.manifestJs; // save the origin in order to resolve relative paths later.
+			manifestPromises.push(Promise.resolve(result));
+		} else {
+			let manifestFiles = await this.gatherManifests();
+			manifestFiles.forEach(file => {
 				manifestPromises.push(
 					promisify(readFile)(file, "utf8").then(data => {
 						const jsonData = data.replace(/^\uFEFF/, "");
@@ -124,146 +152,146 @@ export class Merger {
 					}),
 				);
 			});
+		}
 
-			// Add the overrides if necessary
-			if (this.settings.overrides) {
-				overridesProvided = true;
-				manifestPromises.push(Promise.resolve(this.settings.overrides));
-			}
+		// Add the overrides if necessary
+		if (this.settings.overrides) {
+			overridesProvided = true;
+			manifestPromises.push(Promise.resolve(this.settings.overrides));
+		}
 
-			return Promise.all(manifestPromises).then(partials => {
-				// Determine the targets so we can construct the builders
-				let targets: TargetDeclaration[] = [];
-				partials.forEach(partial => {
-					if (_.isArray(partial["targets"])) {
-						targets = targets.concat(partial["targets"]);
-					}
-				});
-				this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
-				this.manifestBuilders = this.extensionComposer.getBuilders();
-				let updateVersionPromise = Promise.resolve<void>(null);
-				partials.forEach((partial, partialIndex) => {
-					// Rev the version if necessary
-					if (this.settings.revVersion) {
-						if (partial["version"] && partial.__origin) {
-							try {
-								const parsedVersion = version.DynamicVersion.parse(partial["version"]);
-								const newVersion = version.DynamicVersion.increase(parsedVersion);
-								const newVersionString = newVersion.toString();
-								partial["version"] = newVersionString;
+		return Promise.all(manifestPromises).then(partials => {
+			// Determine the targets so we can construct the builders
+			let targets: TargetDeclaration[] = [];
+			partials.forEach(partial => {
+				if (_.isArray(partial["targets"])) {
+					targets = targets.concat(partial["targets"]);
+				}
+			});
+			this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
+			this.manifestBuilders = this.extensionComposer.getBuilders();
+			let updateVersionPromise = Promise.resolve<void>(null);
+			partials.forEach((partial, partialIndex) => {
+				// Rev the version if necessary
+				if (this.settings.revVersion) {
+					if (partial["version"] && partial.__origin) {
+						try {
+							const parsedVersion = version.DynamicVersion.parse(partial["version"]);
+							const newVersion = version.DynamicVersion.increase(parsedVersion);
+							const newVersionString = newVersion.toString();
+							partial["version"] = newVersionString;
 
-								updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
-									try {
-										let newPartial: any;
-										if (this.settings.json5) {
-											const parsed = jju.parse(versionPartial);
-											parsed["version"] = newVersionString;
-											newPartial = jju.update(versionPartial, parsed);
-										} else {
-											newPartial = jsonInPlace(versionPartial).set("version", newVersionString);
-										}
-										return promisify(writeFile)(partial.__origin, newPartial);
-									} catch (e) {
-										trace.warn(
-											"Failed to lex partial as JSON to update the version. Skipping version rev...",
-										);
+							updateVersionPromise = promisify(readFile)(partial.__origin, "utf8").then(versionPartial => {
+								try {
+									let newPartial: any;
+									if (this.settings.json5) {
+										const parsed = jju.parse(versionPartial);
+										parsed["version"] = newVersionString;
+										newPartial = jju.update(versionPartial, parsed);
+									} else {
+											newPartial = jsonInPlace(versionPartial).set("version", newVersionString).toString();
 									}
-								});
-							} catch (e) {
-								trace.warn(
-									"Could not parse %s as a version (e.g. major.minor.patch). Skipping version rev...",
-									partial["version"],
-								);
-							}
-						}
-					}
-
-					// Transform asset paths to be relative to the root of all manifests, verify assets
-					if (_.isArray(partial["files"])) {
-						(<Array<FileDeclaration>>partial["files"]).forEach(asset => {
-							const keys = Object.keys(asset);
-							if (keys.indexOf("path") < 0) {
-								throw new Error("Files must have an absolute or relative (to the manifest) path.");
-							}
-							let absolutePath;
-							if (path.isAbsolute(asset.path)) {
-								absolutePath = asset.path;
-							} else {
-								absolutePath = path.join(path.dirname(partial.__origin), asset.path);
-							}
-							asset.path = path.relative(this.settings.root, absolutePath);
-						});
-					}
-					// Transform icon paths as above
-					if (_.isObject(partial["icons"])) {
-						const icons = partial["icons"];
-						Object.keys(icons).forEach((iconKind: string) => {
-							const absolutePath = path.join(path.dirname(partial.__origin), icons[iconKind]);
-							icons[iconKind] = path.relative(this.settings.root, absolutePath);
-						});
-					}
-
-					// Expand any directories listed in the files array
-					if (_.isArray(partial["files"])) {
-						for (let i = partial["files"].length - 1; i >= 0; --i) {
-							const fileDecl: FileDeclaration = partial["files"][i];
-							const fsPath = path.join(this.settings.root, fileDecl.path);
-							if (fs.lstatSync(fsPath).isDirectory()) {
-								Array.prototype.splice.apply(
-									partial["files"],
-									(<any[]>[i, 1]).concat(this.pathToFileDeclarations(fsPath, this.settings.root, fileDecl)),
-								);
-							}
-						}
-					}
-
-					// Process each key by each manifest builder.
-					Object.keys(partial).forEach(key => {
-						const isOverridePartial = partials.length - 1 === partialIndex && overridesProvided;
-						if (partial[key] !== undefined && (partial[key] !== null || isOverridePartial)) {
-							// Notify each manifest builder of the key/value pair
-							this.manifestBuilders.forEach(builder => {
-								builder.processKey(key, partial[key], isOverridePartial);
+									return promisify(writeFile)(partial.__origin, newPartial);
+								} catch (e) {
+									trace.warn(
+										"Failed to lex partial as JSON to update the version. Skipping version rev...",
+									);
+								}
 							});
+						} catch (e) {
+							trace.warn(
+								"Could not parse %s as a version (e.g. major.minor.patch). Skipping version rev...",
+								partial["version"],
+							);
 						}
+					}
+				}
+
+				// Transform asset paths to be relative to the root of all manifests, verify assets
+				if (_.isArray(partial["files"])) {
+					(<Array<FileDeclaration>>partial["files"]).forEach(asset => {
+						const keys = Object.keys(asset);
+						if (keys.indexOf("path") < 0) {
+							throw new Error("Files must have an absolute or relative (to the manifest) path.");
+						}
+						let absolutePath;
+						if (path.isAbsolute(asset.path)) {
+							absolutePath = asset.path;
+						} else {
+							absolutePath = path.join(path.dirname(partial.__origin), asset.path);
+						}
+						asset.path = path.relative(this.settings.root, absolutePath);
 					});
+				}
+				// Transform icon paths as above
+				if (_.isObject(partial["icons"])) {
+					const icons = partial["icons"];
+					Object.keys(icons).forEach((iconKind: string) => {
+						const absolutePath = path.join(path.dirname(partial.__origin), icons[iconKind]);
+						icons[iconKind] = path.relative(this.settings.root, absolutePath);
+					});
+				}
+
+				// Expand any directories listed in the files array
+				if (_.isArray(partial["files"])) {
+					for (let i = partial["files"].length - 1; i >= 0; --i) {
+						const fileDecl: FileDeclaration = partial["files"][i];
+						const fsPath = path.join(this.settings.root, fileDecl.path);
+						if (fs.lstatSync(fsPath).isDirectory()) {
+							Array.prototype.splice.apply(
+								partial["files"],
+								(<any[]>[i, 1]).concat(this.pathToFileDeclarations(fsPath, this.settings.root, fileDecl)),
+							);
+						}
+					}
+				}
+
+				// Process each key by each manifest builder.
+				Object.keys(partial).forEach(key => {
+					const isOverridePartial = partials.length - 1 === partialIndex && overridesProvided;
+					if (partial[key] !== undefined && (partial[key] !== null || isOverridePartial)) {
+						// Notify each manifest builder of the key/value pair
+						this.manifestBuilders.forEach(builder => {
+							builder.processKey(key, partial[key], isOverridePartial);
+						});
+					}
+				});
+			});
+
+			// Generate localization resources
+			const locPrepper = new loc.LocPrep.LocKeyGenerator(this.manifestBuilders);
+			const resources = locPrepper.generateLocalizationKeys();
+
+			// Build up resource data by reading the translations from disk
+			return this.buildResourcesData().then(resourceData => {
+				if (resourceData) {
+					resourceData["defaults"] = resources.combined;
+				}
+
+				// Build up a master file list
+				const packageFiles: PackageFiles = {};
+				this.manifestBuilders.forEach(builder => {
+					_.assign(packageFiles, builder.files);
 				});
 
-				// Generate localization resources
-				const locPrepper = new loc.LocPrep.LocKeyGenerator(this.manifestBuilders);
-				const resources = locPrepper.generateLocalizationKeys();
+				const components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
 
-				// Build up resource data by reading the translations from disk
-				return this.buildResourcesData().then(resourceData => {
-					if (resourceData) {
-						resourceData["defaults"] = resources.combined;
-					}
-
-					// Build up a master file list
-					const packageFiles: PackageFiles = {};
-					this.manifestBuilders.forEach(builder => {
-						_.assign(packageFiles, builder.files);
-					});
-
-					const components: VsixComponents = { builders: this.manifestBuilders, resources: resources };
-
-					// Finalize each builder
-					return Promise.all(
-						[updateVersionPromise].concat(
-							this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders)),
-						),
-					).then(() => {
-						// const the composer do validation
-						return this.extensionComposer.validate(components).then(validationResult => {
-							if (validationResult.length === 0 || this.settings.bypassValidation) {
-								return components;
-							} else {
-								throw new Error(
-									"There were errors with your extension. Address the following and re-run the tool.\n" +
-										validationResult,
-								);
-							}
-						});
+				// Finalize each builder
+				return Promise.all(
+					[updateVersionPromise].concat(
+						this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders)),
+					),
+				).then(() => {
+					// const the composer do validation
+					return this.extensionComposer.validate(components).then(validationResult => {
+						if (validationResult.length === 0 || this.settings.bypassValidation) {
+							return components;
+						} else {
+							throw new Error(
+								"There were errors with your extension. Address the following and re-run the tool.\n" +
+									validationResult,
+							);
+						}
 					});
 				});
 			});

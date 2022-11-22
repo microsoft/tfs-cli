@@ -30,6 +30,8 @@ export interface ExtensionArguments extends CoreArguments {
 	extensionName: args.StringArgument;
 	json5: args.BooleanArgument;
 	locRoot: args.ExistingDirectoriesArgument;
+	manifestJs: args.ReadableFilePathsArgument;
+	env: args.ArrayArgument;
 	manifestGlobs: args.ArrayArgument;
 	manifests: args.ArrayArgument;
 	metadataOnly: args.BooleanArgument;
@@ -75,6 +77,20 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"Publisher name",
 			"Use this as the publisher ID instead of what is specified in the manifest.",
 			args.StringArgument,
+		);
+		this.registerCommandArgument(
+			"manifestJs",
+			"Manifest JS file",
+			"A manifest in the form of a JS file with an exported function that can be called by node and will return the manifest JSON object.",
+			args.ReadableFilePathsArgument,
+			null,
+		);
+		this.registerCommandArgument(
+			"env",
+			"Manifest JS environment",
+			"Environment variables passed to the Manifest JS function.",
+			args.ArrayArgument,
+			null,
 		);
 		this.registerCommandArgument(
 			"manifests",
@@ -170,6 +186,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		return Promise.all([
 			this.commandArgs.root.val(),
 			this.commandArgs.locRoot.val(),
+			this.commandArgs.manifestJs.val().then(files => files && files.length ? files[0] : null),
+			this.commandArgs.env.val(),
 			this.commandArgs.manifests.val(),
 			this.commandArgs.manifestGlobs.val(),
 			this.commandArgs.override.val(),
@@ -183,6 +201,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			const [
 				root,
 				locRoot,
+				manifestJs,
+				env,
 				manifests,
 				manifestGlob,
 				override,
@@ -223,6 +243,8 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				return {
 					root: root[0],
 					locRoot: locRoot && locRoot[0],
+					manifestJs: manifestJs,
+					env: env,
 					manifests: manifests,
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,

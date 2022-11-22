@@ -239,7 +239,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 										trace.debug("Writing buffer for " + fileName);
 										const noLeadingFolderFileName = fileName.substr(fileName.indexOf("/"));
 										const fullPath = path.join(initPath, noLeadingFolderFileName);
-										if (fullPath.endsWith("\\")) {
+										if (fullPath.endsWith("\\") || fullPath.endsWith("/")) {
 											// don't need to "write" the folders since they are handled by createFolderIfNotExists().
 											return;
 										}
@@ -397,6 +397,8 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 				revVersion: false,
 				bypassValidation: includedSamples.length === 0, // need to bypass validation when there are no contributions
 				locRoot: null,
+				manifestJs: null,
+				env: null,
 				manifests: null,
 				overrides: {},
 				root: initPath,
@@ -463,15 +465,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 	private async createFolderIfNotExists(folderPath: string) {
 		try {
-			await new Promise((resolve, reject) => {
-				mkdirp(folderPath, err => {
-					if (err) {
-						reject(err);
-					} else {
-						resolve();
-					}
-				});
-			});
+			await mkdirp(folderPath);
 		} catch {
 			// folder already exists, perhaps. Or maybe we can't write to it.
 		}
