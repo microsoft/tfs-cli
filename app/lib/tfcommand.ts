@@ -18,6 +18,7 @@ import fsUtils = require("./fsUtils");
 import { promisify } from "util";
 import trace = require("./trace");
 import version = require("./version");
+import { IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
 
 export interface CoreArguments {
 	[key: string]: args.Argument<any>;
@@ -417,11 +418,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		});
 	}
 
-	public getWebApi(): Promise<WebApi> {
+	public getWebApi(options?: IRequestOptions): Promise<WebApi> {
 		return this.commandArgs.serviceUrl.val().then(url => {
 			return this.getCredentials(url).then(handler => {
 				this.connection = new TfsConnection(url);
-				this.webApi = new WebApi(url, handler);
+				this.webApi = new WebApi(url, handler, options);
 				return this.webApi;
 			});
 		});

@@ -24,10 +24,12 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 	public async exec(): Promise<LoginResult> {
 		trace.debug("Login.exec");
 		return this.commandArgs.serviceUrl.val().then(async collectionUrl => {
-			global['_vsts_task_lib_skip_cert_validation'] = await this.commandArgs.skipCertValidation.val(false);
+			const skipCertValidation = await this.commandArgs.skipCertValidation.val(false);
 
 			const authHandler = await this.getCredentials(collectionUrl, false);
-			const webApi = await this.getWebApi();
+			const webApi = await this.getWebApi({
+				ignoreSslError: skipCertValidation
+			});
 			const locationsApi = await webApi.getLocationsApi();
 
 			try {
