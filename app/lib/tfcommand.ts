@@ -37,6 +37,7 @@ export interface CoreArguments {
 	noPrompt: args.BooleanArgument;
 	noColor: args.BooleanArgument;
 	debugLogStream: args.StringArgument;
+	skipCertValidation: args.BooleanArgument;
 }
 
 export interface Executor<TResult> {
@@ -334,6 +335,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			args.StringArgument,
 			"stdout",
 		);
+		this.registerCommandArgument(
+			"skipCertValidation",
+			"Skip Certificate Validation",
+			"Skip certificate validation during login",
+			args.BooleanArgument,
+			"false",
+		);
 	}
 
 	/**
@@ -549,7 +557,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 					if (this.serverCommand) {
 						result += eol + cyan("Global server command arguments:") + eol;
-						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy"].forEach(arg => {
+						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
 							result += singleArgData(arg, 11);
 						});
 					}
