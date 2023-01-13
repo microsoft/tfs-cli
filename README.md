@@ -49,7 +49,7 @@ To avoid providing credentials with every command, you can login once. Currently
 
 > Warning! Using this feature will store your login credentials on disk in plain text.
 
-> To skip certificate validation connecting to On-Prem Azure DevOps Server you can use parameter `skipCertValidation`
+> To skip certificate validation connecting to On-Prem Azure DevOps Server you can use parameter `--skip-cert-validation`
 
 #### Personal access token
 
