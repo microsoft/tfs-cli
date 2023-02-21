@@ -4,6 +4,8 @@ var fs = require("fs");
 var check = require("validator");
 var trace = require("./trace");
 
+const deprecatedRunners = ["Node6"];
+
 /*
  * Checks a json file for correct formatting against some validation function
  * @param jsonFilePath path to the json file being validated
@@ -36,6 +38,7 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
 	}
 
 	trace.debug("Json is valid.");
+	validateRunner(taskJson);
 	deferred.resolve(taskJson);
 	return <any>deferred.promise;
 }
@@ -47,6 +50,20 @@ export function exists(path: string, errorMessage: string) {
 	if (!fs.existsSync(path)) {
 		trace.debug(errorMessage);
 		throw new Error(errorMessage);
+	}
+}
+
+/*
+ * Validates a task against deprecated runner
+ * @param taskData the parsed json file
+ */
+export function validateRunner(taskData: any) {
+	if(taskData == undefined || taskData.execution == undefined)
+		return
+
+	const validRunnerCount = Object.keys(taskData.execution).filter(itm=> deprecatedRunners.indexOf(itm) == -1) || 0;
+	if(validRunnerCount == 0){
+		trace.warn("Task %s is dependent on a task runner that is end-of-life and will be removed in the future. Authors should review Node upgrade guidance: https://aka.ms/node-runner-guidance.",taskData.name)
 	}
 }
 
