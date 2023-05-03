@@ -1,0 +1,32 @@
+trigger:
+- master
+
+variables:
+- group: npm-tokens
+
+steps:
+- checkout: self
+  clean: true
+
+- task: NodeTool@0
+  displayName: Use node 10
+  inputs:
+    versionSpec: "10.x"
+
+- script: npm i -g npm@6.14.12 --force
+  displayName: Use npm version 6.14.12
+
+- script: npm install
+  displayName: Install npm-dependencies
+
+- script: npm run build
+  displayName: Build TFX CLI
+
+- script: |
+    cd _build
+    echo //registry.npmjs.org/:_authToken=\$(NPM_TOKEN) > .npmrc
+    npm run publish
+  condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), eq(variables['Agent.OS'], 'Windows_NT'))
+  env:
+    NPM_TOKEN: $(npm-automation.token)
+  displayName: Publish TFX CLI
