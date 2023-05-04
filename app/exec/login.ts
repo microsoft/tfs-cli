@@ -44,6 +44,7 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 				}
 				await tfxCredStore.storeCredential(collectionUrl, "allusers", credString);
 				await tfxCache.setItem("cache", "connection", collectionUrl);
+				await tfxCache.setItem("cache", "skipCertValidation", skipCertValidation.toString());
 				return { success: true } as LoginResult;
 			} catch (err) {
 				if (err && err.statusCode && err.statusCode === 401) {
