@@ -420,7 +420,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 	public async getWebApi(options?: IRequestOptions): Promise<WebApi> {
 		// try to get value of skipCertValidation from cache
-		let tfxCache = new DiskCache("tfx");
+		const tfxCache = new DiskCache("tfx");
 		if (await tfxCache.itemExists("cache", "skipCertValidation")) {
 			const skipCertValidation = await tfxCache.getItem("cache", "skipCertValidation");
 			options = {...options, ignoreSslError: <any>skipCertValidation}
