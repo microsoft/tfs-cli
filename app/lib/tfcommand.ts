@@ -418,7 +418,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		});
 	}
 
-	public getWebApi(options?: IRequestOptions): Promise<WebApi> {
+	public async getWebApi(options?: IRequestOptions): Promise<WebApi> {
+		// try to get value of skipCertValidation from cache
+		let tfxCache = new DiskCache("tfx");
+		if (await tfxCache.itemExists("cache", "skipCertValidation")) {
+			const skipCertValidation = await tfxCache.getItem("cache", "skipCertValidation");
+			options = {...options, ignoreSslError: <any>skipCertValidation}
+		}
 		return this.commandArgs.serviceUrl.val().then(url => {
 			return this.getCredentials(url).then(handler => {
 				this.connection = new TfsConnection(url);
