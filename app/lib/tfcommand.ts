@@ -18,6 +18,7 @@ import fsUtils = require("./fsUtils");
 import { promisify } from "util";
 import trace = require("./trace");
 import version = require("./version");
+import { IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
 
 export interface CoreArguments {
 	[key: string]: args.Argument<any>;
@@ -37,6 +38,7 @@ export interface CoreArguments {
 	noPrompt: args.BooleanArgument;
 	noColor: args.BooleanArgument;
 	debugLogStream: args.StringArgument;
+	skipCertValidation: args.BooleanArgument;
 }
 
 export interface Executor<TResult> {
@@ -334,6 +336,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			args.StringArgument,
 			"stdout",
 		);
+		this.registerCommandArgument(
+			"skipCertValidation",
+			"Skip Certificate Validation",
+			"Skip certificate validation during login",
+			args.BooleanArgument,
+			"false",
+		);
 	}
 
 	/**
@@ -409,11 +418,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		});
 	}
 
-	public getWebApi(): Promise<WebApi> {
+	public getWebApi(options?: IRequestOptions): Promise<WebApi> {
 		return this.commandArgs.serviceUrl.val().then(url => {
 			return this.getCredentials(url).then(handler => {
 				this.connection = new TfsConnection(url);
-				this.webApi = new WebApi(url, handler);
+				this.webApi = new WebApi(url, handler, options);
 				return this.webApi;
 			});
 		});
@@ -549,7 +558,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 					if (this.serverCommand) {
 						result += eol + cyan("Global server command arguments:") + eol;
-						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy"].forEach(arg => {
+						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
 							result += singleArgData(arg, 11);
 						});
 					}

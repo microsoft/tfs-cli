@@ -52,6 +52,8 @@ To avoid providing credentials with every command, you can login once. Currently
 
 > Warning! Using this feature will store your login credentials on disk in plain text.
 
+> To skip certificate validation connecting to On-Prem Azure DevOps Server you can use parameter `--skip-cert-validation`
+
 #### Personal access token
 
 Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
