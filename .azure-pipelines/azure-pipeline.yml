@@ -40,7 +40,6 @@ steps:
 
       rm .npmrc
     displayName: Publish TFX CLI to npm
-    condition: succeeded()
     env:
       NPM_TOKEN: $(npm-automation.token)
 
@@ -49,7 +48,6 @@ steps:
       npm pack
       cp *.tgz '$(Build.ArtifactStagingDirectory)'
     displayName: Run npm-pack and copy to ArtifactStagingDirectory
-    condition: succeeded()
 
   - task: PublishPipelineArtifact@1
     inputs:
@@ -57,4 +55,3 @@ steps:
       artifactType: 'pipeline'
       artifactName: 'tfx-cli-package'
     displayName: Publish tfx-cli package to pipeline artifacts
-    condition: succeeded()
