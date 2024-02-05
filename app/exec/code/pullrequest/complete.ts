@@ -17,7 +17,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 	protected serverCommand = true;
 	protected description = "Complete a pull request";
 	protected getHelpArgs(): string[] {
-		return ["project", "repositoryName", "pullrequestName", "pullrequestId", "deleteSourceBranch","bypass"];
+		return ["project", "repositoryName", "pullrequestName", "pullrequestId", "deleteSourceBranch","bypass","mergeCommitMessage"];
 	}
 	public async exec(): Promise<any> {
 		var gitApi = this.webApi.getGitApi();
@@ -26,6 +26,7 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		var repositoryName = await this.commandArgs.repositoryName.val();
 		var pullRequestName = await this.commandArgs.pullrequestName.val();
 		var bypass = await this.commandArgs.bypass.val();
+		var mergeCommitMessage = await this.commandArgs.mergeCommitMessage.val();
 		var pullRequestId;
 		if (!pullRequestName) {
 			pullRequestId = await this.commandArgs.pullrequestId.val();
@@ -85,7 +86,9 @@ export class Complete extends codedBase.CodeBase<codedBase.CodeArguments, void> 
 		if (delSources) {
 			trace.debug('delete source branch option selected')
 			completionOptions.deleteSourceBranch = delSources
-			updatedPullRequest.completionOptions = completionOptions;
+		}
+		if (mergeCommitMessage){
+			completionOptions.mergeCommitMessage = mergeCommitMessage
 		}
 		updatedPullRequest.completionOptions = completionOptions;
 		return await gitApi.then((api) => { return api.updatePullRequest(updatedPullRequest, gitRepositorie.id, pullRequestId, project); });

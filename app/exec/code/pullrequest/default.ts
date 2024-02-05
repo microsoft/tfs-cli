@@ -19,6 +19,7 @@ export interface CodeArguments extends CoreArguments {
 	repositoryId: args.StringArgument;
 	autocomplete: args.BooleanArgument;
 	mergeMethod: args.StringArgument;
+	mergeCommitMessage: args.StringArgument;
 }
 
 export class CodeBase<TArguments extends CodeArguments, TResult> extends TfCommand<TArguments, TResult> {
@@ -41,6 +42,8 @@ export class CodeBase<TArguments extends CodeArguments, TResult> extends TfComma
 		this.registerCommandArgument(["autocomplete"], "Auto Complete", "Set auto completion for a new pull request.", args.BooleanArgument, null);
 		this.registerCommandArgument(["mergeMethod"], "Merge Method", "Set auto merge method for completing the pull request.", args.IntArgument, '1');
 		this.registerCommandArgument(["bypass"], "Bypass Reason", "Reason for bypassing branch policy when completing a pull request.", args.StringArgument, null);
+		this.registerCommandArgument(["mergeCommitMessage"], "Merge Commit Message", "pull request merge complete message", args.StringArgument, null);
+
 	}
 	public exec(cmd?: any): Promise<any> {
 		return this.getHelp(cmd);
