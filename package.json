@@ -15,7 +15,7 @@
     "clean": "rimraf _build",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
@@ -41,7 +41,7 @@
     "uuid": "^3.0.1",
     "validator": "^13.7.0",
     "winreg": "0.0.12",
-    "xml2js": "^0.4.16"
+    "xml2js": "^0.5.0"
   },
   "devDependencies": {
     "@types/clipboardy": "~1.1.0",

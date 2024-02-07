@@ -1,0 +1,57 @@
+trigger:
+- master
+- releases/*
+
+pool:
+  vmImage: windows-latest
+
+variables:
+- group: npm-tokens
+
+steps:
+- checkout: self
+  clean: true
+
+- task: NodeTool@0
+  displayName: Use node 10
+  inputs:
+    versionSpec: "10.x"
+
+- script: npm i -g npm@6.14.12 --force
+  displayName: Use npm version 6.14.12
+
+- bash: | 
+    npm ci
+    npm run build
+  displayName: Build TFX CLI
+
+- ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
+  # For CI and Manual runs automatically publish packages
+  # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
+  - bash: |
+      echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+
+      npm publish --ignore-scripts
+      exit_status=$?
+      if [ $exit_status -eq 1 ]; then
+          echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
+          echo "##vso[task.complete result=SucceededWithIssues;]"
+      fi
+
+      rm .npmrc
+    displayName: Publish TFX CLI to npm
+    env:
+      NPM_TOKEN: $(npm-automation.token)
+
+  # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
+  - bash: |
+      npm pack
+      cp *.tgz '$(Build.ArtifactStagingDirectory)'
+    displayName: Run npm-pack and copy to ArtifactStagingDirectory
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)'
+      artifactType: 'pipeline'
+      artifactName: 'tfx-cli-package'
+    displayName: Publish tfx-cli package to pipeline artifacts
