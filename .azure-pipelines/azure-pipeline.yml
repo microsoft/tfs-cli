@@ -79,3 +79,9 @@ extends:
               npm pack
               cp *.tgz '$(Build.ArtifactStagingDirectory)'
             displayName: Run npm-pack and copy to ArtifactStagingDirectory
+        
+        # Install node 16 for CodeQL 3000
+        - task: NodeTool@0
+          displayName: Use node 10
+          inputs:
+            versionSpec: "16.x"
