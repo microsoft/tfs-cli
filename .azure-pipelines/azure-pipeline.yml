@@ -82,6 +82,6 @@ extends:
         
         # Install node 16 for CodeQL 3000
         - task: NodeTool@0
-          displayName: Use node 10
+          displayName: Use node 16
           inputs:
             versionSpec: "16.x"
