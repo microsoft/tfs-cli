@@ -1,57 +1,81 @@
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# This pipeline will be extended to the OneESPT template
+
 trigger:
 - master
 - releases/*
-
-pool:
-  vmImage: windows-latest
-
 variables:
 - group: npm-tokens
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
+    # featureFlags:
+      # autoBaseline: false
+    # sdl:
+    #   baseline:
+    #     baselineSet: default
+    #     baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
+    pool:
+      name: 1ES-ABTT-Shared-Pool
+      image: abtt-windows-2022
+      os: windows
+    stages:
+    - stage: stage
+      jobs:
+      - job: job
+        templateContext:
+          outputs:
+          - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
+            - output: pipelineArtifact
+              displayName: 'Publish tfx-cli package to pipeline artifacts'
+              targetPath: '$(Build.ArtifactStagingDirectory)'
+              artifactType: 'pipeline'
+              artifactName: 'tfx-cli-package'
+        steps:
+        - checkout: self
+          clean: true
 
-steps:
-- checkout: self
-  clean: true
+        - task: NodeTool@0
+          displayName: Use node 10
+          inputs:
+            versionSpec: "10.x"
 
-- task: NodeTool@0
-  displayName: Use node 10
-  inputs:
-    versionSpec: "10.x"
+        - script: npm i -g npm@6.14.12 --force
+          displayName: Use npm version 6.14.12
 
-- script: npm i -g npm@6.14.12 --force
-  displayName: Use npm version 6.14.12
+        - bash: |
+            npm ci
+            npm run build
+          displayName: Build TFX CLI
 
-- bash: | 
-    npm ci
-    npm run build
-  displayName: Build TFX CLI
+        - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
+          # For CI and Manual runs automatically publish packages
+          # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
+          - bash: |
+              echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
 
-- ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
-  # For CI and Manual runs automatically publish packages
-  # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
-  - bash: |
-      echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+              npm publish --ignore-scripts
+              exit_status=$?
+              if [ $exit_status -eq 1 ]; then
+                  echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
+                  echo "##vso[task.complete result=SucceededWithIssues;]"
+              fi
 
-      npm publish --ignore-scripts
-      exit_status=$?
-      if [ $exit_status -eq 1 ]; then
-          echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
-          echo "##vso[task.complete result=SucceededWithIssues;]"
-      fi
+              rm .npmrc
+            displayName: Publish TFX CLI to npm
+            env:
+              NPM_TOKEN: $(npm-automation.token)
 
-      rm .npmrc
-    displayName: Publish TFX CLI to npm
-    env:
-      NPM_TOKEN: $(npm-automation.token)
-
-  # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
-  - bash: |
-      npm pack
-      cp *.tgz '$(Build.ArtifactStagingDirectory)'
-    displayName: Run npm-pack and copy to ArtifactStagingDirectory
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: '$(Build.ArtifactStagingDirectory)'
-      artifactType: 'pipeline'
-      artifactName: 'tfx-cli-package'
-    displayName: Publish tfx-cli package to pipeline artifacts
+          # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
+          - bash: |
+              npm pack
+              cp *.tgz '$(Build.ArtifactStagingDirectory)'
+            displayName: Run npm-pack and copy to ArtifactStagingDirectory
