@@ -69,7 +69,7 @@ extends:
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
               ##echo '//msazure.pkgs.visualstudio.com/_packaging/tfs-cli/npm/:_authToken=${NPM_TOKEN}' > .npmrc
-
+              npm config set registry https://msazure.pkgs.visualstudio.com/_packaging/tfs-cli/npm/registry/
               npm publish --ignore-scripts
               exit_status=$?
               if [ $exit_status -eq 1 ]; then
