@@ -49,13 +49,16 @@ extends:
           clean: true
 
         - task: NodeTool@0
-          displayName: Use node 10
+          displayName: Use node 20
           inputs:
-            versionSpec: "10.x"
+            versionSpec: "20.x"
 
-        - script: npm i -g npm@6.14.12 --force
-          displayName: Use npm version 6.14.12
+        - script: npm i -g npm@10.2.4 --force
+          displayName: Use npm version 10.2.4
 
+        - script: npm i -g typescript@5.1.3 --force
+          displayName: Use typescript (tsc) version 5.1.3
+        
         - bash: |
             npm ci
             npm run build
