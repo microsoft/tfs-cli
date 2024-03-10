@@ -25,11 +25,11 @@ extends:
     #     baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
     sdl:
       sourceAnalysisPool:
-        name: Azure-Pipelines-1ESPT-ExDShared
+        name: Hosted
         image: windows-2022
         os: windows
     pool:
-      name: Azure-Pipelines-1ESPT-ExDShared
+      name: Hosted
       image: windows-2022
       os: windows
     stages:
