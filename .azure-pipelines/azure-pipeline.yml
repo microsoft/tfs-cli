@@ -59,35 +59,24 @@ extends:
         - script: npm i -g typescript@5.1.3 --force
           displayName: Use typescript (tsc) version 5.1.3
         
+        - task: Npm@1
+          displayName: install TFX CLI dependencies
+          inputs:
+            command: ci
+        
         - bash: |
-            npm config set registry https://msazure.pkgs.visualstudio.com/_packaging/tfs-cli/npm/registry/
-            npm ci
             npm run build
           displayName: Build TFX CLI
 
-        - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
-          # For CI and Manual runs automatically publish packages
-          # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
-          - bash: |
-              ##echo '//msazure.pkgs.visualstudio.com/_packaging/tfs-cli/npm/:_authToken=${NPM_TOKEN}' > .npmrc
-              npm config set registry https://msazure.pkgs.visualstudio.com/_packaging/tfs-cli/npm/registry/
-              npm publish --ignore-scripts
-              exit_status=$?
-              if [ $exit_status -eq 1 ]; then
-                  echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
-                  echo "##vso[task.complete result=SucceededWithIssues;]"
-              fi
-
-              rm .npmrc
-            displayName: Publish TFX CLI to npm
-            env:
-              NPM_TOKEN: $(npm-automation.token)
-
-          # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
-          - bash: |
-              npm pack
-              cp *.tgz '$(Build.ArtifactStagingDirectory)'
-            displayName: Run npm-pack and copy to ArtifactStagingDirectory
+        - task: Npm@1
+          displayName: Publish tfx-cli to kusto npm
+          condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), eq(variables['build.sourcebranchname'], 'master'))
+          inputs:
+            command: publish
+            workingDir: '_build'
+            publishRegistry: useFeed
+            publishFeed: tfs-cli
+          continueOnError: true
         
         # Install node 16 for CodeQL 3000
         - task: NodeTool@0
