@@ -73,7 +73,7 @@ extends:
           condition: and(succeeded(), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'), eq(variables['build.sourcebranchname'], 'master'))
           inputs:
             command: publish
-            workingDir: '_build'
+            workingDir: './'
             publishRegistry: useFeed
             publishFeed: tfs-cli
           continueOnError: true
