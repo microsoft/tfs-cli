@@ -26,8 +26,8 @@ export class TfsConnection {
 			throw new Error(
 				"Invalid service url - path is too long. A service URL should include the account/application URL and the collection, e.g. https://fabrikam.visualstudio.com/DefaultCollection or http://tfs-server:8080/tfs/DefaultCollection",
 			);
-		} else if (splitPath.length === 0) {
-			throw new Error("Expected URL path.");
+		} else if (splitPath.length === 0 || (splitPath[0] === "tfs" && splitPath.length === 1)) {
+			throw new Error("Expected URL path (collection name missing).");
 		}
 
 		if (splitPath[0].trim() !== "" || (splitPath[0] === "tfs" && splitPath[1].trim() !== "")) {
