@@ -1,6 +1,6 @@
 # Node CLI for Azure DevOps
 
-> NOTE: If you are looking for the new Azure DevOps CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
+> NOTE: If you are looking for the new Azure DevOps CLI, see [Azure DevOps Extension for Azure CLI](https://github.com/Azure/azure-devops-cli-extension)
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
