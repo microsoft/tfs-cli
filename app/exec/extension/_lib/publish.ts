@@ -231,16 +231,13 @@ export class PublisherManager extends GalleryBase {
 }
 
 export class SharingManager extends GalleryBase {
-	private id: Promise<string>;
-	private publisher: Promise<string>;
 
 	public shareWith(accounts: string[]): Promise<any> {
 		return this.getExtInfo().then(extInfo => {
 			return Promise.all(
 				accounts.map(account => {
 					trace.info("Sharing extension with %s.", account);
-					return SharingManager.shareExtension(this.galleryClient, extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
-					// return this.galleryClient.shareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
+					return this.galleryClient.shareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr);
 				}),
 			);
 		});
@@ -267,48 +264,6 @@ export class SharingManager extends GalleryBase {
 			return ext.sharedWith.map(acct => acct.name);
 		});
 	}
-
-	/******** TEMPORARY UNTIL REST CLIENT UPDATED ********/
-	public static async shareExtension(
-		client: IGalleryApi,
-		publisherName: string,
-		extensionName: string,
-		accountName: string
-		): Promise<void> {
-
-		return new Promise<void>(async (resolve, reject) => {
-			let routeValues: any = {
-				publisherName: publisherName,
-				extensionName: extensionName,
-				accountName: accountName
-			};
-
-			try {
-				let verData = await client.vsoClient.getVersioningData(
-					"6.1-preview.1",
-					"gallery",
-					"a1e66d8f-f5de-4d16-8309-91a4e015ee46",
-					routeValues);
-
-				let url: string = verData.requestUrl;
-				let options = client.createRequestOptions('application/json', 
-																				verData.apiVersion);
-
-				const res = await client.rest.create<void>(url, null, options);
-
-				let ret = client.formatResponse(res.result,
-											  null,
-											  false);
-
-				resolve(ret);
-				
-			}
-			catch (err) {
-				reject(err);
-			}
-		});
-	}
-	/******** /TEMPORARY UNTIL REST CLIENT UPDATED ********/
 }
 
 export class PackagePublisher extends GalleryBase {
@@ -338,9 +293,7 @@ export class PackagePublisher extends GalleryBase {
 	 * @return Q.Promise that is resolved when publish is complete
 	 */
 	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
-		const extPackage: GalleryInterfaces.ExtensionPackage = {	
-			extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64"),	
-		};
+		const extPackage = fs.createReadStream(this.settings.vsixPath)
 		trace.debug("Publishing %s", this.settings.vsixPath);
 
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
@@ -402,18 +355,16 @@ export class PackagePublisher extends GalleryBase {
 	}
 
 	private createOrUpdateExtension(
-		extPackage: GalleryInterfaces.ExtensionPackage,
+		extPackage: fs.ReadStream,
 	): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then(extInfo => {
-			let publishPromise;
+			let publishPromise: Promise<GalleryInterfaces.PublishedExtension>;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
-				publishPromise = this
-					.updateExtension(extPackage as any, extInfo.publisher, extInfo.id, false)
-					.catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id).catch(errHandler.httpErr);
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-				publishPromise = this.updateExtension(extPackage as any, extInfo.publisher, extInfo.id, true).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
 			}
 			return publishPromise.then(() => {
 				return this.galleryClient.getExtension(
@@ -426,40 +377,6 @@ export class PackagePublisher extends GalleryBase {
 			});
 		});
 	}
-
-	/******** TEMPORARY UNTIL REST CLIENT UPDATED ********/
-	private async updateExtension(
-		content: any,
-		publisherName: string,
-		extensionName: string,
-		create: boolean,
-		): Promise<GalleryInterfaces.PublishedExtension> {
-
-		let routeValues: any = {
-			publisherName: publisherName,
-			extensionName: extensionName
-		};
-
-		const queryValues: any = {
-			bypassScopeCheck: undefined
-		};
-
-		const verData = await this.galleryClient.vsoClient.getVersioningData(
-			"6.1-preview.2",
-			"gallery",
-			"e11ea35a-16fe-4b80-ab11-c4cab88a0966",
-			routeValues,
-			queryValues
-		);
-
-		const url = verData.requestUrl;
-		const options = this.galleryClient.createRequestOptions("application/json", verData.apiVersion);
-		options.additionalHeaders = { "Content-Type": "application/json" };
-		
-		const response = await (create ? this.galleryClient.rest.create(url, content, options) : this.galleryClient.rest.replace(url, content, options));
-		return this.galleryClient.formatResponse(response.result, GalleryInterfaces.TypeInfo.PublishedExtension, false);
-	}
-	/******** /TEMPORARY UNTIL REST CLIENT UPDATED ********/
 
 	public waitForValidation(
 		interval: number,
