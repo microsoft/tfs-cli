@@ -38,7 +38,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 	}
 
 	public async exec(): Promise<string[]> {
-		const galleryApi = await this.getGalleryApi();
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return this.commandArgs.vsix.val(true).then(vsixPath => {
 			let extInfoPromise: Promise<extInfo.CoreExtInfo>;

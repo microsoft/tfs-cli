@@ -27,7 +27,7 @@ export class ExtensionUnpublish extends extBase.ExtensionBase<galleryContracts.P
 	}
 
 	public async exec(): Promise<boolean> {
-		const galleryApi = await this.getGalleryApi();
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		const extInfo = await this.identifyExtension();
 		await galleryApi.deleteExtension(extInfo.publisher, extInfo.id);
