@@ -8,7 +8,7 @@ import * as colors from "colors";
 import * as extBase from "./default";
 import * as fs from "fs";
 import * as http from "https";
-import * as mkdirp from "mkdirp";
+import { mkdirp } from "mkdirp";
 import * as path from "path";
 import * as trace from "../../lib/trace";
 import * as jszip from "jszip";
@@ -254,7 +254,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 									});
 								}
 							});
-							resolve();
+							resolve(void 0);
 						}
 					});
 				});

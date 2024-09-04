@@ -7,7 +7,8 @@ var queue = [];
 
 // This is the read lib that uses Q instead of callbacks.
 export function read(name: string, message: string, silent: boolean = false, promptDefault?: string): Promise<string> {
-	let promise = new Promise<string>((resolve, reject) => {
+	let promise = null;
+	promise = new Promise<string>((resolve, reject) => {
 		let schema: prompt.PromptSchema = {
 			properties: {},
 		};

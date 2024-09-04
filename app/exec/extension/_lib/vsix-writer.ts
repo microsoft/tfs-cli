@@ -6,7 +6,6 @@ import { cleanAssetPath, toZipItemName } from "./utils";
 import { LocPrep } from "./loc";
 import _ = require("lodash");
 import childProcess = require("child_process");
-import mkdirp = require("mkdirp");
 import os = require("os");
 import path = require("path");
 import trace = require("../../../lib/trace");
@@ -14,6 +13,7 @@ import winreg = require("winreg");
 import xml = require("xml2js");
 import zip = require("jszip");
 
+import { mkdirp } from "mkdirp";
 import { defer, Deferred } from "../../../lib/promiseUtils";
 import { lstat, readdir, readFile, writeFile } from "fs";
 import { promisify } from "util";
