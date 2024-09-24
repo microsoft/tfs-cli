@@ -144,7 +144,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 			"samples",
 			colors.white("Which samples do you want to start with?") +
 				colors.gray(
-					" You may specifiy multiple (comma-separated).\nFor descriptions, see https://github.com/Microsoft/azure-devops-extension-sample.\n  (A)ll, \n  (F)eature, \n  (H)ub, \n  (M)enu, \n  (P)anel, \n  Pi(v)ot, \n  (W)orkItemOpen, \n  (N)one - empty project\n",
+					" You may specifiy multiple (comma-separated).\nFor descriptions, see https://github.com/Microsoft/azure-devops-extension-sample\n  (A)ll, \n  (F)eature, \n  (H)ub, \n  (M)enu, \n  (P)anel, \n  Pi(v)ot, \n  (W)orkItemOpen, \n  (N)one - empty project\n",
 				),
 			"Specify which samples to include in the new extension.",
 			args.StringArgument,
