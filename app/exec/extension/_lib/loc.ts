@@ -3,9 +3,9 @@ import { ManifestBuilder } from "./manifest";
 import { VsixManifestBuilder } from "./vsix-manifest-builder";
 import _ = require("lodash");
 import trace = require("../../../lib/trace");
-import mkdirp = require("mkdirp");
 import path = require("path");
 
+import { mkdirp } from "mkdirp";
 import { promisify } from "util";
 import { lstat, writeFile } from "fs";
 import { exists } from "../../../lib/fsUtils";

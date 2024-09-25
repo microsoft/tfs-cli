@@ -2,7 +2,7 @@ import * as common from "./common";
 import * as fs from "fs";
 import { defer } from "./promiseUtils";
 
-var osHomedir = require("os-homedir");
+var os = require('os');
 var path = require("path");
 var shell = require("shelljs");
 var trace = require("./trace");
@@ -15,7 +15,7 @@ export class DiskCache {
 	public appName: string;
 
 	private getFilePath(store: string, name: string): string {
-		var storeFolder = path.join(osHomedir(), "." + this.appName, store);
+		var storeFolder = path.join(os.homedir(), "." + this.appName, store);
 		try {
 			shell.mkdir("-p", storeFolder);
 		} catch (e) {}

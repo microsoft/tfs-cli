@@ -1,6 +1,5 @@
 import fs = require("fs");
 
-var osHomedir = require("os-homedir");
 var path = require("path");
 var cm = require("./diskcache");
 var cache = new cm.DiskCache("tfx");

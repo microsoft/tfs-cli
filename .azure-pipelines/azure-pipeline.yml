@@ -44,16 +44,13 @@ extends:
           clean: true
 
         - task: NodeTool@0
-          displayName: Use node 10
+          displayName: Use node 16
           inputs:
-            versionSpec: "10.x"
+            versionSpec: "16.x"
 
         - task: NpmAuthenticate@0
           inputs:
             workingFile: .npmrc
-
-        - script: npm i -g npm@6.14.12 --force
-          displayName: Use npm version 6.14.12
 
         - bash: |
             npm ci

@@ -13,7 +13,6 @@ import {
 import { forwardSlashesPath, toZipItemName } from "./utils";
 import _ = require("lodash");
 import fs = require("fs");
-import glob = require("glob");
 import jju = require("jju");
 import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
@@ -21,6 +20,7 @@ import path = require("path");
 import trace = require("../../../lib/trace");
 import version = require("../../../lib/dynamicVersion");
 
+import { glob } from "glob";
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
 import { exists } from "../../../lib/fsUtils";
@@ -57,14 +57,13 @@ export class Merger {
 			trace.debug("merger.gatherManifestsFromGlob");
 			const promises = globs.map(
 				pattern =>
-					new Promise<string[]>((resolve, reject) => {
-						glob(pattern, (err, matches) => {
-							if (err) {
-								reject(err);
-							} else {
-								resolve(matches);
-							}
-						});
+					new Promise<string[]>(async (resolve, reject) => {
+						try {
+							const matches = await glob(pattern, { windowsPathsNoEscape:true });
+							resolve(matches);
+						} catch (error) {
+							reject(error);
+						}
 					}),
 			);
 
