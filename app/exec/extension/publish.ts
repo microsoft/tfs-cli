@@ -69,7 +69,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 	}
 
 	public async exec(): Promise<ExtensionPublishResult> {
-		const galleryApi = await this.getGalleryApi();
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl)
 		let result = <ExtensionPublishResult>{};
 
 		const publishSettings = await this.getPublishSettings();
