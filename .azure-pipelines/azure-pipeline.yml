@@ -48,6 +48,10 @@ extends:
           inputs:
             versionSpec: "16.x"
 
+        - task: NpmAuthenticate@0
+          inputs:
+            workingFile: .npmrc
+
         - bash: |
             npm ci
             npm run build
