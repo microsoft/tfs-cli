@@ -9,7 +9,7 @@ export class TfsConnection {
 	constructor(private serviceUrl: string) {
 		this.parsedUrl = url.parse(this.serviceUrl);
 
-		var splitPath: string[] = this.parsedUrl.path.split("/").slice(1);
+		const splitPath: string[] = this.parsedUrl.path.split("/").slice(1).filter(item => item !== "");
 		this.accountUrl = this.parsedUrl.protocol + "//" + this.parsedUrl.host;
 
 		if (splitPath.length === 2 && splitPath[0] === "tfs") {
