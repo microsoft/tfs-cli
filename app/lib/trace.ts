@@ -18,7 +18,7 @@ export function println() {
 }
 
 export function error(msg: any, ...replacements: printable[]): void {
-	log("error: ", msg, colors.bgRed, replacements, console.error);
+	log("error: ", msg, colors.bgRed.white, replacements, console.error);
 }
 
 export function success(msg: any, ...replacements: printable[]): void {
