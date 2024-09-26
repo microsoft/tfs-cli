@@ -10,16 +10,15 @@ import {
 	Vsix,
 	VsixLanguagePack,
 } from "./interfaces";
-import { cleanAssetPath, jsonToXml, maxKey, toZipItemName } from "./utils";
+import { jsonToXml, maxKey, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
 import onecolor = require("onecolor");
 import os = require("os");
 import path = require("path");
-import stream = require("stream");
 import trace = require("../../../lib/trace");
 import winreg = require("winreg");
-import xml = require("xml2js");
+
 
 export class VsixManifestBuilder extends ManifestBuilder {
 	constructor(extRoot: string) {
