@@ -1,9 +1,4 @@
-import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
-
 import url = require("url");
-import apim = require("azure-devops-node-api/WebApi");
-import apibasem = require("azure-devops-node-api/interfaces/common/VsoBaseInterfaces");
-import trace = require("./trace");
 
 export class TfsConnection {
 	private parsedUrl: url.Url;
