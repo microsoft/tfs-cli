@@ -819,7 +819,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						seenPartNames.add(partName);
 					}
 					if ((this.files[filePath] as any)._additionalPackagePaths) {
-						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {							
+						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {
 							let additionalPartName =  "/" + toZipItemName(additionalPath);
 							if (!seenPartNames.has(additionalPartName)) {
 								contentTypes.Types.Override.push({
