@@ -19,6 +19,16 @@ import path = require("path");
 import trace = require("../../../lib/trace");
 import winreg = require("winreg");
 
+interface DetailsType {
+  path: string;
+  contentType: string;
+}
+
+interface RepositoryType {
+  type: string;
+  url: string;
+  uri: string;
+}
 
 export class VsixManifestBuilder extends ManifestBuilder {
 	constructor(extRoot: string) {
@@ -257,13 +267,15 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				});
 				break;
 			case "details":
-				if (_.isObject(value) && value.path) {
+        const pathField: keyof DetailsType = "path"
+				if (_.isObject(value) && pathField in value) {
+					const file = value as DetailsType;
 					let fileDecl: FileDeclaration = {
-						path: value.path,
+						path: file.path,
 						addressable: true,
 						auto: true,
 						assetType: "Microsoft.VisualStudio.Services.Content.Details",
-						contentType: value.contentType,
+						contentType: file.contentType,
 					};
 					this.addFile(fileDecl, true);
 				}
@@ -303,7 +315,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "repository":
 				if (_.isObject(value)) {
-					const { type, url, uri } = value;
+					const { type, url, uri } = value as RepositoryType;
 					if (!type) {
 						throw new Error("Repository must have a 'type' property.");
 					}
