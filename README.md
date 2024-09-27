@@ -1,34 +1,38 @@
 # Node CLI for Azure DevOps
 
-> NOTE: If you are looking for the new Azure DevOps CLI, see [vsts-cli](https://github.com/microsoft/vsts-cli)
+> NOTE: If you are looking for the new _Azure DevOps CLI_, see [vsts-cli](https://github.com/microsoft/vsts-cli)
 
 [![NPM version](https://badge.fury.io/js/tfx-cli.svg)](http://badge.fury.io/js/tfx-cli)
 
-Command utility for interacting with Microsoft Team Foundation Server and Azure DevOps Services (formerly VSTS). It is cross platform and supported on Windows, OS X, and Linux.
+This is a command-line utility for interacting with _Microsoft Team Foundation Server_ and _Azure DevOps Services_ (formerly _VSTS_). It is cross platform and supported on _Windows_, _MacOS_, and _Linux_.
 
 ## Setup
 
-First, download and install [Node.js](http://nodejs.org) 4.0.x or later and NPM (included with the installer)
+First, download and install [Node.js](http://nodejs.org) 4.0.x or later and npm (included with the installer)
 
 ### Linux/OSX
+
 ```bash
 sudo npm install -g tfx-cli
 ```
 
 ### Windows
+
 ```bash
 npm install -g tfx-cli
 ```
 
 ## Commands
 
-To see a list of commands:
-```
+To see the list of commands:
+
+```bash
 tfx
 ```
 
 For help with an individual command:
-```
+
+```bash
 tfx <command> --help
 ```
 
@@ -36,24 +40,24 @@ tfx <command> --help
 
 ### Command sets
 
-* `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds
-* `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks
-* `tfx extension` ([extensions](docs/extensions.md)): Package, manage, publish Team Foundation Server / Azure DevOps extensions
+* `tfx build` ([builds](docs/builds.md)): Queue, view, and get details for builds.
+* `tfx build tasks` ([build tasks](docs/buildtasks.md)): Create, list, upload and delete build tasks.
+* `tfx extension` ([extensions](docs/extensions.md)): Package, manage, publish _Team Foundation Server_ / _Azure DevOps_ extensions.
 * `tfx workitem` ([work items](docs/workitems.md)): Create, query and view work items.
 
 ### Login
 
-To avoid providing credentials with every command, you can login once. Currently supported credential types: Personal Access Tokens and basic auth credentials.
+To avoid providing credentials with every command, you can login once. Currently supported credential types: _Personal Access Tokens_ and _basic authentication credentials_.
 
 > NTLM support is under consideration
-
+>
 > Warning! Using this feature will store your login credentials on disk in plain text.
-
-> To skip certificate validation connecting to On-Prem Azure DevOps Server you can use parameter `--skip-cert-validation`
+>
+> To skip certificate validation connecting to on-prem _Azure DevOps Server_ use the `--skip-cert-validation` parameter.
 
 #### Personal access token
 
-Start by [creating a personal access token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
+Start by [creating a Personal Access Token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
 
 ```bash
 ~$ tfx login
@@ -66,16 +70,16 @@ Logged in successfully
 
 Examples of valid URLs are:
 
-* `https://marketplace.visualstudio.com` 
+* `https://marketplace.visualstudio.com`
 * `https://youraccount.visualstudio.com/DefaultCollection`
 
 #### Basic auth
 
-You can alternatively use basic auth by passing `--auth-type basic` (see [Configuring Basic Auth](docs/configureBasicAuth.md)).
+You can also use basic authentication by passing the `--auth-type basic` parameter (see [Configuring Basic Auth](docs/configureBasicAuth.md) for details).
 
 ### Settings cache
 
-To avoid providing other options in every command, you can save options out to a settings file by adding the `--save` flag.
+To avoid providing options with every command, you can save them to a settings file by adding the `--save` flag.
 
 ```bash
 ~$ tfx build list --project MyProject --definition-name println --top 5 --save
@@ -100,30 +104,33 @@ status          : NotStarted
 queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
-If you used `--save` to set a default value for an option, you may need to override it by explicitly providing the option with a different value. You can clear any saved settings by running `tfx reset`. 
+If you used `--save` to set a default value for an option, you may need to override it by explicitly providing a different value. You can clear any saved settings by running `tfx reset`.
 
 ### Troubleshooting
 
-To see detailed tracing output, you can set a value for the `TFX_TRACE` environment value and then run commands.  That may offer a clue into the problem (and will certainly help if logging an issue).
+To see detailed tracing output, set a value for the `TFX_TRACE` environment variable and then run commands. This may provide clues to the issue and can be helpful when logging an issue.
 
-### Linux/OSX
+### Troubleshooting on Linux/OSX
+
 ```bash
 export TFX_TRACE=1
 ```
 
-### Windows
+### Troubleshooting on Windows
+
 ```bash
 set TFX_TRACE=1
 ```
 
-### PowerShell
+#### PowerShell
+
 ```bash
 $env:TFX_TRACE=1
 ```
 
 ## Contributing
 
-We take contributions and fixes via Pull Request. [Read here](docs/contributions.md) for the details.
+We accept contributions and fixes via Pull Requests. Please read the [Contributions guide](docs/contributions.md) for more details.
 
 ## Code of Conduct
 
