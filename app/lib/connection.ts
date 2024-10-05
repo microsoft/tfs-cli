@@ -1,9 +1,4 @@
-import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
-
 import url = require("url");
-import apim = require("azure-devops-node-api/WebApi");
-import apibasem = require("azure-devops-node-api/interfaces/common/VsoBaseInterfaces");
-import trace = require("./trace");
 
 export class TfsConnection {
 	private parsedUrl: url.Url;
@@ -14,7 +9,7 @@ export class TfsConnection {
 	constructor(private serviceUrl: string) {
 		this.parsedUrl = url.parse(this.serviceUrl);
 
-		var splitPath: string[] = this.parsedUrl.path.split("/").slice(1);
+		const splitPath: string[] = this.parsedUrl.path.split("/").slice(1).filter(item => item !== "");
 		this.accountUrl = this.parsedUrl.protocol + "//" + this.parsedUrl.host;
 
 		if (splitPath.length === 2 && splitPath[0] === "tfs") {
