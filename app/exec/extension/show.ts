@@ -27,7 +27,7 @@ export class ExtensionShow extends extBase.ExtensionBase<galleryContracts.Publis
 	}
 
 	public async exec(): Promise<galleryContracts.PublishedExtension> {
-		const galleryApi = await this.getGalleryApi();
+		const galleryApi = await this.webApi.getGalleryApi(this.webApi.serverUrl);
 
 		return this.identifyExtension().then(extInfo => {
 			let sharingMgr = new publishUtils.SharingManager({}, galleryApi, extInfo);

@@ -318,16 +318,10 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		return this.getHelp(cmd);
 	}
 
-	/**** TEMPORARY until Marketplace fixes getResourceArea ****/
-	protected async getGalleryApi() {
-		const handler = await this.getCredentials(this.webApi.serverUrl, false);
-		return new GalleryApi(this.webApi.serverUrl, [handler]); // await this.webApi.getGalleryApi(this.webApi.serverUrl);
-	}
-	/**** TEMPORARY until Marketplace fixes getResourceArea ****/
-
 	public static async getMarketplaceUrl(): Promise<string[]> {
+		const RESOURCE_AREA_ID = "69D21C00-F135-441B-B5CE-3626378E0819"
 		trace.debug("getMarketplaceUrl");
-		const url = "https://app.vssps.visualstudio.com/_apis/resourceareas/69D21C00-F135-441B-B5CE-3626378E0819";
+		const url = `https://app.vssps.visualstudio.com/_apis/resourceareas/${RESOURCE_AREA_ID}`;
 		const response = await new Promise<string>((resolve, reject) => {
 			https
 				.get(url, resp => {
