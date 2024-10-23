@@ -1,0 +1,22 @@
+{
+  "name": "tfx dev environment",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {},
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "DavidAnson.vscode-markdownlint",
+        "dbaeumer.vscode-eslint",
+        "editorconfig.editorconfig",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.js-debug-nightly",
+        "ms-vscode.vscode-typescript-next"
+      ]
+    }
+  }
+}

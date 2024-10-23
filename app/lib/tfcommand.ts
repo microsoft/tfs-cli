@@ -223,7 +223,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		}
 
 		if (argValue) {
-			this.commandArgs[argName] = new ctor(argName, friendlyName, description, argValue, false, argAliases, undocumented);
+			this.commandArgs[argName as keyof TArguments] = new ctor(argName, friendlyName, description, argValue, false, argAliases, undocumented) as unknown as TArguments[keyof TArguments];
 		} else {
 			let def: string | string[] | Promise<string[]> = null;
 			if (typeof defaultValue === "function") {
@@ -231,7 +231,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			} else {
 				def = defaultValue;
 			}
-			this.commandArgs[argName] = new ctor(
+			this.commandArgs[argName as keyof TArguments] = new ctor(
 				argName,
 				friendlyName,
 				description,
@@ -240,7 +240,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				argAliases,
 				undocumented,
 				promptDefault,
-			);
+			) as unknown as TArguments[keyof TArguments];
 		}
 	}
 
