@@ -427,7 +427,7 @@ export class Merger {
 			trace.error(err);
 		}
 		
-		if (taskJsonExists){
+		if (taskJsonExists) {
 			return validate(taskJsonPath, "no task.json in specified directory");
 		}
 	}
