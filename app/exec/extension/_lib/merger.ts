@@ -24,7 +24,7 @@ import version = require("../../../lib/dynamicVersion");
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
 import { exists } from "../../../lib/fsUtils";
-import { validate } from "../../../lib/jsonvalidate";
+import { validate, TaskJson } from "../../../lib/jsonvalidate";
 
 /**
  * Combines the vsix and vso manifests into one object
@@ -408,7 +408,7 @@ export class Merger {
 		return files;
 	}
 
-	private async validateTaskJson(taskJsonSearchPattern: string): Promise<any> {
+	private async validateTaskJson(taskJsonSearchPattern: string): Promise<TaskJson> {
 		let taskJsonExists = false;
 		let taskJsonPath: string;
 
@@ -423,12 +423,12 @@ export class Merger {
 			taskJsonPath = matches[0];
 			taskJsonExists = await exists(taskJsonPath);
 			
+			if (taskJsonExists) {
+				return validate(taskJsonPath, "no task.json in specified directory");
+			}
+
 		} catch (err) {
-			trace.error(err);
-		}
-		
-		if (taskJsonExists) {
-			return validate(taskJsonPath, "no task.json in specified directory");
+			trace.warn(err && err instanceof Error ? err.message : "Error occurred while validating task.json");
 		}
 	}
 }
