@@ -428,7 +428,10 @@ export class Merger {
 			}
 
 		} catch (err) {
-			trace.warn(err && err instanceof Error ? err.message : "Error occurred while validating task.json");
+			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
+			trace.warn(err && err instanceof Error
+				? warningMessage + err.message
+				: "Error occurred while validating task.json");
 		}
 	}
 }
