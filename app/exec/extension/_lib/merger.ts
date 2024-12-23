@@ -409,9 +409,6 @@ export class Merger {
 	}
 
 	private async validateTaskJson(taskJsonSearchPattern: string): Promise<TaskJson> {
-		let taskJsonExists = false;
-		let taskJsonPath: string;
-
 		try {
 			const matches: string[] = await promisify(glob)(taskJsonSearchPattern);
 			
@@ -420,8 +417,8 @@ export class Merger {
 				return;
 			}
 
-			taskJsonPath = matches[0];
-			taskJsonExists = await exists(taskJsonPath);
+			const taskJsonPath = matches[0];
+			const taskJsonExists = await exists(taskJsonPath);
 			
 			if (taskJsonExists) {
 				return validate(taskJsonPath, "no task.json in specified directory");
@@ -431,7 +428,7 @@ export class Merger {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
 			trace.warn(err && err instanceof Error
 				? warningMessage + err.message
-				: "Error occurred while validating task.json");
+				: `Error occurred while validating task.json. ${warningMessage}`);
 		}
 	}
 }
