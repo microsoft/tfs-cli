@@ -1,10 +1,12 @@
-import { defer } from "./promiseUtils";
-
 var fs = require("fs");
 var check = require("validator");
 var trace = require("./trace");
 
 const deprecatedRunners = ["Node6", "Node10", "Node16"];
+
+export interface TaskJson {
+	id: string;
+}
 
 /*
  * Checks a json file for correct formatting against some validation function
@@ -13,9 +15,8 @@ const deprecatedRunners = ["Node6", "Node10", "Node16"];
  * @return the parsed json file
  * @throws InvalidDirectoryException if json file doesn't exist, InvalidJsonException on failed parse or *first* invalid field in json
 */
-export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): Promise<any> {
+export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): TaskJson {
 	trace.debug("Validating task json...");
-	var deferred = defer<any>();
 	var jsonMissingErrorMsg: string = jsonMissingErrorMessage || "specified json file does not exist.";
 	this.exists(jsonFilePath, jsonMissingErrorMsg);
 
@@ -34,13 +35,12 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
 			output += "\n\t" + issues[i];
 		}
 		trace.debug(output);
-		deferred.reject(new Error(output));
+		throw new Error(output);
 	}
 
 	trace.debug("Json is valid.");
 	validateRunner(taskJson);
-	deferred.resolve(taskJson);
-	return <any>deferred.promise;
+	return taskJson;
 }
 
 /*
