@@ -688,7 +688,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				case "clip":
 				case "clipboard":
 					let clipboardText = this.getClipboardOutput(data);
-					return clipboardy.default.write(clipboardText);
+					return clipboardy.default.writeSync(clipboardText);
 				default:
 					return fsUtils.canWriteTo(path.resolve(outputDestination)).then(canWrite => {
 						if (canWrite) {
