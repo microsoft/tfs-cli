@@ -10,7 +10,7 @@ import args = require("./arguments");
 import { blue, cyan, gray, green, yellow, magenta, reset as resetColors, stripColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
-import clipboardy = require("clipboardy");
+import clipboardy from "clipboardy";
 import { writeFile } from "fs";
 import loader = require("../lib/loader");
 import path = require("path");
@@ -688,7 +688,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				case "clip":
 				case "clipboard":
 					let clipboardText = this.getClipboardOutput(data);
-					return clipboardy.write(clipboardText);
+					return clipboardy.writeSync(clipboardText);
 				default:
 					return fsUtils.canWriteTo(path.resolve(outputDestination)).then(canWrite => {
 						if (canWrite) {
