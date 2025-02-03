@@ -10,7 +10,7 @@ import args = require("./arguments");
 import { blue, cyan, gray, green, yellow, magenta, reset as resetColors, stripColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
-import clipboardy from "clipboardy";
+import clipboardy = require("clipboardy");
 import { writeFile } from "fs";
 import loader = require("../lib/loader");
 import path = require("path");
