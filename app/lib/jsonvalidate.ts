@@ -2,7 +2,7 @@ var fs = require("fs");
 var check = require("validator");
 var trace = require("./trace");
 
-const deprecatedRunners = ["Node6", "Node10", "Node16"];
+const deprecatedRunners = ["Node", "Node6", "Node10", "Node16"];
 
 export interface TaskJson {
 	id: string;
