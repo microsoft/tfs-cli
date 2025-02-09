@@ -49,6 +49,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		".json": "application/json",
 		".map": "application/json",
 		".md": "text/markdown",
+		".html": "text/html",
 		".pdf": "application/pdf",
 		".png": "image/png",
 		".ps1": "text/ps1",
