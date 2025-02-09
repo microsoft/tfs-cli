@@ -52,14 +52,9 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 				});
 			}
 			return extInfoPromise.then(extInfo => {
-				return this.commandArgs.shareWith.val().then(shareWith => {
-					let sharePromises: Promise<void>[] = [];
-					shareWith.forEach(account => {
-						sharePromises.push(SharingManager.shareExtension(galleryApi, extInfo.publisher, extInfo.id, account));
-					});
-					return Promise.all(sharePromises).then(() => {
-						return shareWith;
-					});
+				return this.commandArgs.shareWith.val().then(accounts => {
+					const sharingMgr = new SharingManager({}, galleryApi, extInfo);
+					return sharingMgr.shareWith(accounts).then(() => accounts);
 				});
 			});
 		});
