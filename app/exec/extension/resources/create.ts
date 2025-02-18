@@ -32,6 +32,7 @@ export class GenerateExtensionResources extends extBase.ExtensionBase<GenResourc
 			"override",
 			"overridesFile",
 			"revVersion",
+			"bypassScopeCheck",
 			"bypassValidation",
 			"publisher",
 			"extensionId",
