@@ -232,6 +232,11 @@ export interface PublishSettings {
 	 * If true, command will not wait for extension to be validated.
 	 */
 	noWaitValidation?: boolean;
+
+	/**
+	 * If true, publish will not halt in the event of requiring new scopes.
+	 */
+	bypassScopeCheck?: boolean;
 }
 
 /*** Types related to localized resources ***/
