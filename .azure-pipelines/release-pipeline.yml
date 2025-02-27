@@ -16,18 +16,14 @@ extends:
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
-    # featureFlags:
-      # autoBaseline: false
-    # sdl:
-    #   baseline:
-    #     baselineSet: default
-    #     baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
+
     pool:
       name: 1ES-ABTT-Shared-Pool
       image: abtt-windows-2022
       os: windows
     stages:
-    - stage: stage
+    - stage: Build
+      displayName: build the tfx-cli npm package
       jobs:
       - job: job
         templateContext:
@@ -39,15 +35,14 @@ extends:
             artifactName: 'tfx-cli-package'
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
-
+    - stage: Deploy
+      displayName: upload the package to npm
+      trigger: manual
+      jobs:
+      - job: deploy
+        steps:
         - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
-          # For CI and Manual runs automatically publish packages
-          - task: ManualValidation@0
-            inputs:
-              notifyUsers: # string. Required. Notify users. 
-              #instructions: # string. Instructions. 
-              #onTimeout: 'reject' # 'reject' | 'resume'. On timeout. Default: reject.
-
+          # Validate and publish packages
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
               echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
