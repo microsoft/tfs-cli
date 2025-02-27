@@ -1,0 +1,29 @@
+# Common steps template
+#
+# Things which happen regardless of CI, PR, or release builds
+steps:
+  - checkout: self
+    clean: true
+
+  - task: NodeTool@0
+    displayName: Use node 10
+    inputs:
+      versionSpec: "10.x"
+
+  - task: NpmAuthenticate@0
+    inputs:
+      workingFile: .npmrc
+
+  - script: npm i -g npm@6.14.12 --force
+    displayName: Use npm version 6.14.12
+
+  - bash: |
+      npm ci
+      npm run build
+    displayName: Build TFX CLI
+
+  # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
+  - bash: |
+      npm pack
+      cp *.tgz '$(Build.ArtifactStagingDirectory)'
+    displayName: Run npm-pack and copy to ArtifactStagingDirectory
