@@ -25,7 +25,7 @@ extends:
     - stage: Build
       displayName: build the tfx-cli npm package
       jobs:
-      - job: job
+      - job: build
         templateContext:
           outputs:
           - output: pipelineArtifact
@@ -35,11 +35,10 @@ extends:
             artifactName: 'tfx-cli-package'
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
-    - stage: Deploy
-      displayName: upload the package to npm
-      trigger: manual
-      jobs:
+
       - job: deploy
+        displayName: upload the package to npm
+        trigger: manual
         steps:
         - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
           # Validate and publish packages
