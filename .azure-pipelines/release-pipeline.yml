@@ -56,6 +56,7 @@ extends:
 
               rm .npmrc
             displayName: Publish TFX CLI to npm
+            condition: eq(variables['Build.SourceBranchName'], 'master')
             env:
               NPM_TOKEN: $(npm-automation.token)
 
