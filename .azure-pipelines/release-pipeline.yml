@@ -1,0 +1,71 @@
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# This pipeline will be extended to the OneESPT template
+
+trigger: none
+
+variables:
+- group: npm-tokens
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
+    # featureFlags:
+      # autoBaseline: false
+    # sdl:
+    #   baseline:
+    #     baselineSet: default
+    #     baselineFile: $(Build.SourcesDirectory)/.gdn/.gdnbaselines
+    pool:
+      name: 1ES-ABTT-Shared-Pool
+      image: abtt-windows-2022
+      os: windows
+    stages:
+    - stage: stage
+      jobs:
+      - job: job
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish tfx-cli package to pipeline artifacts'
+            targetPath: '$(Build.ArtifactStagingDirectory)'
+            artifactType: 'pipeline'
+            artifactName: 'tfx-cli-package'
+        steps:
+        - template: /.azure-pipelines/common-steps.yml@self
+
+        - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
+          # For CI and Manual runs automatically publish packages
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: # string. Required. Notify users. 
+              #instructions: # string. Instructions. 
+              #onTimeout: 'reject' # 'reject' | 'resume'. On timeout. Default: reject.
+
+          # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
+          - bash: |
+              echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+
+              npm publish --ignore-scripts
+              exit_status=$?
+              if [ $exit_status -eq 1 ]; then
+                  echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
+                  echo "##vso[task.complete result=SucceededWithIssues;]"
+              fi
+
+              rm .npmrc
+            displayName: Publish TFX CLI to npm
+            env:
+              NPM_TOKEN: $(npm-automation.token)
+
+        # Install node 16 for CodeQL 3000
+        - task: NodeTool@0
+          displayName: Use node 16
+          inputs:
+            versionSpec: "16.x"
