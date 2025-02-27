@@ -38,7 +38,6 @@ extends:
 
       - job: deploy
         displayName: upload the package to npm
-        trigger: manual
         steps:
         - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
           # Validate and publish packages
