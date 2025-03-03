@@ -118,8 +118,6 @@ export function validateTask(taskPath: string, taskData: any): string[] {
       }
     }
 
-    if (issues.length > 0) {
-      return [taskPath, ...issues];
-    }
+    return (issues.length > 0) ? [taskPath, ...issues] : [];
   }
 }
