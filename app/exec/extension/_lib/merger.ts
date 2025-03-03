@@ -104,7 +104,7 @@ export class Merger {
 
 		// build environment object from --env parameter
 		const env = {};
-		(this.settings.env || []).forEach(kvp => { 
+		(this.settings.env || []).forEach(kvp => {
 			const [key, ...value] = kvp.split('=');
 			env[key] = value.join('=');
 		});
@@ -119,7 +119,7 @@ export class Merger {
 			throw new Error(`The export function from manifest-js file ${fullJsFile} must return the manifest object`)
 		}
 		return manifestData;
-	}	
+	}
 
 	/**
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
@@ -242,7 +242,7 @@ export class Merger {
 					for (let i = partial["files"].length - 1; i >= 0; --i) {
 						const fileDecl: FileDeclaration = partial["files"][i];
 						const fsPath = path.join(this.settings.root, fileDecl.path);
-						if (fs.lstatSync(fsPath).isDirectory()) {
+						if (fs.statSync(fsPath).isDirectory()) {
 							Array.prototype.splice.apply(
 								partial["files"],
 								(<any[]>[i, 1]).concat(this.pathToFileDeclarations(fsPath, this.settings.root, fileDecl)),
@@ -376,7 +376,7 @@ export class Merger {
 	 */
 	private pathToFileDeclarations(fsPath: string, root: string, fileDecl: FileDeclaration): FileDeclaration[] {
 		let files: FileDeclaration[] = [];
-		if (fs.lstatSync(fsPath).isDirectory()) {
+		if (fs.statSync(fsPath).isDirectory()) {
 			trace.debug("Path '%s` is a directory. Adding all contained files (recursive).", fsPath);
 			fs.readdirSync(fsPath).forEach(dirChildPath => {
 				trace.debug("-- %s", dirChildPath);
