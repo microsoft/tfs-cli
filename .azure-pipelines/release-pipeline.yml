@@ -35,24 +35,7 @@ extends:
             artifactName: 'tfx-cli-package'
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
-
-      - job: deploy
-        displayName: upload the package to npm
-        steps:
         - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
-          # Adding Manual step as right now we do not have automated tests. 
-          - task: ManualValidation@0
-            inputs:
-              notifyUsers: |
-                   $(notifyUsers)
-              instructions: 'Please validate and test the generated package.'
-          - task: NodeTool@0
-            displayName: Use node 10
-            inputs:
-              versionSpec: "10.x"
-          - task: NpmAuthenticate@0
-            inputs:
-              workingFile: .npmrc
           # Validate and publish packages
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
