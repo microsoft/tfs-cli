@@ -7,12 +7,12 @@ variables:
 - group: npm-tokens
 resources:
   repositories:
-  - repository: 1ESPipelineTemplates
+  - repository: 1esPipelines
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
@@ -39,7 +39,7 @@ extends:
           # Validate and publish packages
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
-              echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+              echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
 
               npm publish --ignore-scripts
               exit_status=$?
@@ -51,8 +51,6 @@ extends:
               rm .npmrc
             displayName: Publish TFX CLI to npm
             condition: eq(variables['Build.SourceBranchName'], 'master')
-            env:
-              NPM_TOKEN: $(npm-automation.token)
 
         # Install node 16 for CodeQL 3000
         - task: NodeTool@0
