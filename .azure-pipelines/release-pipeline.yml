@@ -50,7 +50,6 @@ extends:
 
               rm .npmrc
             displayName: Publish TFX CLI to npm
-            condition: eq(variables['Build.SourceBranchName'], 'master')
 
         # Install node 16 for CodeQL 3000
         - task: NodeTool@0
