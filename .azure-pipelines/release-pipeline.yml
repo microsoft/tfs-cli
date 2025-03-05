@@ -40,7 +40,7 @@ extends:
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
               echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
-
+              cat ./.npmrc
               npm publish --ignore-scripts
               exit_status=$?
               if [ $exit_status -eq 1 ]; then
