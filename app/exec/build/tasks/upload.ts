@@ -14,10 +14,6 @@ export function getCommand(args: string[]): BuildTaskUpload {
 
 var c_taskJsonFile: string = "task.json";
 
-interface TaskJson {
-	id: string;
-}
-
 export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.TaskDefinition> {
 	protected description = "Upload a Build Task.";
 	protected serverCommand = true;
@@ -46,7 +42,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 
 			// find task.json inside zip, make sure its there then deserialize content
 			const fileContent: string = await z.files[c_taskJsonFile].async('text');
-			const taskJson: TaskJson = JSON.parse(fileContent);
+			const taskJson: vm.TaskJson = JSON.parse(fileContent);
 
 			sourceLocation = taskZipPath;
 			taskId = taskJson.id;
@@ -57,7 +53,7 @@ export class BuildTaskUpload extends tasksBase.BuildTaskBase<agentContracts.Task
 			vm.exists(taskPath, "specified directory " + taskPath + " does not exist.");
 
 			const taskJsonPath: string = path.join(taskPath, c_taskJsonFile);
-			const taskJson: TaskJson = await vm.validate(taskJsonPath, "no " + c_taskJsonFile + " in specified directory");
+			const taskJson: vm.TaskJson = vm.validate(taskJsonPath, "no " + c_taskJsonFile + " in specified directory");
 
 			const archive = archiver("zip");
 			archive.on("error", function(error) {

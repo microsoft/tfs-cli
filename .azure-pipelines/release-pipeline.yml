@@ -1,0 +1,59 @@
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# This pipeline will be extended to the OneESPT template
+
+trigger: none
+
+variables:
+- group: npm-tokens
+resources:
+  repositories:
+  - repository: 1esPipelines
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  parameters:
+    settings:
+      skipBuildTagsForGitHubPullRequests: true
+
+    pool:
+      name: 1ES-ABTT-Shared-Pool
+      image: abtt-windows-2022
+      os: windows
+    stages:
+    - stage: Build
+      displayName: build the tfx-cli npm package
+      jobs:
+      - job: build
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            displayName: 'Publish tfx-cli package to pipeline artifacts'
+            targetPath: '$(Build.ArtifactStagingDirectory)'
+            artifactType: 'pipeline'
+            artifactName: 'tfx-cli-package'
+        steps:
+        - template: /.azure-pipelines/common-steps.yml@self
+        - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
+          # Validate and publish packages
+          # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
+          - bash: |
+              echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
+
+              npm publish --ignore-scripts
+              exit_status=$?
+              if [ $exit_status -eq 1 ]; then
+                  echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
+                  echo "##vso[task.complete result=SucceededWithIssues;]"
+              fi
+
+              rm .npmrc
+            displayName: Publish TFX CLI to npm
+            condition: eq(variables['Build.SourceBranchName'], 'master')
+
+        # Install node 16 for CodeQL 3000
+        - task: NodeTool@0
+          displayName: Use node 16
+          inputs:
+            versionSpec: "16.x"

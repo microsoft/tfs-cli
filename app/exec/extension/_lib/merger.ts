@@ -24,6 +24,7 @@ import version = require("../../../lib/dynamicVersion");
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
 import { exists } from "../../../lib/fsUtils";
+import { validate, TaskJson } from "../../../lib/jsonvalidate";
 
 /**
  * Combines the vsix and vso manifests into one object
@@ -163,6 +164,7 @@ export class Merger {
 		return Promise.all(manifestPromises).then(partials => {
 			// Determine the targets so we can construct the builders
 			let targets: TargetDeclaration[] = [];
+			const taskJsonValidationPromises: Promise<any>[] = [];
 			partials.forEach(partial => {
 				if (_.isArray(partial["targets"])) {
 					targets = targets.concat(partial["targets"]);
@@ -221,6 +223,9 @@ export class Merger {
 							absolutePath = path.join(path.dirname(partial.__origin), asset.path);
 						}
 						asset.path = path.relative(this.settings.root, absolutePath);
+
+						const taskJsonPattern: string = path.join(absolutePath, '**', "task.json");
+						taskJsonValidationPromises.push(this.validateTaskJson(taskJsonPattern));
 					});
 				}
 				// Transform icon paths as above
@@ -280,6 +285,7 @@ export class Merger {
 				return Promise.all(
 					[updateVersionPromise].concat(
 						this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders)),
+						taskJsonValidationPromises
 					),
 				).then(() => {
 					// const the composer do validation
@@ -400,5 +406,29 @@ export class Merger {
 			});
 		}
 		return files;
+	}
+
+	private async validateTaskJson(taskJsonSearchPattern: string): Promise<TaskJson> {
+		try {
+			const matches: string[] = await promisify(glob)(taskJsonSearchPattern);
+			
+			if (matches.length === 0) {
+				trace.debug(`No task.json file found for validation in ${taskJsonSearchPattern}`);
+				return;
+			}
+
+			const taskJsonPath = matches[0];
+			const taskJsonExists = await exists(taskJsonPath);
+			
+			if (taskJsonExists) {
+				return validate(taskJsonPath, "no task.json in specified directory");
+			}
+
+		} catch (err) {
+			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
+			trace.warn(err && err instanceof Error
+				? warningMessage + err.message
+				: `Error occurred while validating task.json. ${warningMessage}`);
+		}
 	}
 }

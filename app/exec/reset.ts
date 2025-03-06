@@ -43,7 +43,7 @@ export class Reset extends TfCommand<ResetArgs, void> {
 
 	public dispose(): Promise<void> {
 		let currentPath = path.resolve();
-		return this.commandArgs.all.val().then<void>(allSettings => {
+		return this.commandArgs.all.val().then(allSettings => {
 			return args.getOptionsCache().then(existingCache => {
 				if (existingCache[currentPath]) {
 					existingCache[currentPath] = {};

@@ -20,6 +20,7 @@ export interface ExtensionCreateArguments {
 	override?: any;
 	publisher?: string;
 	extensionid?: string;
+	bypassscopecheck?: boolean;
 	bypassvalidation?: boolean;
 }
 
@@ -45,6 +46,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 			"json5",
 			"override",
 			"overridesFile",
+			"bypassScopeCheck",
 			"bypassValidation",
 			"publisher",
 			"extensionId",

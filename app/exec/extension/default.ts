@@ -23,6 +23,7 @@ export class ManifestJsonArgument extends args.JsonArgument<any> {}
 export interface ExtensionArguments extends CoreArguments {
 	accounts: args.ArrayArgument;
 	branch: args.StringArgument;
+	bypassScopeCheck: args.BooleanArgument;
 	bypassValidation: args.BooleanArgument;
 	description: args.StringArgument;
 	displayName: args.StringArgument;
@@ -148,6 +149,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"Path to an existing VSIX (to publish or query for).",
 			args.ReadableFilePathsArgument,
 		);
+		this.registerCommandArgument("bypassScopeCheck", "Bypass scope check", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
 		this.registerCommandArgument(
 			"locRoot",
@@ -300,8 +302,9 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.extensionId.val(true),
 			this.commandArgs.shareWith.val(),
 			this.commandArgs.noWaitValidation.val(),
+			this.commandArgs.bypassScopeCheck.val(),
 		]).then<PublishSettings>(values => {
-			const [marketUrl, vsix, publisher, extensionId, shareWith, noWaitValidation] = values;
+			const [marketUrl, vsix, publisher, extensionId, shareWith, noWaitValidation, bypassScopeCheck] = values;
 			let vsixPath: string = _.isArray<string>(vsix) ? vsix[0] : null;
 			return {
 				galleryUrl: marketUrl,
@@ -310,6 +313,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				extensionId: extensionId,
 				shareWith: shareWith,
 				noWaitValidation: noWaitValidation,
+				bypassScopeCheck: bypassScopeCheck,
 			};
 		});
 	}
