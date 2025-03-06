@@ -6,7 +6,7 @@ You can create, list, upload and delete build tasks with tfx.
 You need to be in the top level Agent Pool Administrators group to manipulate tasks
 [See here](https://msdn.microsoft.com/Library/vs/alm/Build/agents/admin)
 
-Account admins can add users to that group
+Account admins can add users to that group.
 
 ## Create
 
