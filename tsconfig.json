@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "Node16",
 		"target": "es5",
-		"moduleResolution": "node",
+		"moduleResolution": "node16",
 		"declaration": false,
 		"sourceMap": true,
 		"newLine": "LF",

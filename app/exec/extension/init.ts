@@ -1,6 +1,6 @@
 import { createExtension } from "./create";
 import { exec } from "child_process";
-import * as jsonInPlace from "json-in-place";
+import jsonInPlace from "json-in-place";
 import { promisify } from "util";
 import { TfCommand } from "../../lib/tfcommand";
 import * as args from "../../lib/arguments";
@@ -8,7 +8,7 @@ import * as colors from "colors";
 import * as extBase from "./default";
 import * as fs from "fs";
 import * as http from "https";
-import * as mkdirp from "mkdirp";
+import mkdirp from "mkdirp";
 import * as path from "path";
 import * as trace from "../../lib/trace";
 import * as jszip from "jszip";
@@ -226,7 +226,7 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 			// Crack open the zip file.
 			try {
-				await new Promise((resolve, reject) => {
+				await new Promise<void>((resolve, reject) => {
 					fs.readFile(downloadedZipPath, async (err, data) => {
 						if (err) {
 							reject(err);
