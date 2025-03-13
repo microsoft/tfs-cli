@@ -2,20 +2,22 @@
 
 You can queue, show, and list builds using tfx.
 
-## Queue
+## Build Queue
 
 Queues a build for a given project with a given definition.
 
-### Options
+### Build Queue Options
+
 ```txt
---project <string>         - Required. The name of the project to queue a build for.
+--project <string>          - Required. The name of the project to queue a build for.
 AND
 --definition-id <number>    - The id of the build definition to build against.
 OR
 --definition-name <string>  - The name of the build definition to build against.
 ```
 
-### Example
+### Build Queue Example
+
 ```bash
 ~$ tfx build queue --project MyProject --definition-name TestDefinition
 Copyright Microsoft Corporation
@@ -28,17 +30,19 @@ status          : NotStarted
 queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
-## Show
+## Build Show
 
 Shows information for a given build.
 
-### Options
+### Build Show Options
+
 ```txt
 --project <string> - Required. The name of the project to queue a build for.
 --id <number>      - Required. The id of the build to show.
 ```
 
-### Example
+### Build Show Example
+
 ```bash
 $ tfx build show --project MyProject --id 1
 Copyright Microsoft Corporation
@@ -51,11 +55,12 @@ status          : NotStarted
 queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 ```
 
-## List
+## Build List
 
 Queries for a list of builds.
 
-### Options
+### Build List Options
+
 ```txt
 --project <string>        - Required. The name of the project to queue a build for.
 --defintion-id <number>    - The id of a build definition.
@@ -64,7 +69,8 @@ Queries for a list of builds.
 --top <number>            - Show the first X builds that satisfy the other query criteria.
 ```
 
-### Example
+### Build List Example
+
 ```bash
 ~$ tfx build list
 
@@ -79,4 +85,3 @@ status          : NotStarted
 queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 
 ```
-
