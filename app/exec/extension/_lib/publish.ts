@@ -361,7 +361,7 @@ export class PackagePublisher extends GalleryBase {
 			let publishPromise: Promise<GalleryInterfaces.PublishedExtension>;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
-				publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id, this.settings.bypassScopeCheck).catch(errHandler.httpErr);
+				publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id, undefined, undefined, this.settings.bypassScopeCheck).catch(errHandler.httpErr);
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
 				publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
