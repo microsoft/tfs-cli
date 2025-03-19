@@ -42,10 +42,13 @@ export class GalleryBase {
 		// }
 	}
 
-	protected getExtensionPackage() {	
-		if (this.settings.galleryUrl.startsWith("https://marketplace.visualstudio.com")) {
+	protected getExtensionPackage(): fs.ReadStream | GalleryInterfaces.ExtensionPackage {
+		if (!this.settings.galleryUrl || this.settings.galleryUrl.startsWith("https://marketplace.visualstudio.com")) {
+			// Hosted ADO is known to work with a fs.ReadStream.
 			return fs.createReadStream(this.settings.vsixPath);
 		} else {
+			// ADO Server requires using the compat JSON API.
+			// If we don't have known compatibility we use this code path.
 			return { extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64") };
 		}
 	};
