@@ -23,7 +23,7 @@ extends:
       os: windows
     stages:
     - stage: Build
-      displayName: build the tfx-cli npm package
+      displayName: Build the tfx-cli npm package
       jobs:
       - job: build
         templateContext:
@@ -41,7 +41,7 @@ extends:
           - bash: |
               echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
 
-              npm publish --ignore-scripts
+              npm publish --ignore-scripts --tag prerelease
               exit_status=$?
               if [ $exit_status -eq 1 ]; then
                   echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
@@ -57,3 +57,50 @@ extends:
           displayName: Use node 16
           inputs:
             versionSpec: "16.x"
+    - stage: Release
+      displayName: Release to Latest
+      trigger: manual
+      jobs:
+        - job: Release
+          displayName: Release to Latest
+          steps:
+            - checkout: self
+              clean: true
+          
+            - task: NodeTool@0
+              displayName: Use node 10
+              inputs:
+                versionSpec: "10.x"
+        
+            - bash: |
+                echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
+                # Run the npm command and capture the output
+                output=$(npm pkg get name version)
+                echo "${output}"
+
+                # Extract the name and version values using shell parameter expansion
+                name=$(echo "$output" | grep -o '"name":\s*"[^"]*"' | sed 's/"name":\s*"\([^"]*\)"/\1/')
+                version=$(echo "$output" | grep -o '"version":\s*"[^"]*"' | sed 's/"version":\s*"\([^"]*\)"/\1/')
+
+                # Save them in a variable in the format name@version
+                result="${name}@${version}"
+
+                # Combine them in the format name@version
+                echo "${result}"
+
+                npm dist-tag add "$result" latest
+                exit_status=$?
+                if [ $exit_status -eq 1 ]; then
+                  echo "##vso[task.logissue type=error]Upgrading TFX CLI to latest was unsuccessful"
+                  echo "##vso[task.complete result=Failed;]"
+                  exit 1
+                fi
+
+                npm dist-tag remove "$result" prerelease
+                exit_status=$?
+                if [ $exit_status -eq 1 ]; then
+                    echo "##vso[task.logissue type=error]Removing prerelease for TFX CLI was unsuccessful"
+                    echo "##vso[task.complete result=SucceededWithIssues;]"
+                fi
+                rm .npmrc
+              displayName: Publish TFX CLI to npm
