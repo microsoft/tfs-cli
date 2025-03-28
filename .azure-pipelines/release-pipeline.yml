@@ -91,8 +91,9 @@ extends:
                 npm dist-tag add "$result" latest
                 exit_status=$?
                 if [ $exit_status -eq 1 ]; then
-                    echo "##vso[task.logissue type=warning]Upgrading TFX CLI to latest was unsuccessful"
-                    echo "##vso[task.complete result=SucceededWithIssues;]"
+                  echo "##vso[task.logissue type=error]Upgrading TFX CLI to latest was unsuccessful"
+                  echo "##vso[task.complete result=Failed;]"
+                  exit 1
                 fi
 
                 npm dist-tag remove "$result" prerelease
