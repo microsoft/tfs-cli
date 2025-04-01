@@ -68,10 +68,12 @@ extends:
               clean: true
           
             - task: NodeTool@0
-              displayName: Use node 10
+              displayName: Use node 16
               inputs:
-                versionSpec: "10.x"
-        
+                versionSpec: "16.x"
+            - script: npm i -g npm@8.19.4 --force
+              displayName: Use npm version 8.19.4
+            
             - bash: |
                 echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
                 # Run the npm command and capture the output
