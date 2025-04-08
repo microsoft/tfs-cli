@@ -7,12 +7,12 @@ variables:
 - group: npm-tokens
 resources:
   repositories:
-  - repository: 1ESPipelineTemplates
+  - repository: 1esPipelines
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
@@ -23,7 +23,7 @@ extends:
       os: windows
     stages:
     - stage: Build
-      displayName: build the tfx-cli npm package
+      displayName: Build the tfx-cli npm package
       jobs:
       - job: build
         templateContext:
@@ -35,17 +35,13 @@ extends:
             artifactName: 'tfx-cli-package'
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
-
-      - job: deploy
-        displayName: upload the package to npm
-        steps:
         - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
           # Validate and publish packages
           # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
           - bash: |
-              echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+              echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
 
-              npm publish --ignore-scripts
+              npm publish --ignore-scripts --tag prerelease
               exit_status=$?
               if [ $exit_status -eq 1 ]; then
                   echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
@@ -55,11 +51,59 @@ extends:
               rm .npmrc
             displayName: Publish TFX CLI to npm
             condition: eq(variables['Build.SourceBranchName'], 'master')
-            env:
-              NPM_TOKEN: $(npm-automation.token)
 
         # Install node 16 for CodeQL 3000
         - task: NodeTool@0
           displayName: Use node 16
           inputs:
             versionSpec: "16.x"
+    - stage: Release
+      displayName: Release to Latest
+      trigger: manual
+      jobs:
+        - job: Release
+          displayName: Release to Latest
+          steps:
+            - checkout: self
+              clean: true
+          
+            - task: NodeTool@0
+              displayName: Use node 16
+              inputs:
+                versionSpec: "16.x"
+            - script: npm i -g npm@8.19.4 --force
+              displayName: Use npm version 8.19.4
+            
+            - bash: |
+                echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
+                # Run the npm command and capture the output
+                output=$(npm pkg get name version)
+                echo "${output}"
+
+                # Extract the name and version values using shell parameter expansion
+                name=$(echo "$output" | grep -o '"name":\s*"[^"]*"' | sed 's/"name":\s*"\([^"]*\)"/\1/')
+                version=$(echo "$output" | grep -o '"version":\s*"[^"]*"' | sed 's/"version":\s*"\([^"]*\)"/\1/')
+
+                # Save them in a variable in the format name@version
+                result="${name}@${version}"
+
+                # Combine them in the format name@version
+                echo "${result}"
+
+                npm dist-tag add "$result" latest
+                exit_status=$?
+                if [ $exit_status -eq 1 ]; then
+                  echo "##vso[task.logissue type=error]Upgrading TFX CLI to latest was unsuccessful"
+                  echo "##vso[task.complete result=Failed;]"
+                  exit 1
+                fi
+
+                npm dist-tag remove "$result" prerelease
+                exit_status=$?
+                if [ $exit_status -eq 1 ]; then
+                    echo "##vso[task.logissue type=error]Removing prerelease for TFX CLI was unsuccessful"
+                    echo "##vso[task.complete result=SucceededWithIssues;]"
+                fi
+                rm .npmrc
+              displayName: Publish TFX CLI to npm
+              

@@ -42,6 +42,17 @@ export class GalleryBase {
 		// }
 	}
 
+	protected getExtensionPackage(): fs.ReadStream | GalleryInterfaces.ExtensionPackage {
+		if (!this.settings.galleryUrl || this.settings.galleryUrl.startsWith("https://marketplace.visualstudio.com")) {
+			// Hosted ADO is known to work with a fs.ReadStream.
+			return fs.createReadStream(this.settings.vsixPath);
+		} else {
+			// ADO Server requires using the compat JSON API.
+			// If we don't have known compatibility we use this code path.
+			return { extensionManifest: fs.readFileSync(this.settings.vsixPath, "base64") };
+		}
+	};
+
 	protected getExtInfo(): Promise<CoreExtInfo> {
 		if (!this.vsixInfoPromise) {
 			this.vsixInfoPromise = GalleryBase.getExtInfo({
@@ -293,7 +304,6 @@ export class PackagePublisher extends GalleryBase {
 	 * @return Q.Promise that is resolved when publish is complete
 	 */
 	public publish(): Promise<GalleryInterfaces.PublishedExtension> {
-		const extPackage = fs.createReadStream(this.settings.vsixPath)
 		trace.debug("Publishing %s", this.settings.vsixPath);
 
 		// Check if the app is already published. If so, call the update endpoint. Otherwise, create.
@@ -314,7 +324,7 @@ export class PackagePublisher extends GalleryBase {
 					extInfo.version
 				} --service-url ${this.settings.galleryUrl} --token <your PAT>`,
 			)}`;
-			return this.createOrUpdateExtension(extPackage).then(ext => {
+			return this.createOrUpdateExtension(this.getExtensionPackage()).then(ext => {
 				if (this.settings.noWaitValidation) {
 					trace.info(validationMessage);
 					return ext;
@@ -355,16 +365,24 @@ export class PackagePublisher extends GalleryBase {
 	}
 
 	private createOrUpdateExtension(
-		extPackage: fs.ReadStream,
+		extPackage: fs.ReadStream | GalleryInterfaces.ExtensionPackage,
 	): Promise<GalleryInterfaces.PublishedExtension> {
 		return this.checkVsixPublished().then(extInfo => {
 			let publishPromise: Promise<GalleryInterfaces.PublishedExtension>;
 			if (extInfo && extInfo.published) {
 				trace.info("It is, %s the extension", colors.cyan("update").toString());
-				publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id, this.settings.bypassScopeCheck).catch(errHandler.httpErr);
+				if (extPackage instanceof fs.ReadStream) {
+					publishPromise = this.galleryClient.updateExtension(null, extPackage, extInfo.publisher, extInfo.id, undefined, undefined, this.settings.bypassScopeCheck).catch(errHandler.httpErr);
+				} else {
+					publishPromise = this.galleryClient.updateExtensionJson(extPackage, extInfo.publisher, extInfo.id);
+				}
 			} else {
 				trace.info("It isn't, %s a new extension.", colors.cyan("create").toString());
-				publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
+				if (extPackage instanceof fs.ReadStream) {
+					publishPromise = this.galleryClient.createExtension(null, extPackage).catch(errHandler.httpErr);
+				} else {
+					publishPromise = this.galleryClient.createExtensionJson(extPackage).catch(errHandler.httpErr);
+				}
 			}
 			return publishPromise.then(() => {
 				return this.galleryClient.getExtension(
