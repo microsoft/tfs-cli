@@ -1,4 +1,5 @@
 var fs = require("fs");
+import * as path from 'path';
 var check = require("validator");
 var trace = require("./trace");
 
@@ -92,5 +93,31 @@ export function validateTask(taskPath: string, taskData: any): string[] {
   if (!taskData.instanceNameFormat) {
     issues.push(vn + ": instanceNameFormat is required");
   }
-  return issues;
+
+  if (taskData.execution) {
+    const supportedRunners = ["Node", "Node10", "Node16", "Node20_1", "PowerShell", "PowerShell3", "Process"]
+
+    for (var runner in taskData.execution) {
+      if (supportedRunners.indexOf(runner) > -1) {
+        var runnerData = taskData.execution[runner];
+        if (!runnerData.target) {
+          issues.push(vn + ": execution." + runner + ".target is required");
+        } else {
+          const target = runnerData.target.replace(/\$\(\s*currentdirectory\s*\)/i, ".");
+
+          // target contains a variable
+          if (target.match(/\$\([^)]+\)/)) {
+            continue;
+          }
+
+          // check if the target file exists
+          if (!fs.existsSync(path.join(path.dirname(taskPath), target))) {
+            issues.push(vn + ": execution target for " + runner + " references file that does not exist: " + target);
+          }
+        }
+      }
+    }
+
+    return (issues.length > 0) ? [taskPath, ...issues] : [];
+  }
 }

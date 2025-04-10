@@ -106,3 +106,4 @@ extends:
                 fi
                 rm .npmrc
               displayName: Publish TFX CLI to npm
+              
