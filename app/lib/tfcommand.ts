@@ -10,7 +10,6 @@ import args = require("./arguments");
 import { blue, cyan, gray, green, yellow, magenta, reset as resetColors, stripColors } from "colors";
 import command = require("../lib/command");
 import common = require("./common");
-import clipboardy = require("clipboardy");
 import { writeFile } from "fs";
 import loader = require("../lib/loader");
 import path = require("path");
@@ -19,6 +18,7 @@ import { promisify } from "util";
 import trace = require("./trace");
 import version = require("./version");
 import { IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
+const clipboardyWrite = (data: string) => import('clipboardy').then(clipboardy => clipboardy.default.writeSync(data));
 
 export interface CoreArguments {
 	[key: string]: args.Argument<any>;
@@ -688,7 +688,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				case "clip":
 				case "clipboard":
 					let clipboardText = this.getClipboardOutput(data);
-					return clipboardy.write(clipboardText);
+					return clipboardyWrite(clipboardText);
 				default:
 					return fsUtils.canWriteTo(path.resolve(outputDestination)).then(canWrite => {
 						if (canWrite) {

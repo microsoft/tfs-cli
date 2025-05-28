@@ -5,10 +5,10 @@ steps:
   - checkout: self
     clean: true
 
-  - task: NodeTool@0
-    displayName: Use node 10
+  - task: UseNode@1
+    displayName: Use Node 18
     inputs:
-      versionSpec: "10.x"
+      versionSpec: "18.x"
 
   - task: NpmAuthenticate@0
     inputs:
