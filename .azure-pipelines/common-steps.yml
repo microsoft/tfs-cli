@@ -14,8 +14,8 @@ steps:
     inputs:
       workingFile: .npmrc
 
-  - script: npm i -g npm@6.14.12 --force
-    displayName: Use npm version 6.14.12
+  - script: npm i -g npm@8.19.4 --force
+    displayName: Use npm version 8.19.4
 
   - bash: |
       npm ci
