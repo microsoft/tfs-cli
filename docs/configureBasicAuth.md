@@ -1,9 +1,11 @@
 # Using `tfx` against Team Foundation Server (TFS) 2015 using Basic Authentication
+
 In order to use `tfx` against TFS on-premises, you will need to enable basic authentication in the tfs virtual application in IIS. _This is a temporary solution until NTLM authentication is supported._
 
 > **WARNING!!** Basic authentication sends usernames and passwords in plaintext. You should consider [configuring TFS to use SSL](https://msdn.microsoft.com/en-us/library/aa833872.aspx) in order to enable secure communication when using basic auth.
 
 ## Configuring TFS to use Basic Authentication
+
 Follow these steps to enable basic auth for your TFS:
 
 1. Install the `Basic Authentication` feature for IIS in Server Manager. ![Basic Auth feature in Server Manager](configureBasicAuthFeature.png)
@@ -12,16 +14,18 @@ Follow these steps to enable basic auth for your TFS:
 4. **Note**: leave the `domain` and `realm` settings for `Basic Authentication` empty.
 
 ## `tfx login` with Basic Authentication
+
 Now you can start to use `tfx` against your TFS server. You'll want to `login` before issuing commands.
 
-1. Type `tfx login --auth-type basic`
-2. You will be prompted to add your service Url.
+* Type `tfx login --auth-type basic`
+* You will be prompted to add your service Url.
   * **Note for TFS on-prem**: If the server name is part of the service URL, be sure to specify the fully-qualitifed domain name (FQDN) of that server (i.e. in the form _servername.domain.local_). Otherwise, TFX will fail to connect.
-3. You will be prompted for your username. Use `domain\user` (e.g. fabrikam\peter). If you are on a workgroup machine, use `machinename\username`.
-4. You will be prompted for your password. Enter the password for the username you entered.
+* You will be prompted for your username. Use `domain\user` (e.g. fabrikam\peter). If you are on a workgroup machine, use `machinename\username`.
+* You will be prompted for your password. Enter the password for the username you entered.
 
 You can now use any other `tfx` commands.
-```
+
+```bash
 > tfx login --auth-type basic
 Copyright Microsoft Corporation
 
