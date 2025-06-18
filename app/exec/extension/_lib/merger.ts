@@ -104,7 +104,7 @@ export class Merger {
 
 		// build environment object from --env parameter
 		const env = {};
-		(this.settings.env || []).forEach(kvp => { 
+		(this.settings.env || []).forEach(kvp => {
 			const [key, ...value] = kvp.split('=');
 			env[key] = value.join('=');
 		});
@@ -119,7 +119,7 @@ export class Merger {
 			throw new Error(`The export function from manifest-js file ${fullJsFile} must return the manifest object`)
 		}
 		return manifestData;
-	}	
+	}
 
 	/**
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
@@ -142,7 +142,7 @@ export class Merger {
 					promisify(readFile)(file, "utf8").then(data => {
 						const jsonData = data.replace(/^\uFEFF/, "");
 						try {
-							const result = this.settings.json5 ? jju.parse(jsonData) : JSON.parse(jsonData);
+							const result = jju.parse(jsonData);
 							result.__origin = file; // save the origin in order to resolve relative paths later.
 							return result;
 						} catch (err) {
@@ -191,7 +191,7 @@ export class Merger {
 										parsed["version"] = newVersionString;
 										newPartial = jju.update(versionPartial, parsed);
 									} else {
-											newPartial = jsonInPlace(versionPartial).set("version", newVersionString).toString();
+										newPartial = jsonInPlace(versionPartial).set("version", newVersionString).toString();
 									}
 									return promisify(writeFile)(partial.__origin, newPartial);
 								} catch (e) {
@@ -295,7 +295,7 @@ export class Merger {
 						} else {
 							throw new Error(
 								"There were errors with your extension. Address the following and re-run the tool.\n" +
-									validationResult,
+								validationResult,
 							);
 						}
 					});
