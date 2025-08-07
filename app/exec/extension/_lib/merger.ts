@@ -249,8 +249,6 @@ export class Merger {
 							);
 						}
 					}
-
-					// No longer need to collect task.json files here - will be done after all partials are processed
 				}
 
 				// Process each key by each manifest builder.
