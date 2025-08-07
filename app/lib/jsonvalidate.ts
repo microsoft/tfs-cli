@@ -64,7 +64,7 @@ export function validateRunner(taskData: any) {
 
   const validRunnerCount = Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1) || 0;
   if (validRunnerCount == 0) {
-    trace.warn("Task %s%s is dependent on a task runner that is end-of-life and will be removed in the future. Please visit https://aka.ms/node-runner-guidance to learn how to upgrade the task.", taskData.name, "@" + taskData.version?.Major)
+    trace.warn("Task %s@%s is dependent on a task runner that is end-of-life and will be removed in the future. Please visit https://aka.ms/node-runner-guidance to learn how to upgrade the task.", taskData.name, taskData.version?.Major || "?")
   }
 }
 
