@@ -12,11 +12,12 @@ export interface TaskJson {
 /*
  * Checks a json file for correct formatting against some validation function
  * @param jsonFilePath path to the json file being validated
- * @param jsonValidationFunction function that validates parsed json data against some criteria
+ * @param jsonMissingErrorMessage error message if json file doesn't exist
+ * @param allMatchedPaths optional array of all matched task.json paths for backwards compat detection
  * @return the parsed json file
  * @throws InvalidDirectoryException if json file doesn't exist, InvalidJsonException on failed parse or *first* invalid field in json
 */
-export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): TaskJson {
+export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string, allMatchedPaths?: string[]): TaskJson {
   trace.debug("Validating task json...");
   var jsonMissingErrorMsg: string = jsonMissingErrorMessage || "specified json file does not exist.";
   exists(jsonFilePath, jsonMissingErrorMsg);
@@ -40,7 +41,7 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
   }
 
   trace.debug("Json is valid.");
-  validateRunner(taskJson);
+  validateRunner(taskJson, allMatchedPaths);
   return taskJson;
 }
 
@@ -55,15 +56,42 @@ export function exists(path: string, errorMessage: string) {
 }
 
 /*
+ * Counts the number of non-deprecated runners in a task's execution configuration
+ * @param taskData the parsed json file
+ * @return number of valid (non-deprecated) runners, or 0 if no execution is defined
+ */
+function countValidRunners(taskData: any): number {
+  if (taskData == undefined || taskData.execution == undefined)
+    return 0;
+
+  return Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1).length;
+}
+
+/*
  * Validates a task against deprecated runner
  * @param taskData the parsed json file
+ * @param allMatchedPaths optional array of all matched task.json paths for backwards compat detection
  */
-export function validateRunner(taskData: any) {
-  if (taskData == undefined || taskData.execution == undefined)
-    return
-
-  const validRunnerCount = Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1) || 0;
-  if (validRunnerCount == 0) {
+export function validateRunner(taskData: any, allMatchedPaths?: string[]) {
+  if (countValidRunners(taskData) == 0) {
+    if (allMatchedPaths) {
+      for (const matchedPath of allMatchedPaths) {
+        let matchedTaskData;
+        try {
+          matchedTaskData = require(matchedPath);
+        } catch {
+          continue;
+        }
+        if (taskData.name == matchedTaskData.name && taskData.id == matchedTaskData.id && matchedTaskData.version?.Major > taskData.version?.Major) {
+          // Return if the other task is using a non-deprecated task runner
+          const otherValidRunnerCount = countValidRunners(matchedTaskData);
+          if (otherValidRunnerCount > 0) {
+            return;
+          }
+        }
+      }
+    }
+    
     trace.warn("Task %s@%s is dependent on a task runner that is end-of-life and will be removed in the future. Please visit https://aka.ms/node-runner-guidance to learn how to upgrade the task.", taskData.name, taskData.version?.Major || "?")
   }
 }
@@ -72,7 +100,7 @@ export function validateRunner(taskData: any) {
  * Validates a parsed json file describing a build task
  * @param taskPath the path to the original json file
  * @param taskData the parsed json file
- * @return list of issues with the json file
+  * @return list of issues with the json file
  */
 export function validateTask(taskPath: string, taskData: any): string[] {
   var vn = taskData.name || taskPath;
