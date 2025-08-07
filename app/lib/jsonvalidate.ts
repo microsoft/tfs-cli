@@ -19,7 +19,7 @@ export interface TaskJson {
 export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string): TaskJson {
   trace.debug("Validating task json...");
   var jsonMissingErrorMsg: string = jsonMissingErrorMessage || "specified json file does not exist.";
-  this.exists(jsonFilePath, jsonMissingErrorMsg);
+  exists(jsonFilePath, jsonMissingErrorMsg);
 
   var taskJson;
   try {
@@ -29,7 +29,7 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string)
     throw new Error("Invalid task json: " + jsonError);
   }
 
-  var issues: string[] = this.validateTask(jsonFilePath, taskJson);
+  var issues: string[] = validateTask(jsonFilePath, taskJson);
   if (issues.length > 0) {
     var output: string = "Invalid task json:";
     for (var i = 0; i < issues.length; i++) {
@@ -64,7 +64,7 @@ export function validateRunner(taskData: any) {
 
   const validRunnerCount = Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1) || 0;
   if (validRunnerCount == 0) {
-    trace.warn("Task %s is dependent on a task runner that is end-of-life and will be removed in the future. Please visit https://aka.ms/node-runner-guidance to learn how to upgrade the task.", taskData.name)
+    trace.warn("Task %s%s is dependent on a task runner that is end-of-life and will be removed in the future. Please visit https://aka.ms/node-runner-guidance to learn how to upgrade the task.", taskData.name, "@" + taskData.version?.Major)
   }
 }
 
