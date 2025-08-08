@@ -164,10 +164,13 @@ export class Merger {
 		return Promise.all(manifestPromises).then(partials => {
 			// Determine the targets so we can construct the builders
 			let targets: TargetDeclaration[] = [];
-			const taskJsonValidationPromises: Promise<any>[] = [];
+			let allContributions: any[] = [];
 			partials.forEach(partial => {
 				if (_.isArray(partial["targets"])) {
 					targets = targets.concat(partial["targets"]);
+				}
+				if (_.isArray(partial["contributions"])) {
+					allContributions = allContributions.concat(partial["contributions"]);
 				}
 			});
 			this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
@@ -223,9 +226,6 @@ export class Merger {
 							absolutePath = path.join(path.dirname(partial.__origin), asset.path);
 						}
 						asset.path = path.relative(this.settings.root, absolutePath);
-
-						const taskJsonPattern: string = path.join(absolutePath, '**', "task.json");
-						taskJsonValidationPromises.push(this.validateTaskJson(taskJsonPattern));
 					});
 				}
 				// Transform icon paths as above
@@ -263,6 +263,9 @@ export class Merger {
 				});
 			});
 
+			// Validate task.json files based on build task contributions
+			const taskJsonValidationPromise = this.validateBuildTaskContributions(allContributions);
+
 			// Generate localization resources
 			const locPrepper = new loc.LocPrep.LocKeyGenerator(this.manifestBuilders);
 			const resources = locPrepper.generateLocalizationKeys();
@@ -283,9 +286,8 @@ export class Merger {
 
 				// Finalize each builder
 				return Promise.all(
-					[updateVersionPromise].concat(
-						this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders)),
-						taskJsonValidationPromises
+					[updateVersionPromise, taskJsonValidationPromise].concat(
+						this.manifestBuilders.map(b => b.finalize(packageFiles, resourceData, this.manifestBuilders))
 					),
 				).then(() => {
 					// const the composer do validation
@@ -408,27 +410,81 @@ export class Merger {
 		return files;
 	}
 
-	private async validateTaskJson(taskJsonSearchPattern: string): Promise<TaskJson> {
+	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
 		try {
-			const matches: string[] = await promisify(glob)(taskJsonSearchPattern);
-			
-			if (matches.length === 0) {
-				trace.debug(`No task.json file found for validation in ${taskJsonSearchPattern}`);
+			// Filter contributions to only build tasks
+			const buildTaskContributions = contributions.filter(contrib => 
+				contrib.type === "ms.vss-distributed-task.task" && 
+				contrib.properties && 
+				contrib.properties.name
+			);
+
+			if (buildTaskContributions.length === 0) {
+				trace.debug("No build task contributions found, skipping task.json validation");
 				return;
 			}
 
-			const taskJsonPath = matches[0];
-			const taskJsonExists = await exists(taskJsonPath);
-			
-			if (taskJsonExists) {
-				return validate(taskJsonPath, "no task.json in specified directory");
+			const allTaskJsonPaths: string[] = [];
+
+			// For each build task contribution, look for task.json files and validate them
+			for (const contrib of buildTaskContributions) {
+				const taskPath = contrib.properties.name;
+				const absoluteTaskPath = path.join(this.settings.root, taskPath);
+				const contributionTaskJsonPaths: string[] = [];
+
+				// Check for task.json in the main directory
+				const mainTaskJsonPath = path.join(absoluteTaskPath, "task.json");
+				if (fs.existsSync(mainTaskJsonPath)) {
+					contributionTaskJsonPaths.push(mainTaskJsonPath);
+					trace.debug(`Found task.json: ${mainTaskJsonPath}`);
+				}
+
+				// Check for task.json in direct child directories (version folders)
+				if (fs.existsSync(absoluteTaskPath) && fs.lstatSync(absoluteTaskPath).isDirectory()) {
+					try {
+						const childDirs = fs.readdirSync(absoluteTaskPath);
+						for (const childDir of childDirs) {
+							const childPath = path.join(absoluteTaskPath, childDir);
+							if (fs.lstatSync(childPath).isDirectory()) {
+								const childTaskJsonPath = path.join(childPath, "task.json");
+								if (fs.existsSync(childTaskJsonPath)) {
+									contributionTaskJsonPaths.push(childTaskJsonPath);
+									trace.debug(`Found task.json: ${childTaskJsonPath}`);
+								}
+							}
+						}
+					} catch (err) {
+						trace.warn(`Error reading task directory ${absoluteTaskPath}: ${err}`);
+					}
+				}
+
+				// Validate task.json files for this contribution with backwards compatibility checking
+				if (contributionTaskJsonPaths.length > 0) {
+					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
+					
+					for (const taskJsonPath of contributionTaskJsonPaths) {
+						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
+					}
+					
+					// Also collect for global tracking if needed
+					allTaskJsonPaths.push(...contributionTaskJsonPaths);
+				} else {
+					trace.warn(`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`);
+				}
 			}
+
+			if (allTaskJsonPaths.length === 0) {
+				trace.debug("No task.json files found in build task contributions");
+				return;
+			}
+
+			trace.debug(`Successfully validated ${allTaskJsonPaths.length} task.json files across ${buildTaskContributions.length} build task contributions`);
 
 		} catch (err) {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
 			trace.warn(err && err instanceof Error
 				? warningMessage + err.message
-				: `Error occurred while validating task.json. ${warningMessage}`);
+				: `Error occurred while validating build task contributions. ${warningMessage}`);
 		}
 	}
 }
