@@ -22,6 +22,10 @@ steps:
       npm run build
     displayName: Build TFX CLI
 
+  - bash: |
+      npm test
+    displayName: Run Tests
+
   # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
   - bash: |
       npm pack
