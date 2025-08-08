@@ -17,6 +17,7 @@
     "build:tests": "tsc -p tsconfig.tests.json && ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "test": "npm run build:tests && mocha _tests/tests/**/*.js",
+    "test:ci": "npm run build:tests && mocha _tests/tests/**/*.js --reporter xunit --reporter-options output=test-results.xml",
     "test:build-commands": "npm run build:tests && mocha _tests/tests/build-commands.js",
     "test:build-task-templates": "npm run build:tests && mocha _tests/tests/build-task-templates.js",
     "test:build-task-validation": "npm run build:tests && mocha _tests/tests/build-task-validation.js",

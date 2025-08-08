@@ -23,8 +23,18 @@ steps:
     displayName: Build TFX CLI
 
   - bash: |
-      npm test
+      npm run test:ci
     displayName: Run Tests
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results.xml'
+      failTaskOnFailedTests: true
+      testRunTitle: 'TFX CLI Tests'
 
   # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
   - bash: |
