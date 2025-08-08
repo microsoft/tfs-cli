@@ -1,6 +1,9 @@
 # Build and Packaging
 _build
 
+# Tests
+_tests
+
 # Logs
 logs
 *.log

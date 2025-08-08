@@ -1,0 +1,83 @@
+{
+    "manifestVersion": 1,
+    "id": "complex-test-extension",
+    "name": "Complex Test Extension",
+    "version": "1.2.3",
+    "publisher": "test-publisher",
+    "description": "A more complex test extension with multiple features",
+    "categories": [
+        "Azure Boards",
+        "Azure Repos"
+    ],
+    "tags": [
+        "test",
+        "sample",
+        "demo"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "scopes": [
+        "vso.work",
+        "vso.code"
+    ],
+    "icons": {
+        "default": "images/logo.png"
+    },
+    "contributions": [
+        {
+            "id": "test-hub",
+            "type": "ms.vss-web.hub",
+            "description": "Test hub for boards",
+            "targets": [
+                "ms.vss-work-web.work-hub-group"
+            ],
+            "properties": {
+                "name": "Test Hub",
+                "uri": "hub.html",
+                "order": 99
+            }
+        },
+        {
+            "id": "test-menu-action",
+            "type": "ms.vss-web.action",
+            "description": "Test context menu action",
+            "targets": [
+                "ms.vss-work-web.work-item-context-menu"
+            ],
+            "properties": {
+                "text": "Test Action",
+                "uri": "action.html"
+            }
+        }
+    ],
+    "contributionTypes": [],
+    "files": [
+        {
+            "path": "hub.html",
+            "addressable": true
+        },
+        {
+            "path": "action.html",
+            "addressable": true
+        },
+        {
+            "path": "scripts",
+            "addressable": true
+        },
+        {
+            "path": "styles",
+            "addressable": true
+        },
+        {
+            "path": "images",
+            "addressable": true
+        }
+    ],
+    "branding": {
+        "color": "rgb(220, 235, 252)",
+        "theme": "light"
+    }
+}

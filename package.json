@@ -12,9 +12,19 @@
     "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "clean": "rimraf _build",
+    "clean": "rimraf _build && rimraf _tests",
     "build": "tsc -p .",
+    "build:tests": "tsc -p tsconfig.tests.json && ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
+    "test": "npm run build:tests && mocha _tests/tests/**/*.js",
+    "test:build-commands": "npm run build:tests && mocha _tests/tests/build-commands.js",
+    "test:build-task-templates": "npm run build:tests && mocha _tests/tests/build-task-templates.js",
+    "test:build-task-validation": "npm run build:tests && mocha _tests/tests/build-task-validation.js",
+    "test:commandline": "npm run build:tests && mocha _tests/tests/commandline.js",
+    "test:extension-commands": "npm run build:tests && mocha _tests/tests/extension-commands.js",
+    "test:extension-advanced": "npm run build:tests && mocha _tests/tests/extension-advanced.js",
+    "test:extension-complex": "npm run build:tests && mocha _tests/tests/extension-complex.js",
+    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -50,12 +60,14 @@
     "@types/jszip": "~3.1.2",
     "@types/lodash": "~4.14.110",
     "@types/mkdirp": "^1.0.2",
+    "@types/mocha": "^10.0.10",
     "@types/node": "8.10.66",
     "@types/shelljs": "^0.8.11",
     "@types/uuid": "^2.0.29",
     "@types/validator": "^4.5.27",
     "@types/winreg": "^1.2.29",
     "@types/xml2js": "0.0.27",
+    "mocha": "^11.7.1",
     "ncp": "^2.0.0",
     "rimraf": "^2.6.1",
     "typescript": "^5.7.0"

@@ -18,5 +18,8 @@
 		"typings/**/*.d.ts"
 		/*,
 		"node_modules/@types/q/index.d.ts" // We augment the definitions with a file under typings, so we need an explicit reference here.*/
+	],
+	"exclude": [
+		"tests/**/*"
 	]
 }

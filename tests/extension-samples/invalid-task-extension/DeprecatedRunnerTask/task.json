@@ -1,0 +1,20 @@
+{
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "DeprecatedRunnerTask",
+    "friendlyName": "Deprecated Runner Task",
+    "description": "A task using deprecated Node runner",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Test Publisher",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Deprecated Task",
+    "execution": {
+        "Node": {
+            "target": "index.js"
+        }
+    }
+}
