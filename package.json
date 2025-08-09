@@ -16,6 +16,7 @@
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "prepublishOnly": "npm run build",
+    "prebuild:tests": "cd packages/tfs-mock-server && npm run build",
     "build:tests": "tsc -p tsconfig.tests.json",
     "postbuild:tests": "ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "test": "npm run build:tests && mocha _tests/tests/**/*.js",
@@ -27,7 +28,14 @@
     "test:extension-commands": "npm run build:tests && mocha _tests/tests/extension-commands.js",
     "test:extension-advanced": "npm run build:tests && mocha _tests/tests/extension-advanced.js",
     "test:extension-complex": "npm run build:tests && mocha _tests/tests/extension-complex.js",
-    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js"
+    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js",
+    "test:server-integration": "npm run build:tests && mocha _tests/tests/server-integration-*.js",
+    "test:focused-login": "npm run build:tests && mocha _tests/tests/focused-login-test.js",
+    "test:server-integration-login": "npm run build:tests && mocha _tests/tests/server-integration-login.js",
+    "test:server-integration-buildtasks": "npm run build:tests && mocha _tests/tests/server-integration-buildtasks.js",
+    "test:server-integration-build": "npm run build:tests && mocha _tests/tests/server-integration-build.js",
+    "test:server-integration-workitem": "npm run build:tests && mocha _tests/tests/server-integration-workitem.js",
+    "test:server-integration-extension": "npm run build:tests && mocha _tests/tests/server-integration-extension.js"
   },
   "dependencies": {
     "archiver": "2.0.3",
@@ -51,6 +59,7 @@
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
+    "@microsoft/tfs-mock-server": "file:./packages/tfs-mock-server",
     "@types/clipboardy": "~1.1.0",
     "@types/glob": "^5.0.29",
     "@types/jju": "^1.4.1",

@@ -1,0 +1,47 @@
+{
+  "name": "@microsoft/tfs-mock-server",
+  "version": "1.0.0",
+  "description": "Mock server for Azure DevOps Services and Team Foundation Server for testing purposes",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "bin": {
+    "tfs-mock-server": "./bin/start-mock-server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf lib",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "echo \"No tests specified for this package\"",
+    "start": "node bin/start-mock-server.js"
+  },
+  "keywords": [
+    "azure-devops",
+    "tfs",
+    "mock",
+    "server",
+    "testing",
+    "ci",
+    "cd"
+  ],
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/tfs-cli",
+    "directory": "packages/tfs-mock-server"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "lib/",
+    "bin/",
+    "README.md"
+  ]
+}

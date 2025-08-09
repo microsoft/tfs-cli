@@ -5,6 +5,10 @@ _build
 _tests
 test-results.xml
 
+# Mock server package build output
+packages/tfs-mock-server/lib/
+packages/tfs-mock-server/node_modules/
+
 # Logs
 logs
 *.log
