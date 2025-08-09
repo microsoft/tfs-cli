@@ -16,7 +16,7 @@ The server integration tests are designed to:
 
 ### MockDevOpsServer
 
-The `MockDevOpsServer` class provides a lightweight HTTP server that mimics Azure DevOps APIs:
+The `MockDevOpsServer` class is integrated into the test suite (`tests/mock-server/`) and provides a lightweight HTTP server that mimics Azure DevOps APIs:
 
 - **Build APIs**: List, show, queue builds and manage build definitions
 - **Work Item APIs**: Create, read, update work items and execute queries  
@@ -95,8 +95,19 @@ npm run test:server-integration-buildtasks
 ```
 
 ### Prerequisites
-1. Build the project: `npm run build`
-2. The tests will automatically start mock servers on different ports (8081-8085)
+The mock server is now integrated as part of the test suite and is automatically built when running tests:
+
+1. **Run all tests (builds everything automatically):**
+   ```bash
+   npm test
+   ```
+
+2. **Run specific server integration tests:**
+   ```bash
+   npm run test:server-integration
+   ```
+
+The tests will automatically start mock servers on different ports (8081-8085) and compile the integrated mock server as needed.
 
 ## Test Strategy
 
@@ -149,7 +160,7 @@ Tests have extended timeouts (30 seconds) to accommodate:
 
 ### Creating New Test Files
 1. Follow the naming pattern: `server-integration-{feature}.ts`
-2. Import the mock server: `import { createMockServer, MockDevOpsServer } from './mock-server/mock-devops-server';`
+2. Import the mock server: `import { createMockServer, MockDevOpsServer } from './mock-server';`
 3. Start server in `before()` hook with unique port
 4. Stop server in `after()` hook
 5. Add test scripts to package.json
@@ -179,11 +190,74 @@ it('should test command behavior', function(done) {
 ```
 
 ### Mock Server Extensions
-To add new API endpoints:
-1. Add route matching in `routeRequest()` method
-2. Implement response logic with appropriate status codes
-3. Add sample data in `setupMockData()` if needed
-4. Update interfaces for new data types
+To add new API endpoints to the integrated mock server:
+1. Edit files in `tests/mock-server/` directory
+2. Add route matching in the appropriate handler file
+3. Implement response logic with appropriate status codes
+4. Add sample data in `MockDataInitializer.ts` if needed
+5. Update type interfaces in `tests/mock-server/types/` if needed
+
+## Mock Server Verbose Logging
+
+For detailed debugging of server integration tests, you can enable verbose logging to see all HTTP requests, responses, and mock server activity.
+
+### Enabling Verbose Logs
+
+1. **Modify the test file** you want to debug (e.g., `server-integration-login.ts`)
+2. **Add `verbose: true`** to the `createMockServer` options:
+
+```typescript
+// Before
+mockServer = await createMockServer({ port: 8084 });
+
+// After (for debugging)
+mockServer = await createMockServer({ port: 8084, verbose: true });
+```
+
+### What Verbose Logging Shows
+
+When enabled, you'll see detailed output including:
+
+- **Server lifecycle**: Start/stop events with URLs
+- **HTTP requests**: Method, path, and obscured authorization headers
+- **Request processing**: Route matching and handler execution
+- **Authentication**: Auth type validation (with token obscuring for security)
+
+### Example Verbose Output
+
+```
+Mock DevOps server listening on http://localhost:8084
+
+Mock Server: GET /_apis/connectionData - Authorization: Basic tes***ass
+[Mock Server] Handling connection data request
+[Mock Server] Providing resource areas for service discovery
+
+Mock Server: POST /_apis/wit/workitems/$Bug - Authorization: Bearer abc***xyz
+[Mock Server] Creating work item of type Bug
+[Mock Server] Work item created with ID: 1001
+
+Mock DevOps server closed
+Mock DevOps server stopped
+```
+
+### Security Note
+
+Authorization tokens and passwords are automatically obscured in verbose logs:
+- `testpassword` becomes `tes***ord`
+- `dGVzdHRva2VuOnRlc3Q=` becomes `dGV***3Q=`
+
+### Best Practices
+
+1. **Temporary use only**: Enable verbose logging only during debugging
+2. **Single test focus**: Enable for specific tests, not entire suites
+3. **Remove before commit**: Always remove `verbose: true` before committing
+4. **Combine with TFX tracing**: Use with `TFX_TRACE=1` for complete debugging
+
+```bash
+# Example debugging session
+set TFX_TRACE=1
+npm run test:server-integration-login
+```
 
 ## Troubleshooting
 
@@ -194,10 +268,15 @@ To add new API endpoints:
 4. **Test timeouts**: Increase timeout for slow systems
 
 ### Debug Tips
-1. Enable TFX tracing: `set TFX_TRACE=1` (Windows) or `export TFX_TRACE=1` (Linux/Mac)
-2. Check mock server console output for request details
-3. Use `--verbose` flag with mocha for detailed test output
-4. Examine command stdout/stderr in test error messages
+1. **Enable TFX tracing**: `set TFX_TRACE=1` (Windows) or `export TFX_TRACE=1` (Linux/Mac)
+2. **Enable mock server verbose logging**: Add `verbose: true` to `createMockServer()` options (see Mock Server Verbose Logging section above)
+3. **Combine both for complete debugging**:
+   ```bash
+   set TFX_TRACE=1
+   npm run test:server-integration-login
+   ```
+4. Use `--verbose` flag with mocha for detailed test output
+5. Examine command stdout/stderr in test error messages
 
 ## Limitations
 

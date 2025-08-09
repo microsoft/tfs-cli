@@ -1,6 +1,6 @@
 import assert = require('assert');
 import { stripColors } from 'colors';
-import { createMockServer, MockDevOpsServer } from '@microsoft/tfs-mock-server';
+import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

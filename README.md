@@ -139,38 +139,28 @@ To build the project from source:
    npm install
    ```
 
-2. **Build the mock server (required first):**
-   ```bash
-   cd packages/tfs-mock-server
-   npm install
-   npm run build
-   cd ../..
-   ```
-
-3. **Build the main project:**
+2. **Build the main project:**
    ```bash
    npm run build
    ```
    
    This compiles the TypeScript source files in the `app/` directory to JavaScript in the `_build/` directory using the TypeScript compiler and copies necessary files.
 
-4. **Clean build artifacts (optional):**
+3. **Clean build artifacts (optional):**
    ```bash
    npm run clean
    ```
 
-**Note:** The mock server must be built before the main project since the main project has a dependency on it. The mock server is no longer built automatically during the test preparation phase.
-
 ### Testing
 
-The project includes comprehensive tests. To run them:
-
-**Prerequisites:** Ensure both the mock server and main project are built first (see Building from Source above).
+The project includes comprehensive tests, including server integration tests with an integrated mock server. To run them:
 
 1. **Run all tests:**
    ```bash
    npm test
    ```
+   
+   This automatically builds both the main project and tests, including the integrated mock server.
 
 2. **Run specific test suites:**
    ```bash
@@ -185,7 +175,43 @@ The project includes comprehensive tests. To run them:
    npm run test:ci
    ```
 
-**Note:** Some tests require the mock server to be running. The server integration tests depend on the mock server package being properly built and available.
+**Note:** The mock server is now integrated as part of the test suite in the `tests/mock-server/` directory and is automatically compiled when running tests. No separate build step is required for the mock server.
+
+### Enabling Mock Server Verbose Logging
+
+For debugging server integration tests, you can enable verbose logging for the mock server to see detailed request/response information. This requires modifying the test files temporarily:
+
+1. **Locate the test file** you want to debug (e.g., `tests/server-integration-login.ts`)
+
+2. **Find the `createMockServer` call** in the `before()` hook:
+   ```typescript
+   // Current call
+   mockServer = await createMockServer({ port: 8084 });
+   
+   // Add verbose option
+   mockServer = await createMockServer({ port: 8084, verbose: true });
+   ```
+
+3. **Run the specific test** to see verbose output:
+   ```bash
+   npm run test:server-integration-login
+   ```
+
+4. **Verbose output will include:**
+   - HTTP method and path for each request
+   - Authorization headers (with tokens obscured for security)
+   - Mock server lifecycle events
+   - Request processing details
+
+**Example verbose output:**
+```
+Mock DevOps server listening on http://localhost:8084
+Mock Server: GET /_apis/connectionData - Authorization: Basic tes***ass
+Mock Server: POST /_apis/build/builds - Authorization: Bearer abc***xyz
+Mock DevOps server closed
+```
+
+**Important:** Remember to remove the `verbose: true` option before committing your changes, as it's intended for debugging purposes only.
 
 ### Testing Your Changes Locally
 
