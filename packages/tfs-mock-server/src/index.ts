@@ -1,9 +1,12 @@
 // Main entry point for the TFS Mock Server package
 export { 
     MockDevOpsServer, 
-    createMockServer,
+    createMockServer
+} from './MockDevOpsServer';
+
+export {
     MockServerOptions,
     MockBuild,
     MockWorkItem,
     MockExtension
-} from './mock-devops-server';
+} from './types';

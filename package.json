@@ -12,7 +12,8 @@
     "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "clean": "rimraf _build && rimraf _tests",
+    "npmauth": "artifacts-npm-credprovider && npm install",
+    "clean": "rimraf _build && rimraf _tests && cd packages/tfs-mock-server && npm run clean",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "prepublishOnly": "npm run build",
