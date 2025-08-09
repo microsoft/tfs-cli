@@ -1,6 +1,7 @@
 import { RequestContext, RouteHandler } from '../types';
 import { BaseRouteHandler } from './BaseRouteHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class BuildHandler extends BaseRouteHandler {
     public getRoutes(): RouteHandler[] {
@@ -84,11 +85,11 @@ export class BuildHandler extends BaseRouteHandler {
     }
 
     private handleRootBuildQueue(context: RequestContext): void {
-        console.log('[Mock Server] POST request body:', JSON.stringify(context.body, null, 2));
+        Logger.log('[Mock Server] POST request body:', JSON.stringify(context.body, null, 2));
         const definitionId = context.body.definition?.id;
         
         if (!definitionId) {
-            console.log('[Mock Server] No definition ID provided, returning 400 error');
+            Logger.log('[Mock Server] No definition ID provided, returning 400 error');
             ResponseUtils.sendBadRequest(context.res, 'Definition ID is required');
             return;
         }
@@ -199,11 +200,11 @@ export class BuildHandler extends BaseRouteHandler {
         }
 
         const project = match[1];
-        console.log('[Mock Server] Project-level POST request body:', JSON.stringify(context.body, null, 2));
+        Logger.log('[Mock Server] Project-level POST request body:', JSON.stringify(context.body, null, 2));
         const definitionId = context.body.definition?.id;
         
         if (!definitionId) {
-            console.log('[Mock Server] No definition ID provided for project-level request, returning 400 error');
+            Logger.log('[Mock Server] No definition ID provided for project-level request, returning 400 error');
             ResponseUtils.sendBadRequest(context.res, 'Definition ID is required');
             return;
         }
@@ -273,7 +274,7 @@ export class BuildHandler extends BaseRouteHandler {
     }
 
     private handleBuildAreaDiscovery(context: RequestContext): void {
-        console.log(`[Mock Server] API area discovery for: build`);
+        Logger.log(`[Mock Server] API area discovery for: build`);
         
         const resourceLocations = [
             {
@@ -308,7 +309,7 @@ export class BuildHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log(`[Mock Server] Returning build area resource locations:`, JSON.stringify(resourceLocations, null, 2));
+        Logger.log(`[Mock Server] Returning build area resource locations:`, JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 }

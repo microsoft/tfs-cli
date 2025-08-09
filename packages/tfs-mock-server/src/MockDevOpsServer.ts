@@ -4,7 +4,7 @@ import { MockDataStore } from './data/MockDataStore';
 import { MockDataInitializer } from './data/MockDataInitializer';
 import { ServerLifecycleManager } from './components/ServerLifecycleManager';
 import { RouteManager } from './components/RouteManager';
-import { RequestParser } from './utils/RequestParser';
+import { RequestParser, Logger } from './utils';
 import { ResponseUtils } from './utils/ResponseUtils';
 
 export class MockDevOpsServer {
@@ -15,6 +15,10 @@ export class MockDevOpsServer {
 
     constructor(options: MockServerOptions = {}) {
         this.authRequired = options.authRequired !== false;
+        
+        // Configure logger with verbose setting
+        Logger.configure(options);
+        
         this.dataStore = new MockDataStore();
         this.lifecycleManager = new ServerLifecycleManager(options, (req, res) => this.handleRequest(req, res));
         this.routeManager = new RouteManager(this.dataStore, this.lifecycleManager.getPort());
@@ -59,12 +63,12 @@ export class MockDevOpsServer {
             const handled = this.routeManager.routeRequest(context);
             
             if (!handled) {
-                console.log(`[Mock Server] No handler found for ${method} ${pathname}`);
+                Logger.log(`[Mock Server] No handler found for ${method} ${pathname}`);
                 ResponseUtils.sendError(res, 404, 'Not Found');
             }
             
         } catch (error) {
-            console.error('[Mock Server] Error handling request:', error);
+            Logger.error('[Mock Server] Error handling request:', error);
             ResponseUtils.sendError(res, 500, 'Internal server error');
         }
     }

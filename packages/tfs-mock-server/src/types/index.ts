@@ -4,6 +4,7 @@ export interface MockServerOptions {
     port?: number;
     host?: string;
     authRequired?: boolean;
+    verbose?: boolean;
 }
 
 export interface MockBuild {

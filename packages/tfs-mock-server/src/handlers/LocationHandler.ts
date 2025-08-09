@@ -1,6 +1,7 @@
 import { RequestContext, RouteHandler } from '../types';
 import { BaseRouteHandler } from './BaseRouteHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class LocationHandler extends BaseRouteHandler {
     public getRoutes(): RouteHandler[] {
@@ -34,7 +35,7 @@ export class LocationHandler extends BaseRouteHandler {
     }
 
     private handleResourceAreas(context: RequestContext): void {
-        console.log('[Mock Server] Providing resource areas for service discovery');
+        Logger.log('[Mock Server] Providing resource areas for service discovery');
         
         const resourceAreas = [
             {
@@ -102,7 +103,7 @@ export class LocationHandler extends BaseRouteHandler {
         }
 
         const resourceAreaId = match[2].toLowerCase();
-        console.log(`[Mock Server] Looking up resource area: ${resourceAreaId}`);
+        Logger.log(`[Mock Server] Looking up resource area: ${resourceAreaId}`);
 
         const resourceAreas: { [key: string]: { id: string; name: string } } = {
             '00d9565f-ed9c-4a06-9a50-00e7896ccab4': { id: '00d9565f-ed9c-4a06-9a50-00e7896ccab4', name: 'Location' },
@@ -152,7 +153,7 @@ export class LocationHandler extends BaseRouteHandler {
     }
 
     private handleLocationApi(context: RequestContext): void {
-        console.log('[Mock Server] Handling Location API request');
+        Logger.log('[Mock Server] Handling Location API request');
         ResponseUtils.sendSuccess(context.res, {
             id: '00d9565f-ed9c-4a06-9a50-00e7896ccab4',
             name: 'Location',

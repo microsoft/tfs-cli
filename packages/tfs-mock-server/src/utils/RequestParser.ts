@@ -1,5 +1,6 @@
 import * as http from 'http';
 import * as url from 'url';
+import { Logger } from './Logger';
 
 export class RequestParser {
     public static parseRequest(req: http.IncomingMessage): Promise<{
@@ -81,6 +82,6 @@ export class RequestParser {
     }
 
     public static logRequest(method: string, pathname: string, headers: http.IncomingHttpHeaders): void {
-        console.log(`Mock Server: ${method} ${pathname} - Authorization: ${headers.authorization || 'none'}`);
+        Logger.logRequest(method, pathname, headers.authorization);
     }
 }

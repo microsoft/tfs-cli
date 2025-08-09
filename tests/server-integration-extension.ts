@@ -108,6 +108,7 @@ describe('Server Integration Tests - Extension Commands', function() {
             // Create a temporary manifest file for testing
             const tempDir = path.join(__dirname, 'temp-extension');
             const manifestPath = path.join(tempDir, 'vss-extension.json');
+            const outputPath = path.join(__dirname, 'test-publisher.test-extension-1.0.0.vsix');
             
             try {
                 if (!fs.existsSync(tempDir)) {
@@ -137,7 +138,7 @@ describe('Server Integration Tests - Extension Commands', function() {
             
             fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
             
-            const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --root "${tempDir}" --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --root "${tempDir}" --output-path "${outputPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
@@ -150,6 +151,9 @@ describe('Server Integration Tests - Extension Commands', function() {
                     try {
                         if (fs.existsSync(manifestPath)) {
                             fs.unlinkSync(manifestPath);
+                        }
+                        if (fs.existsSync(outputPath)) {
+                            fs.unlinkSync(outputPath);
                         }
                         if (fs.existsSync(tempDir)) {
                             fs.rmdirSync(tempDir);
@@ -164,6 +168,9 @@ describe('Server Integration Tests - Extension Commands', function() {
                     try {
                         if (fs.existsSync(manifestPath)) {
                             fs.unlinkSync(manifestPath);
+                        }
+                        if (fs.existsSync(outputPath)) {
+                            fs.unlinkSync(outputPath);
                         }
                         if (fs.existsSync(tempDir)) {
                             fs.rmdirSync(tempDir);

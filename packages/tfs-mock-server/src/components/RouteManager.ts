@@ -6,6 +6,7 @@ import { WorkItemHandler } from '../handlers/WorkItemHandler';
 import { ExtensionHandler } from '../handlers/ExtensionHandler';
 import { DistributedTaskHandler } from '../handlers/DistributedTaskHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class RouteManager {
     private handlers: RouteHandler[] = [];
@@ -41,19 +42,19 @@ export class RouteManager {
     }
 
     public routeRequest(context: RequestContext): boolean {
-        console.log(`[Mock Server] Routing ${context.method} ${context.pathname}`);
+        Logger.log(`[Mock Server] Routing ${context.method} ${context.pathname}`);
 
         // Handle OPTIONS requests for CORS and Location API discovery
         if (context.method === 'OPTIONS') {
             // Handle Location API area discovery requests specifically
             if (context.pathname && context.pathname.includes('/_apis/Location')) {
-                console.log(`[Mock Server] Handling OPTIONS for ${context.pathname}`);
+                Logger.log(`[Mock Server] Handling OPTIONS for ${context.pathname}`);
                 
                 const apisIndex = context.pathname.indexOf('/_apis/');
                 const pathAfterApis = context.pathname.substring(apisIndex + 7); // Skip "/_apis/"
                 const area = pathAfterApis.split('/')[0]; // Get first part after _apis/
                 
-                console.log(`[Mock Server] API area discovery for: ${area}`);
+                Logger.log(`[Mock Server] API area discovery for: ${area}`);
                 
                 if (area === 'Location') {
                     const resourceLocations = [
@@ -79,7 +80,7 @@ export class RouteManager {
                         }
                     ];
                     
-                    console.log(`[Mock Server] Returning Location area resource locations:`, JSON.stringify(resourceLocations, null, 2));
+                    Logger.log(`[Mock Server] Returning Location area resource locations:`, JSON.stringify(resourceLocations, null, 2));
                     ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
                     return true;
                 }
@@ -92,12 +93,12 @@ export class RouteManager {
         // Find matching route
         for (const route of this.handlers) {
             if (this.matchesRoute(route, context)) {
-                console.log(`[Mock Server] Found matching route for ${context.method} ${context.pathname}`);
+                Logger.log(`[Mock Server] Found matching route for ${context.method} ${context.pathname}`);
                 try {
                     route.handler(context);
                     return true;
                 } catch (error) {
-                    console.error(`[Mock Server] Error handling route:`, error);
+                    Logger.error(`[Mock Server] Error handling route:`, error);
                     ResponseUtils.sendError(context.res, 500, 'Internal server error');
                     return true;
                 }

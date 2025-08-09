@@ -18,12 +18,14 @@ Options:
   --port=<number>     Port to listen on (default: 8084)
   --host=<string>     Host to bind to (default: localhost)
   --no-auth          Disable authentication requirement
+  --verbose          Enable verbose logging for debugging
   --help, -h         Show this help message
 
 Examples:
   start-mock-server
   start-mock-server --port=8080 --host=0.0.0.0
   start-mock-server --no-auth --port=3000
+  start-mock-server --verbose --port=8084
 `);
     process.exit(0);
 }
@@ -41,6 +43,8 @@ args.forEach(arg => {
         options.host = arg.split('=')[1];
     } else if (arg === '--no-auth') {
         options.authRequired = false;
+    } else if (arg === '--verbose') {
+        options.verbose = true;
     } else if (!arg.startsWith('--')) {
         console.error(`Error: Unknown argument: ${arg}`);
         console.error('Use --help to see available options');
@@ -57,6 +61,7 @@ console.log('Starting TFS Mock Server...');
 console.log(`Port: ${options.port}`);
 console.log(`Host: ${options.host || 'localhost'}`);
 console.log(`Auth Required: ${options.authRequired !== false ? 'yes' : 'no'}`);
+console.log(`Verbose Logging: ${options.verbose ? 'enabled' : 'disabled'}`);
 console.log('');
 
 createMockServer(options)

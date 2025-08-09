@@ -1,6 +1,7 @@
 import { RequestContext, RouteHandler } from '../types';
 import { BaseRouteHandler } from './BaseRouteHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class WorkItemHandler extends BaseRouteHandler {
     public getRoutes(): RouteHandler[] {
@@ -220,7 +221,7 @@ export class WorkItemHandler extends BaseRouteHandler {
     }
 
     private handleWitAreaDiscovery(context: RequestContext): void {
-        console.log('[Mock Server] API area discovery for: wit');
+        Logger.log('[Mock Server] API area discovery for: wit');
         
         const resourceLocations = [
             {
@@ -275,7 +276,7 @@ export class WorkItemHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log('[Mock Server] Returning wit area resource locations:', JSON.stringify(resourceLocations, null, 2));
+        Logger.log('[Mock Server] Returning wit area resource locations:', JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 

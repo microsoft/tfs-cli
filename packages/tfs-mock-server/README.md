@@ -31,6 +31,9 @@ npx tfs-mock-server --port=8080 --host=0.0.0.0
 # Disable authentication
 npx tfs-mock-server --no-auth --port=3000
 
+# Enable verbose logging for debugging
+npx tfs-mock-server --verbose --port=8084
+
 # Show help
 npx tfs-mock-server --help
 ```
@@ -353,6 +356,7 @@ interface MockServerOptions {
     port?: number;           // Server port (default: 8080, CLI default: 8084)
     host?: string;           // Server host (default: 'localhost')
     authRequired?: boolean;  // Require authentication (default: true)
+    verbose?: boolean;       // Enable verbose logging for debugging (default: false)
 }
 ```
 

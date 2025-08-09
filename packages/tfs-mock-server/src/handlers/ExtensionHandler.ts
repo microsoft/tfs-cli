@@ -1,6 +1,7 @@
 import { RequestContext, RouteHandler } from '../types';
 import { BaseRouteHandler } from './BaseRouteHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class ExtensionHandler extends BaseRouteHandler {
     public getRoutes(): RouteHandler[] {
@@ -249,7 +250,7 @@ export class ExtensionHandler extends BaseRouteHandler {
     }
 
     private handleGalleryAreaDiscovery(context: RequestContext): void {
-        console.log('[Mock Server] API area discovery for: gallery');
+        Logger.log('[Mock Server] API area discovery for: gallery');
         
         const resourceLocations = [
             {
@@ -294,12 +295,12 @@ export class ExtensionHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log('[Mock Server] Returning gallery area resource locations:', JSON.stringify(resourceLocations, null, 2));
+        Logger.log('[Mock Server] Returning gallery area resource locations:', JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 
     private handleExtensionManagementAreaDiscovery(context: RequestContext): void {
-        console.log('[Mock Server] API area discovery for: extensionmanagement');
+        Logger.log('[Mock Server] API area discovery for: extensionmanagement');
         
         const resourceLocations = [
             {
@@ -314,12 +315,12 @@ export class ExtensionHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log('[Mock Server] Returning extensionmanagement area resource locations:', JSON.stringify(resourceLocations, null, 2));
+        Logger.log('[Mock Server] Returning extensionmanagement area resource locations:', JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 
     private handleExtensionManagementCapitalAreaDiscovery(context: RequestContext): void {
-        console.log('[Mock Server] API area discovery for: ExtensionManagement');
+        Logger.log('[Mock Server] API area discovery for: ExtensionManagement');
         
         const resourceLocations = [
             {
@@ -334,7 +335,7 @@ export class ExtensionHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log('[Mock Server] Returning ExtensionManagement area resource locations:', JSON.stringify(resourceLocations, null, 2));
+        Logger.log('[Mock Server] Returning ExtensionManagement area resource locations:', JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 

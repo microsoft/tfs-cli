@@ -1,6 +1,7 @@
 import { RequestContext, RouteHandler } from '../types';
 import { BaseRouteHandler } from './BaseRouteHandler';
 import { ResponseUtils } from '../utils/ResponseUtils';
+import { Logger } from '../utils/Logger';
 
 export class DistributedTaskHandler extends BaseRouteHandler {
     public getRoutes(): RouteHandler[] {
@@ -47,7 +48,7 @@ export class DistributedTaskHandler extends BaseRouteHandler {
     }
 
     private handleDistributedTaskAreaDiscovery(context: RequestContext): void {
-        console.log('[Mock Server] API area discovery for: distributedtask');
+        Logger.log('[Mock Server] API area discovery for: distributedtask');
         
         const resourceLocations = [
             {
@@ -62,7 +63,7 @@ export class DistributedTaskHandler extends BaseRouteHandler {
             }
         ];
         
-        console.log('[Mock Server] Returning distributedtask area resource locations:', JSON.stringify(resourceLocations, null, 2));
+        Logger.log('[Mock Server] Returning distributedtask area resource locations:', JSON.stringify(resourceLocations, null, 2));
         ResponseUtils.sendSuccess(context.res, { value: resourceLocations });
     }
 
@@ -72,7 +73,7 @@ export class DistributedTaskHandler extends BaseRouteHandler {
         if (taskIdParam) {
             // Filter tasks by ID for getTaskDefinitions(taskId) calls
             const matchingTasks = this.dataStore.getTaskDefinitions().filter(t => t.id === taskIdParam);
-            console.log(`[Mock Server] Filtered tasks by ID ${taskIdParam}: found ${matchingTasks.length} tasks`);
+            Logger.log(`[Mock Server] Filtered tasks by ID ${taskIdParam}: found ${matchingTasks.length} tasks`);
             ResponseUtils.sendSuccess(context.res, {
                 count: matchingTasks.length,
                 value: matchingTasks
@@ -108,9 +109,9 @@ export class DistributedTaskHandler extends BaseRouteHandler {
         }
         
         const taskId = match[2];
-        console.log(`[Mock Server] Looking for task with ID: ${taskId}`);
+        Logger.log(`[Mock Server] Looking for task with ID: ${taskId}`);
         const task = this.dataStore.getTaskDefinitions().find(t => t.id === taskId);
-        console.log(`[Mock Server] Found task:`, task ? task.id : 'NOT FOUND');
+        Logger.log(`[Mock Server] Found task:`, task ? task.id : 'NOT FOUND');
         
         if (task) {
             // getTaskDefinitions always returns an array, even for individual tasks
@@ -157,17 +158,17 @@ export class DistributedTaskHandler extends BaseRouteHandler {
         }
         
         const taskId = match[2];
-        console.log(`[Mock Server] Attempting to delete task with ID: ${taskId}`);
+        Logger.log(`[Mock Server] Attempting to delete task with ID: ${taskId}`);
         const tasks = this.dataStore.getTaskDefinitions();
         const taskIndex = tasks.findIndex(t => t.id === taskId);
-        console.log(`[Mock Server] Task index for deletion:`, taskIndex);
+        Logger.log(`[Mock Server] Task index for deletion:`, taskIndex);
         
         if (taskIndex !== -1) {
             const deletedTask = tasks.splice(taskIndex, 1)[0];
-            console.log(`[Mock Server] Successfully deleted task:`, deletedTask.id);
+            Logger.log(`[Mock Server] Successfully deleted task:`, deletedTask.id);
             ResponseUtils.sendSuccess(context.res, deletedTask);
         } else {
-            console.log(`[Mock Server] Task not found for deletion: ${taskId}`);
+            Logger.log(`[Mock Server] Task not found for deletion: ${taskId}`);
             ResponseUtils.sendNotFound(context.res, 'Task');
         }
     }
@@ -182,7 +183,7 @@ export class DistributedTaskHandler extends BaseRouteHandler {
         const taskId = match[2];
         const overwrite = context.query.overwrite === 'true' || context.query.overwrite === true;
         
-        console.log(`[Mock Server] Handling task upload for ID: ${taskId}, overwrite: ${overwrite}`);
+        Logger.log(`[Mock Server] Handling task upload for ID: ${taskId}, overwrite: ${overwrite}`);
         
         // For mock purposes, simulate successful upload
         // In a real scenario, we would parse the ZIP file and extract task.json
@@ -207,14 +208,14 @@ export class DistributedTaskHandler extends BaseRouteHandler {
         if (existingIndex !== -1) {
             if (overwrite) {
                 tasks[existingIndex] = mockTask;
-                console.log(`[Mock Server] Updated existing task: ${taskId}`);
+                Logger.log(`[Mock Server] Updated existing task: ${taskId}`);
             } else {
                 ResponseUtils.sendBadRequest(context.res, 'Task already exists and overwrite is false');
                 return;
             }
         } else {
             this.dataStore.addTaskDefinition(mockTask);
-            console.log(`[Mock Server] Added new task: ${taskId}`);
+            Logger.log(`[Mock Server] Added new task: ${taskId}`);
         }
         
         // Task uploads typically return 204 No Content on success
