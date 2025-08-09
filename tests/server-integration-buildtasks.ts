@@ -115,42 +115,10 @@ describe('Server Integration Tests - Build Task Commands', function() {
         });
 
         it('should process valid task.json', function(done) {
-            const tempDir = path.join(__dirname, 'temp-valid-task');
-            const taskJsonPath = path.join(tempDir, 'task.json');
+            const samplesPath = path.resolve(__dirname, '../build-samples');
+            const taskPath = path.join(samplesPath, 'sample-task');
             
-            try {
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir);
-                }
-            } catch (e) {
-                // Directory might already exist
-            }
-            
-            const taskJson = {
-                id: '550e8400-e29b-41d4-a716-446655440000',
-                name: 'TestTask',
-                friendlyName: 'Test Task',
-                description: 'A test build task',
-                version: {
-                    Major: 1,
-                    Minor: 0,
-                    Patch: 0
-                },
-                instanceNameFormat: 'Test Task',
-                execution: {
-                    Node: {
-                        target: 'index.js'
-                    }
-                }
-            };
-            
-            fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 2));
-            
-            // Create the required index.js file
-            const indexJsPath = path.join(tempDir, 'index.js');
-            fs.writeFileSync(indexJsPath, 'console.log("Test task");');
-            
-            const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${tempDir}" --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
@@ -158,37 +126,9 @@ describe('Server Integration Tests - Build Task Commands', function() {
                     
                     // Should attempt to upload task
                     assert(cleanOutput.length > 0, 'Should produce output');
-                    
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(taskJsonPath)) {
-                            fs.unlinkSync(taskJsonPath);
-                        }
-                        const indexJsPath = path.join(tempDir, 'index.js');
-                        if (fs.existsSync(indexJsPath)) {
-                            fs.unlinkSync(indexJsPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
                     done();
                 })
                 .catch((error) => {
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(taskJsonPath)) {
-                            fs.unlinkSync(taskJsonPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     if (errorOutput.includes('Could not connect') || 
                         errorOutput.includes('ECONNREFUSED') ||
@@ -201,56 +141,17 @@ describe('Server Integration Tests - Build Task Commands', function() {
         });
 
         it('should validate task.json format', function(done) {
-            const tempDir = path.join(__dirname, 'temp-invalid-task');
-            const taskJsonPath = path.join(tempDir, 'task.json');
+            const samplesPath = path.resolve(__dirname, '../build-samples');
+            const taskPath = path.join(samplesPath, 'invalid-task');
             
-            try {
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir);
-                }
-            } catch (e) {
-                // Directory might already exist
-            }
-            
-            // Invalid task.json (missing required fields)
-            const invalidTaskJson = {
-                name: 'TestTask'
-                // Missing id, version, etc.
-            };
-            
-            fs.writeFileSync(taskJsonPath, JSON.stringify(invalidTaskJson, null, 2));
-            
-            const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${tempDir}" --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(() => {
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(taskJsonPath)) {
-                            fs.unlinkSync(taskJsonPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
                     // Command might succeed and attempt upload despite validation issues
                     done();
                 })
                 .catch((error) => {
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(taskJsonPath)) {
-                            fs.unlinkSync(taskJsonPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     if (errorOutput.includes('validation') || 
                         errorOutput.includes('invalid') || 

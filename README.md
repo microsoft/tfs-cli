@@ -155,14 +155,19 @@ To build the project from source:
 
 The project includes comprehensive tests, including server integration tests with an integrated mock server. To run them:
 
-1. **Run all tests:**
+1. **Build the project first (required):**
+   ```bash
+   npm run build
+   ```
+
+2. **Run all tests:**
    ```bash
    npm test
    ```
    
-   This automatically builds both the main project and tests, including the integrated mock server.
+   This builds the test files and runs all test suites.
 
-2. **Run specific test suites:**
+3. **Run specific test suites:**
    ```bash
    npm run test:build-commands
    npm run test:extension-commands
@@ -170,7 +175,7 @@ The project includes comprehensive tests, including server integration tests wit
    npm run test:server-integration
    ```
 
-3. **Run tests with CI reporter:**
+4. **Run tests with CI reporter:**
    ```bash
    npm run test:ci
    ```

@@ -105,40 +105,12 @@ describe('Server Integration Tests - Extension Commands', function() {
         });
 
         it('should handle manifest file processing', function(done) {
-            // Create a temporary manifest file for testing
-            const tempDir = path.join(__dirname, 'temp-extension');
-            const manifestPath = path.join(tempDir, 'vss-extension.json');
+            // Use the pre-existing basic extension sample
+            const samplesPath = path.resolve(__dirname, '../extension-samples');
+            const extensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(__dirname, 'test-publisher.test-extension-1.0.0.vsix');
             
-            try {
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir);
-                }
-            } catch (e) {
-                // Directory might already exist
-            }
-            
-            const manifest = {
-                manifestVersion: 1,
-                id: 'test-extension',
-                publisher: 'test-publisher',
-                version: '1.0.0',
-                name: 'Test Extension',
-                description: 'Test extension for integration tests',
-                categories: ['Other'],
-                contributions: [
-                    {
-                        id: 'test-contribution',
-                        type: 'ms.vss-web.action',
-                        description: 'Test contribution',
-                        targets: ['ms.vss-work-web.work-item-context-menu']
-                    }
-                ]
-            };
-            
-            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-            
-            const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --root "${tempDir}" --output-path "${outputPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --root "${extensionPath}" --output-path "${outputPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
@@ -147,16 +119,10 @@ describe('Server Integration Tests - Extension Commands', function() {
                     // Should attempt to process manifest and publish
                     assert(cleanOutput.length > 0, 'Should produce output');
                     
-                    // Cleanup
+                    // Cleanup - only remove generated .vsix file
                     try {
-                        if (fs.existsSync(manifestPath)) {
-                            fs.unlinkSync(manifestPath);
-                        }
                         if (fs.existsSync(outputPath)) {
                             fs.unlinkSync(outputPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
                         }
                     } catch (e) {
                         // Ignore cleanup errors
@@ -164,16 +130,10 @@ describe('Server Integration Tests - Extension Commands', function() {
                     done();
                 })
                 .catch((error) => {
-                    // Cleanup
+                    // Cleanup - only remove generated .vsix file
                     try {
-                        if (fs.existsSync(manifestPath)) {
-                            fs.unlinkSync(manifestPath);
-                        }
                         if (fs.existsSync(outputPath)) {
                             fs.unlinkSync(outputPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
                         }
                     } catch (e) {
                         // Ignore cleanup errors
@@ -320,39 +280,11 @@ describe('Server Integration Tests - Extension Commands', function() {
 
     describe('Extension IsValid Command', function() {
         it('should validate extension manifest', function(done) {
-            // Create a temporary manifest file for testing
-            const tempDir = path.join(__dirname, 'temp-validation');
-            const manifestPath = path.join(tempDir, 'vss-extension.json');
+            // Use the pre-existing basic extension sample
+            const samplesPath = path.resolve(__dirname, '../extension-samples');
+            const extensionPath = path.join(samplesPath, 'basic-extension');
             
-            try {
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir);
-                }
-            } catch (e) {
-                // Directory might already exist
-            }
-            
-            const manifest = {
-                manifestVersion: 1,
-                id: 'test-extension',
-                publisher: 'test-publisher',
-                version: '1.0.0',
-                name: 'Test Extension',
-                description: 'Test extension for validation',
-                categories: ['Other'],
-                contributions: [
-                    {
-                        id: 'test-contribution',
-                        type: 'ms.vss-web.action',
-                        description: 'Test contribution',
-                        targets: ['ms.vss-work-web.work-item-context-menu']
-                    }
-                ]
-            };
-            
-            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-            
-            const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --root "${tempDir}" --publisher test-publisher --extension-id test-extension --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --root "${extensionPath}" --publisher test-publisher --extension-id test-extension --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
@@ -360,33 +292,9 @@ describe('Server Integration Tests - Extension Commands', function() {
                     
                     // Should attempt to validate extension
                     assert(cleanOutput.length > 0, 'Should produce output');
-                    
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(manifestPath)) {
-                            fs.unlinkSync(manifestPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
                     done();
                 })
                 .catch((error) => {
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(manifestPath)) {
-                            fs.unlinkSync(manifestPath);
-                        }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     if (errorOutput.includes('Could not connect') || 
                         errorOutput.includes('ECONNREFUSED') ||
@@ -401,19 +309,12 @@ describe('Server Integration Tests - Extension Commands', function() {
         });
 
         it('should validate published extension (ignores local manifest)', function(done) {
-            const tempDir = path.join(__dirname, 'temp-no-manifest');
-            
-            try {
-                if (!fs.existsSync(tempDir)) {
-                    fs.mkdirSync(tempDir);
-                }
-            } catch (e) {
-                // Directory might already exist
-            }
+            const samplesPath = path.resolve(__dirname, '../extension-samples');
+            const extensionPath = path.join(samplesPath, 'basic-extension');
             
             // When both publisher and extension-id are provided, the command validates the PUBLISHED extension,
             // not local manifest files. So this should succeed by validating the mock extension.
-            const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --root "${tempDir}" --publisher test-publisher --extension-id test-extension --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --root "${extensionPath}" --publisher test-publisher --extension-id test-extension --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
@@ -421,27 +322,9 @@ describe('Server Integration Tests - Extension Commands', function() {
                     
                     // Should validate the published extension successfully
                     assert(cleanOutput.length > 0, 'Should produce output');
-                    
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
                     done();
                 })
                 .catch((error) => {
-                    // Cleanup
-                    try {
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     if (errorOutput.includes('Could not connect') || 
                         errorOutput.includes('ECONNREFUSED') ||
