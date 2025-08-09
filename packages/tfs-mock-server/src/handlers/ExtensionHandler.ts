@@ -32,7 +32,7 @@ export class ExtensionHandler extends BaseRouteHandler {
                 handler: (context) => this.handleInstalledExtensionById(context)
             },
             {
-                pattern: /^\/(_apis\/)?extensionmanagement\/installedextensions$/i,
+                pattern: /^\/(_apis\/)?extensionmanagement\/installedextensions\/([^\/]+)\/([^\/]+)$/i,
                 method: 'POST',
                 handler: (context) => this.handleInstallExtension(context)
             },
@@ -114,13 +114,15 @@ export class ExtensionHandler extends BaseRouteHandler {
     }
 
     private handleInstallExtension(context: RequestContext): void {
-        if (!context.body) {
-            ResponseUtils.sendBadRequest(context.res, 'Extension data is required');
+        const match = context.pathname.match(/^\/(_apis\/)?extensionmanagement\/installedextensions\/([^\/]+)\/([^\/]+)$/i);
+        if (!match) {
+            ResponseUtils.sendBadRequest(context.res, 'Invalid extension path');
             return;
         }
 
-        const extensionData = context.body;
-        const extensionId = `${extensionData.publisherName}.${extensionData.extensionName}`;
+        const publisherName = match[2];
+        const extensionName = match[3];
+        const extensionId = `${publisherName}.${extensionName}`;
         
         // Check if extension already exists
         const existingExtension = this.dataStore.getExtensionById(extensionId);
@@ -132,22 +134,22 @@ export class ExtensionHandler extends BaseRouteHandler {
         // Create new extension installation
         const newExtension = {
             extensionId: extensionId,
-            extensionName: extensionData.extensionName,
-            displayName: extensionData.displayName || extensionData.extensionName,
-            shortDescription: extensionData.shortDescription || '',
+            extensionName: extensionName,
+            displayName: extensionName,
+            shortDescription: '',
             publisher: {
-                publisherName: extensionData.publisherName,
-                displayName: extensionData.publisherDisplayName || extensionData.publisherName
+                publisherName: publisherName,
+                displayName: publisherName
             },
             versions: [{
-                version: extensionData.version || '1.0.0',
+                version: '1.0.0',
                 flags: 'validated',
                 lastUpdated: new Date().toISOString()
             }],
             publishedDate: new Date().toISOString(),
             lastUpdated: new Date().toISOString(),
-            categories: extensionData.categories || ['Other'],
-            tags: extensionData.tags || [],
+            categories: ['Other'],
+            tags: [],
             flags: 'validated'
         };
         

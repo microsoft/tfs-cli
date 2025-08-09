@@ -1,15 +1,18 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
-		"target": "es5",
-		"moduleResolution": "node16",
+		"module": "commonjs",
+		"target": "es2018",
+		"moduleResolution": "node",
 		"declaration": false,
 		"sourceMap": true,
 		"newLine": "LF",
 		"noFallthroughCasesInSwitch": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
 
 		// Note: dom is specified below so that the JSZip d.ts can use the Blob type.
-		"lib": ["es5", "es2015", "es6", "dom"],
+		"lib": ["es2018", "dom"],
 		"outDir": "_build"
 	},
 	"include": [

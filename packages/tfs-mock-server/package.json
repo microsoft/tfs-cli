@@ -2,8 +2,8 @@
   "name": "@microsoft/tfs-mock-server",
   "version": "1.0.0",
   "description": "Mock server for Azure DevOps Services and Team Foundation Server for testing purposes",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
   "bin": {
     "tfs-mock-server": "./bin/start-mock-server.js"
   },
@@ -31,11 +31,10 @@
     "url": "https://github.com/Microsoft/tfs-cli",
     "directory": "packages/tfs-mock-server"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^18.0.0",
-    "mocha": "^11.7.1",
+    "mocha": "^10.2.0",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
