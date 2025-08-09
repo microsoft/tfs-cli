@@ -49,21 +49,12 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to show work item details
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should show work item details from mock server
+                    assert(cleanOutput.includes('System.Id') && cleanOutput.includes('System.Title') && cleanOutput.includes('Sample Task'), 'Should show work item information');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('work') ||
-                        errorOutput.includes('item')) {
-                        done(); // Expected connection attempt or command processing
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -90,19 +81,12 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to create work item
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should create work item successfully
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('created') || cleanOutput.includes('Work item'), 'Should show creation confirmation');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -113,19 +97,12 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to create work item with custom fields
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should create work item with custom fields successfully
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('created') || cleanOutput.includes('Work item'), 'Should show creation confirmation');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -153,19 +130,12 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to execute query
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should execute query and show results
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('query') || cleanOutput.includes('Work'), 'Should show query results');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -176,21 +146,12 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to execute predefined query
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should execute predefined query
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('query') || cleanOutput.includes('Work'), 'Should show query results');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('query') ||
-                        errorOutput.includes('not found')) {
-                        done(); // Expected connection attempt or query processing
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -218,43 +179,29 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to update work item
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should update work item successfully
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('updated') || cleanOutput.includes('Work item'), 'Should show update confirmation');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
         it('should update multiple fields', function(done) {
             const workItemId = 1;
-            const command = `node "${tfxPath}" workitem update --service-url "${serverUrl}" --project "${testProject}" --work-item-id ${workItemId} --title "Updated Task" --description "Updated description" --state Active --auth-type basic --username testuser --password testpass --no-prompt`;
+            const command = `node "${tfxPath}" workitem update --service-url "${serverUrl}" --project "${testProject}" --work-item-id ${workItemId} --title "Updated Task" --description "Updated description" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsync(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to update multiple fields
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should update multiple fields successfully
+                    assert(cleanOutput.includes('System.Id') || cleanOutput.includes('updated') || cleanOutput.includes('Work item'), 'Should show update confirmation');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -282,41 +229,30 @@ describe('Server Integration Tests - Work Item Commands', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt connection with PAT
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    // Should connect successfully with PAT
+                    assert(cleanOutput.includes('System.Id') && cleanOutput.includes('System.Title') && cleanOutput.includes('Sample Task'), 'Should show work item information');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('Unauthorized')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
-        it('should validate server URL format', function(done) {
-            const command = `node "${tfxPath}" workitem show --service-url "invalid-url" --project "${testProject}" --work-item-id 1 --auth-type basic --username testuser --password testpass --no-prompt`;
+        it('should handle connection to unreachable server', function(done) {
+            const unreachableUrl = 'http://nonexistent-server.example.com:8080/DefaultCollection';
+            const command = `node "${tfxPath}" workitem show --service-url "${unreachableUrl}" --project "${testProject}" --work-item-id 1 --auth-type basic --username testuser --password testpass --no-prompt`;
+            
+            // This test verifies the CLI handles connection failures gracefully
+            this.timeout(10000); // Shorter timeout for unreachable server
             
             execAsync(command)
                 .then(() => {
-                    // Some invalid URLs might still be accepted and cause connection errors
-                    done();
+                    // Unexpected success with unreachable server
+                    done(new Error('Should not have succeeded with unreachable server'));
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Invalid') || 
-                        errorOutput.includes('URL') ||
-                        errorOutput.includes('url') ||
-                        errorOutput.includes('Could not connect')) {
-                        done(); // Expected URL validation or connection error
-                    } else {
-                        done(error);
-                    }
+                    // Expected - should fail to connect to unreachable server
+                    done();
                 });
         });
     });
@@ -328,19 +264,13 @@ describe('Server Integration Tests - Work Item Commands', function() {
             
             execAsync(command)
                 .then(({ stdout }) => {
-                    // Should attempt to produce JSON output
-                    assert(stdout.length > 0, 'Should produce output');
+                    const cleanOutput = stripColors(stdout);
+                    // Should produce JSON formatted output
+                    assert(cleanOutput.includes('{') || cleanOutput.includes('['), 'Should contain JSON structure');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
     });

@@ -56,29 +56,15 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should attempt to login
-                    assert(cleanOutput.length > 0, 'Should produce output');
-                    // Look for login-related keywords
-                    assert(
-                        cleanOutput.toLowerCase().includes('login') || 
-                        cleanOutput.toLowerCase().includes('connect') ||
-                        cleanOutput.toLowerCase().includes('success') ||
-                        cleanOutput.toLowerCase().includes('logged'),
-                        'Should indicate login attempt'
-                    );
+                    // Should successfully login to mock server
+                    assert(cleanOutput.toLowerCase().includes('login') || 
+                           cleanOutput.toLowerCase().includes('connect') ||
+                           cleanOutput.toLowerCase().includes('success') ||
+                           cleanOutput.toLowerCase().includes('logged'), 'Should indicate successful login');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('Unauthorized') ||
-                        errorOutput.includes('login')) {
-                        done(); // Expected connection attempt or authentication error
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -91,19 +77,11 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     const cleanOutput = stripColors(stdout);
                     
                     // Should attempt to login with PAT
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('Unauthorized')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -116,29 +94,26 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('service') || errorOutput.includes('URL') || errorOutput.includes('url'), 'Should indicate service URL is required');
+                    assert(errorOutput.includes('service-url') || errorOutput.includes('service URL') || errorOutput.includes('required'), 'Should indicate service URL is required');
                     done();
                 });
         });
 
-        it('should handle invalid service URL', function(done) {
-            const command = `node "${tfxPath}" login --service-url "not-a-valid-url" --auth-type basic --username testuser --password testpass --no-prompt`;
+        it('should handle unreachable service URL', function(done) {
+            const unreachableUrl = 'http://nonexistent-server.example.com:8080/DefaultCollection';
+            const command = `node "${tfxPath}" login --service-url "${unreachableUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
+            
+            // This test verifies the CLI handles connection failures gracefully  
+            this.timeout(10000); // Shorter timeout for unreachable server
             
             execAsync(command)
                 .then(() => {
-                    // Some invalid URLs might still be accepted but fail at connection
-                    done();
+                    // Unexpected success with unreachable server
+                    done(new Error('Should not have succeeded with unreachable server'));
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Invalid') || 
-                        errorOutput.includes('URL') ||
-                        errorOutput.includes('Could not connect') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected URL validation or connection error
-                    } else {
-                        done(error);
-                    }
+                    // Expected - should fail to connect to unreachable server
+                    done();
                 });
         });
 
@@ -254,19 +229,11 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     const cleanOutput = stripColors(stdout);
                     
                     // Should attempt to save credentials
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('save')) {
-                        done(); // Expected connection attempt or save operation
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -282,19 +249,12 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 })
                 .then(({ stdout }) => {
                     // Should attempt to use cached credentials
+                    const cleanOutput = stripColors(stdout);
+                    assert(cleanOutput.includes('Build') || cleanOutput.includes('Build Definition') || cleanOutput.includes('id') || cleanOutput.includes('definition'), 'Should show build list output');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('service') ||
-                        errorOutput.includes('cache')) {
-                        done(); // Expected behavior - tried to use cache
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
     });
@@ -308,19 +268,11 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     const cleanOutput = stripColors(stdout);
                     
                     // Should attempt login with SSL validation skipped
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('certificate')) {
-                        done(); // Expected connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
     });
@@ -335,19 +287,11 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     const cleanError = stripColors(stderr || '');
                     
                     // Should attempt connection validation
-                    assert(cleanOutput.length > 0 || cleanError.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('connection')) {
-                        done(); // Expected connection test
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 

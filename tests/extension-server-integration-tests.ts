@@ -106,19 +106,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to process manifest and publish
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('published') || cleanOutput.includes('Extension') || cleanOutput.includes('successfully'), 'Should show publish success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('manifest')) {
-                        done(); // Expected processing or connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 })
                 .finally(() => {
                     // Cleanup - only remove generated .vsix file
@@ -283,19 +275,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to install extension
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('installed') || cleanOutput.includes('Extension') || cleanOutput.includes('successfully'), 'Should show install success');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('install')) {
-                        done(); // Expected connection attempt or processing
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -324,20 +308,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to validate extension
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('valid') || cleanOutput.includes('Extension') || cleanOutput.includes('validation'), 'Should show validation result');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('validate') ||
-                        errorOutput.includes('manifest')) {
-                        done(); // Expected validation or connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -350,19 +325,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to validate published extension
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('valid') || cleanOutput.includes('Extension') || cleanOutput.includes('validation'), 'Should show validation result');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('validate')) {
-                        done(); // Expected validation or connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
     });
@@ -378,20 +345,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to use marketplace URL
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('sample'), 'Should show extension details');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('401') ||
-                        errorOutput.includes('Not Authorized')) {
-                        done(); // Expected marketplace connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
@@ -404,21 +362,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should use default marketplace URL
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('sample'), 'Should show extension details');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('401') ||
-                        errorOutput.includes('Not Authorized') ||
-                        errorOutput.includes('personal access token')) {
-                        done(); // Expected default marketplace connection attempt
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
     });
@@ -433,23 +381,11 @@ describe('Extension Commands - Server Integration Tests', function() {
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     // Should produce output even with default URL
-                    assert(cleanOutput.length > 0, 'Should produce output');
+                    assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('sample'), 'Should show extension details with default URL');
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('Could not connect') || 
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('unable to connect') ||
-                        errorOutput.includes('service') ||
-                        errorOutput.includes('url') ||
-                        errorOutput.includes('401') ||
-                        errorOutput.includes('Not Authorized') ||
-                        errorOutput.includes('personal access token')) {
-                        done(); // Expected behavior - tries to connect to default marketplace URL
-                    } else {
-                        done(error);
-                    }
+                    done(error);
                 });
         });
 
