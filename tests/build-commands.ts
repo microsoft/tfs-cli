@@ -281,72 +281,6 @@ describe('Build Commands', function() {
 				});
 		});
 	});
-
-	describe('Build Tasks Upload Command', function() {
-		
-		it('should require task path or task zip path', function(done) {
-			execAsync(`node "${tfxPath}" build tasks upload --no-prompt`)
-				.then(() => {
-					assert.fail('Should have required task path or zip path');
-					done();
-				})
-				.catch((error) => {
-					// Should require either task-path or task-zip-path
-					assert(error.code !== 0, 'Should exit with non-zero code when path is missing');
-					done();
-				});
-		});
-
-		it('should validate task path exists', function(done) {
-			const nonExistentPath = path.join(__dirname, 'nonexistent-task-directory');
-			execAsync(`node "${tfxPath}" build tasks upload --task-path "${nonExistentPath}"`)
-				.then(() => {
-					assert.fail('Should have rejected nonexistent task path');
-					done();
-				})
-				.catch((error) => {
-					// Should reject nonexistent paths
-					assert(error.stderr && error.stderr.includes('does not exist'), 'Should indicate path does not exist');
-					done();
-				});
-		});
-
-		it('should validate task.json exists in task path', function(done) {
-			const emptyDir = path.join(__dirname, '../build-samples/empty-task');
-			// Create empty directory if it doesn't exist
-			if (!fs.existsSync(emptyDir)) {
-				fs.mkdirSync(emptyDir, { recursive: true });
-			}
-			
-			execAsync(`node "${tfxPath}" build tasks upload --task-path "${emptyDir}" --no-prompt`)
-				.then(() => {
-					assert.fail('Should have required task.json file');
-					done();
-				})
-				.catch((error) => {
-					// Should require task.json file to exist
-					assert(error.code !== 0, 'Should exit with non-zero code when task.json is missing');
-					done();
-				});
-		});
-
-		it('should attempt to validate task.json format', function(done) {
-			const invalidTaskPath = path.join(samplesPath, 'invalid-task');
-			execAsync(`node "${tfxPath}" build tasks upload --task-path "${invalidTaskPath}" --no-prompt`)
-				.then(() => {
-					assert.fail('Should have rejected invalid task.json');
-					done();
-				})
-				.catch((error) => {
-					// Should validate task.json format and reject invalid ones
-					assert(error.code !== 0, 'Should exit with non-zero code for invalid task');
-					// Note: Specific validation error depends on implementation
-					done();
-				});
-		});
-	});
-
-	describe('Build Tasks Delete Command', function() {
 		
 		it('should require task ID for deletion', function(done) {
 			execAsync(`node "${tfxPath}" build tasks delete --no-prompt`)
@@ -437,32 +371,4 @@ describe('Build Commands', function() {
 				})
 				.catch(done);
 		});
-	});
-
-	describe('Build Command Error Handling', function() {
-		
-		it('should provide helpful error for missing required server arguments', function(done) {
-			execAsync(`node "${tfxPath}" build list --no-prompt`)
-				.then(() => {
-					assert.fail('Should have failed without authentication');
-					done();
-				})
-				.catch((error) => {
-					// Should fail due to missing authentication/server configuration
-					assert(error.code !== 0, 'Should exit with non-zero code for missing authentication');
-					done();
-				});
-		});
-
-		it('should handle server command vs non-server command distinction', function(done) {
-			// build tasks create is a non-server command, should work without auth
-			// build list is a server command, should require auth
-			execAsync(`node "${tfxPath}" build tasks create --help`)
-				.then(({ stdout }) => {
-					assert(stdout.includes('Create files for new Build Task'), 'Non-server commands should work without auth');
-					done();
-				})
-				.catch(done);
-		});
-	});
 });

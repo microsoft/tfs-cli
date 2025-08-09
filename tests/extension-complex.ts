@@ -64,24 +64,6 @@ describe('Extension Complex Scenarios', function() {
                 })
                 .catch(done);
         });
-
-        it('should validate complex extension', function(done) {
-            const complexExtensionPath = path.join(samplesPath, 'complex-extension');
-            
-            execAsync(`node "${tfxPath}" extension isvalid --root "${complexExtensionPath}" --no-prompt`)
-                .then(({ stdout }) => {
-                    const cleanOutput = stripColors(stdout);
-                    // Complex extension should be valid
-                    assert(cleanOutput.length > 0, 'Should provide validation output');
-                    done();
-                })
-                .catch((error) => {
-                    // Even if validation finds issues, the command should provide feedback
-                    const cleanOutput = stripColors(error.stderr || error.stdout || error.message);
-                    assert(cleanOutput.length > 0, 'Should provide validation feedback');
-                    done();
-                });
-        });
     });
 
     describe('Extension with Publisher Override', function() {

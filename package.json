@@ -14,8 +14,9 @@
   "scripts": {
     "clean": "rimraf _build && rimraf _tests",
     "build": "tsc -p .",
-    "build:tests": "tsc -p tsconfig.tests.json && ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
+    "prepublishOnly": "npm run build",
+    "build:tests": "tsc -p tsconfig.tests.json && ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "test": "npm run build:tests && mocha _tests/tests/**/*.js",
     "test:ci": "npm run build:tests && mocha _tests/tests/**/*.js --reporter xunit --reporter-options output=test-results.xml",
     "test:build-commands": "npm run build:tests && mocha _tests/tests/build-commands.js",
@@ -25,8 +26,7 @@
     "test:extension-commands": "npm run build:tests && mocha _tests/tests/extension-commands.js",
     "test:extension-advanced": "npm run build:tests && mocha _tests/tests/extension-advanced.js",
     "test:extension-complex": "npm run build:tests && mocha _tests/tests/extension-complex.js",
-    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js",
-    "prepublishOnly": "npm run build"
+    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js"
   },
   "dependencies": {
     "app-root-path": "1.0.0",

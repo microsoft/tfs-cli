@@ -3,6 +3,7 @@ _build
 
 # Tests
 _tests
+test-results.xml
 
 # Logs
 logs
