@@ -1,0 +1,23 @@
+{
+    "manifestVersion": 1,
+    "id": "invalid-extension",
+    "name": "Invalid Extension",
+    "version": "invalid-version",
+    "publisher": "",
+    "description": "An invalid extension for testing error handling",
+    "categories": [
+        "InvalidCategory"
+    ],
+    "targets": [
+        {
+            "id": "Invalid.Target"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "invalid-contribution",
+            "type": "invalid.type",
+            "targets": []
+        }
+    ]
+}

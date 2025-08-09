@@ -1,0 +1,19 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"outDir": "./_tests",
+		"rootDir": ".",
+		"paths": {
+			"@microsoft/tfs-mock-server": ["./packages/tfs-mock-server/src/index"]
+		}
+	},
+	"include": [
+		"tests/**/*.ts",
+		"typings/**/*.d.ts"
+	],
+	"exclude": [
+		"app/**/*",
+		"_build/**/*",
+		"node_modules/**/*"
+	]
+}

@@ -1,0 +1,30 @@
+{
+    "id": "ea42fa53-ee6f-40a5-a5b0-0d2b6caa509f",
+    "name": "VersionedTask",
+    "friendlyName": "Versioned Task V1",
+    "description": "Version 1 of a versioned task",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Test Publisher",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Versioned Task V1 $(input)",
+    "inputs": [
+        {
+            "name": "input",
+            "type": "string",
+            "label": "Input",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown": "Some input"
+        }
+    ],
+    "execution": {
+        "Node16": {
+            "target": "index.js"
+        }
+    }
+}

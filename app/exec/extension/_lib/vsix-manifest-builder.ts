@@ -258,13 +258,13 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				});
 				break;
 			case "details":
-				if (_.isObject(value) && value.path) {
+				if (_.isObject(value) && (value as any).path) {
 					let fileDecl: FileDeclaration = {
-						path: value.path,
+						path: (value as any).path,
 						addressable: true,
 						auto: true,
 						assetType: "Microsoft.VisualStudio.Services.Content.Details",
-						contentType: value.contentType,
+						contentType: (value as any).contentType,
 					};
 					this.addFile(fileDecl, true);
 				}
@@ -304,7 +304,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "repository":
 				if (_.isObject(value)) {
-					const { type, url, uri } = value;
+					const { type, url, uri } = value as any;
 					if (!type) {
 						throw new Error("Repository must have a 'type' property.");
 					}

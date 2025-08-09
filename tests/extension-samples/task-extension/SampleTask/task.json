@@ -1,0 +1,30 @@
+{
+    "id": "6d2c478f-539a-4189-96fb-5941ce5fa892",
+    "name": "SampleTask",
+    "friendlyName": "Sample Build Task",
+    "description": "A sample build task for testing",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Test Publisher",
+    "version": {
+        "Major": 1,
+        "Minor": 0,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Sample Task $(message)",
+    "inputs": [
+        {
+            "name": "message",
+            "type": "string",
+            "label": "Message",
+            "defaultValue": "Hello World",
+            "required": true,
+            "helpMarkDown": "The message to display"
+        }
+    ],
+    "execution": {
+        "Node20_1": {
+            "target": "index.js"
+        }
+    }
+}

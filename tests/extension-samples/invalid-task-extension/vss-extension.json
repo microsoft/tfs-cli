@@ -1,0 +1,48 @@
+{
+    "manifestVersion": 1,
+    "id": "invalid-task-extension",
+    "name": "Invalid Task Extension",
+    "version": "1.0.0",
+    "publisher": "test-publisher",
+    "description": "An extension with invalid build tasks",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "invalid-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "InvalidTask"
+            }
+        },
+        {
+            "id": "missing-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "MissingTask"
+            }
+        },
+        {
+            "id": "deprecated-runner-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "DeprecatedRunnerTask"
+            }
+        }
+    ]
+}

@@ -4,7 +4,7 @@ import jsonInPlace from "json-in-place";
 import { promisify } from "util";
 import { TfCommand } from "../../lib/tfcommand";
 import * as args from "../../lib/arguments";
-import * as colors from "colors";
+import colors = require("colors");
 import * as extBase from "./default";
 import * as fs from "fs";
 import * as http from "https";

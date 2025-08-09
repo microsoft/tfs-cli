@@ -1,0 +1,38 @@
+{
+    "manifestVersion": 1,
+    "id": "task-test-extension",
+    "name": "Task Test Extension",
+    "version": "1.0.0",
+    "publisher": "test-publisher",
+    "description": "A test extension with build tasks",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "sample-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "SampleTask"
+            }
+        },
+        {
+            "id": "versioned-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "VersionedTask"
+            }
+        }
+    ]
+}

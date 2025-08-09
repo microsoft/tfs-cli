@@ -1,0 +1,17 @@
+{
+    "id": "not-a-valid-uuid",
+    "name": "",
+    "friendlyName": "This is a very long friendly name that exceeds the 40 character limit",
+    "description": "Invalid task with multiple validation errors",
+    "author": "Test Publisher",
+    "version": {
+        "Major": "not-a-number",
+        "Minor": 0,
+        "Patch": 0
+    },
+    "execution": {
+        "Node20_1": {
+            "target": "missing-file.js"
+        }
+    }
+}

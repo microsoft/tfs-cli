@@ -1,0 +1,40 @@
+{
+    "manifestVersion": 1,
+    "id": "test-extension",
+    "name": "Test Extension",
+    "version": "1.0.0",
+    "publisher": "test-publisher",
+    "description": "A test extension for unit tests",
+    "categories": [
+        "Azure Boards"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "test-contribution",
+            "type": "ms.vss-web.hub",
+            "description": "Test hub contribution",
+            "targets": [
+                "ms.vss-work-web.work-hub-group"
+            ],
+            "properties": {
+                "name": "Test Hub",
+                "uri": "index.html"
+            }
+        }
+    ],
+    "files": [
+        {
+            "path": "index.html",
+            "addressable": true
+        },
+        {
+            "path": "scripts",
+            "addressable": true
+        }
+    ]
+}

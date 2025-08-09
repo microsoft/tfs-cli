@@ -128,6 +128,88 @@ set TFX_TRACE=1
 $env:TFX_TRACE=1
 ```
 
+## Development
+
+### Building from Source
+
+To build the project from source:
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Build the mock server (required first):**
+   ```bash
+   cd packages/tfs-mock-server
+   npm install
+   npm run build
+   cd ../..
+   ```
+
+3. **Build the main project:**
+   ```bash
+   npm run build
+   ```
+   
+   This compiles the TypeScript source files in the `app/` directory to JavaScript in the `_build/` directory using the TypeScript compiler and copies necessary files.
+
+4. **Clean build artifacts (optional):**
+   ```bash
+   npm run clean
+   ```
+
+**Note:** The mock server must be built before the main project since the main project has a dependency on it. The mock server is no longer built automatically during the test preparation phase.
+
+### Testing
+
+The project includes comprehensive tests. To run them:
+
+**Prerequisites:** Ensure both the mock server and main project are built first (see Building from Source above).
+
+1. **Run all tests:**
+   ```bash
+   npm test
+   ```
+
+2. **Run specific test suites:**
+   ```bash
+   npm run test:build-commands
+   npm run test:extension-commands
+   npm run test:commandline
+   npm run test:server-integration
+   ```
+
+3. **Run tests with CI reporter:**
+   ```bash
+   npm run test:ci
+   ```
+
+**Note:** Some tests require the mock server to be running. The server integration tests depend on the mock server package being properly built and available.
+
+### Testing Your Changes Locally
+
+After building, you can test your changes locally in several ways:
+
+1. **Using Node.js directly:**
+   ```bash
+   node _build/tfx-cli.js
+   node _build/tfx-cli.js --help
+   ```
+
+2. **Using npm link for global installation:**
+   ```bash
+   npm link
+   tfx
+   ```
+
+   **To remove the link when done testing:**
+   ```bash
+   npm unlink -g tfx-cli
+   ```
+
+The built executable is located at `_build/tfx-cli.js` and serves as the main entry point for the CLI.
+
 ## Contributing
 
 We accept contributions and fixes via Pull Requests. Please read the [Contributions guide](docs/contributions.md) for more details.
