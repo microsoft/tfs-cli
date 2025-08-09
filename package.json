@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.21.3",
+  "version": "0.21.5",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -16,7 +16,8 @@
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "prepublishOnly": "npm run build",
-    "build:tests": "tsc -p tsconfig.tests.json && ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
+    "build:tests": "tsc -p tsconfig.tests.json",
+    "postbuild:tests": "ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
     "test": "npm run build:tests && mocha _tests/tests/**/*.js",
     "test:ci": "npm run build:tests && mocha _tests/tests/**/*.js --reporter xunit --reporter-options output=test-results.xml",
     "test:build-commands": "npm run build:tests && mocha _tests/tests/build-commands.js",
@@ -29,7 +30,6 @@
     "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js"
   },
   "dependencies": {
-    "app-root-path": "1.0.0",
     "archiver": "2.0.3",
     "azure-devops-node-api": "^14.0.0",
     "clipboardy": "^4.0.0",
@@ -39,15 +39,11 @@
     "json-in-place": "^1.0.1",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
-    "minimist": "^1.2.6",
     "mkdirp": "^1.0.4",
     "onecolor": "^2.5.0",
     "os-homedir": "^1.0.1",
     "prompt": "^1.3.0",
-    "read": "^1.0.6",
     "shelljs": "^0.8.5",
-    "tmp": "^0.2.4",
-    "tracer": "0.7.4",
     "util.promisify": "^1.0.0",
     "uuid": "^3.0.1",
     "validator": "^13.7.0",

@@ -128,6 +128,73 @@ set TFX_TRACE=1
 $env:TFX_TRACE=1
 ```
 
+## Development
+
+### Building from Source
+
+To build the project from source:
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Build the project:**
+   ```bash
+   npm run build
+   ```
+   
+   This compiles the TypeScript source files in the `app/` directory to JavaScript in the `_build/` directory using the TypeScript compiler and copies necessary files.
+
+3. **Clean build artifacts (optional):**
+   ```bash
+   npm run clean
+   ```
+
+### Testing
+
+The project includes comprehensive tests. To run them:
+
+1. **Run all tests:**
+   ```bash
+   npm test
+   ```
+
+2. **Run specific test suites:**
+   ```bash
+   npm run test:build-commands
+   npm run test:extension-commands
+   npm run test:commandline
+   ```
+
+3. **Run tests with CI reporter:**
+   ```bash
+   npm run test:ci
+   ```
+
+### Testing Your Changes Locally
+
+After building, you can test your changes locally in several ways:
+
+1. **Using Node.js directly:**
+   ```bash
+   node _build/tfx-cli.js
+   node _build/tfx-cli.js --help
+   ```
+
+2. **Using npm link for global installation:**
+   ```bash
+   npm link
+   tfx
+   ```
+
+   **To remove the link when done testing:**
+   ```bash
+   npm unlink -g tfx-cli
+   ```
+
+The built executable is located at `_build/tfx-cli.js` and serves as the main entry point for the CLI.
+
 ## Contributing
 
 We accept contributions and fixes via Pull Requests. Please read the [Contributions guide](docs/contributions.md) for more details.
