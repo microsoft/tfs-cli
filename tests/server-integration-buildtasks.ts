@@ -330,63 +330,80 @@ describe('Server Integration Tests - Build Task Commands', function() {
                 // Directory might already exist
             }
             
-            const command = `node "${tfxPath}" build tasks create --task-name "MyTestTask" --friendly-name "My Test Task" --description "A test task for automation" --author "Test Author" --root "${tempDir}" --no-prompt`;
+            // Change to temp directory so task is created there instead of root
+            const originalCwd = process.cwd();
             
-            execAsync(command)
-                .then(({ stdout }) => {
-                    const cleanOutput = stripColors(stdout);
-                    
-                    // Should attempt to create task template
-                    assert(cleanOutput.length > 0, 'Should produce output');
-                    
-                    // Check if task.json was created
-                    const taskJsonPath = path.join(tempDir, 'task.json');
-                    if (fs.existsSync(taskJsonPath)) {
-                        // Validate the created task.json
-                        const taskContent = fs.readFileSync(taskJsonPath, 'utf8');
-                        assert(taskContent.includes('MyTestTask'), 'Task name should be in task.json');
-                    }
-                    
-                    // Cleanup
-                    try {
+            try {
+                process.chdir(tempDir);
+                const command = `node "${tfxPath}" build tasks create --task-name "MyTestTask" --friendly-name "My Test Task" --description "A test task for automation" --author "Test Author" --no-prompt`;
+                
+                execAsync(command)
+                    .then(({ stdout }) => {
+                        const cleanOutput = stripColors(stdout);
+                        
+                        // Should attempt to create task template
+                        assert(cleanOutput.length > 0, 'Should produce output');
+                        
+                        // Check if task.json was created in the MyTestTask subdirectory within tempDir
+                        const taskDir = path.join(tempDir, 'MyTestTask');
+                        const taskJsonPath = path.join(taskDir, 'task.json');
                         if (fs.existsSync(taskJsonPath)) {
-                            fs.unlinkSync(taskJsonPath);
+                            // Validate the created task.json
+                            const taskContent = fs.readFileSync(taskJsonPath, 'utf8');
+                            assert(taskContent.includes('MyTestTask'), 'Task name should be in task.json');
                         }
-                        const files = fs.readdirSync(tempDir);
-                        for (const file of files) {
-                            fs.unlinkSync(path.join(tempDir, file));
+                        
+                        // Cleanup - restore cwd first, then clean up
+                        process.chdir(originalCwd);
+                        try {
+                            if (fs.existsSync(taskDir)) {
+                                const files = fs.readdirSync(taskDir);
+                                for (const file of files) {
+                                    fs.unlinkSync(path.join(taskDir, file));
+                                }
+                                fs.rmdirSync(taskDir);
+                            }
+                            if (fs.existsSync(tempDir)) {
+                                fs.rmdirSync(tempDir);
+                            }
+                        } catch (e) {
+                            // Ignore cleanup errors
                         }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
+                        done();
+                    })
+                    .catch((error) => {
+                        // Cleanup - restore cwd first, then clean up
+                        process.chdir(originalCwd);
+                        try {
+                            const taskDir = path.join(tempDir, 'MyTestTask');
+                            if (fs.existsSync(taskDir)) {
+                                const files = fs.readdirSync(taskDir);
+                                for (const file of files) {
+                                    fs.unlinkSync(path.join(taskDir, file));
+                                }
+                                fs.rmdirSync(taskDir);
+                            }
+                            if (fs.existsSync(tempDir)) {
+                                fs.rmdirSync(tempDir);
+                            }
+                        } catch (e) {
+                            // Ignore cleanup errors
                         }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    done();
-                })
-                .catch((error) => {
-                    // Cleanup
-                    try {
-                        const files = fs.readdirSync(tempDir);
-                        for (const file of files) {
-                            fs.unlinkSync(path.join(tempDir, file));
+                        
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        if (errorOutput.includes('template') || 
+                            errorOutput.includes('create') || 
+                            errorOutput.includes('task')) {
+                            done(); // Expected task creation processing
+                        } else {
+                            done(error);
                         }
-                        if (fs.existsSync(tempDir)) {
-                            fs.rmdirSync(tempDir);
-                        }
-                    } catch (e) {
-                        // Ignore cleanup errors
-                    }
-                    
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('template') || 
-                        errorOutput.includes('create') || 
-                        errorOutput.includes('task')) {
-                        done(); // Expected task creation processing
-                    } else {
-                        done(error);
-                    }
-                });
+                    });
+            } catch (e) {
+                // If changing directory fails, restore cwd and fail the test
+                process.chdir(originalCwd);
+                done(e);
+            }
         });
 
         it('should require task name for creation', function(done) {

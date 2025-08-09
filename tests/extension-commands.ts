@@ -92,7 +92,8 @@ describe('Extension Commands', function() {
                 fs.mkdirSync(tempDir);
             }
             
-            execAsync(`node "${tfxPath}" extension create --root "${tempDir}" --no-prompt`)
+            const outputPath = path.join(__dirname, 'temp-extension-create.vsix');
+            execAsync(`node "${tfxPath}" extension create --root "${tempDir}" --output-path "${outputPath}" --no-prompt`)
                 .then(() => {
                     done(new Error('Should have failed with missing manifest'));
                 })
@@ -101,8 +102,15 @@ describe('Extension Commands', function() {
                     assert(cleanOutput.includes('ENOENT') || cleanOutput.includes('vss-extension.json') || cleanOutput.includes('manifest') || cleanOutput.includes('no manifests found'), 'Should mention missing manifest file');
                     
                     // Cleanup
-                    if (fs.existsSync(tempDir)) {
-                        fs.rmSync(tempDir, { recursive: true, force: true });
+                    try {
+                        if (fs.existsSync(outputPath)) {
+                            fs.unlinkSync(outputPath);
+                        }
+                        if (fs.existsSync(tempDir)) {
+                            fs.rmSync(tempDir, { recursive: true, force: true });
+                        }
+                    } catch (e) {
+                        // Ignore cleanup errors
                     }
                     done();
                 });

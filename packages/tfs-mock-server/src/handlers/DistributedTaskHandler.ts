@@ -36,6 +36,12 @@ export class DistributedTaskHandler extends BaseRouteHandler {
                 pattern: /^(\/[^\/]+)?\/_apis\/distributedtask\/tasks\/([^\/]+)$/,
                 method: 'DELETE',
                 handler: (context) => this.handleTaskDelete(context)
+            },
+            // Task upload endpoint - handles ZIP file uploads
+            {
+                pattern: /^(\/[^\/]+)?\/_apis\/distributedtask\/tasks\/([^\/]+)$/,
+                method: 'PUT',
+                handler: (context) => this.handleTaskUpload(context)
             }
         ];
     }
@@ -164,5 +170,55 @@ export class DistributedTaskHandler extends BaseRouteHandler {
             console.log(`[Mock Server] Task not found for deletion: ${taskId}`);
             ResponseUtils.sendNotFound(context.res, 'Task');
         }
+    }
+
+    private handleTaskUpload(context: RequestContext): void {
+        const match = context.pathname.match(/^(\/[^\/]+)?\/_apis\/distributedtask\/tasks\/([^\/]+)$/);
+        if (!match) {
+            ResponseUtils.sendBadRequest(context.res, 'Invalid task ID');
+            return;
+        }
+        
+        const taskId = match[2];
+        const overwrite = context.query.overwrite === 'true' || context.query.overwrite === true;
+        
+        console.log(`[Mock Server] Handling task upload for ID: ${taskId}, overwrite: ${overwrite}`);
+        
+        // For mock purposes, simulate successful upload
+        // In a real scenario, we would parse the ZIP file and extract task.json
+        const mockTask = {
+            id: taskId,
+            name: `Mock Task ${taskId}`,
+            friendlyName: `Mock Task ${taskId}`,
+            version: { major: 1, minor: 0, patch: 0 },
+            description: 'Mock uploaded task',
+            instanceNameFormat: 'Mock task format',
+            execution: {
+                Node: {
+                    target: 'index.js'
+                }
+            }
+        };
+        
+        // Add or update task in data store
+        const tasks = this.dataStore.getTaskDefinitions();
+        const existingIndex = tasks.findIndex(t => t.id === taskId);
+        
+        if (existingIndex !== -1) {
+            if (overwrite) {
+                tasks[existingIndex] = mockTask;
+                console.log(`[Mock Server] Updated existing task: ${taskId}`);
+            } else {
+                ResponseUtils.sendBadRequest(context.res, 'Task already exists and overwrite is false');
+                return;
+            }
+        } else {
+            this.dataStore.addTaskDefinition(mockTask);
+            console.log(`[Mock Server] Added new task: ${taskId}`);
+        }
+        
+        // Task uploads typically return 204 No Content on success
+        context.res.statusCode = 204;
+        context.res.end();
     }
 }

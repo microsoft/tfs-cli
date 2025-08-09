@@ -74,6 +74,25 @@ export class MockDataInitializer {
                 }
             }
         });
+
+        // Add task for deletion test
+        dataStore.addTaskDefinition({
+            id: 'test-task-id',
+            name: 'Test Task',
+            friendlyName: 'Test Task for Deletion',
+            description: 'A test task that can be deleted in integration tests',
+            category: 'Build',
+            author: 'Test Author',
+            version: { Major: 1, Minor: 0, Patch: 0 },
+            instanceNameFormat: 'Test Task',
+            groups: [],
+            inputs: [],
+            execution: {
+                Node: {
+                    target: 'test.js'
+                }
+            }
+        });
     }
 
     private static setupInitialBuilds(dataStore: MockDataStore): void {
