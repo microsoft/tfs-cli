@@ -22,18 +22,16 @@
     "test": "npm run build:tests && mocha _tests/tests/**/*.js",
     "test:ci": "npm run build:tests && mocha _tests/tests/**/*.js --reporter xunit --reporter-options output=test-results.xml",
     "test:commandline": "npm run build:tests && mocha _tests/tests/commandline.js",
-    "test:extension-commands": "npm run build:tests && mocha _tests/tests/extension-commands.js",
-    "test:extension-advanced": "npm run build:tests && mocha _tests/tests/extension-advanced.js",
-    "test:extension-complex": "npm run build:tests && mocha _tests/tests/extension-complex.js",
-    "test:extension-task-validation": "npm run build:tests && mocha _tests/tests/extension-task-validation.js",
     "test:server-integration": "npm run build:tests && mocha _tests/tests/server-integration-*.js",
     "test:focused-login": "npm run build:tests && mocha _tests/tests/focused-login-test.js",
     "test:server-integration-login": "npm run build:tests && mocha _tests/tests/server-integration-login.js",
     "test:server-integration-workitem": "npm run build:tests && mocha _tests/tests/server-integration-workitem.js",
-    "test:server-integration-extension": "npm run build:tests && mocha _tests/tests/server-integration-extension.js",
     "test:build-local": "npm run build:tests && mocha _tests/tests/build-local-tests.js",
     "test:build-server-integration": "npm run build:tests && mocha _tests/tests/build-server-integration-tests.js",
-    "test:build-commands": "npm run test:build-local && npm run test:build-server-integration"
+    "test:build-consolidated": "npm run test:build-local && npm run test:build-server-integration",
+    "test:extension-local": "npm run build:tests && mocha _tests/tests/extension-local-tests.js",
+    "test:extension-server-integration": "npm run build:tests && mocha _tests/tests/extension-server-integration-tests.js",
+    "test:extension-consolidated": "npm run test:extension-local && npm run test:extension-server-integration"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
