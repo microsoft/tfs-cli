@@ -356,7 +356,7 @@ export class ExtensionHandler extends BaseRouteHandler {
         if (extensionIndex !== -1) {
             const deletedExtension = extensions.splice(extensionIndex, 1)[0];
             
-            // If this is the test extension used by validation tests, restore it after deletion
+            // If this is the test extension used by server integration tests, restore it after deletion
             if (publisher === 'test-publisher' && extensionName === 'test-extension') {
                 setTimeout(() => {
                     this.dataStore.addExtension({

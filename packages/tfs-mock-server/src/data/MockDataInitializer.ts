@@ -162,12 +162,12 @@ export class MockDataInitializer {
             tags: []
         });
 
-        // Add test extension for compatibility tests (storage key includes publisher prefix)
+        // Add test extension for server integration tests (storage key includes publisher prefix)
         dataStore.addExtension({
             extensionId: 'test-extension',  // Response field - just the extension name
             extensionName: 'Test Extension',
             displayName: 'Test Extension',
-            shortDescription: 'Test extension for compatibility testing',
+            shortDescription: 'Test extension for server integration tests',
             publisher: {
                 publisherName: 'test-publisher',
                 displayName: 'Test Publisher'

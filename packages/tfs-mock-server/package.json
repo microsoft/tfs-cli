@@ -12,7 +12,6 @@
     "clean": "rimraf lib",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "npm run build && mocha test/**/*.test.js",
-    "test:compatibility": "npm run build && mocha lib/test/compatibility.test.js",
     "start": "node bin/start-mock-server.js"
   },
   "keywords": [
