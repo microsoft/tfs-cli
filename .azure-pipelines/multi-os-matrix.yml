@@ -17,9 +17,6 @@ stages:
       displayName: Run tests on all Node/OS combinations
       strategy:
         matrix:
-          windows_node10:
-            imageName: 'windows-2022'
-            nodeVersion: '10.x'
           windows_node16:
             imageName: 'windows-2022'
             nodeVersion: '16.x'
@@ -29,9 +26,6 @@ stages:
           windows_node24:
             imageName: 'windows-2022'
             nodeVersion: '24.x'
-          ubuntu_node10:
-            imageName: 'ubuntu-24.04'
-            nodeVersion: '10.x'
           ubuntu_node16:
             imageName: 'ubuntu-24.04'
             nodeVersion: '16.x'
@@ -41,9 +35,6 @@ stages:
           ubuntu_node24:
             imageName: 'ubuntu-24.04'
             nodeVersion: '24.x'
-          macos_node10:
-            imageName: 'macos-14'
-            nodeVersion: '10.x'
           macos_node16:
             imageName: 'macos-14'
             nodeVersion: '16.x'
@@ -76,23 +67,16 @@ stages:
           displayName: Use compatible npm version for Node (Linux/macOS)
           condition: ne( variables['Agent.OS'], 'Windows_NT' )
         - script: |
-            if "%nodeVersion%" == "10.x" (
+            if "%nodeVersion%" == "16.x" (
               npm i -g npm@8.19.4 --force
               npm --version
-            ) else if "%nodeVersion%" == "12.x" (
-              npm i -g npm@8.19.4 --force
+            ) else if "%nodeVersion%" == "20.x" (
+              npm i -g npm@10 --force
               npm --version
-            ) else if "%nodeVersion%" == "14.x" (
-              npm i -g npm@8.19.4 --force
-              npm --version
-            ) else if "%nodeVersion%" == "16.x" (
-              npm i -g npm@8.19.4 --force
-              npm --version
-            ) else if "%nodeVersion%" == "18.x" (
-              npm i -g npm@8.19.4 --force
+            ) else if "%nodeVersion%" == "24.x" (
+              npm i -g npm@10 --force
               npm --version
             ) else (
-              npm i -g npm@10 --force
               npm --version
             )
           displayName: Use compatible npm version for Node (Windows)
