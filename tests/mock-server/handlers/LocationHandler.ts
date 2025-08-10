@@ -86,6 +86,13 @@ export class LocationHandler extends BaseRouteHandler {
                 locationUrl: this.getLocationUrl(),
                 routeTemplate: '/DefaultCollection/_apis/{area}',
                 resourceVersion: 1
+            },
+            {
+                id: '1a9c53f7-f243-4447-b110-35ef023636e4',
+                name: 'wit',
+                locationUrl: this.getLocationUrl(),
+                routeTemplate: '/DefaultCollection/_apis/{area}',
+                resourceVersion: 1
             }
         ];
 
@@ -112,6 +119,7 @@ export class LocationHandler extends BaseRouteHandler {
             'a85b8835-c1a1-4aac-ae97-1c3d0ba72dbd': { id: 'a85b8835-c1a1-4aac-ae97-1c3d0ba72dbd', name: 'DistributedTask' },
             '6c2b0933-3600-42ae-bf8b-93d4f7e83594': { id: '6c2b0933-3600-42ae-bf8b-93d4f7e83594', name: 'ExtensionManagement' },
             '5264459e-e5e0-4bd8-b118-0985e68a4ec5': { id: '5264459e-e5e0-4bd8-b118-0985e68a4ec5', name: 'wit' },
+            '1a9c53f7-f243-4447-b110-35ef023636e4': { id: '1a9c53f7-f243-4447-b110-35ef023636e4', name: 'wit' },
             '69d21c00-f135-441b-b5ce-3626378e0819': { id: '69D21C00-F135-441B-B5CE-3626378E0819', name: 'Gallery' }
         };
 
@@ -120,10 +128,11 @@ export class LocationHandler extends BaseRouteHandler {
             // Some resource areas get full template info, others just basic info
             if (resourceAreaId === '00d9565f-ed9c-4a06-9a50-00e7896ccab4' ||  // Location
                 resourceAreaId === '965220d5-5bb9-42cf-8d67-9b146df2a5a4' ||  // build
-                resourceAreaId === '0cd358e1-9217-4d94-8269-1c1ee6f93dcf') {   // build (older)
+                resourceAreaId === '0cd358e1-9217-4d94-8269-1c1ee6f93dcf' ||   // build (older)
+                resourceAreaId === '1a9c53f7-f243-4447-b110-35ef023636e4') {   // wit query API
                 this.sendResourceArea(context.res, resourceArea.id, resourceArea.name);
             } else {
-                // Gallery, ExtensionManagement, DistributedTask, wit get minimal response
+                // Gallery, ExtensionManagement, DistributedTask, wit (original) get minimal response
                 ResponseUtils.sendSuccess(context.res, {
                     id: resourceArea.id,
                     name: resourceArea.name,

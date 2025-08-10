@@ -3,9 +3,7 @@ import { stripColors } from 'colors';
 import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
-
-const { exec } = require('child_process');
-const { promisify } = require('util');
+import { DebugLogger, execAsyncWithLogging } from './test-utils/debug-exec';
 
 // Basic test framework functions to avoid TypeScript errors
 declare function describe(name: string, fn: Function): void;
@@ -13,7 +11,6 @@ declare function it(name: string, fn: Function): void;
 declare function before(fn: Function): void;
 declare function after(fn: Function): void;
 
-const execAsync = promisify(exec);
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../build-samples');
 
@@ -50,15 +47,17 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should list builds from server with basic auth', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build list with basic auth')
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should contain build information from mock server
-                    assert(cleanOutput.includes('id'), 'Should show build ID');
-                    assert(cleanOutput.includes('Sample Build Definition'), 'Should show definition name');
-                    assert(cleanOutput.includes('Test User'), 'Should show requested by');
-                    assert(cleanOutput.includes('Completed'), 'Should show status');
+                    // Should contain specific build information format from mock server
+                    assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
+                    assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with specific format');
+                    assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
+                    assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
+                    assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with specific format');
                     
                     done();
                 })
@@ -72,15 +71,17 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should list builds from server with PAT', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type pat --token dGVzdHRva2VuOnRlc3Q= --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build list with PAT authentication')
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should contain build information from mock server
-                    assert(cleanOutput.includes('id'), 'Should show build ID');
-                    assert(cleanOutput.includes('Sample Build Definition'), 'Should show definition name');
-                    assert(cleanOutput.includes('Test User'), 'Should show requested by');
-                    assert(cleanOutput.includes('Completed'), 'Should show status');
+                    // Should contain specific build information format from mock server
+                    assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
+                    assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with specific format');
+                    assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
+                    assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
+                    assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with specific format');
                     
                     done();
                 })
@@ -93,13 +94,15 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should handle definition name filter', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --definition-name "Sample" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build list with definition name filter')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should filter and show builds matching the definition name
-                    assert(cleanOutput.includes('Sample Build Definition'), 'Should show filtered builds');
-                    assert(cleanOutput.includes('id'), 'Should show build ID');
+                    // Should filter and show builds with specific format matching the definition name
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show filtered builds with specific format');
+                    assert(cleanOutput.includes('id              : 1') || cleanOutput.includes('id              : 2'), 'Should show build ID with specific format');
+                    assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
+                    assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
                     done();
                 })
                 .catch((error) => {
@@ -110,12 +113,20 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should support JSON output', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --json --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build list with JSON output format')
                 .then(({ stdout }) => {
-                    const cleanOutput = stripColors(stdout);
+                    const cleanOutput = stripColors(stdout).trim();
                     
-                    // Should produce JSON formatted output
-                    assert(cleanOutput.includes('{') || cleanOutput.includes('['), 'Should contain JSON structure');
+                    // Should produce specific JSON array format with build objects
+                    assert(cleanOutput.startsWith('['), 'Should start with JSON array');
+                    assert(cleanOutput.endsWith(']'), 'Should end with JSON array');
+                    assert(cleanOutput.includes('"id": 1'), 'Should contain first build ID as number');
+                    assert(cleanOutput.includes('"id": 2'), 'Should contain second build ID as number');
+                    assert(cleanOutput.includes('"definition"'), 'Should contain definition objects');
+                    assert(cleanOutput.includes('"name": "Sample Build Definition"'), 'Should contain definition name');
+                    assert(cleanOutput.includes('"requestedBy"'), 'Should contain requestedBy objects');
+                    assert(cleanOutput.includes('"displayName": "Test User"'), 'Should contain requester display name');
+                    assert(cleanOutput.includes('"project"'), 'Should contain project objects');
                     done();
                 })
                 .catch((error) => {
@@ -126,13 +137,17 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should support top parameter', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --top 5 --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build list with top parameter limit')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should limit results and show builds
-                    assert(cleanOutput.includes('id'), 'Should show build ID');
-                    assert(cleanOutput.includes('Sample Build Definition'), 'Should show definition name');
+                    // Should limit results and show builds with specific formatting
+                    assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
+                    assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with specific format');
+                    assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
+                    assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
+                    assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with specific format');
                     done();
                 })
                 .catch((error) => {
@@ -146,15 +161,20 @@ describe('Build Commands - Server Integration Tests', function() {
             const buildId = 1;
             const command = `node "${tfxPath}" build show --service-url "${serverUrl}" --project "${testProject}" --build-id ${buildId} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build show with specific build ID')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
-                    // Should show detailed build information
-                    assert(cleanOutput.includes('id'), 'Should show build ID');
-                    assert(cleanOutput.includes('Sample Build Definition'), 'Should show definition name');
-                    assert(cleanOutput.includes('Test User'), 'Should show requested by');
-                    assert(cleanOutput.includes('Completed'), 'Should show status');
+                    // Verify CLI header
+                    assert(cleanOutput.includes('TFS Cross Platform Command Line Interface'), 'Should show CLI header');
+                    assert(cleanOutput.includes('Copyright Microsoft Corporation'), 'Should show copyright');
+                    
+                    // Verify specific build details format with exact spacing
+                    assert(cleanOutput.includes('id              : 1'), 'Should show build ID with specific format');
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with exact format');
+                    assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with exact format');
+                    assert(cleanOutput.includes('status          : Completed'), 'Should show status with exact format');
+                    assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with exact format');
                     done();
                 })
                 .catch((error) => {
@@ -165,13 +185,15 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should require build ID', function(done) {
             const command = `node "${tfxPath}" build show --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command, 'build show without required build ID parameter')
                 .then(() => {
                     assert.fail('Should have failed without build ID');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('build-id') || errorOutput.includes('required') || errorOutput.includes('Build ID'), 'Should indicate build ID is required');
+                    
+                    // Verify specific error message format
+                    assert(errorOutput.includes('error: Error: Missing required value for argument \'buildId\''), 'Should show specific buildId requirement error');
                     done();
                 });
         });
@@ -181,7 +203,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should queue a build', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --definition-id 1 --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
@@ -197,7 +219,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should queue build by definition name', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --definition-name "Sample Build Definition" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
@@ -213,7 +235,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should require definition ID or name', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without definition');
                 })
@@ -229,7 +251,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should list build tasks from server', function(done) {
             const command = `node "${tfxPath}" build tasks list --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
@@ -245,7 +267,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should require authentication for server operations', function(done) {
             const command = `node "${tfxPath}" build tasks list --service-url "${serverUrl}" --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without authentication');
                 })
@@ -276,7 +298,7 @@ describe('Build Commands - Server Integration Tests', function() {
             
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${tempDir}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // Cleanup
                     try {
@@ -312,7 +334,7 @@ describe('Build Commands - Server Integration Tests', function() {
             
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
@@ -330,7 +352,7 @@ describe('Build Commands - Server Integration Tests', function() {
             
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // Command might succeed and attempt upload despite validation issues
                     done();
@@ -348,7 +370,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should require task path', function(done) {
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without task path');
                 })
@@ -365,7 +387,7 @@ describe('Build Commands - Server Integration Tests', function() {
             const taskId = 'test-task-id';
             const command = `node "${tfxPath}" build tasks delete --service-url "${serverUrl}" --task-id "${taskId}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     
@@ -381,7 +403,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should require task ID for deletion', function(done) {
             const command = `node "${tfxPath}" build tasks delete --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without task ID');
                 })
@@ -395,7 +417,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should validate task ID format', function(done) {
             const command = `node "${tfxPath}" build tasks delete --task-id "invalid-task-id" --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // This might succeed if it just tries to connect to server and fails there
                     // The behavior depends on whether validation happens locally or server-side
@@ -428,7 +450,7 @@ describe('Build Commands - Server Integration Tests', function() {
                 process.chdir(tempDir);
                 const command = `node "${tfxPath}" build tasks create --task-name "MyTestTask" --friendly-name "My Test Task" --description "A test task for automation" --author "Test Author" --no-prompt`;
                 
-                execAsync(command)
+                execAsyncWithLogging(command)
                     .then(({ stdout }) => {
                         const cleanOutput = stripColors(stdout);
                         
@@ -502,7 +524,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should handle missing service URL', function(done) {
             const command = `node "${tfxPath}" build list --project "${testProject}" --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without service URL');
                 })
@@ -518,7 +540,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should handle missing project', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without project');
                 })
@@ -532,7 +554,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should validate auth type', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type invalid --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // Some commands might proceed with default auth
                     done();
@@ -551,7 +573,7 @@ describe('Build Commands - Server Integration Tests', function() {
             const invalidUrl = 'http://invalid-server:8080/DefaultCollection';
             const command = `node "${tfxPath}" build tasks list --service-url "${invalidUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // Unlikely to succeed with invalid server
                     done();

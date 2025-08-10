@@ -119,23 +119,65 @@ export class MockDataInitializer {
     }
 
     private static setupInitialWorkItems(dataStore: MockDataStore): void {
-        // Add sample work items
+        // Add sample work items with proper structure for WIQL queries
         dataStore.addWorkItem({
+            id: 1,
             fields: {
+                'System.Id': 1,
                 'System.WorkItemType': 'Task',
                 'System.Title': 'Sample Task',
                 'System.State': 'New',
-                'System.AssignedTo': 'Test User <testuser@example.com>'
-            }
+                'System.AssignedTo': {
+                    displayName: 'Test User',
+                    uniqueName: 'testuser@example.com'
+                },
+                'System.AreaPath': 'TestProject',
+                'System.TeamProject': 'TestProject',
+                'System.CreatedDate': new Date('2024-01-01T10:00:00.000Z').toISOString(),
+                'System.ChangedDate': new Date('2024-01-01T10:00:00.000Z').toISOString(),
+                'System.Description': 'This is a sample task for testing'
+            },
+            url: 'http://localhost:8082/DefaultCollection/_apis/wit/workitems/1'
         });
 
         dataStore.addWorkItem({
+            id: 2,
             fields: {
+                'System.Id': 2,
+                'System.WorkItemType': 'Task',
+                'System.Title': 'Another Task',
+                'System.State': 'Active',
+                'System.AssignedTo': {
+                    displayName: 'Test User',
+                    uniqueName: 'testuser@example.com'
+                },
+                'System.AreaPath': 'TestProject',
+                'System.TeamProject': 'TestProject',
+                'System.CreatedDate': new Date('2024-01-02T10:00:00.000Z').toISOString(),
+                'System.ChangedDate': new Date('2024-01-02T11:00:00.000Z').toISOString(),
+                'System.Description': 'This is another sample task for testing'
+            },
+            url: 'http://localhost:8082/DefaultCollection/_apis/wit/workitems/2'
+        });
+
+        dataStore.addWorkItem({
+            id: 3,
+            fields: {
+                'System.Id': 3,
                 'System.WorkItemType': 'Bug',
                 'System.Title': 'Sample Bug',
-                'System.State': 'Active',
-                'System.AssignedTo': 'Test User <testuser@example.com>'
-            }
+                'System.State': 'New',
+                'System.AssignedTo': {
+                    displayName: 'Test User 2',
+                    uniqueName: 'testuser2@example.com'
+                },
+                'System.AreaPath': 'TestProject',
+                'System.TeamProject': 'TestProject',
+                'System.CreatedDate': new Date('2024-01-03T10:00:00.000Z').toISOString(),
+                'System.ChangedDate': new Date('2024-01-03T10:00:00.000Z').toISOString(),
+                'System.Description': 'This is a sample bug for testing'
+            },
+            url: 'http://localhost:8082/DefaultCollection/_apis/wit/workitems/3'
         });
     }
 

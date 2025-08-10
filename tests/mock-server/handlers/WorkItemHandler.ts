@@ -39,6 +39,11 @@ export class WorkItemHandler extends BaseRouteHandler {
             },
             // Root-level work item endpoints (no project)
             {
+                pattern: /^\/_apis\/wit\/workitems$/,
+                method: 'GET',
+                handler: (context) => this.handleRootWorkItemsList(context)
+            },
+            {
                 pattern: /^\/_apis\/wit\/workitems\/(\d+)$/,
                 method: 'GET',
                 handler: (context) => this.handleRootWorkItemById(context)
@@ -56,6 +61,11 @@ export class WorkItemHandler extends BaseRouteHandler {
             // WIQL queries
             {
                 pattern: /^\/([^\/]+)\/_apis\/wit\/wiql$/,
+                method: 'POST',
+                handler: (context) => this.handleWorkItemQuery(context)
+            },
+            {
+                pattern: /^\/_apis\/wit\/wiql$/,
                 method: 'POST',
                 handler: (context) => this.handleWorkItemQuery(context)
             }
@@ -273,6 +283,16 @@ export class WorkItemHandler extends BaseRouteHandler {
                 minVersion: "1.0",
                 maxVersion: "7.2",
                 releasedVersion: "1.0"
+            },
+            {
+                id: "1a9c53f7-f243-4447-b110-35ef023636e4",
+                area: "wit",
+                resourceName: "Wiql",
+                routeTemplate: "_apis/wit/wiql",
+                resourceVersion: 1,
+                minVersion: "1.0",
+                maxVersion: "7.2",
+                releasedVersion: "7.1-preview.2"
             }
         ];
         
@@ -365,8 +385,36 @@ export class WorkItemHandler extends BaseRouteHandler {
             queryResultType: 'workItem',
             workItems: this.dataStore.getWorkItems().slice(0, 5).map(wi => ({
                 id: wi.id,
-                url: wi.url
-            }))
+                url: `http://localhost:8082/DefaultCollection/_apis/wit/workItems/${wi.id}`
+            })),
+            columns: [
+                { referenceName: 'System.Id', name: 'ID' },
+                { referenceName: 'System.Title', name: 'Title' }
+            ]
+        });
+    }
+
+    private handleRootWorkItemsList(context: RequestContext): void {
+        // Extract work item IDs from query string (comma-separated)
+        const idsParam = context.query.ids as string;
+        if (!idsParam) {
+            ResponseUtils.sendError(context.res, 400, "Work item IDs parameter is required");
+            return;
+        }
+
+        const ids = idsParam.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+        if (ids.length === 0) {
+            ResponseUtils.sendError(context.res, 400, "Valid work item IDs are required");
+            return;
+        }
+
+        // Get work items from data store matching the requested IDs
+        const workItems = this.dataStore.getWorkItems().filter(wi => ids.includes(wi.id));
+
+        // Return the work items in the expected format
+        ResponseUtils.sendSuccess(context.res, {
+            count: workItems.length,
+            value: workItems
         });
     }
 }

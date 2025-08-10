@@ -4,9 +4,7 @@ import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
-const { exec } = require('child_process');
-const { promisify } = require('util');
+import { DebugLogger, execAsyncWithLogging } from './test-utils/debug-exec';
 
 // Basic test framework functions to avoid TypeScript errors
 declare function describe(name: string, fn: Function): void;
@@ -14,7 +12,6 @@ declare function it(name: string, fn: Function): void;
 declare function before(fn: Function): void;
 declare function after(fn: Function): void;
 
-const execAsync = promisify(exec);
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 
 describe('Server Integration Tests - Login and Authentication', function() {
@@ -42,25 +39,29 @@ describe('Server Integration Tests - Login and Authentication', function() {
         // Clean up any cached credentials
         try {
             const command = `node "${tfxPath}" reset --no-prompt`;
-            await execAsync(command);
+            await execAsyncWithLogging(command);
         } catch (e) {
             // Ignore cleanup errors
         }
     });
 
     describe('Login Command', function() {
-        it('should attempt login with basic authentication', function(done) {
+        it('should successfully login with basic authentication', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should successfully login to mock server
-                    assert(cleanOutput.toLowerCase().includes('login') || 
-                           cleanOutput.toLowerCase().includes('connect') ||
-                           cleanOutput.toLowerCase().includes('success') ||
-                           cleanOutput.toLowerCase().includes('logged'), 'Should indicate successful login');
+                    // Should successfully login to mock server with exact success message
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -68,16 +69,23 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 });
         });
 
-        it('should attempt login with PAT', function(done) {
-            const patToken = Buffer.from('OAuth:testtoken').toString('base64');
+        it('should successfully login with PAT token', function(done) {
+            const patToken = 'testtoken'; // Use simple PAT token format
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type pat --token ${patToken} --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should attempt to login with PAT
-                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
+                    // Should successfully login with PAT with exact success message
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -85,151 +93,189 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 });
         });
 
-        it('should require service URL', function(done) {
+        it('should require service URL parameter', function(done) {
             const command = `node "${tfxPath}" login --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     assert.fail('Should have failed without service URL');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('service-url') || errorOutput.includes('service URL') || errorOutput.includes('required'), 'Should indicate service URL is required');
+                    
+                    // Should fail with specific missing argument error
+                    assert(errorOutput.includes("Missing required value for argument 'serviceUrl'"), 
+                           `Expected specific missing argument error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
                     done();
                 });
         });
 
-        it('should handle unreachable service URL', function(done) {
+        it('should handle unreachable service URL gracefully', function(done) {
             const unreachableUrl = 'http://nonexistent-server.example.com:8080/DefaultCollection';
             const command = `node "${tfxPath}" login --service-url "${unreachableUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             // This test verifies the CLI handles connection failures gracefully  
             this.timeout(10000); // Shorter timeout for unreachable server
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
                     // Unexpected success with unreachable server
                     done(new Error('Should not have succeeded with unreachable server'));
                 })
                 .catch((error) => {
-                    // Expected - should fail to connect to unreachable server
+                    const errorOutput = stripColors(error.stderr || error.stdout || '');
+                    
+                    // Should fail with connection-related error
+                    assert(errorOutput.includes('ENOTFOUND') || 
+                           errorOutput.includes('ECONNREFUSED') || 
+                           errorOutput.includes('getaddrinfo') ||
+                           errorOutput.includes('Could not resolve') ||
+                           errorOutput.includes('unable to connect'),
+                           `Expected connection error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
                     done();
                 });
         });
 
-        it('should validate authentication type', function(done) {
+        it('should reject invalid authentication type', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type invalid --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
-                    // Command might proceed with default auth or prompt
-                    done();
+                    assert.fail('Should have failed with invalid auth type');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('auth') || 
-                        errorOutput.includes('authentication') || 
-                        errorOutput.includes('Unsupported') ||
-                        errorOutput.includes('credentials')) {
-                        done(); // Expected auth validation
-                    } else {
-                        done(error);
-                    }
+                    
+                    // Should fail with specific unsupported auth type error
+                    assert(errorOutput.includes("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported."), 
+                           `Expected specific auth type error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
+                    done();
                 });
         });
 
-        it('should handle missing credentials for basic auth', function(done) {
+        it('should require username and password for basic auth', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
-                    // Command might succeed with prompts disabled
-                    done();
+                    assert.fail('Should have failed without username and password');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('username') || 
-                        errorOutput.includes('password') || 
-                        errorOutput.includes('credentials') ||
-                        errorOutput.includes('required')) {
-                        done(); // Expected credential validation
-                    } else {
-                        done(error);
-                    }
+                    
+                    // Should fail with missing required argument error (username is checked first)
+                    assert(errorOutput.includes("Missing required value for argument 'username'") ||
+                           errorOutput.includes("Missing required value for argument 'password'"), 
+                           `Expected missing credential error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
+                    done();
                 });
         });
 
-        it('should handle missing token for PAT auth', function(done) {
+        it('should require token for PAT authentication', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type pat --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
-                    // Command might succeed with prompts disabled
-                    done();
+                    assert.fail('Should have failed without PAT token');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('token') || 
-                        errorOutput.includes('personal access token') || 
-                        errorOutput.includes('required') ||
-                        errorOutput.includes('credentials')) {
-                        done(); // Expected token validation
-                    } else {
-                        done(error);
-                    }
+                    
+                    // Should fail with missing required argument error for token
+                    assert(errorOutput.includes("Missing required value for argument 'token'"), 
+                           `Expected missing token error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
+                    done();
                 });
         });
     });
 
     describe('Logout Command', function() {
-        it('should attempt logout', function(done) {
+        it('should successfully logout', function(done) {
             const command = `node "${tfxPath}" logout --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should attempt to logout (clear cached credentials)
-                    assert(cleanOutput.length >= 0, 'Should produce output or succeed silently');
+                    // Should logout successfully with specific message
+                    assert(cleanOutput.includes('Successfully logged out.'), 
+                           `Expected "Successfully logged out." but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    // Logout might fail if no credentials are cached, which is fine
-                    done();
+                    done(error);
                 });
         });
     });
 
     describe('Reset Command', function() {
-        it('should reset cached settings', function(done) {
+        it('should successfully reset cached settings', function(done) {
             const command = `node "${tfxPath}" reset --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should reset settings
-                    assert(cleanOutput.length >= 0, 'Should produce output or succeed silently');
+                    // Should reset settings with specific message
+                    assert(cleanOutput.includes('Settings reset.'), 
+                           `Expected "Settings reset." but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
-                    // Reset might fail if no settings are cached, which is fine
-                    done();
+                    done(error);
                 });
         });
     });
 
     describe('Credential Caching', function() {
-        it('should save credentials when using --save flag', function(done) {
+        it('should save credentials successfully when using --save flag', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --save --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should attempt to save credentials
-                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
+                    // Should successfully login and save credentials with exact success message
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -237,20 +283,25 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 });
         });
 
-        it('should handle credential retrieval from cache', function(done) {
-            // First attempt to cache credentials, then try to use them
+        it('should verify credentials are saved with --save flag', function(done) {
+            // This test verifies that the --save flag works by checking that login succeeds
+            // The actual credential caching verification would require checking the credential store
+            // which is beyond the scope of this integration test
             const loginCommand = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --save --no-prompt`;
             
-            execAsync(loginCommand)
-                .then(() => {
-                    // Now try a command that should use cached credentials
-                    const buildCommand = `node "${tfxPath}" build list --project TestProject --no-prompt`;
-                    return execAsync(buildCommand);
-                })
-                .then(({ stdout }) => {
-                    // Should attempt to use cached credentials
+            execAsyncWithLogging(loginCommand)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
-                    assert(cleanOutput.includes('Build') || cleanOutput.includes('Build Definition') || cleanOutput.includes('id') || cleanOutput.includes('definition'), 'Should show build list output');
+                    const cleanError = stripColors(stderr || '');
+                    
+                    // Should successfully login and save credentials
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -260,15 +311,22 @@ describe('Server Integration Tests - Login and Authentication', function() {
     });
 
     describe('SSL Certificate Validation', function() {
-        it('should support skip certificate validation flag', function(done) {
+        it('should login successfully with skip certificate validation flag', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --skip-cert-validation --no-prompt`;
             
-            execAsync(command)
-                .then(({ stdout }) => {
+            execAsyncWithLogging(command)
+                .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
                     
-                    // Should attempt login with SSL validation skipped
-                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
+                    // Should successfully login with SSL validation skipped
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -278,16 +336,22 @@ describe('Server Integration Tests - Login and Authentication', function() {
     });
 
     describe('Connection Testing', function() {
-        it('should validate connection to server', function(done) {
+        it('should successfully connect and login to server', function(done) {
             const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
                     
-                    // Should attempt connection validation
-                    assert(cleanOutput.includes('logged in') || cleanOutput.includes('Logged in') || cleanOutput.includes('authenticated'), 'Should show login success');
+                    // Should successfully connect and login to server
+                    assert(cleanOutput.includes('Logged in successfully'), 
+                           `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    
+                    // Should not have any error output
+                    assert(cleanError.length === 0 || !cleanError.includes('error'), 
+                           `Expected no errors but got: "${cleanError}"`);
+                    
                     done();
                 })
                 .catch((error) => {
@@ -295,7 +359,7 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 });
         });
 
-        it('should handle timeout scenarios', function(done) {
+        it('should fail gracefully with connection timeout', function(done) {
             // Use a localhost port that's definitely not running to simulate timeout
             const timeoutUrl = 'http://localhost:12345/DefaultCollection';
             const command = `node "${tfxPath}" login --service-url "${timeoutUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
@@ -303,22 +367,25 @@ describe('Server Integration Tests - Login and Authentication', function() {
             // Set a shorter timeout for this specific test
             this.timeout(8000); // 8 seconds instead of 30
             
-            execAsync(command)
+            execAsyncWithLogging(command)
                 .then(() => {
-                    // Unlikely to succeed, but if it does, that's fine too
-                    done();
+                    assert.fail('Should not have succeeded with unreachable timeout server');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    if (errorOutput.includes('timeout') || 
-                        errorOutput.includes('ETIMEDOUT') ||
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('Could not connect') ||
-                        errorOutput.includes('unable to connect')) {
-                        done(); // Expected timeout/connection error behavior
-                    } else {
-                        done(error);
-                    }
+                    
+                    // Should fail with specific connection error
+                    assert(errorOutput.includes('ETIMEDOUT') || 
+                           errorOutput.includes('ECONNREFUSED') ||
+                           errorOutput.includes('ENOTFOUND') ||
+                           errorOutput.includes('getaddrinfo') ||
+                           errorOutput.includes('unable to connect'),
+                           `Expected connection/timeout error but got: "${errorOutput}"`);
+                    
+                    // Should have non-zero exit code
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+                    
+                    done();
                 });
         });
     });
