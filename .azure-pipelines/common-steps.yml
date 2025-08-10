@@ -29,6 +29,9 @@ steps:
     displayName: Build TFX CLI
 
   - bash: |
+      export DEBUG_CLI_OUTPUT="$DEBUG_CLI_OUTPUT"
+      export DEBUG_MOCKSERVER_OUTPUT="$DEBUG_MOCKSERVER_OUTPUT"
+      export TFX_TRACE="$TFX_TRACE"
       npm run test:ci
     displayName: Run Tests
     continueOnError: true
