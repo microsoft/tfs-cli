@@ -145,10 +145,10 @@ Each test suite uses a different port to avoid conflicts:
 - Build task tests: Port 8085
 
 ### Authentication
-Test credentials used:
-- Username: `testuser`
-- Password: `testpass` 
-- PAT: `dGVzdHRva2VuOnRlc3Q=` (base64 encoded)
+Test credentials used (redacted for security):
+- Username: `<redacted>`
+- Password: `<redacted>`
+- PAT: `<redacted>`
 
 ### Timeouts
 Tests have extended timeouts (30 seconds) to accommodate:
