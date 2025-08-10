@@ -10,6 +10,14 @@ trigger:
 
 variables:
 - group: npm-tokens
+# Debug/verbose output variables for CLI and mock server
+- name: DEBUG_CLI_OUTPUT
+  value: 'false'
+- name: DEBUG_MOCKSERVER_OUTPUT
+  value: 'false'
+# Enable verbose tracing for TFX CLI (if supported)
+- name: TFX_TRACE
+  value: ''
 resources:
   repositories:
   - repository: 1ESPipelineTemplates

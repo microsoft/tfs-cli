@@ -106,27 +106,60 @@ queue time      : Fri Aug 21 2015 15:07:49 GMT-0400 (Eastern Daylight Time)
 
 If you used `--save` to set a default value for an option, you may need to override it by explicitly providing a different value. You can clear any saved settings by running `tfx reset`.
 
-### Troubleshooting
 
-To see detailed tracing output, set a value for the `TFX_TRACE` environment variable and then run commands. This may provide clues to the issue and can be helpful when logging an issue.
+### Troubleshooting & Verbose Logging
 
-### Troubleshooting on Linux/OSX
+#### CLI Trace Output
+To see detailed tracing output from the CLI, set the `TFX_TRACE` environment variable and then run commands. This may provide clues to the issue and can be helpful when logging an issue.
 
+**Linux/OSX:**
 ```bash
 export TFX_TRACE=1
 ```
-
-### Troubleshooting on Windows
-
+**Windows:**
 ```bash
 set TFX_TRACE=1
 ```
-
-#### PowerShell
-
+**PowerShell:**
 ```bash
 $env:TFX_TRACE=1
 ```
+
+#### Debug Output from Tests
+To enable detailed debug output for all CLI commands executed during tests, set the `DEBUG_CLI_OUTPUT` environment variable to `true`:
+
+**Linux/OSX:**
+```bash
+export DEBUG_CLI_OUTPUT=true
+```
+**Windows:**
+```bash
+set DEBUG_CLI_OUTPUT=true
+```
+**PowerShell:**
+```bash
+$env:DEBUG_CLI_OUTPUT='true'
+```
+This will print detailed command execution logs for every CLI call made by the test suite.
+
+#### Mock Server Verbose Logging
+To enable verbose logging for the integrated mock server (used in server integration tests), set the `DEBUG_MOCKSERVER_OUTPUT` environment variable to `true`:
+
+**Linux/OSX:**
+```bash
+export DEBUG_MOCKSERVER_OUTPUT=true
+```
+**Windows:**
+```bash
+set DEBUG_MOCKSERVER_OUTPUT=true
+```
+**PowerShell:**
+```bash
+$env:DEBUG_MOCKSERVER_OUTPUT='true'
+```
+This will print detailed request/response and lifecycle logs from the mock server during test runs.
+
+All three variables (`TFX_TRACE`, `DEBUG_CLI_OUTPUT`, `DEBUG_MOCKSERVER_OUTPUT`) are also available as pipeline variables in the Azure DevOps pipeline and default to `false`.
 
 ## Development
 

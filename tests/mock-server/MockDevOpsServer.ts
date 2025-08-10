@@ -15,14 +15,15 @@ export class MockDevOpsServer {
 
     constructor(options: MockServerOptions = {}) {
         this.authRequired = options.authRequired !== false;
-        
-        // Configure logger with verbose setting
-        Logger.configure(options);
-        
+
+        // Configure logger with verbose setting based on env variable
+        const verbose = process.env.DEBUG_MOCKSERVER_OUTPUT === 'true';
+        Logger.configure({ ...options, verbose });
+
         this.dataStore = new MockDataStore();
         this.lifecycleManager = new ServerLifecycleManager(options, (req, res) => this.handleRequest(req, res));
         this.routeManager = new RouteManager(this.dataStore, this.lifecycleManager.getPort());
-        
+
         this.initializeMockData();
     }
 

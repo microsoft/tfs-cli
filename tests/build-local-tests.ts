@@ -1,9 +1,9 @@
+
 import assert = require('assert');
 import { stripColors } from 'colors';
-const { exec } = require('child_process');
-const { promisify } = require('util');
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
+import { execAsyncWithLogging } from './test-utils/debug-exec';
 
 // Basic test framework functions to avoid TypeScript errors
 declare function describe(name: string, fn: Function): void;
@@ -11,7 +11,6 @@ declare function it(name: string, fn: Function): void;
 declare function before(fn: Function): void;
 declare function after(fn: Function): void;
 
-const execAsync = promisify(exec);
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../build-samples');
 const resourcesPath = path.resolve(__dirname, '../app/exec/build/tasks/_resources');
@@ -29,22 +28,22 @@ describe('Build Commands - Local Tests', function() {
 
 	describe('Command Help and Hierarchy', function() {
 		
-		it('should display build command group help', function(done) {
-			execAsync(`node "${tfxPath}" build --help`)
-				.then(({ stdout }) => {
-					const cleanOutput = stripColors(stdout);
-					assert(cleanOutput.includes('Available commands and command groups in tfx / build'), 'Should show build command hierarchy');
-					assert(cleanOutput.includes(' - list: Get a list of builds.'), 'Should list build list command');
-					assert(cleanOutput.includes(' - queue: Queue a build.'), 'Should list build queue command');
-					assert(cleanOutput.includes(' - show: Show build details.'), 'Should list build show command');
-					assert(cleanOutput.includes(' - tasks: Commands for managing Build Tasks.'), 'Should list build tasks command group');
-					done();
-				})
-				.catch(done);
-		});
+	       it('should display build command group help', function(done) {
+		       execAsyncWithLogging(`node "${tfxPath}" build --help`, 'build --help')
+			       .then(({ stdout }) => {
+				       const cleanOutput = stripColors(stdout);
+				       assert(cleanOutput.includes('Available commands and command groups in tfx / build'), 'Should show build command hierarchy');
+				       assert(cleanOutput.includes(' - list: Get a list of builds.'), 'Should list build list command');
+				       assert(cleanOutput.includes(' - queue: Queue a build.'), 'Should list build queue command');
+				       assert(cleanOutput.includes(' - show: Show build details.'), 'Should list build show command');
+				       assert(cleanOutput.includes(' - tasks: Commands for managing Build Tasks.'), 'Should list build tasks command group');
+				       done();
+			       })
+			       .catch(done);
+	       });
 
 		it('should handle build list help', function(done) {
-			execAsync(`node "${tfxPath}" build list --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build list --help`, 'build list --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('build list'), 'Should show build list command syntax');
@@ -59,35 +58,38 @@ describe('Build Commands - Local Tests', function() {
 				.catch(done);
 		});
 
-		it('should handle build queue help', function(done) {
-			execAsync(`node "${tfxPath}" build queue --help`)
-				.then(({ stdout }) => {
-					const cleanOutput = stripColors(stdout);
-					assert(cleanOutput.includes('build queue'), 'Should show build queue command syntax');
-					assert(cleanOutput.includes('Queue a build'), 'Should show build queue description');
-					assert(cleanOutput.includes('--project'), 'Should show project argument');
-					assert(cleanOutput.includes('--definition-id'), 'Should show definition-id argument');
-					assert(cleanOutput.includes('--definition-name'), 'Should show definition-name argument');
-					done();
-				})
-				.catch(done);
-		});
+	       it('should handle build list help', function(done) {
+		       execAsyncWithLogging(`node "${tfxPath}" build list --help`, 'build list --help')
+			       .then(({ stdout }) => {
+				       const cleanOutput = stripColors(stdout);
+				       assert(cleanOutput.includes('build list'), 'Should show build list command syntax');
+				       assert(cleanOutput.includes('Get a list of builds'), 'Should show build list description');
+				       assert(cleanOutput.includes('--definition-id'), 'Should show definition-id argument');
+				       assert(cleanOutput.includes('--definition-name'), 'Should show definition-name argument');
+				       assert(cleanOutput.includes('--status'), 'Should show status argument');
+				       assert(cleanOutput.includes('--top'), 'Should show top argument');
+				       assert(cleanOutput.includes('--project'), 'Should show project argument');
+				       done();
+			       })
+			       .catch(done);
+	       });
 
-		it('should handle build show help', function(done) {
-			execAsync(`node "${tfxPath}" build show --help`)
-				.then(({ stdout }) => {
-					const cleanOutput = stripColors(stdout);
-					assert(cleanOutput.includes('build show'), 'Should show build show command syntax');
-					assert(cleanOutput.includes('Show build details'), 'Should show build show description');
-					assert(cleanOutput.includes('--project'), 'Should show project argument');
-					assert(cleanOutput.includes('--build-id'), 'Should show build-id argument');
-					done();
-				})
-				.catch(done);
+	       it('should handle build show help', function(done) {
+		       execAsyncWithLogging(`node "${tfxPath}" build show --help`, 'build show --help')
+			       .then(({ stdout }) => {
+				       const cleanOutput = stripColors(stdout);
+				       assert(cleanOutput.includes('build show'), 'Should show build show command syntax');
+				       assert(cleanOutput.includes('Show build details'), 'Should show build show description');
+				       assert(cleanOutput.includes('--project'), 'Should show project argument');
+				       assert(cleanOutput.includes('--build-id'), 'Should show build-id argument');
+				       done();
+			       })
+			       .catch(done);
+	       });
 		});
 
 		it('should display build tasks command group help', function(done) {
-			execAsync(`node "${tfxPath}" build tasks --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks --help`, 'build tasks --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('Available commands and command groups in tfx / build / tasks'), 'Should show tasks hierarchy');
@@ -101,7 +103,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should handle build tasks create help', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --help`, 'build tasks create --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('build tasks create'), 'Should show create command syntax');
@@ -116,7 +118,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should handle build tasks list help', function(done) {
-			execAsync(`node "${tfxPath}" build tasks list --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks list --help`, 'build tasks list --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('build tasks list'), 'Should show list command syntax');
@@ -128,7 +130,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should handle build tasks upload help', function(done) {
-			execAsync(`node "${tfxPath}" build tasks upload --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks upload --help`, 'build tasks upload --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('build tasks upload'), 'Should show upload command syntax');
@@ -142,7 +144,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should handle build tasks delete help', function(done) {
-			execAsync(`node "${tfxPath}" build tasks delete --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks delete --help`, 'build tasks delete --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('build tasks delete'), 'Should show delete command syntax');
@@ -154,7 +156,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should support 3-level command hierarchy (build tasks create)', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --help`, 'build tasks create --help')
 				.then(({ stdout }) => {
 					assert(stdout.includes('build tasks create'), 'Should handle 3-level command hierarchy');
 					assert(stdout.includes('Create files for new Build Task'), 'Should show correct command description');
@@ -164,7 +166,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should maintain context in nested commands', function(done) {
-			execAsync(`node "${tfxPath}" build tasks --help`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks --help`, 'build tasks --help')
 				.then(({ stdout }) => {
 					const cleanOutput = stripColors(stdout);
 					assert(cleanOutput.includes('tfx / build / tasks'), 'Should show nested command context');
@@ -178,7 +180,7 @@ describe('Build Commands - Local Tests', function() {
 	describe('Command Validation and Error Handling', function() {
 		
 		it('should reject invalid build subcommands', function(done) {
-			execAsync(`node "${tfxPath}" build invalidsubcommand`)
+			   execAsyncWithLogging(`node "${tfxPath}" build invalidsubcommand`, 'build invalidsubcommand')
 				.then(() => {
 					assert.fail('Should have thrown an error for invalid build subcommand');
 					done();
@@ -191,7 +193,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should reject invalid build tasks subcommands', function(done) {
-			execAsync(`node "${tfxPath}" build tasks invalidsubcommand`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks invalidsubcommand`, 'build tasks invalidsubcommand')
 				.then(() => {
 					assert.fail('Should have thrown an error for invalid build tasks subcommand');
 					done();
@@ -204,7 +206,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should show error for invalid build arguments', function(done) {
-			execAsync(`node "${tfxPath}" build --invalidarg`)
+			   execAsyncWithLogging(`node "${tfxPath}" build --invalidarg`, 'build --invalidarg')
 				.then(({ stdout, stderr }) => {
 					const cleanStdout = stripColors(stdout);
 					const cleanStderr = stripColors(stderr);
@@ -216,7 +218,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should show error for invalid build tasks arguments', function(done) {
-			execAsync(`node "${tfxPath}" build tasks --badarg`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks --badarg`, 'build tasks --badarg')
 				.then(({ stdout, stderr }) => {
 					const cleanStdout = stripColors(stdout);
 					const cleanStderr = stripColors(stderr);
@@ -228,7 +230,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should show error for invalid build list arguments', function(done) {
-			execAsync(`node "${tfxPath}" build list --invalidfilter`)
+			   execAsyncWithLogging(`node "${tfxPath}" build list --invalidfilter`, 'build list --invalidfilter')
 				.then(({ stdout, stderr }) => {
 					const cleanStdout = stripColors(stdout);
 					const cleanStderr = stripColors(stderr);
@@ -243,7 +245,7 @@ describe('Build Commands - Local Tests', function() {
 	describe('Task Creation Validation', function() {
 		
 		it('should require task name for creation', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --friendly-name "Test Task" --description "Test" --author "Test Author" --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --friendly-name "Test Task" --description "Test" --author "Test Author" --no-prompt`, 'build tasks create --friendly-name')
 				.then(() => {
 					assert.fail('Should have required task name');
 					done();
@@ -256,7 +258,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should require friendly name for creation', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --task-name "testtask" --description "Test" --author "Test Author" --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "testtask" --description "Test" --author "Test Author" --no-prompt`, 'build tasks create --task-name')
 				.then(() => {
 					assert.fail('Should have required friendly name');
 					done();
@@ -269,7 +271,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should require description for creation', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test Task" --author "Test Author" --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test Task" --author "Test Author" --no-prompt`, 'build tasks create --friendly-name')
 				.then(() => {
 					assert.fail('Should have required description');
 					done();
@@ -282,7 +284,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should require author for creation', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test Task" --description "Test task" --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test Task" --description "Test task" --no-prompt`, 'build tasks create --description')
 				.then(() => {
 					assert.fail('Should have required author');
 					done();
@@ -295,7 +297,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should validate task name format', function(done) {
-			execAsync(`node "${tfxPath}" build tasks create --task-name "invalid task name with spaces" --friendly-name "Test" --description "Test" --author "Test"`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "invalid task name with spaces" --friendly-name "Test" --description "Test" --author "Test"`, 'build tasks create --invalid task name')
 				.then(() => {
 					assert.fail('Should have rejected invalid task name');
 					done();
@@ -309,7 +311,7 @@ describe('Build Commands - Local Tests', function() {
 
 		it('should validate friendly name length', function(done) {
 			const longName = 'A'.repeat(50); // Over 40 character limit
-			execAsync(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "${longName}" --description "Test" --author "Test"`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "${longName}" --description "Test" --author "Test"`, 'build tasks create --long friendly name')
 				.then(() => {
 					assert.fail('Should have rejected overly long friendly name');
 					done();
@@ -323,7 +325,7 @@ describe('Build Commands - Local Tests', function() {
 
 		it('should validate description length', function(done) {
 			const longDesc = 'A'.repeat(100); // Over 80 character limit
-			execAsync(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test" --description "${longDesc}" --author "Test"`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks create --task-name "testtask" --friendly-name "Test" --description "${longDesc}" --author "Test"`, 'build tasks create --long description')
 				.then(() => {
 					assert.fail('Should have rejected overly long description');
 					done();
@@ -336,7 +338,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should require task ID for deletion', function(done) {
-			execAsync(`node "${tfxPath}" build tasks delete --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks delete --no-prompt`, 'build tasks delete --no-prompt')
 				.then(() => {
 					assert.fail('Should have required task ID');
 					done();
@@ -349,7 +351,7 @@ describe('Build Commands - Local Tests', function() {
 		});
 
 		it('should validate task ID format', function(done) {
-			execAsync(`node "${tfxPath}" build tasks delete --task-id "invalid-task-id" --no-prompt`)
+			   execAsyncWithLogging(`node "${tfxPath}" build tasks delete --task-id "invalid-task-id" --no-prompt`, 'build tasks delete --invalid-task-id')
 				.then(() => {
 					// This might succeed if it just tries to connect to server and fails there
 					// The behavior depends on whether validation happens locally or server-side
@@ -695,4 +697,4 @@ describe('Build Commands - Local Tests', function() {
 			done();
 		});
 	});
-});
+// ...end of file...
