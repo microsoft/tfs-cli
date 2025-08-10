@@ -75,7 +75,6 @@ stages:
             fi
           displayName: Use compatible npm version for Node (Linux/macOS)
           condition: ne( variables['Agent.OS'], 'Windows_NT' )
-          shell: bash
         - script: |
             if "%nodeVersion%" == "10.x" (
               npm i -g npm@8.19.4 --force
@@ -109,7 +108,6 @@ stages:
             npm run test:ci
           displayName: Run Tests (Linux/macOS)
           condition: ne( variables['Agent.OS'], 'Windows_NT' )
-          shell: bash
           env:
             DEBUG_CLI_OUTPUT: $(DEBUG_CLI_OUTPUT)
             DEBUG_MOCKSERVER_OUTPUT: $(DEBUG_MOCKSERVER_OUTPUT)
