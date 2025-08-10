@@ -2,7 +2,6 @@
 trigger: none
 
 variables:
-- group: npm-tokens
 - name: DEBUG_CLI_OUTPUT
   value: 'false'
 - name: DEBUG_MOCKSERVER_OUTPUT
