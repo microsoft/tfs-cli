@@ -23,27 +23,18 @@ stages:
           windows_node20:
             imageName: 'windows-2022'
             nodeVersion: '20.x'
-          windows_node24:
-            imageName: 'windows-2022'
-            nodeVersion: '24.x'
           ubuntu_node16:
             imageName: 'ubuntu-24.04'
             nodeVersion: '16.x'
           ubuntu_node20:
             imageName: 'ubuntu-24.04'
             nodeVersion: '20.x'
-          ubuntu_node24:
-            imageName: 'ubuntu-24.04'
-            nodeVersion: '24.x'
           macos_node16:
             imageName: 'macos-14'
             nodeVersion: '16.x'
           macos_node20:
             imageName: 'macos-14'
             nodeVersion: '20.x'
-          macos_node24:
-            imageName: 'macos-14'
-            nodeVersion: '24.x'
       pool:
         vmImage: $(imageName)
       steps:
@@ -71,9 +62,6 @@ stages:
               npm i -g npm@8.19.4 --force
               npm --version
             ) else if "%nodeVersion%" == "20.x" (
-              npm i -g npm@10 --force
-              npm --version
-            ) else if "%nodeVersion%" == "24.x" (
               npm i -g npm@10 --force
               npm --version
             ) else (
