@@ -4,6 +4,7 @@ _build
 # Tests
 _tests
 test-results.xml
+tfs-cli.code-workspace
 
 # Mock server package build output
 packages/tfs-mock-server/lib/

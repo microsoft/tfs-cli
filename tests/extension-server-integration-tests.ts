@@ -3,7 +3,7 @@ import { stripColors } from 'colors';
 import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DebugLogger, execAsyncWithLogging } from './test-utils/debug-exec';
+import { execAsyncWithLogging } from './test-utils/debug-exec';
 
 // Basic test framework functions to avoid TypeScript errors
 declare function describe(name: string, fn: Function): void;
@@ -11,25 +11,6 @@ declare function it(name: string, fn: Function): void;
 declare function before(fn: Function): void;
 declare function after(fn: Function): void;
 
-// Debug flag to enable CLI output logging - set via environment variable
-const DEBUG_CLI_OUTPUT = process.env.DEBUG_CLI_OUTPUT === '1' || process.env.DEBUG_CLI_OUTPUT === 'true';
-
-// Helper function to log CLI output when debug is enabled
-function debugLog(message: string, stdout?: string, stderr?: string) {
-    if (DEBUG_CLI_OUTPUT) {
-        console.log('\n' + '='.repeat(60));
-        console.log(`DEBUG: ${message}`);
-        if (stdout) {
-            console.log('STDOUT:');
-            console.log(stdout);
-        }
-        if (stderr) {
-            console.log('STDERR:');
-            console.log(stderr);
-        }
-        console.log('='.repeat(60) + '\n');
-    }
-}
 
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../extension-samples');
@@ -68,11 +49,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             const extensionName = 'test-extension';
             const command = `node "${tfxPath}" extension show --service-url "${serverUrl}" --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Extension show command completed successfully', stdout, stderr);
                     
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
@@ -89,7 +68,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Extension show command failed', error.stdout, error.stderr);
                     done(error);
                 });
         });
@@ -121,15 +99,12 @@ describe('Extension Commands - Server Integration Tests', function() {
         it('should validate VSIX file requirement', function(done) {
             const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --token fake-token --no-prompt`;
             
-            debugLog(`Executing VSIX file requirement test command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('VSIX file requirement test unexpectedly succeeded', stdout, stderr);
                     assert.fail('Should have failed without VSIX file or extension manifest');
                 })
                 .catch((error) => {
-                    debugLog('VSIX file requirement test failed as expected', error.stdout, error.stderr);
                     const cleanOutput = stripColors(error.stderr || error.stdout || error.message);
                     
                     // Should fail with missing extension manifest or VSIX file error
@@ -156,11 +131,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             
             const command = `node "${tfxPath}" extension publish --service-url "${serverUrl}" --root "${basicExtensionPath}" --output-path "${outputPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing publish command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Extension publish command completed successfully', stdout, stderr);
                     
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
@@ -177,7 +150,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Extension publish command failed', error.stdout, error.stderr);
                     done(error);
                 })
                 .finally(() => {
@@ -363,11 +335,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             // Use collection URL instead of base URL and token instead of basic auth
             const command = `node "${tfxPath}" extension install --service-url "${serverUrl}/DefaultCollection" --publisher ${publisherName} --extension-id ${extensionName} --token testtoken --no-prompt`;
             
-            debugLog(`Executing install command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Extension install command completed successfully', stdout, stderr);
                     
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
@@ -381,7 +351,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Extension install command failed', error.stdout, error.stderr);
                     
                     // Mock server limitation - accept known installation errors as indication CLI tried to install
                     const cleanOutput = stripColors(error.stderr || error.stdout || '');
@@ -426,11 +395,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             
             const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --root "${extensionPath}" --publisher test-publisher --extension-id test-extension --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing isvalid command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Extension isvalid command completed successfully', stdout, stderr);
                     
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
@@ -446,7 +413,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Extension isvalid command failed', error.stdout, error.stderr);
                     done(error);
                 });
         });
@@ -456,11 +422,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             const extensionName = 'test-extension';
             const command = `node "${tfxPath}" extension isvalid --service-url "${serverUrl}" --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing published extension isvalid command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Published extension isvalid command completed successfully', stdout, stderr);
                     
                     const cleanOutput = stripColors(stdout);
                     const cleanError = stripColors(stderr || '');
@@ -476,7 +440,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Published extension isvalid command failed', error.stdout, error.stderr);
                     done(error);
                 });
         });
@@ -489,11 +452,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             const marketplaceUrl = 'https://marketplace.visualstudio.com';
             const command = `node "${tfxPath}" extension show --service-url "${marketplaceUrl}" --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing marketplace URL test command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Marketplace URL test completed successfully', stdout, stderr);
                     const cleanOutput = stripColors(stdout);
                     // Should attempt to use marketplace URL - success case
                     assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('test-extension'), 
@@ -501,7 +462,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Marketplace URL test failed (expected for auth)', error.stdout, error.stderr);
                     // For real marketplace, authentication failures are expected
                     const cleanError = stripColors(error.stderr || '');
                     const cleanOutput = stripColors(error.stdout || '');
@@ -519,11 +479,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             const extensionName = 'test-extension';
             const command = `node "${tfxPath}" extension show --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing default marketplace URL test command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Default marketplace URL test completed successfully', stdout, stderr);
                     const cleanOutput = stripColors(stdout);
                     // Should use default marketplace URL - success case
                     assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('test-extension'), 
@@ -531,7 +489,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Default marketplace URL test failed (expected for auth)', error.stdout, error.stderr);
                     // For real marketplace, authentication failures are expected
                     const cleanError = stripColors(error.stderr || '');
                     const cleanOutput = stripColors(error.stdout || '');
@@ -551,11 +508,9 @@ describe('Extension Commands - Server Integration Tests', function() {
             const extensionName = 'test-extension';
             const command = `node "${tfxPath}" extension show --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
             
-            debugLog(`Executing missing service URL test command: ${command}`);
             
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
-                    debugLog('Missing service URL test completed successfully', stdout, stderr);
                     const cleanOutput = stripColors(stdout);
                     // Should produce output even with default URL - success case
                     assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('test-extension'), 
@@ -563,7 +518,6 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    debugLog('Missing service URL test failed (expected for auth)', error.stdout, error.stderr);
                     // For real marketplace, authentication failures are expected
                     const cleanError = stripColors(error.stderr || '');
                     const cleanOutput = stripColors(error.stdout || '');
