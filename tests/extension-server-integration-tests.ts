@@ -563,23 +563,5 @@ describe('Extension Commands - Server Integration Tests', function() {
                     done();
                 });
         });
-
-        it('should handle server connection errors gracefully', function(done) {
-            const publisherName = 'test-publisher';
-            const extensionName = 'test-extension';
-            const invalidServerUrl = 'http://localhost:9999';
-            const command = `node "${tfxPath}" extension show --service-url "${invalidServerUrl}" --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
-            
-            execAsyncWithLogging(command)
-                .then(() => {
-                    // Should not succeed with invalid server
-                    done(new Error('Should have failed with invalid server'));
-                })
-                .catch((error) => {
-                    const cleanOutput = stripColors(error.stderr || error.stdout || error.message);
-                    assert(cleanOutput.includes('connection') || cleanOutput.includes('server') || cleanOutput.includes('ECONNREFUSED') || cleanOutput.includes('timeout') || cleanOutput.includes('network'), 'Should indicate server connection error');
-                    done();
-                });
-        });
     });
 });

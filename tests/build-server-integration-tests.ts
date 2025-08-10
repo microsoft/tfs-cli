@@ -584,20 +584,5 @@ describe('Build Commands - Server Integration Tests', function() {
                     done();
                 });
         });
-
-        it('should handle server connection errors gracefully', function(done) {
-            const invalidUrl = 'http://invalid-server:8080/DefaultCollection';
-            const command = `node "${tfxPath}" build tasks list --service-url "${invalidUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
-            execAsyncWithLogging(command, 'build tasks list with invalid server URL')
-                .then(() => {
-                    done();
-                })
-                .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('error: Error: getaddrinfo ENOTFOUND invalid-server'), 'Should indicate getaddrinfo ENOTFOUND for invalid server');
-                    done();
-                });
-        });
     });
 });

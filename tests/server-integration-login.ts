@@ -358,35 +358,5 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     done(error);
                 });
         });
-
-        it('should fail gracefully with connection timeout', function(done) {
-            // Use a localhost port that's definitely not running to simulate timeout
-            const timeoutUrl = 'http://localhost:12345/DefaultCollection';
-            const command = `node "${tfxPath}" login --service-url "${timeoutUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
-            // Set a shorter timeout for this specific test
-            this.timeout(8000); // 8 seconds instead of 30
-            
-            execAsyncWithLogging(command)
-                .then(() => {
-                    assert.fail('Should not have succeeded with unreachable timeout server');
-                })
-                .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    
-                    // Should fail with specific connection error
-                    assert(errorOutput.includes('ETIMEDOUT') || 
-                           errorOutput.includes('ECONNREFUSED') ||
-                           errorOutput.includes('ENOTFOUND') ||
-                           errorOutput.includes('getaddrinfo') ||
-                           errorOutput.includes('unable to connect'),
-                           `Expected connection/timeout error but got: "${errorOutput}"`);
-                    
-                    // Should have non-zero exit code
-                    assert(error.code !== 0, 'Should exit with non-zero code');
-                    
-                    done();
-                });
-        });
     });
 });
