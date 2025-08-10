@@ -507,26 +507,43 @@ describe('Extension Commands - Server Integration Tests', function() {
             const publisherName = 'test-publisher';
             const extensionName = 'test-extension';
             const command = `node "${tfxPath}" extension show --publisher ${publisherName} --extension-id ${extensionName} --auth-type basic --username testuser --password testpass --no-prompt`;
-            
-            
+
+            // Add a hard timeout to ensure test never hangs
+            const failTimeout = setTimeout(() => {
+                done(new Error('Test timed out: CLI did not respond in time'));
+            }, 20000); // 20 seconds
+
+            // Debug logging for CI diagnostics
+            console.log('[TEST] Running command:', command);
+
             execAsyncWithLogging(command)
                 .then(({ stdout, stderr }) => {
+                    clearTimeout(failTimeout);
                     const cleanOutput = stripColors(stdout);
+                    console.log('[TEST] CLI stdout:', cleanOutput);
                     // Should produce output even with default URL - success case
                     assert(cleanOutput.includes('Extension') || cleanOutput.includes('Publisher') || cleanOutput.includes('test-extension'), 
-                           `Should show extension details with default URL but got: "${cleanOutput}"`);
+                        `Should show extension details with default URL but got: "${cleanOutput}"`);
                     done();
                 })
                 .catch((error) => {
+                    clearTimeout(failTimeout);
                     // For real marketplace, authentication failures are expected
                     const cleanError = stripColors(error.stderr || '');
                     const cleanOutput = stripColors(error.stdout || '');
-                    
+                    console.log('[TEST] CLI error:', cleanError, cleanOutput);
                     // Should show appropriate authentication error
-                    assert(cleanError.includes('401') || cleanError.includes('Unauthorized') || cleanError.includes('authentication') ||
-                           cleanOutput.includes('401') || cleanOutput.includes('Unauthorized') || cleanOutput.includes('authentication'), 
-                           `Expected authentication error for missing service URL but got error: "${cleanError}" output: "${cleanOutput}"`);
+                    assert(
+                        cleanError.includes('401') || cleanError.includes('Unauthorized') || cleanError.includes('authentication') ||
+                        cleanOutput.includes('401') || cleanOutput.includes('Unauthorized') || cleanOutput.includes('authentication'),
+                        `Expected authentication error for missing service URL but got error: "${cleanError}" output: "${cleanOutput}"`
+                    );
                     done();
+                })
+                .catch((err) => {
+                    clearTimeout(failTimeout);
+                    // Catch-all for any unexpected error
+                    done(err);
                 });
         });
 

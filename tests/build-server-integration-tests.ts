@@ -519,7 +519,7 @@ describe('Build Commands - Server Integration Tests', function() {
     });
 
     describe('Connection and Authentication', function() {
-        it('should handle missing service URL', function(done) {
+        it('should fail gracefully when service URL is missing', function(done) {
             const command = `node "${tfxPath}" build list --project "${testProject}" --no-prompt`;
             
             execAsyncWithLogging(command, 'build list without service URL')
@@ -533,7 +533,7 @@ describe('Build Commands - Server Integration Tests', function() {
                 });
         });
 
-        it('should handle missing project', function(done) {
+    it('should fail gracefully when project is missing', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
             
             execAsyncWithLogging(command, 'build list without project')
