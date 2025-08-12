@@ -2,11 +2,9 @@ import colors = require("colors");
 import os = require("os");
 
 function isTraceEnabled(envVar: string | undefined): boolean {
-	if (!envVar) return false;
-	const val = envVar.trim().toLowerCase();
-	if (val === '' || val === '0' || val === 'false') return false;
-	if (val === '1' || val === 'true') return true;
-	return false;
+	if (!envVar) return false; 
+	const val = envVar.trim().toLowerCase(); 
+	return val === '1' || val === 'true';
 }
 
 let debugTracingEnvVar = process.env["TFX_TRACE"];
