@@ -10,16 +10,25 @@ import {
 	Vsix,
 	VsixLanguagePack,
 } from "./interfaces";
-import { cleanAssetPath, jsonToXml, maxKey, toZipItemName } from "./utils";
+import { jsonToXml, maxKey, toZipItemName } from "./utils";
 import _ = require("lodash");
 import childProcess = require("child_process");
 import onecolor = require("onecolor");
 import os = require("os");
 import path = require("path");
-import stream = require("stream");
 import trace = require("../../../lib/trace");
 import winreg = require("winreg");
-import xml = require("xml2js");
+
+interface DetailsType {
+  path: string;
+  contentType: string;
+}
+
+interface RepositoryType {
+  type: string;
+  url: string;
+  uri: string;
+}
 
 export class VsixManifestBuilder extends ManifestBuilder {
 	constructor(extRoot: string) {
@@ -258,13 +267,15 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				});
 				break;
 			case "details":
-				if (_.isObject(value) && value.path) {
+        const pathField: keyof DetailsType = "path"
+				if (_.isObject(value) && pathField in value) {
+					const file = value as DetailsType;
 					let fileDecl: FileDeclaration = {
-						path: value.path,
+						path: file.path,
 						addressable: true,
 						auto: true,
 						assetType: "Microsoft.VisualStudio.Services.Content.Details",
-						contentType: value.contentType,
+						contentType: file.contentType,
 					};
 					this.addFile(fileDecl, true);
 				}
@@ -304,7 +315,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 				break;
 			case "repository":
 				if (_.isObject(value)) {
-					const { type, url, uri } = value;
+					const { type, url, uri } = value as RepositoryType;
 					if (!type) {
 						throw new Error("Repository must have a 'type' property.");
 					}
@@ -808,7 +819,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						seenPartNames.add(partName);
 					}
 					if ((this.files[filePath] as any)._additionalPackagePaths) {
-						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {							
+						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {
 							let additionalPartName =  "/" + toZipItemName(additionalPath);
 							if (!seenPartNames.has(additionalPartName)) {
 								contentTypes.Types.Override.push({
