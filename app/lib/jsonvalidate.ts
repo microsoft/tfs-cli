@@ -61,10 +61,20 @@ export function exists(path: string, errorMessage: string) {
  * @return number of valid (non-deprecated) runners, or 0 if no execution is defined
  */
 function countValidRunners(taskData: any): number {
-  if (taskData == undefined || taskData.execution == undefined)
+  if (taskData == undefined)
     return 0;
 
-  return Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1).length;
+  const executionProperties = ['execution', 'prejobexecution', 'postjobexecution'];
+  const counts = [];
+
+  for (const prop of executionProperties) {
+    if (taskData[prop]) {
+      const validRunnerCount = Object.keys(taskData[prop]).filter(itm => deprecatedRunners.indexOf(itm) == -1).length;
+      counts.push(validRunnerCount);
+    }
+  }
+
+  return counts.length > 0 ? Math.min(...counts) : 0;
 }
 
 /*
@@ -145,7 +155,7 @@ export function validateTask(taskPath: string, taskData: any): string[] {
         }
       }
     }
-
-    return (issues.length > 0) ? [taskPath, ...issues] : [];
   }
+
+  return (issues.length > 0) ? [taskPath, ...issues] : [];
 }
