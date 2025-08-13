@@ -1,0 +1,14 @@
+/* Hub styles */
+#hub-content {
+    padding: 20px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+#feature-list {
+    margin-top: 20px;
+}
+
+ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}

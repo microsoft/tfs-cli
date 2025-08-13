@@ -1,0 +1,11 @@
+{
+  "name": "sample-task",
+  "version": "1.0.0",
+  "description": "Sample task for testing tfx CLI",
+  "main": "sample.js",
+  "dependencies": {
+    "azure-pipelines-task-lib": "^4.0.0"
+  },
+  "author": "Test Author",
+  "license": "MIT"
+}

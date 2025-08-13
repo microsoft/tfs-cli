@@ -1,0 +1,20 @@
+{
+  "id": "invalid-uuid",
+  "name": "",
+  "friendlyName": "This friendly name is way too long to be valid and should cause validation errors when processing the task",
+  "description": "",
+  "author": "",
+  "category": "InvalidCategory",
+  "version": {
+    "Major": "not-a-number",
+    "Minor": "1",
+    "Patch": "0"
+  },
+  "minimumAgentVersion": "invalid-version",
+  "instanceNameFormat": "Invalid Task",
+  "execution": {
+    "InvalidRunner": {
+      "target": "nonexistent.js"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "12345678-1234-5678-9abc-123456789abc",
+  "name": "SampleTask",
+  "friendlyName": "Sample Test Task",
+  "description": "A sample task for testing purposes",
+  "author": "Test Author",
+  "helpMarkDown": "This is a sample task for testing the tfx CLI",
+  "category": "Utility",
+  "visibility": ["Build", "Release"],
+  "demands": [],
+  "version": {
+    "Major": "1",
+    "Minor": "0",
+    "Patch": "0"
+  },
+  "minimumAgentVersion": "1.95.0",
+  "instanceNameFormat": "Sample Task $(message)",
+  "inputs": [
+    {
+      "name": "message",
+      "type": "string",
+      "label": "Message",
+      "defaultValue": "Hello World",
+      "required": true,
+      "helpMarkDown": "Message to display"
+    },
+    {
+      "name": "workingDirectory",
+      "type": "filePath",
+      "label": "Working Directory",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Current working directory when task is run"
+    }
+  ],
+  "execution": {
+    "Node16": {
+      "target": "sample.js"
+    }
+  }
+}
