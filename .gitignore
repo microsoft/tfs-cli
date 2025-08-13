@@ -1,6 +1,15 @@
 # Build and Packaging
 _build
 
+# Tests
+_tests
+test-results.xml
+tfs-cli.code-workspace
+
+# Mock server package build output
+packages/tfs-mock-server/lib/
+packages/tfs-mock-server/node_modules/
+
 # Logs
 logs
 *.log

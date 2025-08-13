@@ -156,6 +156,8 @@ export function validateTask(taskPath: string, taskData: any): string[] {
       }
     }
   }
-
+  // Fix: Return issues array regardless of whether execution block exists or not
+  // Previously this return was inside the if(taskData.execution) block, causing
+  // tasks without execution configuration to return undefined instead of validation issues
   return (issues.length > 0) ? [taskPath, ...issues] : [];
 }

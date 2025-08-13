@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.21.4",
+  "version": "0.22.0",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -12,10 +12,26 @@
     "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "clean": "rimraf _build",
+    "npmauth": "artifacts-npm-credprovider && npm install",
+    "clean": "rimraf _build && rimraf _tests",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "build:tests": "tsc -p tsconfig.tests.json",
+    "postbuild:tests": "ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
+  "test": "npm run build:tests && mocha \"_tests/tests/**/*.js\"",
+  "test:ci": "npm run build:tests && mocha \"_tests/tests/**/*.js\" --reporter xunit --reporter-options output=test-results.xml",
+  "test:commandline": "npm run build:tests && mocha \"_tests/tests/commandline.js\"",
+  "test:server-integration": "npm run build:tests && mocha \"_tests/tests/server-integration-*.js\"",
+  "test:focused-login": "npm run build:tests && mocha \"_tests/tests/focused-login-test.js\"",
+  "test:server-integration-login": "npm run build:tests && mocha \"_tests/tests/server-integration-login.js\"",
+  "test:server-integration-workitem": "npm run build:tests && mocha \"_tests/tests/server-integration-workitem.js\"",
+  "test:build-local": "npm run build:tests && mocha \"_tests/tests/build-local-tests.js\"",
+  "test:build-server-integration": "npm run build:tests && mocha \"_tests/tests/build-server-integration-tests.js\"",
+  "test:build-consolidated": "npm run test:build-local && npm run test:build-server-integration",
+  "test:extension-local": "npm run build:tests && mocha \"_tests/tests/extension-local-tests.js\"",
+  "test:extension-server-integration": "npm run build:tests && mocha \"_tests/tests/extension-server-integration-tests.js\"",
+  "test:extension-consolidated": "npm run test:extension-local && npm run test:extension-server-integration"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
@@ -50,15 +66,17 @@
     "@types/jszip": "~3.1.2",
     "@types/lodash": "~4.14.110",
     "@types/mkdirp": "^1.0.2",
+    "@types/mocha": "^10.0.0",
     "@types/node": "8.10.66",
     "@types/shelljs": "^0.8.11",
     "@types/uuid": "^2.0.29",
     "@types/validator": "^4.5.27",
     "@types/winreg": "^1.2.29",
     "@types/xml2js": "0.0.27",
+    "mocha": "^10.2.0",
     "ncp": "^2.0.0",
     "rimraf": "^2.6.1",
-    "typescript": "^5.7.0"
+    "typescript": "^4.9.5"
   },
   "engines": {
     "node": ">=8.0.0"

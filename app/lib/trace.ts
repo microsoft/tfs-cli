@@ -1,5 +1,12 @@
 import colors = require("colors");
 import os = require("os");
+
+function isTraceEnabled(envVar: string | undefined): boolean {
+	if (!envVar) return false; 
+	const val = envVar.trim().toLowerCase(); 
+	return val === '1' || val === 'true';
+}
+
 let debugTracingEnvVar = process.env["TFX_TRACE"];
 
 export const enum TraceLevel {
@@ -8,7 +15,7 @@ export const enum TraceLevel {
 	Debug = 2,
 }
 
-export let traceLevel: TraceLevel = debugTracingEnvVar ? TraceLevel.Debug : TraceLevel.Info;
+export let traceLevel: TraceLevel = isTraceEnabled(debugTracingEnvVar) ? TraceLevel.Debug : TraceLevel.Info;
 export let debugLogStream = console.log;
 
 export type printable = string | number | boolean;

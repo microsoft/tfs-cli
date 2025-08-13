@@ -18,9 +18,32 @@ steps:
     displayName: Use npm version 8.19.4
 
   - bash: |
+      cd packages/tfs-mock-server
+      npm ci
+      npm run build
+    displayName: Install and Build Mock Server
+
+  - bash: |
       npm ci
       npm run build
     displayName: Build TFX CLI
+
+  - bash: |
+      export DEBUG_CLI_OUTPUT="$DEBUG_CLI_OUTPUT"
+      export DEBUG_MOCKSERVER_OUTPUT="$DEBUG_MOCKSERVER_OUTPUT"
+      export TFX_TRACE="$TFX_TRACE"
+      npm run test:ci
+    displayName: Run Tests
+    continueOnError: true
+
+  - task: PublishTestResults@2
+    displayName: Publish Test Results
+    condition: succeededOrFailed()
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: 'test-results.xml'
+      failTaskOnFailedTests: true
+      testRunTitle: 'TFX CLI Tests'
 
   # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
   - bash: |

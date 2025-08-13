@@ -71,10 +71,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	}
 
 	protected initialize(): Promise<Executor<any>> {
-		this.initialized = this.commandArgs.help.val().then(needHelp => {
-			if (needHelp) {
-				return this.run.bind(this, this.getHelp.bind(this));
-			} else {
+		// First validate arguments, then proceed with help or normal execution
+		this.initialized = this.validateArguments().then(() => {
+			return this.commandArgs.help.val().then(needHelp => {
+				if (needHelp) {
+					return this.run.bind(this, this.getHelp.bind(this));
+				} else {
 				// Set the fiddler proxy
 				return this.commandArgs.fiddler
 					.val()
@@ -137,7 +139,8 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 							return this.run.bind(this, this.exec.bind(this));
 						});
 					});
-			}
+				}
+			});
 		});
 		return this.initialized;
 	}
@@ -172,6 +175,48 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			this.groupedArgs = group;
 		}
 		return this.groupedArgs;
+	}
+
+	/**
+	 * Validates that all provided arguments are recognized by the command.
+	 * Shows error and help if invalid arguments are found.
+	 */
+	private validateArguments(): Promise<void> {
+		const groupedArgs = this.getGroupedArgs();
+		const providedArgs = Object.keys(groupedArgs);
+		
+		// Get all valid argument names (including aliases) for this command
+		const validArgNames = new Set<string>();
+		
+		// Add all registered argument names and aliases
+		Object.keys(this.commandArgs).forEach(argName => {
+			const argObj = this.commandArgs[argName];
+			validArgNames.add(argName);
+			
+			// Add aliases
+			if (argObj.aliases) {
+				argObj.aliases.forEach(alias => {
+					validArgNames.add(alias);
+				});
+			}
+		});
+		
+		// Check for invalid arguments
+		const invalidArgs = providedArgs.filter(arg => !validArgNames.has(arg));
+		
+		if (invalidArgs.length > 0) {
+			const errorMessage = `Unrecognized argument${invalidArgs.length > 1 ? 's' : ''}: ${invalidArgs.map(arg => 
+				arg.startsWith('-') ? arg : '--' + _.kebabCase(arg)
+			).join(', ')}`;
+			
+			// Log the error and then show help
+			trace.error(errorMessage);
+			
+			// Set help flag to true so help will be shown
+			this.commandArgs.help.setValue(true);
+		}
+		
+		return Promise.resolve();
 	}
 
 	/**
