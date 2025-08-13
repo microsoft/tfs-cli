@@ -58,7 +58,7 @@ export function exists(path: string, errorMessage: string) {
 /*
  * Counts the number of non-deprecated runners in a task's execution configuration
  * @param taskData the parsed json file
- * @return number of valid (non-deprecated) runners, or 0 if no execution is defined
+ * @return the lowest number of valid (non-deprecated) runners across all execution handlers in the task, or 0 if no (prejob|postjob)execution is defined at all
  */
 function countValidRunners(taskData: any): number {
   if (taskData == undefined)
