@@ -58,13 +58,23 @@ export function exists(path: string, errorMessage: string) {
 /*
  * Counts the number of non-deprecated runners in a task's execution configuration
  * @param taskData the parsed json file
- * @return number of valid (non-deprecated) runners, or 0 if no execution is defined
+ * @return the lowest number of valid (non-deprecated) runners across all execution handlers in the task, or 0 if no (prejob|postjob)execution is defined at all
  */
 function countValidRunners(taskData: any): number {
-  if (taskData == undefined || taskData.execution == undefined)
+  if (taskData == undefined)
     return 0;
 
-  return Object.keys(taskData.execution).filter(itm => deprecatedRunners.indexOf(itm) == -1).length;
+  const executionProperties = ['execution', 'prejobexecution', 'postjobexecution'];
+  const counts = [];
+
+  for (const prop of executionProperties) {
+    if (taskData[prop]) {
+      const validRunnerCount = Object.keys(taskData[prop]).filter(itm => deprecatedRunners.indexOf(itm) == -1).length;
+      counts.push(validRunnerCount);
+    }
+  }
+
+  return counts.length > 0 ? Math.min(...counts) : 0;
 }
 
 /*
@@ -146,7 +156,6 @@ export function validateTask(taskPath: string, taskData: any): string[] {
       }
     }
   }
-
   // Fix: Return issues array regardless of whether execution block exists or not
   // Previously this return was inside the if(taskData.execution) block, causing
   // tasks without execution configuration to return undefined instead of validation issues
