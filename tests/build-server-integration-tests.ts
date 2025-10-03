@@ -18,14 +18,14 @@ describe('Build Commands - Server Integration Tests', function() {
     let mockServer: MockDevOpsServer;
     let serverUrl: string;
     const testProject = 'TestProject';
-    
+
     this.timeout(30000);
 
     before(async function() {
         // Start mock server on a specific port
         mockServer = await createMockServer({ port: 8087 });
         serverUrl = mockServer.getCollectionUrl();
-        
+
         // Ensure the built CLI exists
         if (!fs.existsSync(tfxPath)) {
             throw new Error('TFX CLI not found. Run npm run build first.');
@@ -46,11 +46,11 @@ describe('Build Commands - Server Integration Tests', function() {
     describe('Build List Command', function() {
         it('should list builds from server with basic auth', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with basic auth')
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Should contain specific build information format from mock server
                     assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
                     assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
@@ -58,7 +58,7 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
                     assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
                     assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with specific format');
-                    
+
                     done();
                 })
                 .catch((error) => {
@@ -70,11 +70,11 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should list builds from server with PAT', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type pat --token dGVzdHRva2VuOnRlc3Q= --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with PAT authentication')
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Should contain specific build information format from mock server
                     assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
                     assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
@@ -82,7 +82,7 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert(cleanOutput.includes('requested by    : Test User'), 'Should show requester with specific format');
                     assert(cleanOutput.includes('status          : Completed'), 'Should show status with specific format');
                     assert(cleanOutput.includes('queue time      : unknown'), 'Should show queue time with specific format');
-                    
+
                     done();
                 })
                 .catch((error) => {
@@ -93,11 +93,11 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should handle definition name filter', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --definition-name "Sample" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with definition name filter')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Should filter and show builds with specific format matching the definition name
                     assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show filtered builds with specific format');
                     assert(cleanOutput.includes('id              : 1') || cleanOutput.includes('id              : 2'), 'Should show build ID with specific format');
@@ -112,11 +112,11 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should support JSON output', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --json --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with JSON output format')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout).trim();
-                    
+
                     // Should produce specific JSON array format with build objects
                     assert(cleanOutput.startsWith('['), 'Should start with JSON array');
                     assert(cleanOutput.endsWith(']'), 'Should end with JSON array');
@@ -136,11 +136,11 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should support top parameter', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --top 5 --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with top parameter limit')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Should limit results and show builds with specific formatting
                     assert(cleanOutput.includes('id              : 1'), 'Should show first build ID with specific format');
                     assert(cleanOutput.includes('id              : 2'), 'Should show second build ID with specific format');
@@ -160,15 +160,15 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should show build details', function(done) {
             const buildId = 1;
             const command = `node "${tfxPath}" build show --service-url "${serverUrl}" --project "${testProject}" --build-id ${buildId} --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build show with specific build ID')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Verify CLI header
                     assert(cleanOutput.includes('TFS Cross Platform Command Line Interface'), 'Should show CLI header');
                     assert(cleanOutput.includes('Copyright Microsoft Corporation'), 'Should show copyright');
-                    
+
                     // Verify specific build details format with exact spacing
                     assert(cleanOutput.includes('id              : 1'), 'Should show build ID with specific format');
                     assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with exact format');
@@ -184,14 +184,14 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should require build ID', function(done) {
             const command = `node "${tfxPath}" build show --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build show without required build ID parameter')
                 .then(() => {
                     assert.fail('Should have failed without build ID');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    
+
                     // Verify specific error message format
                     assert(errorOutput.includes('error: Error: Missing required value for argument \'buildId\''), 'Should show specific buildId requirement error');
                     done();
@@ -202,15 +202,15 @@ describe('Build Commands - Server Integration Tests', function() {
     describe('Build Queue Command', function() {
         it('should queue a build', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --definition-id 1 --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build queue with definition ID')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Verify CLI header
                     assert(cleanOutput.includes('TFS Cross Platform Command Line Interface'), 'Should show CLI header');
                     assert(cleanOutput.includes('Copyright Microsoft Corporation'), 'Should show copyright');
-                    
+
                     // Verify specific queued build details format with exact spacing
                     assert(/id\s+:\s+\d+/.test(cleanOutput), 'Should show queued build ID with specific format and numeric value');
                     assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with exact format');
@@ -226,15 +226,15 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should queue build by definition name', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --definition-name "Sample Build Definition" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build queue with definition name')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
-                    
+
                     // Verify CLI header
                     assert(cleanOutput.includes('TFS Cross Platform Command Line Interface'), 'Should show CLI header');
                     assert(cleanOutput.includes('Copyright Microsoft Corporation'), 'Should show copyright');
-                    
+
                     // Verify specific queued build details format with exact spacing
                     assert(/id\s+:\s+\d+/.test(cleanOutput), 'Should show queued build ID with specific format and numeric value');
                     assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should show definition name with exact format');
@@ -250,14 +250,14 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should require definition ID or name', function(done) {
             const command = `node "${tfxPath}" build queue --service-url "${serverUrl}" --project "${testProject}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build queue without definition ID or name')
                 .then(() => {
                     assert.fail('Should have failed without definition');
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    
+
                     // Verify specific error message format
                     assert(errorOutput.includes('error: Error: No definition found with name null'), 'Should show specific definition requirement error');
                     done();
@@ -268,7 +268,7 @@ describe('Build Commands - Server Integration Tests', function() {
     describe('Build Task List Command', function() {
         it('should list build tasks from server', function(done) {
             const command = `node "${tfxPath}" build tasks list --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks list with valid authentication')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -290,7 +290,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should require authentication for server operations', function(done) {
             const command = `node "${tfxPath}" build tasks list --service-url "${serverUrl}" --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks list without authentication')
                 .then(() => {
                     assert.fail('Should have failed without authentication');
@@ -307,7 +307,7 @@ describe('Build Commands - Server Integration Tests', function() {
     describe('Build Task Upload Command', function() {
         it('should validate task.json requirement', function(done) {
             const tempDir = path.join(__dirname, 'temp-task');
-            
+
             try {
                 if (!fs.existsSync(tempDir)) {
                     fs.mkdirSync(tempDir);
@@ -315,9 +315,9 @@ describe('Build Commands - Server Integration Tests', function() {
             } catch (e) {
                 // Directory might already exist
             }
-            
+
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${tempDir}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks upload with missing task.json')
                 .then(() => {
                     // Cleanup
@@ -348,9 +348,9 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should process valid task.json', function(done) {
             const taskPath = path.join(samplesPath, 'sample-task');
-            
+
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks upload with valid task.json')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -366,9 +366,9 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should validate task.json format', function(done) {
             const taskPath = path.join(samplesPath, 'invalid-task');
-            
+
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --task-path "${taskPath}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks upload with invalid task.json')
                 .then(() => {
                     done();
@@ -386,7 +386,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should require task path', function(done) {
             const command = `node "${tfxPath}" build tasks upload --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks upload without task path')
                 .then(() => {
                     assert.fail('Should have failed without task path');
@@ -403,7 +403,7 @@ describe('Build Commands - Server Integration Tests', function() {
         it('should delete build task', function(done) {
             const taskId = 'test-task-id';
             const command = `node "${tfxPath}" build tasks delete --service-url "${serverUrl}" --task-id "${taskId}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks delete with valid task ID')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -418,7 +418,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should require task ID for deletion', function(done) {
             const command = `node "${tfxPath}" build tasks delete --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks delete without task ID')
                 .then(() => {
                     assert.fail('Should have failed without task ID');
@@ -432,7 +432,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should validate task ID format', function(done) {
             const command = `node "${tfxPath}" build tasks delete --task-id "invalid-task-id" --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build tasks delete with invalid task ID')
                 .then(() => {
                     done();
@@ -448,7 +448,7 @@ describe('Build Commands - Server Integration Tests', function() {
     describe('Build Task Creation with Server', function() {
         it('should handle task creation with template', function(done) {
             const tempDir = path.join(__dirname, 'temp-new-task');
-            
+
             try {
                 if (!fs.existsSync(tempDir)) {
                     fs.mkdirSync(tempDir);
@@ -456,14 +456,14 @@ describe('Build Commands - Server Integration Tests', function() {
             } catch (e) {
                 // Directory might already exist
             }
-            
+
             // Change to temp directory so task is created there instead of root
             const originalCwd = process.cwd();
-            
+
             try {
                 process.chdir(tempDir);
                 const command = `node "${tfxPath}" build tasks create --task-name "MyTestTask" --friendly-name "My Test Task" --description "A test task for automation" --author "Test Author" --no-prompt`;
-                
+
                 execAsyncWithLogging(command, 'build tasks create with template')
                     .then(({ stdout }) => {
                         const cleanOutput = stripColors(stdout);
@@ -541,12 +541,8 @@ describe('Build Commands - Server Integration Tests', function() {
                     console.log('[TEST] CLI error output:', errorOutput);
                     // Accept a range of possible network errors
                     assert(
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('ENOTFOUND') ||
-                        errorOutput.includes('EAI_AGAIN') ||
-                        errorOutput.includes('network') ||
-                        errorOutput.includes('connect') ||
-                        errorOutput.includes('error: Error:'),
+                        errorOutput.includes('error: Error:') ||
+                        errorOutput.includes('error: AggregateError'),
                         'Should indicate a network or connection error for missing service URL'
                     );
                     done();
@@ -559,7 +555,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
     it('should fail gracefully when project is missing', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --auth-type basic --username testuser --password testpass --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list without project')
                 .then(() => {
                     assert.fail('Should have failed without project');
@@ -573,7 +569,7 @@ describe('Build Commands - Server Integration Tests', function() {
 
         it('should validate auth type', function(done) {
             const command = `node "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type invalid --no-prompt`;
-            
+
             execAsyncWithLogging(command, 'build list with invalid auth type')
                 .then(() => {
                     done();

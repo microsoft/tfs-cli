@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.22.1",
+  "version": "0.22.2",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -12,34 +12,35 @@
     "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "npmauth": "artifacts-npm-credprovider && npm install",
+    "install-credprovider": "npm install --global @microsoft/artifacts-npm-credprovider --registry https://pkgs.dev.azure.com/artifacts-public/23934c1b-a3b5-4b70-9dd3-d1bef4cc72a0/_packaging/AzureArtifacts/npm/registry/",
+    "npmauth": "artifacts-npm-credprovider -c .npmrc",
     "clean": "rimraf _build && rimraf _tests",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
     "prepublishOnly": "npm run build",
     "build:tests": "tsc -p tsconfig.tests.json",
     "postbuild:tests": "ncp tests/build-samples _tests/build-samples && ncp tests/extension-samples _tests/extension-samples",
-  "test": "npm run build:tests && mocha \"_tests/tests/**/*.js\"",
-  "test:ci": "npm run build:tests && mocha \"_tests/tests/**/*.js\" --reporter xunit --reporter-options output=test-results.xml",
-  "test:commandline": "npm run build:tests && mocha \"_tests/tests/commandline.js\"",
-  "test:server-integration": "npm run build:tests && mocha \"_tests/tests/server-integration-*.js\"",
-  "test:focused-login": "npm run build:tests && mocha \"_tests/tests/focused-login-test.js\"",
-  "test:server-integration-login": "npm run build:tests && mocha \"_tests/tests/server-integration-login.js\"",
-  "test:server-integration-workitem": "npm run build:tests && mocha \"_tests/tests/server-integration-workitem.js\"",
-  "test:build-local": "npm run build:tests && mocha \"_tests/tests/build-local-tests.js\"",
-  "test:build-server-integration": "npm run build:tests && mocha \"_tests/tests/build-server-integration-tests.js\"",
-  "test:build-consolidated": "npm run test:build-local && npm run test:build-server-integration",
-  "test:extension-local": "npm run build:tests && mocha \"_tests/tests/extension-local-tests.js\"",
-  "test:extension-server-integration": "npm run build:tests && mocha \"_tests/tests/extension-server-integration-tests.js\"",
-  "test:extension-consolidated": "npm run test:extension-local && npm run test:extension-server-integration"
+    "test": "npm run build:tests && mocha \"_tests/tests/**/*.js\"",
+    "test:ci": "npm run build:tests && mocha \"_tests/tests/**/*.js\" --reporter xunit --reporter-options output=test-results.xml",
+    "test:commandline": "npm run build:tests && mocha \"_tests/tests/commandline.js\"",
+    "test:server-integration": "npm run build:tests && mocha \"_tests/tests/server-integration-*.js\"",
+    "test:focused-login": "npm run build:tests && mocha \"_tests/tests/focused-login-test.js\"",
+    "test:server-integration-login": "npm run build:tests && mocha \"_tests/tests/server-integration-login.js\"",
+    "test:server-integration-workitem": "npm run build:tests && mocha \"_tests/tests/server-integration-workitem.js\"",
+    "test:build-local": "npm run build:tests && mocha \"_tests/tests/build-local-tests.js\"",
+    "test:build-server-integration": "npm run build:tests && mocha \"_tests/tests/build-server-integration-tests.js\"",
+    "test:build-consolidated": "npm run test:build-local && npm run test:build-server-integration",
+    "test:extension-local": "npm run build:tests && mocha \"_tests/tests/extension-local-tests.js\"",
+    "test:extension-server-integration": "npm run build:tests && mocha \"_tests/tests/extension-server-integration-tests.js\"",
+    "test:extension-consolidated": "npm run test:extension-local && npm run test:extension-server-integration"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
-    "archiver": "2.0.3",
+    "archiver": "^7.0.1",
     "azure-devops-node-api": "^14.0.0",
     "clipboardy": "^4.0.0",
     "colors": "~1.3.0",
-    "glob": "7.1.2",
+    "glob": "^11.0.3",
     "jju": "^1.4.0",
     "json-in-place": "^1.0.1",
     "jszip": "^3.10.1",
@@ -50,18 +51,17 @@
     "os-homedir": "^1.0.1",
     "prompt": "^1.3.0",
     "read": "^1.0.6",
-    "shelljs": "^0.8.5",
+    "shelljs": "^0.10.0",
     "tmp": "^0.2.4",
     "tracer": "0.7.4",
     "util.promisify": "^1.0.0",
-    "uuid": "^3.0.1",
+    "uuid": "^13.0.0",
     "validator": "^13.7.0",
     "winreg": "0.0.12",
     "xml2js": "^0.5.0"
   },
   "devDependencies": {
     "@types/clipboardy": "~1.1.0",
-    "@types/glob": "^5.0.29",
     "@types/jju": "^1.4.1",
     "@types/jszip": "~3.1.2",
     "@types/lodash": "~4.14.110",
@@ -69,7 +69,6 @@
     "@types/mocha": "^10.0.0",
     "@types/node": "8.10.66",
     "@types/shelljs": "^0.8.11",
-    "@types/uuid": "^2.0.29",
     "@types/validator": "^4.5.27",
     "@types/winreg": "^1.2.29",
     "@types/xml2js": "0.0.27",
@@ -79,7 +78,7 @@
     "typescript": "^4.9.5"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=16.0.0"
   },
   "author": "Microsoft Corporation",
   "contributors": [
