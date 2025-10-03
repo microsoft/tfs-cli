@@ -13,7 +13,7 @@ import {
 import { forwardSlashesPath, toZipItemName } from "./utils";
 import _ = require("lodash");
 import fs = require("fs");
-import glob = require("glob");
+import { glob } from "glob";
 import jju = require("jju");
 import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
@@ -56,18 +56,7 @@ export class Merger {
 			const globs = this.settings.manifestGlobs.map(p => (path.isAbsolute(p) ? p : path.join(this.settings.root, p)));
 
 			trace.debug("merger.gatherManifestsFromGlob");
-			const promises = globs.map(
-				pattern =>
-					new Promise<string[]>((resolve, reject) => {
-						glob(pattern, (err, matches) => {
-							if (err) {
-								reject(err);
-							} else {
-								resolve(matches);
-							}
-						});
-					}),
-			);
+			const promises = globs.map(pattern => glob(pattern));
 
 			return Promise.all(promises)
 				.then(results => _.uniq(_.flatten<string>(results)))
@@ -104,7 +93,7 @@ export class Merger {
 
 		// build environment object from --env parameter
 		const env = {};
-		(this.settings.env || []).forEach(kvp => { 
+		(this.settings.env || []).forEach(kvp => {
 			const [key, ...value] = kvp.split('=');
 			env[key] = value.join('=');
 		});
@@ -119,7 +108,7 @@ export class Merger {
 			throw new Error(`The export function from manifest-js file ${fullJsFile} must return the manifest object`)
 		}
 		return manifestData;
-	}	
+	}
 
 	/**
 	 * Finds all manifests and merges them into two JS Objects: vsoManifest and vsixManifest
@@ -413,9 +402,9 @@ export class Merger {
 	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
 		try {
 			// Filter contributions to only build tasks
-			const buildTaskContributions = contributions.filter(contrib => 
-				contrib.type === "ms.vss-distributed-task.task" && 
-				contrib.properties && 
+			const buildTaskContributions = contributions.filter(contrib =>
+				contrib.type === "ms.vss-distributed-task.task" &&
+				contrib.properties &&
 				contrib.properties.name
 			);
 

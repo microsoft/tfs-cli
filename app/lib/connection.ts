@@ -1,20 +1,33 @@
 import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 
-import url = require("url");
 import apim = require("azure-devops-node-api/WebApi");
 import apibasem = require("azure-devops-node-api/interfaces/common/VsoBaseInterfaces");
 import trace = require("./trace");
 
 export class TfsConnection {
-	private parsedUrl: url.Url;
+	private parsedUrl: URL;
 
 	private accountUrl: string;
 	private collectionUrl: string;
 
 	constructor(private serviceUrl: string) {
-		this.parsedUrl = url.parse(this.serviceUrl);
+		// Parse URL, but handle failures gracefully to mimic url.parse() behavior
+		try {
+			this.parsedUrl = new URL(this.serviceUrl);
+		} catch (error) {
+			// Mimic url.parse() behavior for invalid URLs
+			// url.parse() would return an object with null/empty values instead of throwing
+			this.parsedUrl = {
+				protocol: this.serviceUrl && this.serviceUrl.includes('://') ? this.serviceUrl.split('://')[0] + ':' : '',
+				host: null,
+				hostname: null,
+				pathname: this.serviceUrl && !this.serviceUrl.includes('://') ? this.serviceUrl : '',
+				search: '',
+				hash: ''
+			} as any;
+		}
 
-		var splitPath: string[] = this.parsedUrl.path.split("/").slice(1);
+		var splitPath: string[] = this.parsedUrl.pathname.split("/").slice(1);
 		this.accountUrl = this.parsedUrl.protocol + "//" + this.parsedUrl.host;
 
 		if (splitPath.length === 2 && splitPath[0] === "tfs") {

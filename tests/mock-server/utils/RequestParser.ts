@@ -1,5 +1,4 @@
 import * as http from 'http';
-import * as url from 'url';
 import { Logger } from './Logger';
 
 export class RequestParser {
@@ -10,10 +9,16 @@ export class RequestParser {
         body: any;
     }> {
         return new Promise((resolve, reject) => {
-            const parsedUrl = url.parse(req.url || '', true);
+            const parsedUrl = new URL(req.url || '', 'http://localhost');
             const method = req.method || 'GET';
             const pathname = parsedUrl.pathname || '';
-            const query = parsedUrl.query;
+            
+            // Parse query parameters using forEach (guaranteed to be available)
+            const query: { [key: string]: string } = {};
+            parsedUrl.searchParams.forEach((value, key) => {
+                query[key] = value;
+            });
+            
             const contentType = req.headers['content-type'] || '';
 
             if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {
