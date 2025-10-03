@@ -12,7 +12,8 @@
     "tfx": "./_build/tfx-cli.js"
   },
   "scripts": {
-    "npmauth": "artifacts-npm-credprovider && npm install",
+    "install-credprovider": "npm install --global @microsoft/artifacts-npm-credprovider --registry https://pkgs.dev.azure.com/artifacts-public/23934c1b-a3b5-4b70-9dd3-d1bef4cc72a0/_packaging/AzureArtifacts/npm/registry/",
+    "npmauth": "artifacts-npm-credprovider -c .npmrc",
     "clean": "rimraf _build && rimraf _tests",
     "build": "tsc -p .",
     "postbuild": "ncp app/tfx-cli.js _build/tfx-cli.js && ncp package.json _build/package.json && ncp app/exec/build/tasks/_resources _build/exec/build/tasks/_resources",
@@ -71,13 +72,13 @@
     "@types/validator": "^4.5.27",
     "@types/winreg": "^1.2.29",
     "@types/xml2js": "0.0.27",
-    "mocha": "^11.7.3",
+    "mocha": "^10.2.0",
     "ncp": "^2.0.0",
-    "rimraf": "^6.0.1",
+    "rimraf": "^2.6.1",
     "typescript": "^4.9.5"
   },
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=16.0.0"
   },
   "author": "Microsoft Corporation",
   "contributors": [

@@ -541,12 +541,8 @@ describe('Build Commands - Server Integration Tests', function() {
                     console.log('[TEST] CLI error output:', errorOutput);
                     // Accept a range of possible network errors
                     assert(
-                        errorOutput.includes('ECONNREFUSED') ||
-                        errorOutput.includes('ENOTFOUND') ||
-                        errorOutput.includes('EAI_AGAIN') ||
-                        errorOutput.includes('network') ||
-                        errorOutput.includes('connect') ||
-                        errorOutput.includes('error: Error:'),
+                        errorOutput.includes('error: Error:') ||
+                        errorOutput.includes('error: AggregateError'),
                         'Should indicate a network or connection error for missing service URL'
                     );
                     done();
