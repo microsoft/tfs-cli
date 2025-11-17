@@ -1,5 +1,6 @@
 # Build and Packaging
 _build
+tfx-cli-*.tgz
 
 # Tests
 _tests
