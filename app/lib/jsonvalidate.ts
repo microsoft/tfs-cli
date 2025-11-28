@@ -150,7 +150,7 @@ export function validateTask(taskPath: string, taskData: any): string[] {
 function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: string): string[] {
   const issues: string[] = [];
   const executionProperties = ['execution', 'prejobexecution', 'postjobexecution'];
-  const supportedRunners = ["Node", "Node10", "Node16", "Node20_1", "PowerShell", "PowerShell3", "Process"];
+  const supportedRunners = ["Node", "Node10", "Node16", "Node20_1", "Node24", "PowerShell", "PowerShell3", "Process"];
   executionProperties.forEach(executionType => {
     if (taskData[executionType]) {
       Object.keys(taskData[executionType]).forEach(runner => {
