@@ -32,6 +32,7 @@ export interface CoreArguments {
 	username: args.StringArgument;
 	output: args.StringArgument;
 	json: args.BooleanArgument;
+	tokenFromStdin?: args.BooleanArgument;
 	fiddler: args.BooleanArgument;
 	proxy: args.StringArgument;
 	help: args.BooleanArgument;
@@ -52,6 +53,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected webApi: WebApi;
 	protected description: string = "A suite of command line tools to interact with Azure DevOps Services.";
 	public connection: TfsConnection;
+	private stdinTokenPromise?: Promise<string | undefined>;
 
 	protected abstract serverCommand;
 
@@ -77,23 +79,23 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				if (needHelp) {
 					return this.run.bind(this, this.getHelp.bind(this));
 				} else {
-				// Set the fiddler proxy
-				return this.commandArgs.fiddler
-					.val()
-					.then(useProxy => {
-						if (useProxy) {
-							process.env.HTTP_PROXY = "http://127.0.0.1:8888";
-						}
-					})
-					.then(() => {
-						// Set custom proxy
-						return this.commandArgs.proxy.val(true).then(proxy => {
-							if (proxy) {
-								process.env.HTTP_PROXY = proxy;
+					// Set the fiddler proxy
+					return this.commandArgs.fiddler
+						.val()
+						.then(useProxy => {
+							if (useProxy) {
+								process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 							}
-						});
-					})
-					.then(() => {
+						})
+						.then(() => {
+							// Set custom proxy
+							return this.commandArgs.proxy.val(true).then(proxy => {
+								if (proxy) {
+									process.env.HTTP_PROXY = proxy;
+								}
+							});
+						})
+						.then(() => {
 						// Set the no-prompt flag
 						return this.commandArgs.noPrompt.val(true).then(noPrompt => {
 							common.NO_PROMPT = noPrompt;
@@ -303,6 +305,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			"pat",
 		);
 		this.registerCommandArgument(
+			"tokenFromStdin",
+			"Read token from stdin",
+			"Read the personal access token from standard input instead of prompting.",
+			args.BooleanArgument,
+			"false",
+		);
+		this.registerCommandArgument(
 			["serviceUrl", "-u"],
 			"Service URL",
 			"URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.",
@@ -404,63 +413,132 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Else, check the authType - if it is "pat", prompt for a token
 	 * If it is "basic", prompt for username and password.
 	 */
-	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
-		return Promise.all([
+	protected async getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
+		const [authTypeValue, tokenArg, username, password, tokenFromStdinFlag] = await Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true),
-		]).then(values => {
-			const [authType, token, username, password] = values;
-			if (username && password) {
-				return getBasicHandler(username, password);
-			} else {
-				if (token) {
-					return getBasicHandler("OAuth", token);
-				} else {
-					let getCredentialPromise;
-					if (useCredStore) {
-						getCredentialPromise = getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
-					} else {
-						getCredentialPromise = Promise.reject("not using cred store.");
-					}
-					return getCredentialPromise
-						.then((credString: string) => {
-							if (credString.length <= 6) {
-								throw "Could not get credentials from credential store.";
-							}
-							if (credString.substr(0, 3) === "pat") {
-								return getBasicHandler("OAuth", credString.substr(4));
-							} else if (credString.substr(0, 5) === "basic") {
-								let rest = credString.substr(6);
-								let unpwDividerIndex = rest.indexOf(":");
-								let username = rest.substr(0, unpwDividerIndex);
-								let password = rest.substr(unpwDividerIndex + 1);
-								if (username && password) {
-									return getBasicHandler(username, password);
-								} else {
-									throw "Could not get credentials from credential store.";
-								}
-							}
-						})
-						.catch(() => {
-							if (authType.toLowerCase() === "pat") {
-								return this.commandArgs.token.val().then(token => {
-									return getBasicHandler("OAuth", token);
-								});
-							} else if (authType.toLowerCase() === "basic") {
-								return this.commandArgs.username.val().then(username => {
-									return this.commandArgs.password.val().then(password => {
-										return getBasicHandler(username, password);
-									});
-								});
-							} else {
-								throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
-							}
-						});
-				}
+			this.commandArgs.tokenFromStdin ? this.commandArgs.tokenFromStdin.val(true) : Promise.resolve(false),
+		]);
+
+		if (username && password) {
+			return getBasicHandler(username, password) as BasicCredentialHandler;
+		}
+
+		let resolvedToken = tokenArg;
+		if (!resolvedToken) {
+			// First prefer environment variable; if not present and the explicit
+			// flag is set, read from stdin. Without the flag we avoid consuming
+			// stdin implicitly, which can interfere with other prompts.
+			const envToken = process.env.AZURE_DEVOPS_TOKEN;
+			if (envToken && envToken.trim()) {
+				resolvedToken = envToken.trim();
+			} else if (tokenFromStdinFlag) {
+				resolvedToken = await this.getTokenFromEnvOrStdin();
 			}
+		}
+		if (resolvedToken) {
+			return getBasicHandler("OAuth", resolvedToken) as BasicCredentialHandler;
+		}
+
+		if (useCredStore) {
+			const storedCredentials = await this.tryGetCredentialFromStore(serviceUrl);
+			if (storedCredentials) {
+				return storedCredentials;
+			}
+		}
+
+		return this.promptForCredentials(authTypeValue);
+	}
+
+	private async tryGetCredentialFromStore(serviceUrl: string): Promise<BasicCredentialHandler | undefined> {
+		try {
+			const credString = await getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
+			return this.parseCredentialString(credString);
+		} catch (err) {
+			trace.debug("Credential store lookup failed: %s", err && err.message ? err.message : err);
+			return undefined;
+		}
+	}
+
+	private parseCredentialString(credString: string): BasicCredentialHandler {
+		if (!credString || credString.length <= 6) {
+			throw new Error("Could not get credentials from credential store.");
+		}
+
+		if (credString.substr(0, 3) === "pat") {
+			return getBasicHandler("OAuth", credString.substr(4)) as BasicCredentialHandler;
+		}
+
+		if (credString.substr(0, 5) === "basic") {
+			const rest = credString.substr(6);
+			const dividerIndex = rest.indexOf(":");
+			const parsedUsername = rest.substr(0, dividerIndex);
+			const parsedPassword = rest.substr(dividerIndex + 1);
+			if (dividerIndex > 0 && parsedUsername && parsedPassword) {
+				return getBasicHandler(parsedUsername, parsedPassword) as BasicCredentialHandler;
+			}
+		}
+
+		throw new Error("Could not get credentials from credential store.");
+	}
+
+	private async promptForCredentials(authTypeValue?: string): Promise<BasicCredentialHandler> {
+		const normalizedAuthType = (authTypeValue || "").toLowerCase();
+		if (normalizedAuthType === "pat") {
+			const fallbackToken = await this.getTokenFromEnvOrStdin();
+			if (fallbackToken) {
+				return getBasicHandler("OAuth", fallbackToken) as BasicCredentialHandler;
+			}
+			const promptedToken = await this.commandArgs.token.val();
+			return getBasicHandler("OAuth", promptedToken) as BasicCredentialHandler;
+		}
+		if (normalizedAuthType === "basic") {
+			const promptedUsername = await this.commandArgs.username.val();
+			const promptedPassword = await this.commandArgs.password.val();
+			return getBasicHandler(promptedUsername, promptedPassword) as BasicCredentialHandler;
+		}
+		throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
+	}
+
+	private async getTokenFromEnvOrStdin(): Promise<string | undefined> {
+		if (this.stdinTokenPromise) {
+			return this.stdinTokenPromise;
+		}
+
+		const stdin = this.getInputStream();
+		if (stdin.isTTY) {
+			return undefined;
+		}
+
+		this.stdinTokenPromise = new Promise(resolve => {
+			let buffer = "";
+			const finalize = (value?: string) => {
+				this.stdinTokenPromise = Promise.resolve(value);
+				resolve(value);
+			};
+			const onData = (chunk: string) => {
+				buffer += chunk;
+			};
+			stdin.setEncoding("utf8");
+			stdin.on("data", onData);
+			stdin.once("end", () => {
+				stdin.removeListener("data", onData);
+				finalize(buffer.trim() || undefined);
+			});
+			stdin.once("error", () => {
+				stdin.removeListener("data", onData);
+				finalize(undefined);
+			});
+			stdin.resume();
 		});
+
+		return this.stdinTokenPromise;
+	}
+
+	protected getInputStream(): NodeJS.ReadStream {
+		return process.stdin;
 	}
 
 	public async getWebApi(options?: IRequestOptions): Promise<WebApi> {
