@@ -50,9 +50,18 @@ class MockReadable extends PassThrough {
 		});
 	}
 }
+// Narrow, test-specific typing for the bits of the arguments/common
+// modules we need to override, instead of using a broad `any` cast.
+interface TestArgsModule {
+	getOptionsCache: typeof ArgsModule.getOptionsCache;
+}
 
-const argsModule = args as any;
-const commonModule = common as any;
+interface TestCommonModule {
+	EXEC_PATH: string[];
+}
+
+const argsModule: TestArgsModule = args as TestArgsModule;
+const commonModule: TestCommonModule = common as TestCommonModule;
 
 describe("TfCommand credential resolution", () => {
 	let originalGetOptionsCache: typeof args.getOptionsCache;
