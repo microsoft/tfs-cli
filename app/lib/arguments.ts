@@ -391,6 +391,27 @@ export class SilentStringArgument extends StringArgument {
 	public silent = true;
 }
 
+/**
+ * Argument that reads its value from stdin immediately when the flag is present.
+ * This is useful for reading sensitive values like tokens from stdin without
+ * interfering with the interactive prompt system.
+ */
+export class StdinStringArgument extends Argument<string> {
+	public silent = true;
+
+	protected async getValue(argParams: string[] | Promise<string[]>): Promise<string> {
+		// If this argument was provided, read from stdin immediately
+		const getStdin = await import("get-stdin");
+		const stdinContent = await getStdin.default();
+		
+		if (!stdinContent || !stdinContent.trim()) {
+			throw new Error(`No input provided on stdin for argument ${this.name}`);
+		}
+		
+		return stdinContent.trim();
+	}
+}
+
 export function getOptionsCache(): Promise<any> {
 	let cache = new DiskCache("tfx");
 	return cache.itemExists("cache", "command-options").then(cacheExists => {

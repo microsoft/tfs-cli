@@ -28,6 +28,7 @@ export interface CoreArguments {
 	serviceUrl: args.StringArgument;
 	password: args.SilentStringArgument;
 	token: args.SilentStringArgument;
+	tokenFromStdin: args.StdinStringArgument;
 	save: args.BooleanArgument;
 	username: args.StringArgument;
 	output: args.StringArgument;
@@ -73,6 +74,16 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected initialize(): Promise<Executor<any>> {
 		// First validate arguments, then proceed with help or normal execution
 		this.initialized = this.validateArguments().then(() => {
+			// Check for mutually exclusive authentication arguments
+			const groupedArgs = this.getGroupedArgs();
+			const hasToken = groupedArgs["token"] !== undefined || groupedArgs["-t"] !== undefined;
+			const hasTokenFromStdin = groupedArgs["tokenFromStdin"] !== undefined;
+			
+			if (hasToken && hasTokenFromStdin) {
+				trace.error("The arguments --token and --token-from-stdin are mutually exclusive. Please use only one.");
+				this.commandArgs.help.setValue(true);
+			}
+			
 			return this.commandArgs.help.val().then(needHelp => {
 				if (needHelp) {
 					return this.run.bind(this, this.getHelp.bind(this));
@@ -316,6 +327,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		);
 		this.registerCommandArgument(["token", "-t"], "Personal access token", null, args.SilentStringArgument);
 		this.registerCommandArgument(
+			["tokenFromStdin"],
+			"Read token from stdin",
+			"Read the personal access token from stdin instead of prompting.",
+			args.StdinStringArgument,
+		);
+		this.registerCommandArgument(
 			["save"],
 			"Save settings",
 			"Save arguments for the next time a command in this command group is run.",
@@ -405,9 +422,10 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * If it is "basic", prompt for username and password.
 	 */
 	protected async getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
-		const [authTypeValue, tokenArg, username, password] = await Promise.all([
+		const [authTypeValue, tokenArg, tokenFromStdin, username, password] = await Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
+			this.commandArgs.tokenFromStdin.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true),
 		]);
@@ -416,7 +434,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			return getBasicHandler(username, password) as BasicCredentialHandler;
 		}
 
-		let resolvedToken = tokenArg;
+		let resolvedToken = tokenArg || tokenFromStdin;
 		if (!resolvedToken) {
 			const envToken = process.env.AZURE_DEVOPS_TOKEN;
 			if (envToken && envToken.trim()) {
@@ -629,14 +647,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						result += singleArgData(arg, maxArgLen);
 					});
 
-					if (this.serverCommand) {
-						result += eol + cyan("Global server command arguments:") + eol;
-						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
-							result += singleArgData(arg, 11);
-						});
-					}
-
-					result += eol + cyan("Global arguments:") + eol;
+				if (this.serverCommand) {
+					result += eol + cyan("Global server command arguments:") + eol;
+					["authType", "username", "password", "token", "tokenFromStdin", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
+						result += singleArgData(arg, 16);
+					});
+					result += eol + gray("  Note: You can also authenticate using the AZURE_DEVOPS_TOKEN environment variable.") + eol;
+				}					result += eol + cyan("Global arguments:") + eol;
 					["help", "save", "noColor", "noPrompt", "output", "json", "traceLevel", "debugLogStream"].forEach(arg => {
 						result += singleArgData(arg, 9);
 					});
