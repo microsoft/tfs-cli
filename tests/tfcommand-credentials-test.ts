@@ -1,10 +1,40 @@
 import * as assert from "assert";
-import { PassThrough } from "stream";
 import type { CoreArguments } from "../app/lib/tfcommand";
 import type * as ArgsModule from "../app/lib/arguments";
 import type * as CommonModule from "../app/lib/common";
 import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
+import { enforceAzureTokenIsolation } from "./test-utils/env";
 
+// Load credstore BEFORE tfcommand so we can mock it
+const credstore = require("../../_build/lib/credstore") as typeof import("../app/lib/credstore");
+
+// Track credstore access globally
+let credStoreAccessCount = 0;
+let originalGetCredentialStore: typeof credstore.getCredentialStore;
+let mockCredential: BasicCredentialHandler | undefined;
+
+// Set up mock BEFORE loading TfCommand
+originalGetCredentialStore = credstore.getCredentialStore;
+credstore.getCredentialStore = (appName: string) => {
+	const realStore = originalGetCredentialStore(appName);
+	
+	return {
+		appName: realStore.appName,
+		credentialExists: realStore.credentialExists.bind(realStore),
+		storeCredential: realStore.storeCredential.bind(realStore),
+		clearCredential: realStore.clearCredential.bind(realStore),
+		getCredential: async (service: string, user: string): Promise<string> => {
+			credStoreAccessCount++;
+			if (mockCredential) {
+				// Return credential in the expected format
+				return `pat:${mockCredential.password}`;
+			}
+			throw new Error("No credentials stored");
+		}
+	};
+};
+
+// NOW load TfCommand after credstore is mocked
 type TfCommandConstructor = typeof import("../app/lib/tfcommand").TfCommand;
 const args = require("../../_build/lib/arguments") as typeof import("../app/lib/arguments");
 const common = require("../../_build/lib/common") as typeof import("../app/lib/common");
@@ -12,42 +42,30 @@ const { TfCommand } = require("../../_build/lib/tfcommand") as {
 	TfCommand: TfCommandConstructor;
 };
 
+function setupCredStoreMock(): void {
+	credStoreAccessCount = 0;
+	mockCredential = undefined;
+}
+
+function teardownCredStoreMock(): void {
+	mockCredential = undefined;
+	credStoreAccessCount = 0;
+}
+
 class CredentialTestCommand extends TfCommand<CoreArguments, void> {
 	protected serverCommand = false;
 	protected description = "Credential test command";
-	private inputStreamOverride?: NodeJS.ReadStream;
 
 	constructor(argsList: string[] = []) {
 		super(argsList);
-	}
-
-	public setInputStream(stream: NodeJS.ReadStream): void {
-		this.inputStreamOverride = stream;
 	}
 
 	protected exec(): Promise<void> {
 		return Promise.resolve();
 	}
 
-	public getCredentialsForTest(serviceUrl: string = "https://example.com", useCredStore = false): Promise<BasicCredentialHandler> {
+	public getCredentialsForTest(serviceUrl: string = "https://example.com", useCredStore = true): Promise<BasicCredentialHandler> {
 		return this.getCredentials(serviceUrl, useCredStore);
-	}
-
-	protected getInputStream(): NodeJS.ReadStream {
-		return this.inputStreamOverride || super.getInputStream();
-	}
-}
-
-class MockReadable extends PassThrough {
-	public isTTY = false;
-
-	constructor(private readonly tokenValue: string) {
-		super();
-		// Defer writing until after consumers have a chance to attach listeners.
-		process.nextTick(() => {
-			this.write(this.tokenValue);
-			this.end();
-		});
 	}
 }
 // Narrow, test-specific typing for the bits of the arguments/common
@@ -65,7 +83,9 @@ const commonModule: TestCommonModule = common as TestCommonModule;
 
 describe("TfCommand credential resolution", () => {
 	let originalGetOptionsCache: typeof args.getOptionsCache;
-	const originalEnvToken = process.env.AZURE_DEVOPS_TOKEN;
+
+	// Use the helper to properly isolate AZURE_DEVOPS_TOKEN
+	enforceAzureTokenIsolation();
 
 	before(() => {
 		commonModule.EXEC_PATH = ["tests", "credentials"];
@@ -75,11 +95,14 @@ describe("TfCommand credential resolution", () => {
 
 	after(() => {
 		argsModule.getOptionsCache = originalGetOptionsCache;
-		process.env.AZURE_DEVOPS_TOKEN = originalEnvToken;
+	});
+
+	beforeEach(() => {
+		setupCredStoreMock();
 	});
 
 	afterEach(() => {
-		process.env.AZURE_DEVOPS_TOKEN = undefined;
+		teardownCredStoreMock();
 	});
 
 	it("uses the explicit --token argument when provided", async () => {
@@ -112,15 +135,29 @@ describe("TfCommand credential resolution", () => {
 		assert.equal(handler.password, argToken);
 	});
 
-	it("still prefers explicit token argument when stdin is present", async () => {
-		const stdinToken = "STDIN_TOKEN_SHOULD_BE_IGNORED";
-		const argToken = "ARG_TOKEN_PRIORITY_STDIN";
-		const mockStdin = new MockReadable(stdinToken) as unknown as NodeJS.ReadStream;
-		const command = new CredentialTestCommand(["--token", argToken]);
-		command.setInputStream(mockStdin);
-		const handler = await command.getCredentialsForTest();
-
+	it("uses stored credentials before prompting", async () => {
+		const storedToken = "STORED_TOKEN_789";
+		const storedHandler = new BasicCredentialHandler("OAuth", storedToken);
+		mockCredential = storedHandler;
+		
+		const command = new CredentialTestCommand();
+		
+		// Ensure no token from arguments or environment
+		const tokenArg = (command as any).commandArgs.token;
+		const originalTokenVal = tokenArg.val;
+		tokenArg.val = (optional?: boolean) => {
+			if (optional) {
+				return Promise.resolve(undefined);
+			}
+			return Promise.reject(new Error("Should not prompt when stored credentials exist"));
+		};
+		
+		const handler = await command.getCredentialsForTest("https://example.visualstudio.com", true);
+		tokenArg.val = originalTokenVal;
+		
+		assert.equal(credStoreAccessCount > 0, true, "Should query credential store before prompting");
 		assert.equal(handler.username, "OAuth");
-		assert.equal(handler.password, argToken);
+		assert.equal(handler.password, storedToken);
 	});
+
 });

@@ -3,10 +3,10 @@ import { stripColors } from 'colors';
 import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PassThrough } from 'stream';
 import { Login } from '../app/exec/login';
 import * as common from '../app/lib/common';
 import * as args from '../app/lib/arguments';
+import { enforceAzureTokenIsolation } from './test-utils/env';
 
 const { exec } = require('child_process');
 const { promisify } = require('util');
@@ -19,6 +19,8 @@ declare function after(fn: Function): void;
 
 const execAsync = promisify(exec);
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
+
+enforceAzureTokenIsolation();
 
 // Minimal fake WebApi and dependencies to avoid real network calls.
 class FakeLocationsApi {
@@ -123,30 +125,6 @@ describe('Login token sources', () => {
         return login;
     }
 
-    class StdinLogin extends Login {
-        private inputStreamOverride?: NodeJS.ReadStream;
-
-        public setInputStream(stream: NodeJS.ReadStream): void {
-            this.inputStreamOverride = stream;
-        }
-
-        protected getInputStream(): NodeJS.ReadStream {
-            return this.inputStreamOverride || super.getInputStream();
-        }
-    }
-
-    class MockReadable extends PassThrough {
-        public isTTY = false;
-
-        constructor(private readonly tokenValue: string) {
-            super();
-            process.nextTick(() => {
-                this.write(this.tokenValue);
-                this.end();
-            });
-        }
-    }
-
     it('accepts token from --token argument', async () => {
         const token = 'LOGIN_ARG_TOKEN';
         const login = createLogin(['--token', token, '--service-url', 'https://example.com']);
@@ -158,16 +136,6 @@ describe('Login token sources', () => {
         const token = 'LOGIN_ENV_TOKEN';
         process.env.AZURE_DEVOPS_TOKEN = token;
         const login = createLogin(['--service-url', 'https://example.com']);
-        const result = await login.exec();
-        assert.equal(result.success, true);
-    });
-
-    it('accepts token from stdin when no other source is provided', async () => {
-        const token = 'LOGIN_STDIN_TOKEN';
-        const stdin = new MockReadable(token) as unknown as NodeJS.ReadStream;
-        const login = new StdinLogin(['--service-url', 'https://example.com']);
-        (login as any).getWebApi = async () => new FakeWebApi();
-        login.setInputStream(stdin);
         const result = await login.exec();
         assert.equal(result.success, true);
     });

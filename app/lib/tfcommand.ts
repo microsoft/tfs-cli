@@ -32,7 +32,6 @@ export interface CoreArguments {
 	username: args.StringArgument;
 	output: args.StringArgument;
 	json: args.BooleanArgument;
-	tokenFromStdin?: args.BooleanArgument;
 	fiddler: args.BooleanArgument;
 	proxy: args.StringArgument;
 	help: args.BooleanArgument;
@@ -53,7 +52,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected webApi: WebApi;
 	protected description: string = "A suite of command line tools to interact with Azure DevOps Services.";
 	public connection: TfsConnection;
-	private stdinTokenPromise?: Promise<string | undefined>;
 
 	protected abstract serverCommand;
 
@@ -305,13 +303,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			"pat",
 		);
 		this.registerCommandArgument(
-			"tokenFromStdin",
-			"Read token from stdin",
-			"Read the personal access token from standard input instead of prompting.",
-			args.BooleanArgument,
-			"false",
-		);
-		this.registerCommandArgument(
 			["serviceUrl", "-u"],
 			"Service URL",
 			"URL to the service you will connect to, e.g. https://youraccount.visualstudio.com/DefaultCollection.",
@@ -414,12 +405,11 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * If it is "basic", prompt for username and password.
 	 */
 	protected async getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
-		const [authTypeValue, tokenArg, username, password, tokenFromStdinFlag] = await Promise.all([
+		const [authTypeValue, tokenArg, username, password] = await Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true),
-			this.commandArgs.tokenFromStdin ? this.commandArgs.tokenFromStdin.val(true) : Promise.resolve(false),
 		]);
 
 		if (username && password) {
@@ -428,14 +418,9 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 
 		let resolvedToken = tokenArg;
 		if (!resolvedToken) {
-			// First prefer environment variable; if not present and the explicit
-			// flag is set, read from stdin. Without the flag we avoid consuming
-			// stdin implicitly, which can interfere with other prompts.
 			const envToken = process.env.AZURE_DEVOPS_TOKEN;
 			if (envToken && envToken.trim()) {
 				resolvedToken = envToken.trim();
-			} else if (tokenFromStdinFlag) {
-				resolvedToken = await this.getTokenFromEnvOrStdin();
 			}
 		}
 		if (resolvedToken) {
@@ -452,7 +437,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		return this.promptForCredentials(authTypeValue);
 	}
 
-	private async tryGetCredentialFromStore(serviceUrl: string): Promise<BasicCredentialHandler | undefined> {
+	protected async tryGetCredentialFromStore(serviceUrl: string): Promise<BasicCredentialHandler | undefined> {
 		try {
 			const credString = await getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
 			return this.parseCredentialString(credString);
@@ -487,10 +472,6 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	private async promptForCredentials(authTypeValue?: string): Promise<BasicCredentialHandler> {
 		const normalizedAuthType = (authTypeValue || "").toLowerCase();
 		if (normalizedAuthType === "pat") {
-			const fallbackToken = await this.getTokenFromEnvOrStdin();
-			if (fallbackToken) {
-				return getBasicHandler("OAuth", fallbackToken) as BasicCredentialHandler;
-			}
 			const promptedToken = await this.commandArgs.token.val();
 			return getBasicHandler("OAuth", promptedToken) as BasicCredentialHandler;
 		}
@@ -502,44 +483,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
 	}
 
-	private async getTokenFromEnvOrStdin(): Promise<string | undefined> {
-		if (this.stdinTokenPromise) {
-			return this.stdinTokenPromise;
-		}
-
-		const stdin = this.getInputStream();
-		if (stdin.isTTY) {
-			return undefined;
-		}
-
-		this.stdinTokenPromise = new Promise(resolve => {
-			let buffer = "";
-			const finalize = (value?: string) => {
-				this.stdinTokenPromise = Promise.resolve(value);
-				resolve(value);
-			};
-			const onData = (chunk: string) => {
-				buffer += chunk;
-			};
-			stdin.setEncoding("utf8");
-			stdin.on("data", onData);
-			stdin.once("end", () => {
-				stdin.removeListener("data", onData);
-				finalize(buffer.trim() || undefined);
-			});
-			stdin.once("error", () => {
-				stdin.removeListener("data", onData);
-				finalize(undefined);
-			});
-			stdin.resume();
-		});
-
-		return this.stdinTokenPromise;
-	}
-
-	protected getInputStream(): NodeJS.ReadStream {
-		return process.stdin;
-	}
+ 
 
 	public async getWebApi(options?: IRequestOptions): Promise<WebApi> {
 		// try to get value of skipCertValidation from cache
