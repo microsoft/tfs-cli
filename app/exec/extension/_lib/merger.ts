@@ -49,29 +49,26 @@ export class Merger {
 		this.manifestBuilders = [];
 	}
 
-	private gatherManifests(): Promise<string[]> {
+	private async gatherManifests(): Promise<string[]> {
 		trace.debug("merger.gatherManifests");
 
 		if (this.settings.manifestGlobs && this.settings.manifestGlobs.length > 0) {
-			const globs = this.settings.manifestGlobs.map(p => (path.isAbsolute(p) ? p : path.join(this.settings.root, p)));
+			const patterns = this.settings.manifestGlobs;
 
 			trace.debug("merger.gatherManifestsFromGlob");
-			const promises = globs.map(pattern => glob(pattern));
+			const resultsArrays = await Promise.all(patterns.map(pattern => glob(pattern, { cwd: this.settings.root })));
+			const relativeResults = _.uniq(_.flatten<string>(resultsArrays));
+			const results = relativeResults.map(p => path.join(this.settings.root, p));
 
-			return Promise.all(promises)
-				.then(results => _.uniq(_.flatten<string>(results)))
-				.then(results => {
-					if (results.length > 0) {
-						trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
-						results.forEach(path => trace.debug(path));
-					} else {
-						throw new Error(
-							"No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"),
-						);
-					}
-
-					return results;
-				});
+			if (results.length > 0) {
+				trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
+				results.forEach(p => trace.debug(p));
+				return results;
+			} else {
+				throw new Error(
+					"No manifests found from the following glob patterns: \n" + this.settings.manifestGlobs.join("\n"),
+				);
+			}
 		} else {
 			const manifests = this.settings.manifests;
 			if (!manifests || manifests.length === 0) {
@@ -83,8 +80,8 @@ export class Merger {
 				manifests.length.toString(),
 				manifests.length === 1 ? "" : "s",
 			);
-			manifests.forEach(path => trace.debug(path));
-			return Promise.resolve(this.settings.manifests);
+			manifests.forEach(p => trace.debug(p));
+			return this.settings.manifests;
 		}
 	}
 
