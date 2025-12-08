@@ -2,6 +2,8 @@ import assert = require('assert');
 import { stripColors } from 'colors';
 import path = require('path');
 import fs = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const AdmZip = require('adm-zip');
 import { execAsyncWithLogging } from './test-utils/debug-exec';
 
 // Basic test framework functions to avoid TypeScript errors
@@ -377,6 +379,192 @@ describe('Extension Commands - Local Tests', function() {
                     const cleanOutput = stripColors(stdout);
                     assert(cleanOutput.includes('Completed operation: create extension'), 'Should handle manifest-globs parameter');
                     assert(fs.existsSync(outputPath), 'Should create .vsix file');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should handle manifest-globs with glob patterns and merge scopes', function (done) {
+            const complexExtensionPath = path.join(samplesPath, 'complex-extension');
+            if (!fs.existsSync(complexExtensionPath)) {
+                console.log('Skipping manifest-globs glob pattern test - sample not found');
+                done();
+                return;
+            }
+
+            const outputPath = path.join(complexExtensionPath, 'manifest-globs-scopes-test.vsix');
+            const manifestsRoot = path.join(complexExtensionPath, 'dist', 'Manifests');
+            const manifestsSubDir = path.join(manifestsRoot, 'a');
+            const mainManifestPath = path.join(complexExtensionPath, 'azure-devops-extension.json');
+            const secondaryManifestPath = path.join(manifestsSubDir, 'manifest-a.json');
+
+            const manifestsRootParent = path.dirname(manifestsRoot);
+            if (!fs.existsSync(manifestsRootParent)) {
+                fs.mkdirSync(manifestsRootParent);
+            }
+            if (!fs.existsSync(manifestsRoot)) {
+                fs.mkdirSync(manifestsRoot);
+            }
+            if (!fs.existsSync(manifestsSubDir)) {
+                fs.mkdirSync(manifestsSubDir);
+            }
+
+            const primaryManifest = {
+                "manifestVersion": 1,
+                "id": "glob-test-extension",
+                "publisher": "glob-test-publisher",
+                "version": "1.0.0",
+                "name": "Glob Test Extension",
+                "categories": "Azure Boards",
+                "scopes": [
+                    "vso.analytics"
+                ],
+                "targets": [
+                    { "id": "Microsoft.VisualStudio.Services" }
+                ],
+                "contributions": [
+                    {
+                        "id": "glob-test-hub",
+                        "type": "ms.vss-web.hub",
+                        "targets": ["ms.vss-web.project-hub-group"],
+                        "properties": {
+                            "name": "Glob Test Hub"
+                        }
+                    }
+                ]
+            };
+            fs.writeFileSync(mainManifestPath, JSON.stringify(primaryManifest, null, 2));
+
+            const secondaryManifest = {
+                "scopes": [
+                    "vso.work"
+                ]
+            };
+            fs.writeFileSync(secondaryManifestPath, JSON.stringify(secondaryManifest, null, 2));
+
+            const manifestGlobsArg = 'azure-devops-extension.json dist/Manifests/**/manifest-*.json';
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension create --root "${complexExtensionPath}" --output-path "${outputPath}" --manifest-globs ${manifestGlobsArg}`,
+                'extension create --manifest-globs glob patterns'
+            )
+                .then(({ stdout }) => {
+                    const cleanOutput = stripColors(stdout);
+                    assert(cleanOutput.includes('Completed operation: create extension'), 'Should handle manifest-globs with glob patterns');
+                    assert(fs.existsSync(outputPath), 'Should create .vsix file');
+
+                    // Read extension.vsomanifest (JSON) from VSIX and validate scopes
+                    const zip = new AdmZip(outputPath);
+                    const vsomanifestEntry =
+                        zip.getEntry('extension.vsomanifest') ||
+                        zip.getEntry('extension/extension.vsomanifest');
+                    assert(vsomanifestEntry, 'VSIX must contain extension.vsomanifest');
+
+                    const vsomanifestJson = JSON.parse(vsomanifestEntry.getData().toString('utf8'));
+                    const scopes: string[] = vsomanifestJson.scopes || [];
+
+                    assert(scopes.indexOf('vso.analytics') !== -1, 'Resulting manifest should contain vso.analytics scope');
+                    assert(scopes.indexOf('vso.work') !== -1, 'Resulting manifest should contain vso.work scope');
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should resolve manifest-globs to both root and globbed manifests (gatherManifests)', function (done) {
+            const complexExtensionPath = path.join(samplesPath, 'complex-extension');
+            if (!fs.existsSync(complexExtensionPath)) {
+                console.log('Skipping gatherManifests test - sample not found');
+                done();
+                return;
+            }
+
+            const manifestsRoot = path.join(complexExtensionPath, 'dist', 'Manifests');
+            const manifestsSubDir = path.join(manifestsRoot, 'a');
+            const mainManifestPath = path.join(complexExtensionPath, 'azure-devops-extension.json');
+            const secondaryManifestPath = path.join(manifestsSubDir, 'manifest-a.json');
+
+            const manifestsRootParent = path.dirname(manifestsRoot);
+            if (!fs.existsSync(manifestsRootParent)) {
+                fs.mkdirSync(manifestsRootParent);
+            }
+            if (!fs.existsSync(manifestsRoot)) {
+                fs.mkdirSync(manifestsRoot);
+            }
+            if (!fs.existsSync(manifestsSubDir)) {
+                fs.mkdirSync(manifestsSubDir);
+            }
+
+            const primaryManifest = {
+                "manifestVersion": 1,
+                "id": "glob-test-extension-gather",
+                "publisher": "glob-test-publisher",
+                "version": "1.0.0",
+                "name": "Glob Test Extension Gather",
+                "categories": "Azure Boards",
+                "scopes": [
+                    "vso.analytics"
+                ],
+                "targets": [
+                    { "id": "Microsoft.VisualStudio.Services" }
+                ],
+                "contributions": [
+                    {
+                        "id": "glob-test-hub-gather",
+                        "type": "ms.vss-web.hub",
+                        "targets": ["ms.vss-web.project-hub-group"],
+                        "properties": {
+                            "name": "Glob Test Hub Gather"
+                        }
+                    }
+                ]
+            };
+            fs.writeFileSync(mainManifestPath, JSON.stringify(primaryManifest, null, 2));
+
+            const secondaryManifest = {
+                "scopes": [
+                    "vso.work"
+                ]
+            };
+            fs.writeFileSync(secondaryManifestPath, JSON.stringify(secondaryManifest, null, 2));
+
+            const mergerModulePath = path.resolve(__dirname, '../../_build/exec/extension/_lib/merger');
+            let MergerCtor: any;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                MergerCtor = require(mergerModulePath).Merger || require(mergerModulePath).default;
+            } catch (e) {
+                done(e);
+                return;
+            }
+
+            const settings: any = {
+                root: complexExtensionPath,
+                manifests: [],
+                manifestGlobs: [
+                    'azure-devops-extension.json',
+                    'dist/Manifests/**/manifest-*.json'
+                ],
+                overrides: {},
+                noPrompt: true
+            };
+
+            const merger = new MergerCtor(settings);
+            const gatherFn = (merger as any)['gatherManifests'];
+            if (typeof gatherFn !== 'function') {
+                done(new Error('Merger.gatherManifests is not accessible'));
+                return;
+            }
+
+            Promise.resolve(gatherFn.call(merger))
+                .then((manifestPaths: string[]) => {
+                    assert(Array.isArray(manifestPaths) && manifestPaths.length >= 2, 'gatherManifests should return at least two manifests');
+
+                    const normalizedPaths = manifestPaths.map(p => path.normalize(p));
+                    const expectedMain = path.normalize(mainManifestPath);
+                    const expectedSecondary = path.normalize(secondaryManifestPath);
+
+                    assert(normalizedPaths.indexOf(expectedMain) !== -1, 'gatherManifests should include root manifest');
+                    assert(normalizedPaths.indexOf(expectedSecondary) !== -1, 'gatherManifests should include globbed manifest');
                     done();
                 })
                 .catch(done);
