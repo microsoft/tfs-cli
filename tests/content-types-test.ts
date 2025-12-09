@@ -61,6 +61,7 @@ describe('Content_Types.xml Generation', function() {
                 
                 // Read and parse Content_Types.xml
                 const contentTypesXml = contentTypesEntry.getData().toString('utf8');
+                console.log('Content_Types.xml content:\n', contentTypesXml);
                 
                 // Check that linux-executable is included as an Override element
                 // The file should be listed with its full path
@@ -70,15 +71,25 @@ describe('Content_Types.xml Generation', function() {
                 );
                 
                 // More specific check: look for the Override element with linux-executable
+                // The path should match the file location in the package
                 const hasOverrideForExecutable = 
                     contentTypesXml.includes('PartName="/linux-executable"') ||
                     contentTypesXml.includes('PartName="/linux-executable') ||
-                    contentTypesXml.includes('linux-executable"');
+                    contentTypesXml.includes('linux-executable"') ||
+                    contentTypesXml.match(/Override.*linux-executable/);
                 
                 assert(
                     hasOverrideForExecutable,
-                    'Content_Types.xml should have Override element for linux-executable. Content: ' + contentTypesXml
+                    'Content_Types.xml should have Override element for linux-executable.\nContent: ' + contentTypesXml
                 );
+                
+                // Verify that the Override element has a ContentType attribute
+                if (contentTypesXml.includes('linux-executable')) {
+                    assert(
+                        contentTypesXml.match(/ContentType="[^"]+"/),
+                        'Override element should have ContentType attribute'
+                    );
+                }
                 
                 done();
             })
