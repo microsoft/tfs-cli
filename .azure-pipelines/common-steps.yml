@@ -6,9 +6,9 @@ steps:
     clean: true
 
   - task: UseNode@1
-    displayName: Use Node 16
+    displayName: Use Node 20
     inputs:
-      version: "16.x"
+      version: "20.x"
 
   - task: NpmAuthenticate@0
     inputs:
@@ -16,12 +16,6 @@ steps:
 
   - script: npm i -g npm@8.19.4 --force
     displayName: Use npm version 8.19.4
-
-  - bash: |
-      cd packages/tfs-mock-server
-      npm ci
-      npm run build
-    displayName: Install and Build Mock Server
 
   - bash: |
       npm ci
@@ -34,7 +28,6 @@ steps:
       export TFX_TRACE="$TFX_TRACE"
       npm run test:ci
     displayName: Run Tests
-    continueOnError: true
 
   - task: PublishTestResults@2
     displayName: Publish Test Results
