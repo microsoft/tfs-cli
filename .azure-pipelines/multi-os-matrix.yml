@@ -17,21 +17,21 @@ stages:
       displayName: Run tests on all Node/OS combinations
       strategy:
         matrix:
-          windows_node16:
+          windows_node24:
             imageName: 'windows-2022'
-            nodeVersion: '16.x'
+            nodeVersion: '24.x'
           windows_node20:
             imageName: 'windows-2022'
             nodeVersion: '20.x'
-          ubuntu_node16:
+          ubuntu_node24:
             imageName: 'ubuntu-24.04'
-            nodeVersion: '16.x'
+            nodeVersion: '24.x'
           ubuntu_node20:
             imageName: 'ubuntu-24.04'
             nodeVersion: '20.x'
-          macos_node16:
+          macos_node24:
             imageName: 'macos-14'
-            nodeVersion: '16.x'
+            nodeVersion: '24.x'
           macos_node20:
             imageName: 'macos-14'
             nodeVersion: '20.x'
@@ -47,28 +47,8 @@ stages:
         - task: NpmAuthenticate@0
           inputs:
             workingFile: .npmrc
-        - script: |
-            if [[ "$(nodeVersion)" =~ ^(10|12|14|16|18) ]]; then
-              npm i -g npm@8.19.4 --force
-              npm --version
-            else
-              npm i -g npm@10 --force
-              npm --version
-            fi
-          displayName: Use compatible npm version for Node (Linux/macOS)
-          condition: ne( variables['Agent.OS'], 'Windows_NT' )
-        - script: |
-            if "%nodeVersion%" == "16.x" (
-              npm i -g npm@8.19.4 --force
-              npm --version
-            ) else if "%nodeVersion%" == "20.x" (
-              npm i -g npm@10 --force
-              npm --version
-            ) else (
-              npm --version
-            )
-          displayName: Use compatible npm version for Node (Windows)
-          condition: eq( variables['Agent.OS'], 'Windows_NT' )
+        - script: npm i -g npm@latest --force
+          displayName: Use latest npm version
         - script: npm ci
           displayName: npm ci
         - script: npm run build
