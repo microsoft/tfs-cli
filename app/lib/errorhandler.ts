@@ -1,25 +1,53 @@
 import trace = require("./trace");
 
 /**
- * Extracts a readable error message from an AggregateError or returns null if not applicable.
- * AggregateError contains an 'errors' array with the individual errors.
+ * Formats any error type into a readable string message.
+ * Handles AggregateError, Error, strings, objects, and other types.
  */
-function formatAggregateError(err: any): string | null {
+function formatError(err: any): string {
+	// Handle AggregateError (from Promise.all/Promise.any failures)
 	if (err && err.name === "AggregateError" && Array.isArray(err.errors)) {
-		const messages = err.errors.map((e: any, index: number) => {
-			if (typeof e === "string") {
-				return `  [${index + 1}] ${e}`;
-			} else if (e instanceof Error) {
-				return `  [${index + 1}] ${e.message}`;
-			} else if (typeof e === "object" && e.message) {
-				return `  [${index + 1}] ${e.message}`;
-			} else {
-				return `  [${index + 1}] ${String(e)}`;
-			}
-		});
+		const messages = err.errors.map((e: any, index: number) => 
+			`  [${index + 1}] ${formatError(e)}`
+		);
 		return `Multiple errors occurred:\n${messages.join("\n")}`;
 	}
-	return null;
+	
+	// Handle plain strings
+	if (typeof err === "string") {
+		return err;
+	}
+	
+	// Handle Error instances - use toString() to preserve "Error: message" format
+	if (err instanceof Error) {
+		return err.toString();
+	}
+	
+	// Handle objects with a custom toString method (not the default Object.prototype.toString)
+	if (err !== null && typeof err === "object" && typeof err.toString === "function" && err.toString !== Object.prototype.toString) {
+		const result = err.toString();
+		// Make sure it's not returning "[object Object]" (the default)
+		if (result !== "[object Object]") {
+			return result;
+		}
+	}
+	
+	// Handle objects with a message property (error-like objects)
+	if (typeof err?.message === "string") {
+		return err.message;
+	}
+	
+	// Handle plain objects - try JSON serialization
+	if (typeof err === "object" && err !== null) {
+		try {
+			return JSON.stringify(err, null, 2);
+		} catch (e) {
+			return String(err);
+		}
+	}
+	
+	// Fallback for any other type
+	return String(err);
 }
 
 export function httpErr(obj): any {
@@ -61,25 +89,8 @@ export function httpErr(obj): any {
 	}
 }
 
-export function errLog(arg) {
-	// Check for AggregateError first (from Promise.all/Promise.any failures)
-	const aggregateMessage = formatAggregateError(arg);
-	if (aggregateMessage) {
-		trace.debug(arg.stack);
-		trace.error(aggregateMessage);
-	} else if (typeof arg === "string") {
-		trace.error(arg);
-	} else if (typeof arg.toString === "function") {
-		trace.debug(arg.stack);
-		trace.error(arg.toString());
-	} else if (typeof arg === "object") {
-		try {
-			trace.error(JSON.parse(arg));
-		} catch (e) {
-			trace.error(arg);
-		}
-	} else {
-		trace.error(arg);
-	}
+export function errLog(arg: any): void {
+	trace.debug(arg?.stack);
+	trace.error(formatError(arg));
 	process.exit(-1);
 }
