@@ -1,5 +1,27 @@
 import trace = require("./trace");
 
+/**
+ * Extracts a readable error message from an AggregateError or returns null if not applicable.
+ * AggregateError contains an 'errors' array with the individual errors.
+ */
+function formatAggregateError(err: any): string | null {
+	if (err && err.name === "AggregateError" && Array.isArray(err.errors)) {
+		const messages = err.errors.map((e: any, index: number) => {
+			if (typeof e === "string") {
+				return `  [${index + 1}] ${e}`;
+			} else if (e instanceof Error) {
+				return `  [${index + 1}] ${e.message}`;
+			} else if (typeof e === "object" && e.message) {
+				return `  [${index + 1}] ${e.message}`;
+			} else {
+				return `  [${index + 1}] ${String(e)}`;
+			}
+		});
+		return `Multiple errors occurred:\n${messages.join("\n")}`;
+	}
+	return null;
+}
+
 export function httpErr(obj): any {
 	let errorAsObj = obj;
 	if (typeof errorAsObj === "string") {
@@ -40,7 +62,12 @@ export function httpErr(obj): any {
 }
 
 export function errLog(arg) {
-	if (typeof arg === "string") {
+	// Check for AggregateError first (from Promise.all/Promise.any failures)
+	const aggregateMessage = formatAggregateError(arg);
+	if (aggregateMessage) {
+		trace.debug(arg.stack);
+		trace.error(aggregateMessage);
+	} else if (typeof arg === "string") {
 		trace.error(arg);
 	} else if (typeof arg.toString === "function") {
 		trace.debug(arg.stack);

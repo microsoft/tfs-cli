@@ -1,5 +1,6 @@
 import { TfCommand } from "../../lib/tfcommand";
 import args = require("../../lib/arguments");
+import errHandler = require("../../lib/errorhandler");
 import extBase = require("./default");
 import extInfo = require("./_lib/extensioninfo");
 import trace = require("../../lib/trace");
@@ -56,7 +57,7 @@ export class ExtensionShare extends extBase.ExtensionBase<string[]> {
 				return this.commandArgs.unshareWith.val().then(unshareWith => {
 					let sharePromises: Promise<void>[] = [];
 					unshareWith.forEach(account => {
-						sharePromises.push(galleryApi.unshareExtension(extInfo.publisher, extInfo.id, account));
+						sharePromises.push(galleryApi.unshareExtension(extInfo.publisher, extInfo.id, account).catch(errHandler.httpErr));
 					});
 					return Promise.all(sharePromises).then(() => {
 						return unshareWith;
