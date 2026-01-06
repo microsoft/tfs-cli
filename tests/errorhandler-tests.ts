@@ -320,3 +320,117 @@ describe('AggregateError in Promise.all scenarios', function() {
     });
 });
 
+describe('Share/Unshare error scenarios - Exit code verification', function() {
+    this.timeout(10000);
+
+    let capturedErrors: string[] = [];
+    let originalProcessExit: typeof process.exit;
+    let exitCalled: boolean = false;
+    let exitCode: number | undefined;
+    let errHandler: any;
+    let trace: any;
+
+    before(function() {
+        errHandler = require('../../_build/lib/errorhandler');
+        trace = require('../../_build/lib/trace');
+    });
+
+    beforeEach(function() {
+        capturedErrors = [];
+        exitCalled = false;
+        exitCode = undefined;
+
+        trace.error = function(msg: any) {
+            if (typeof msg === 'string') {
+                capturedErrors.push(msg);
+            } else {
+                capturedErrors.push(String(msg));
+            }
+        };
+        trace.debug = function() {};
+
+        originalProcessExit = process.exit;
+        (process as any).exit = function(code?: number) {
+            exitCalled = true;
+            exitCode = code;
+        };
+    });
+
+    afterEach(function() {
+        process.exit = originalProcessExit;
+    });
+
+    it('should exit with code -1 when share operation fails with AggregateError', function() {
+        // Simulate AggregateError from multiple share failures
+        const aggregateError = new AggregateError(
+            [
+                'Organization "org1" not found or access denied',
+                'Organization "org2" not found or access denied'
+            ],
+            'Share operations failed'
+        );
+
+        errHandler.errLog(aggregateError);
+
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for share failures');
+        
+        const errorOutput = capturedErrors.join('\n');
+        assert(errorOutput.includes('Multiple errors occurred'), 'should show formatted error');
+        assert(errorOutput.includes('org1'), 'should include first org error');
+        assert(errorOutput.includes('org2'), 'should include second org error');
+    });
+
+    it('should exit with code -1 when unshare operation fails with AggregateError', function() {
+        // Simulate AggregateError from multiple unshare failures
+        const aggregateError = new AggregateError(
+            [
+                new Error('Failed to unshare with account1'),
+                new Error('Failed to unshare with account2')
+            ],
+            'Unshare operations failed'
+        );
+
+        errHandler.errLog(aggregateError);
+
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for unshare failures');
+        
+        const errorOutput = capturedErrors.join('\n');
+        assert(errorOutput.includes('Multiple errors occurred'), 'should show formatted error');
+        assert(errorOutput.includes('account1'), 'should include first account error');
+        assert(errorOutput.includes('account2'), 'should include second account error');
+    });
+
+    it('should exit with code -1 when single share operation fails', function() {
+        // Simulate regular Error from single share failure
+        const error = new Error('Organization "single-org" not found');
+
+        errHandler.errLog(error);
+
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for single share failure');
+    });
+
+    it('should exit with code -1 when HTTP error occurs during share/unshare', function() {
+        // Simulate HTTP 401 error that gets thrown by httpErr
+        errHandler.errLog('Received response 401 (Not Authorized). Check that your personal access token is correct and hasn\'t expired.');
+
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for HTTP errors');
+        
+        const errorOutput = capturedErrors.join('\n');
+        assert(errorOutput.includes('401'), 'should include 401 status');
+    });
+
+    it('should exit with code -1 when HTTP 403 error occurs during share/unshare', function() {
+        // Simulate HTTP 403 error
+        errHandler.errLog('Received response 403 (Forbidden). Check that you have access to this resource.');
+
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for 403 errors');
+        
+        const errorOutput = capturedErrors.join('\n');
+        assert(errorOutput.includes('403'), 'should include 403 status');
+    });
+});
