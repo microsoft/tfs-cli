@@ -1,0 +1,26 @@
+{
+    "manifestVersion": 1,
+    "id": "extensionless-exec-test",
+    "name": "Extensionless Executable Test",
+    "version": "1.0.0",
+    "publisher": "test-publisher",
+    "description": "Test extension with extensionless Linux executable",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "files": [
+        {
+            "path": "linux-executable",
+            "addressable": true
+        },
+        {
+            "path": "README.md",
+            "addressable": true
+        }
+    ]
+}
