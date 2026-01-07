@@ -58,7 +58,7 @@ export class Merger {
 			trace.debug("merger.gatherManifestsFromGlob");
 			const resultsArrays = await Promise.all(patterns.map(pattern => glob(pattern, { cwd: this.settings.root })));
 			const relativeResults = _.uniq(_.flatten<string>(resultsArrays));
-			const results = relativeResults.map(p => path.join(this.settings.root, p));
+			const results = relativeResults.map(p => (path.isAbsolute(p) ? p : path.join(this.settings.root, p)));
 
 			if (results.length > 0) {
 				trace.debug("Merging %s manifests from the following paths: ", results.length.toString());
