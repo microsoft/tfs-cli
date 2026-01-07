@@ -73,6 +73,32 @@ Examples of valid URLs are:
 * `https://marketplace.visualstudio.com`
 * `https://youraccount.visualstudio.com/DefaultCollection`
 
+#### Environment variable
+
+You can also authenticate using the `AZURE_DEVOPS_TOKEN` environment variable instead of storing credentials or passing them via command-line arguments:
+
+**Linux/OSX:**
+```bash
+export AZURE_DEVOPS_TOKEN=your-pat-token-here
+tfx extension show --publisher your-publisher --extension-id your-extension
+```
+
+**Windows:**
+```bash
+set AZURE_DEVOPS_TOKEN=your-pat-token-here
+tfx extension show --publisher your-publisher --extension-id your-extension
+```
+
+**PowerShell:**
+```bash
+$env:AZURE_DEVOPS_TOKEN="your-pat-token-here"
+tfx extension show --publisher your-publisher --extension-id your-extension
+```
+
+#### Token from stdin
+
+For enhanced security in CI/CD pipelines or when working with secret management tools, you can pass your token via stdin using the `--token-from-stdin` parameter. This prevents the token from appearing in shell history or process listings. See [Token from stdin](docs/token-from-stdin.md) for more details.
+
 #### Basic auth
 
 You can also use basic authentication by passing the `--auth-type basic` parameter (see [Configuring Basic Auth](docs/configureBasicAuth.md) for details).

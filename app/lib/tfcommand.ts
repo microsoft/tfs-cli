@@ -28,6 +28,7 @@ export interface CoreArguments {
 	serviceUrl: args.StringArgument;
 	password: args.SilentStringArgument;
 	token: args.SilentStringArgument;
+	tokenFromStdin: args.StdinStringArgument;
 	save: args.BooleanArgument;
 	username: args.StringArgument;
 	output: args.StringArgument;
@@ -73,27 +74,37 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	protected initialize(): Promise<Executor<any>> {
 		// First validate arguments, then proceed with help or normal execution
 		this.initialized = this.validateArguments().then(() => {
+			// Check for mutually exclusive authentication arguments
+			const groupedArgs = this.getGroupedArgs();
+			const hasToken = groupedArgs["token"] !== undefined || groupedArgs["-t"] !== undefined;
+			const hasTokenFromStdin = groupedArgs["tokenFromStdin"] !== undefined;
+			
+			if (hasToken && hasTokenFromStdin) {
+				trace.error("The arguments --token and --token-from-stdin are mutually exclusive. Please use only one.");
+				this.commandArgs.help.setValue(true);
+			}
+			
 			return this.commandArgs.help.val().then(needHelp => {
 				if (needHelp) {
 					return this.run.bind(this, this.getHelp.bind(this));
 				} else {
-				// Set the fiddler proxy
-				return this.commandArgs.fiddler
-					.val()
-					.then(useProxy => {
-						if (useProxy) {
-							process.env.HTTP_PROXY = "http://127.0.0.1:8888";
-						}
-					})
-					.then(() => {
-						// Set custom proxy
-						return this.commandArgs.proxy.val(true).then(proxy => {
-							if (proxy) {
-								process.env.HTTP_PROXY = proxy;
+					// Set the fiddler proxy
+					return this.commandArgs.fiddler
+						.val()
+						.then(useProxy => {
+							if (useProxy) {
+								process.env.HTTP_PROXY = "http://127.0.0.1:8888";
 							}
-						});
-					})
-					.then(() => {
+						})
+						.then(() => {
+							// Set custom proxy
+							return this.commandArgs.proxy.val(true).then(proxy => {
+								if (proxy) {
+									process.env.HTTP_PROXY = proxy;
+								}
+							});
+						})
+						.then(() => {
 						// Set the no-prompt flag
 						return this.commandArgs.noPrompt.val(true).then(noPrompt => {
 							common.NO_PROMPT = noPrompt;
@@ -316,6 +327,12 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		);
 		this.registerCommandArgument(["token", "-t"], "Personal access token", null, args.SilentStringArgument);
 		this.registerCommandArgument(
+			["tokenFromStdin"],
+			"Read token from stdin",
+			"Read the personal access token from stdin instead of prompting.",
+			args.StdinStringArgument,
+		);
+		this.registerCommandArgument(
 			["save"],
 			"Save settings",
 			"Save arguments for the next time a command in this command group is run.",
@@ -404,64 +421,87 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * Else, check the authType - if it is "pat", prompt for a token
 	 * If it is "basic", prompt for username and password.
 	 */
-	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
-		return Promise.all([
+	protected async getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
+		const [authTypeValue, tokenArg, tokenFromStdin, username, password] = await Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
+			this.commandArgs.tokenFromStdin.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true),
-		]).then(values => {
-			const [authType, token, username, password] = values;
-			if (username && password) {
-				return getBasicHandler(username, password);
-			} else {
-				if (token) {
-					return getBasicHandler("OAuth", token);
-				} else {
-					let getCredentialPromise;
-					if (useCredStore) {
-						getCredentialPromise = getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
-					} else {
-						getCredentialPromise = Promise.reject("not using cred store.");
-					}
-					return getCredentialPromise
-						.then((credString: string) => {
-							if (credString.length <= 6) {
-								throw "Could not get credentials from credential store.";
-							}
-							if (credString.substr(0, 3) === "pat") {
-								return getBasicHandler("OAuth", credString.substr(4));
-							} else if (credString.substr(0, 5) === "basic") {
-								let rest = credString.substr(6);
-								let unpwDividerIndex = rest.indexOf(":");
-								let username = rest.substr(0, unpwDividerIndex);
-								let password = rest.substr(unpwDividerIndex + 1);
-								if (username && password) {
-									return getBasicHandler(username, password);
-								} else {
-									throw "Could not get credentials from credential store.";
-								}
-							}
-						})
-						.catch(() => {
-							if (authType.toLowerCase() === "pat") {
-								return this.commandArgs.token.val().then(token => {
-									return getBasicHandler("OAuth", token);
-								});
-							} else if (authType.toLowerCase() === "basic") {
-								return this.commandArgs.username.val().then(username => {
-									return this.commandArgs.password.val().then(password => {
-										return getBasicHandler(username, password);
-									});
-								});
-							} else {
-								throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
-							}
-						});
-				}
+		]);
+
+		if (username && password) {
+			return getBasicHandler(username, password) as BasicCredentialHandler;
+		}
+
+		let resolvedToken = tokenArg || tokenFromStdin;
+		if (!resolvedToken) {
+			const envToken = process.env.AZURE_DEVOPS_TOKEN;
+			if (envToken && envToken.trim()) {
+				resolvedToken = envToken.trim();
 			}
-		});
+		}
+		if (resolvedToken) {
+			return getBasicHandler("OAuth", resolvedToken) as BasicCredentialHandler;
+		}
+
+		if (useCredStore) {
+			const storedCredentials = await this.tryGetCredentialFromStore(serviceUrl);
+			if (storedCredentials) {
+				return storedCredentials;
+			}
+		}
+
+		return this.promptForCredentials(authTypeValue);
 	}
+
+	protected async tryGetCredentialFromStore(serviceUrl: string): Promise<BasicCredentialHandler | undefined> {
+		try {
+			const credString = await getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
+			return this.parseCredentialString(credString);
+		} catch (err) {
+			trace.debug("Credential store lookup failed: %s", err && err.message ? err.message : err);
+			return undefined;
+		}
+	}
+
+	private parseCredentialString(credString: string): BasicCredentialHandler {
+		if (!credString || credString.length <= 6) {
+			throw new Error("Could not get credentials from credential store.");
+		}
+
+		if (credString.substr(0, 3) === "pat") {
+			return getBasicHandler("OAuth", credString.substr(4)) as BasicCredentialHandler;
+		}
+
+		if (credString.substr(0, 5) === "basic") {
+			const rest = credString.substr(6);
+			const dividerIndex = rest.indexOf(":");
+			const parsedUsername = rest.substr(0, dividerIndex);
+			const parsedPassword = rest.substr(dividerIndex + 1);
+			if (dividerIndex > 0 && parsedUsername && parsedPassword) {
+				return getBasicHandler(parsedUsername, parsedPassword) as BasicCredentialHandler;
+			}
+		}
+
+		throw new Error("Could not get credentials from credential store.");
+	}
+
+	private async promptForCredentials(authTypeValue?: string): Promise<BasicCredentialHandler> {
+		const normalizedAuthType = (authTypeValue || "").toLowerCase();
+		if (normalizedAuthType === "pat") {
+			const promptedToken = await this.commandArgs.token.val();
+			return getBasicHandler("OAuth", promptedToken) as BasicCredentialHandler;
+		}
+		if (normalizedAuthType === "basic") {
+			const promptedUsername = await this.commandArgs.username.val();
+			const promptedPassword = await this.commandArgs.password.val();
+			return getBasicHandler(promptedUsername, promptedPassword) as BasicCredentialHandler;
+		}
+		throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
+	}
+
+ 
 
 	public async getWebApi(options?: IRequestOptions): Promise<WebApi> {
 		// try to get value of skipCertValidation from cache
@@ -607,14 +647,13 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 						result += singleArgData(arg, maxArgLen);
 					});
 
-					if (this.serverCommand) {
-						result += eol + cyan("Global server command arguments:") + eol;
-						["authType", "username", "password", "token", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
-							result += singleArgData(arg, 11);
-						});
-					}
-
-					result += eol + cyan("Global arguments:") + eol;
+				if (this.serverCommand) {
+					result += eol + cyan("Global server command arguments:") + eol;
+					["authType", "username", "password", "token", "tokenFromStdin", "serviceUrl", "fiddler", "proxy", "skipCertValidation"].forEach(arg => {
+						result += singleArgData(arg, 16);
+					});
+					result += eol + gray("  Note: You can also authenticate using the AZURE_DEVOPS_TOKEN environment variable.") + eol;
+				}					result += eol + cyan("Global arguments:") + eol;
 					["help", "save", "noColor", "noPrompt", "output", "json", "traceLevel", "debugLogStream"].forEach(arg => {
 						result += singleArgData(arg, 9);
 					});
