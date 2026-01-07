@@ -19,7 +19,7 @@ extends:
 
     pool:
       name: 1ES-ABTT-Shared-Pool
-      image: abtt-windows-2022
+      image: abtt-windows-2025
       os: windows
     stages:
     - stage: Build
@@ -52,11 +52,11 @@ extends:
             displayName: Publish TFX CLI to npm
             condition: eq(variables['Build.SourceBranchName'], 'master')
 
-        # Install node 16 for CodeQL 3000
+        # Install node 20 for CodeQL 3000
         - task: NodeTool@0
-          displayName: Use node 16
+          displayName: Use node 20
           inputs:
-            versionSpec: "16.x"
+            versionSpec: "20.x"
     - stage: Release
       displayName: Release to Latest
       trigger: manual
@@ -68,9 +68,9 @@ extends:
               clean: true
           
             - task: NodeTool@0
-              displayName: Use node 16
+              displayName: Use node 20
               inputs:
-                versionSpec: "16.x"
+                versionSpec: "20.x"
             - script: npm i -g npm@8.19.4 --force
               displayName: Use npm version 8.19.4
             

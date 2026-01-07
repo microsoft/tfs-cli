@@ -569,6 +569,81 @@ describe('Extension Commands - Local Tests', function() {
                 })
                 .catch(done);
         });
+
+        // Test for issue #530: absolute paths in manifest-globs should not be double-joined with root
+        // https://github.com/microsoft/tfs-cli/issues/530
+        it('should handle absolute paths in manifest-globs without doubling the path (issue #530)', function (done) {
+            const complexExtensionPath = path.join(samplesPath, 'complex-extension');
+            if (!fs.existsSync(complexExtensionPath)) {
+                console.log('Skipping absolute path manifest-globs test - sample not found');
+                done();
+                return;
+            }
+
+            // Use the existing vss-extension.json file from the complex-extension sample
+            const mainManifestPath = path.join(complexExtensionPath, 'vss-extension.json');
+
+            const mergerModulePath = path.resolve(__dirname, '../../_build/exec/extension/_lib/merger');
+            let MergerCtor: any;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
+                MergerCtor = require(mergerModulePath).Merger || require(mergerModulePath).default;
+            } catch (e) {
+                done(e);
+                return;
+            }
+
+            // Use an ABSOLUTE path with forward slashes for the manifest glob.
+            // This simulates the Linux environment from issue #530 where the path is like:
+            // /mnt/vss/_work/1/a/validation/extension/azure-devops-extension.json
+            // The bug causes the path to be doubled like:
+            // /root/path/root/path/manifest.json instead of /root/path/manifest.json
+            // On Windows, we use forward slashes to trigger the same behavior.
+            const absoluteManifestPath = path.resolve(mainManifestPath).replace(/\\/g, '/');
+
+            const settings: any = {
+                root: complexExtensionPath,
+                manifests: [],
+                manifestGlobs: [
+                    absoluteManifestPath  // Absolute path with forward slashes passed to manifest-globs
+                ],
+                overrides: {},
+                noPrompt: true
+            };
+
+            const merger = new MergerCtor(settings);
+            const gatherFn = (merger as any)['gatherManifests'];
+            if (typeof gatherFn !== 'function') {
+                done(new Error('Merger.gatherManifests is not accessible'));
+                return;
+            }
+
+            Promise.resolve(gatherFn.call(merger))
+                .then((manifestPaths: string[]) => {
+                    assert(Array.isArray(manifestPaths) && manifestPaths.length === 1, 'gatherManifests should return exactly one manifest');
+
+                    const resultPath = path.normalize(manifestPaths[0]);
+                    const expectedPath = path.normalize(mainManifestPath);
+
+                    // The bug causes resultPath to be something like:
+                    // D:\tfs-cli\...\complex-extension\D:\tfs-cli\...\complex-extension\vss-extension.json
+                    // instead of just:
+                    // D:\tfs-cli\...\complex-extension\vss-extension.json
+                    assert(
+                        resultPath === expectedPath,
+                        `Absolute path in manifest-globs should not be doubled.\nExpected: ${expectedPath}\nActual: ${resultPath}`
+                    );
+
+                    // Additional check: the file should actually exist at the returned path
+                    assert(
+                        fs.existsSync(manifestPaths[0]),
+                        `Returned manifest path should point to an existing file: ${manifestPaths[0]}`
+                    );
+
+                    done();
+                })
+                .catch(done);
+        });
     });
 
     describe('Extension Creation - Complex Scenarios', function() {
