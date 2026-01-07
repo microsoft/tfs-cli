@@ -540,9 +540,11 @@ describe('Build Commands - Server Integration Tests', function() {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     console.log('[TEST] CLI error output:', errorOutput);
                     // Accept a range of possible network errors
+                    // Note: AggregateError is now formatted as "Multiple errors occurred:" with numbered items
                     assert(
                         errorOutput.includes('error: Error:') ||
-                        errorOutput.includes('error: AggregateError'),
+                        errorOutput.includes('error: AggregateError') ||
+                        errorOutput.includes('error: Multiple errors occurred:'),
                         'Should indicate a network or connection error for missing service URL'
                     );
                     done();
