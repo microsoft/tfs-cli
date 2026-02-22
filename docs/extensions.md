@@ -23,6 +23,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 * `--overrides-file`: Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.
 * `--rev-version`: Rev the latest version number of the extension and save the result.
 * `--bypass-validation`: Bypass local validation.
+* `--warnings-as-errors`: Treat task.json validation warnings as errors.
 * `--publisher`: Use this as the publisher ID instead of what is specified in the manifest.
 * `--extension-id`: Use this as the extension ID instead of what is specified in the manifest.
 * `--output-path`: Path to write the VSIX.
@@ -30,7 +31,7 @@ To learn more about TFX, its pre-reqs and how to install, see the [readme](../RE
 
 ### Examples
 
-#### Package for a different publisher 
+#### Package for a different publisher
 
 ```
 tfx extension create --publisher mypublisher --manifest-js myextension.config.js --env mode=production
@@ -113,6 +114,38 @@ tfx extension publish --publisher mypublisher --manifest-js myextension.config.j
 3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://docs.microsoft.com/azure/devops/extend/publish/command-line?view=vsts).
 
 
+## Validate an extension
+
+### Usage
+
+```
+tfx extension validate
+```
+
+### Arguments
+
+You can validate an extension from manifests (similar inputs to `extension create`):
+
+* `--root`: Root directory.
+* `--manifest-js`: Manifest in the form of a standard Node.js CommonJS module with an exported function. If present then the manifests and manifest-globs arguments are ignored.
+* `--env`: Environment variables passed to the manifestJs module.
+* `--manifests`: List of individual manifest files (space separated).
+* `--manifest-globs`: List of globs to find manifests (space separated).
+* `--override`: JSON string which is merged into the manifests, overriding any values.
+* `--overrides-file`: Path to a JSON file with overrides. This partial manifest will always take precedence over any values in the manifests.
+* `--warnings-as-errors`: Treat task.json validation warnings as errors.
+* `--publisher`: Use this as the publisher ID instead of what is specified in the manifest.
+* `--extension-id`: Use this as the extension ID instead of what is specified in the manifest.
+* `--loc-root`: Root of localization hierarchy (see README for more info).
+
+### Examples
+
+Validate from manifests:
+
+```
+tfx extension validate --root .
+```
+
 
 ## Other commands
 
@@ -120,6 +153,7 @@ tfx extension publish --publisher mypublisher --manifest-js myextension.config.j
 * `tfx extension show`: Show information about a published extension.
 * `tfx extension share`: Share an extension with an account.
 * `tfx extension unshare`: Unshare an extension with an account.
+* `tfx extension validate`: Validate an extension from manifests or VSIX without creating/publishing.
 * `tfx extension isvalid`: Checks if an extension is valid.
 
 For more details on a specific command, run:

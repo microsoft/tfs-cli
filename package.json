@@ -48,6 +48,7 @@
     "glob": "^11.1.0",
     "jju": "^1.4.0",
     "json-in-place": "^1.0.1",
+    "json-source-map": "^0.6.1",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "minimist": "^1.2.6",

@@ -281,10 +281,17 @@ export class Merger {
 						if (validationResult.length === 0 || this.settings.bypassValidation) {
 							return components;
 						} else {
-							throw new Error(
+							const validationErr: any = new Error(
 								"There were errors with your extension. Address the following and re-run the tool.\n" +
 									validationResult,
 							);
+							validationErr.validationIssues = validationResult.map(message => ({
+								file: null,
+								line: null,
+								col: null,
+								message: message,
+							}));
+							throw validationErr;
 						}
 					});
 				});
@@ -397,6 +404,12 @@ export class Merger {
 	}
 
 	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
+		const warnings: string[] = [];
+		const addWarning = (message: string) => {
+			warnings.push(message);
+			trace.warn(message);
+		};
+
 		try {
 			// Filter contributions to only build tasks
 			const buildTaskContributions = contributions.filter(contrib =>
@@ -440,22 +453,24 @@ export class Merger {
 							}
 						}
 					} catch (err) {
-						trace.warn(`Error reading task directory ${absoluteTaskPath}: ${err}`);
+						addWarning(`Error reading task directory ${absoluteTaskPath}: ${err}`);
 					}
 				}
 
 				// Validate task.json files for this contribution with backwards compatibility checking
 				if (contributionTaskJsonPaths.length > 0) {
 					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
-					
+
 					for (const taskJsonPath of contributionTaskJsonPaths) {
 						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
 					}
-					
+
 					// Also collect for global tracking if needed
 					allTaskJsonPaths.push(...contributionTaskJsonPaths);
 				} else {
-					trace.warn(`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`);
+					addWarning(
+						`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`,
+					);
 				}
 			}
 
@@ -466,11 +481,33 @@ export class Merger {
 
 			trace.debug(`Successfully validated ${allTaskJsonPaths.length} task.json files across ${buildTaskContributions.length} build task contributions`);
 
+			if (this.settings.warningsAsErrors && warnings.length > 0) {
+				const warningsAsErrorsErr: any = new Error(
+					"Task.json validation produced warnings. Re-run without --warnings-as-errors to treat them as warnings only.\n" +
+						warnings.join("\n"),
+				);
+				warningsAsErrorsErr.validationIssues = warnings.map(message => ({
+					file: null,
+					line: null,
+					col: null,
+					message: message,
+				}));
+				throw warningsAsErrorsErr;
+			}
+
 		} catch (err) {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
-			trace.warn(err && err instanceof Error
-				? warningMessage + err.message
-				: `Error occurred while validating build task contributions. ${warningMessage}`);
+			if (this.settings.warningsAsErrors) {
+				if (err && err instanceof Error) {
+					throw err;
+				}
+				throw new Error("Error occurred while validating build task contributions.");
+			}
+			trace.warn(
+				err && err instanceof Error
+					? warningMessage + err.message
+					: `Error occurred while validating build task contributions. ${warningMessage}`,
+			);
 		}
 	}
 }

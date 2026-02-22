@@ -34,11 +34,20 @@ export class ComposerFactory {
 					break;
 				default:
 					if (!settings.bypassValidation) {
-						throw new Error(
+						const message =
 							"'" +
-								target.id +
-								"' is not a recognized target. Valid targets are 'Microsoft.VisualStudio.Services', 'Microsoft.VisualStudio.Services.Integration', 'Microsoft.VisualStudio.Offer'",
-						);
+							target.id +
+							"' is not a recognized target. Valid targets are 'Microsoft.VisualStudio.Services', 'Microsoft.VisualStudio.Services.Integration', 'Microsoft.VisualStudio.Offer'";
+						const err: any = new Error(message);
+						err.validationIssues = [
+							{
+								file: null,
+								line: null,
+								col: null,
+								message: message,
+							},
+						];
+						throw err;
 					}
 					break;
 			}

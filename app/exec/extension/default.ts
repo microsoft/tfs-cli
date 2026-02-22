@@ -50,6 +50,7 @@ export interface ExtensionArguments extends CoreArguments {
 	unshareWith: args.ArrayArgument;
 	version: args.StringArgument;
 	vsix: args.ReadableFilePathsArgument;
+	warningsAsErrors: args.BooleanArgument;
 	zipUri: args.StringArgument;
 }
 
@@ -133,7 +134,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"shareWith",
 			"Share with",
 			"List of Azure DevOps organization(s) with which to share the extension (space separated).",
-			args.ArrayArgument, 
+			args.ArrayArgument,
 			null,
 		);
 		this.registerCommandArgument(
@@ -151,6 +152,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		);
 		this.registerCommandArgument("bypassScopeCheck", "Bypass scope check", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
+		this.registerCommandArgument(
+			"warningsAsErrors",
+			"Warnings as errors",
+			"Treat task.json validation warnings as errors.",
+			args.BooleanArgument,
+			"false",
+		);
 		this.registerCommandArgument(
 			"locRoot",
 			"Localization root",
@@ -196,6 +204,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.overridesFile.val(),
 			this.commandArgs.revVersion.val(),
 			this.commandArgs.bypassValidation.val(),
+			this.commandArgs.warningsAsErrors.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true),
 			this.commandArgs.json5.val(true),
@@ -211,6 +220,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				overridesFile,
 				revVersion,
 				bypassValidation,
+				warningsAsErrors,
 				publisher,
 				extensionId,
 				json5,
@@ -251,6 +261,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,
 					bypassValidation: bypassValidation,
+					warningsAsErrors: warningsAsErrors,
 					revVersion: revVersion,
 					json5: json5,
 				};

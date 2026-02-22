@@ -136,8 +136,8 @@ export interface MergeSettings {
 	root: string;
 
 	/*
-	 * Manifest in the form of a standard Node.js CommonJS module with an exported function.  
-	 * The function takes an environment as a parameter and must return the manifest JSON object.  
+	 * Manifest in the form of a standard Node.js CommonJS module with an exported function.
+	 * The function takes an environment as a parameter and must return the manifest JSON object.
 	 * Environment variables are specified with the env command line parameter.
 	 * If this is present then manifests and manifestGlobs are ignored.
 	 */
@@ -183,6 +183,11 @@ export interface MergeSettings {
 	 * which supports comments, unquoted keys, etc.
 	 */
 	json5: boolean;
+
+	/**
+	 * If true, task.json validation warnings are treated as errors.
+	 */
+	warningsAsErrors?: boolean;
 }
 
 export interface PackageSettings {
@@ -237,6 +242,15 @@ export interface PublishSettings {
 	 * If true, publish will not halt in the event of requiring new scopes.
 	 */
 	bypassScopeCheck?: boolean;
+}
+
+/**
+ * Common extension identity/version metadata.
+ */
+export interface ExtensionVersionInfo {
+	extensionId: string;
+	version: string;
+	publisher: string;
 }
 
 /*** Types related to localized resources ***/

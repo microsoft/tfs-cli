@@ -48,6 +48,7 @@ export class ExtensionPublish extends extBase.ExtensionBase<ExtensionPublishResu
 			"overridesFile",
 			"bypassScopeCheck",
 			"bypassValidation",
+			"warningsAsErrors",
 			"publisher",
 			"extensionId",
 			"outputPath",

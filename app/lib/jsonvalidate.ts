@@ -2,8 +2,16 @@ var fs = require("fs");
 import * as path from 'path';
 var check = require("validator");
 var trace = require("./trace");
+const jsonSourceMap = require("json-source-map");
 
 const deprecatedRunners = ["Node", "Node6", "Node10", "Node16"];
+
+export interface StructuredValidationIssue {
+  file: string | null;
+  line: number | null;
+  col: number | null;
+  message: string;
+}
 
 export interface TaskJson {
   id: string;
@@ -22,27 +30,57 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string,
   var jsonMissingErrorMsg: string = jsonMissingErrorMessage || "specified json file does not exist.";
   exists(jsonFilePath, jsonMissingErrorMsg);
 
+  const sourceText = fs.readFileSync(jsonFilePath, "utf8");
+
   var taskJson;
+  let pointers: any;
   try {
-    taskJson = require(jsonFilePath);
+    const parsed = jsonSourceMap.parse(sourceText);
+    taskJson = parsed.data;
+    pointers = parsed.pointers;
   } catch (jsonError) {
     trace.debug("Invalid task json: %s", jsonError);
-    throw new Error("Invalid task json: " + jsonError);
+    const err: any = new Error("Invalid task json: " + jsonError);
+    err.validationIssues = [{ file: jsonFilePath, line: null, col: null, message: "Invalid task json." }];
+    throw err;
   }
 
-  var issues: string[] = validateTask(jsonFilePath, taskJson);
+  const issues = validateTask(jsonFilePath, taskJson, pointers);
   if (issues.length > 0) {
     var output: string = "Invalid task json:";
     for (var i = 0; i < issues.length; i++) {
-      output += "\n\t" + issues[i];
+      output += "\n\t" + issues[i].message;
     }
     trace.debug(output);
-    throw new Error(output);
+    const err: any = new Error(output);
+    err.validationIssues = issues;
+    throw err;
   }
 
   trace.debug("Json is valid.");
   validateRunner(taskJson, allMatchedPaths);
   return taskJson;
+}
+
+function createIssue(file: string, message: string, line: number | null = null, col: number | null = null): StructuredValidationIssue {
+  return { file, line, col, message };
+}
+
+function escapeJsonPointerToken(token: string): string {
+  return token.replace(/~/g, "~0").replace(/\//g, "~1");
+}
+
+function pointerLocation(pointers: any, pointerPath: string): { line: number | null; col: number | null } {
+  if (!pointers || !pointers[pointerPath]) {
+    return { line: null, col: null };
+  }
+
+  const loc = pointers[pointerPath].key || pointers[pointerPath].value;
+  if (!loc || typeof loc.line !== "number" || typeof loc.column !== "number") {
+    return { line: null, col: null };
+  }
+
+  return { line: loc.line + 1, col: loc.column + 1 };
 }
 
 /*
@@ -112,32 +150,38 @@ export function validateRunner(taskData: any, allMatchedPaths?: string[]) {
  * @param taskData the parsed json file
   * @return list of issues with the json file
  */
-export function validateTask(taskPath: string, taskData: any): string[] {
+export function validateTask(taskPath: string, taskData: any, pointers: any): StructuredValidationIssue[] {
   var vn = taskData.name || taskPath;
-  var issues: string[] = [];
+  var issues: StructuredValidationIssue[] = [];
+
+  const rootLoc = pointerLocation(pointers, "");
+  const idLoc = pointerLocation(pointers, "/id");
+  const nameLoc = pointerLocation(pointers, "/name");
+  const friendlyNameLoc = pointerLocation(pointers, "/friendlyName");
+  const instanceNameFormatLoc = pointerLocation(pointers, "/instanceNameFormat");
 
   if (!taskData.id || !check.isUUID(taskData.id)) {
-    issues.push(vn + ": id is a required guid");
+    issues.push(createIssue(taskPath, "id is a required guid", idLoc.line ?? rootLoc.line, idLoc.col ?? rootLoc.col));
   }
 
   if (!taskData.name || !check.matches(taskData.name, /^[A-Za-z0-9\-]+$/)) {
-    issues.push(vn + ": name is a required alphanumeric string");
+    issues.push(createIssue(taskPath, "name is a required alphanumeric string", nameLoc.line ?? rootLoc.line, nameLoc.col ?? rootLoc.col));
   }
 
   if (!taskData.friendlyName || !check.isLength(taskData.friendlyName, 1, 40)) {
-    issues.push(vn + ": friendlyName is a required string <= 40 chars");
+    issues.push(createIssue(taskPath, "friendlyName is a required string <= 40 chars", friendlyNameLoc.line ?? rootLoc.line, friendlyNameLoc.col ?? rootLoc.col));
   }
 
   if (!taskData.instanceNameFormat) {
-    issues.push(vn + ": instanceNameFormat is required");
+    issues.push(createIssue(taskPath, "instanceNameFormat is required", instanceNameFormatLoc.line ?? rootLoc.line, instanceNameFormatLoc.col ?? rootLoc.col));
   }
 
-  issues.push(...validateAllExecutionHandlers(taskPath, taskData, vn));
+  issues.push(...validateAllExecutionHandlers(taskPath, taskData, vn, pointers));
 
   // Fix: Return issues array regardless of whether execution block exists or not
   // Previously this return was inside the if(taskData.execution) block, causing
   // tasks without execution configuration to return undefined instead of validation issues
-  return (issues.length > 0) ? [taskPath, ...issues] : [];
+  return issues;
 }
 
 /**
@@ -147,8 +191,8 @@ export function validateTask(taskPath: string, taskData: any): string[] {
    * @param vn Name of the task or path
    * @returns Array of issues found for all handlers
    */
-function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: string): string[] {
-  const issues: string[] = [];
+function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: string, pointers: any): StructuredValidationIssue[] {
+  const issues: StructuredValidationIssue[] = [];
   const executionProperties = ['execution', 'prejobexecution', 'postjobexecution'];
   const supportedRunners = ["Node", "Node10", "Node16", "Node20_1", "Node24", "PowerShell", "PowerShell3", "Process"];
   executionProperties.forEach(executionType => {
@@ -156,7 +200,7 @@ function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: strin
       Object.keys(taskData[executionType]).forEach(runner => {
         if (supportedRunners.indexOf(runner) === -1) return;
         const target = taskData[executionType][runner]?.target;
-        issues.push(...validateExecutionTarget(taskPath, vn, executionType, runner, target));
+        issues.push(...validateExecutionTarget(taskPath, vn, executionType, runner, target, pointers));
       });
     }
   });
@@ -172,10 +216,13 @@ function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: strin
  * @param target Execution handler's target
  * @returns Array of issues found for this runner
  */
-function validateExecutionTarget(taskPath: string, vn: string, executionType: string, runner: string, target: string | undefined): string[] {
-  const issues: string[] = [];
+function validateExecutionTarget(taskPath: string, vn: string, executionType: string, runner: string, target: string | undefined, pointers: any): StructuredValidationIssue[] {
+  const issues: StructuredValidationIssue[] = [];
+  const targetPointer = `/${escapeJsonPointerToken(executionType)}/${escapeJsonPointerToken(runner)}/target`;
+  const targetLoc = pointerLocation(pointers, targetPointer);
+
   if (!target) {
-    issues.push(`${vn}: ${executionType}.${runner}.target is required`);
+    issues.push(createIssue(taskPath, `${executionType}.${runner}.target is required`, targetLoc.line, targetLoc.col));
   } else {
     const normalizedTarget = target.replace(/\$\(\s*currentdirectory\s*\)/i, ".");
 
@@ -186,7 +233,7 @@ function validateExecutionTarget(taskPath: string, vn: string, executionType: st
 
     // check if the target file exists
     if (!fs.existsSync(path.join(path.dirname(taskPath), normalizedTarget))) {
-      issues.push(`${vn}: ${executionType}.${runner}.target references file that does not exist: ${normalizedTarget}`);
+      issues.push(createIssue(taskPath, `${executionType}.${runner}.target references file that does not exist: ${normalizedTarget}`, targetLoc.line, targetLoc.col));
     }
   }
   return issues;

@@ -1,6 +1,6 @@
 import { Merger } from "./_lib/merger";
 import { VsixManifestBuilder } from "./_lib/vsix-manifest-builder";
-import { MergeSettings, PackageSettings } from "./_lib/interfaces";
+import { ExtensionVersionInfo, MergeSettings, PackageSettings } from "./_lib/interfaces";
 import { VsixWriter } from "./_lib/vsix-writer";
 import { TfCommand } from "../../lib/tfcommand";
 import colors = require("colors");
@@ -11,11 +11,8 @@ export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments
 	return new ExtensionCreate(args);
 }
 
-export interface CreationResult {
+export interface CreationResult extends ExtensionVersionInfo {
 	path: string;
-	extensionId: string;
-	version: string;
-	publisher: string;
 }
 
 export function createExtension(mergeSettings: MergeSettings, packageSettings: PackageSettings): Promise<CreationResult> {
@@ -56,6 +53,7 @@ export class ExtensionCreate extends extBase.ExtensionBase<CreationResult> {
 			"overridesFile",
 			"revVersion",
 			"bypassValidation",
+			"warningsAsErrors",
 			"publisher",
 			"extensionId",
 			"outputPath",
