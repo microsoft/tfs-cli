@@ -17,6 +17,7 @@ import { glob } from "glob";
 import jju = require("jju");
 import jsonInPlace = require("json-in-place");
 import loc = require("./loc");
+import Module = require("module");
 import path = require("path");
 import trace = require("../../../lib/trace");
 import version = require("../../../lib/dynamicVersion");
@@ -96,7 +97,12 @@ export class Merger {
 		});
 
 		const fullJsFile = path.resolve(this.settings.manifestJs);
-		const manifestModuleFn = require(fullJsFile);
+		const source = fs.readFileSync(fullJsFile, "utf8");
+		const loadedModule: any = new (Module as any)(fullJsFile, module);
+		loadedModule.filename = fullJsFile;
+		loadedModule.paths = (Module as any)._nodeModulePaths(path.dirname(fullJsFile));
+		loadedModule._compile(source, fullJsFile);
+		const manifestModuleFn = loadedModule.exports;
 		if (!manifestModuleFn || typeof manifestModuleFn != "function") {
 			throw new Error(`Missing export function from manifest-js file ${fullJsFile}`)
 		}
@@ -447,11 +453,11 @@ export class Merger {
 				// Validate task.json files for this contribution with backwards compatibility checking
 				if (contributionTaskJsonPaths.length > 0) {
 					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
-					
+
 					for (const taskJsonPath of contributionTaskJsonPaths) {
 						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
 					}
-					
+
 					// Also collect for global tracking if needed
 					allTaskJsonPaths.push(...contributionTaskJsonPaths);
 				} else {

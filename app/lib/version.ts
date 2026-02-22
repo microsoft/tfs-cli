@@ -1,6 +1,8 @@
 import common = require("./common");
 import path = require("path");
 import { DynamicVersion } from "./dynamicVersion";
+import { readFile } from "fs";
+import { promisify } from "util";
 
 export class SemanticVersion extends DynamicVersion {
 	constructor(public major: number, public minor: number, public patch: number) {
@@ -25,6 +27,8 @@ export class SemanticVersion extends DynamicVersion {
 }
 
 export function getTfxVersion(): Promise<SemanticVersion> {
-	let packageJson = require(path.join(common.APP_ROOT, "package.json"));
-	return Promise.resolve(SemanticVersion.parse(packageJson.version));
+	return promisify(readFile)(path.join(common.APP_ROOT, "package.json"), "utf8").then(packageJsonContents => {
+		const packageJson = JSON.parse(packageJsonContents);
+		return SemanticVersion.parse(packageJson.version);
+	});
 }

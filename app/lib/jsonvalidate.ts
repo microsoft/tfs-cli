@@ -9,6 +9,11 @@ export interface TaskJson {
   id: string;
 }
 
+function readJsonFile(jsonFilePath: string): any {
+  const jsonData = fs.readFileSync(jsonFilePath, "utf8").replace(/^\uFEFF/, "");
+  return JSON.parse(jsonData);
+}
+
 /*
  * Checks a json file for correct formatting against some validation function
  * @param jsonFilePath path to the json file being validated
@@ -24,7 +29,7 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string,
 
   var taskJson;
   try {
-    taskJson = require(jsonFilePath);
+    taskJson = readJsonFile(jsonFilePath);
   } catch (jsonError) {
     trace.debug("Invalid task json: %s", jsonError);
     throw new Error("Invalid task json: " + jsonError);
@@ -88,7 +93,7 @@ export function validateRunner(taskData: any, allMatchedPaths?: string[]) {
       for (const matchedPath of allMatchedPaths) {
         let matchedTaskData;
         try {
-          matchedTaskData = require(matchedPath);
+          matchedTaskData = readJsonFile(matchedPath);
         } catch {
           continue;
         }
