@@ -3,15 +3,10 @@ import * as path from 'path';
 var check = require("validator");
 var trace = require("./trace");
 import * as jsonc from "jsonc-parser";
+import { DiagnosticIssue, formatDiagnostic } from "./diagnostics";
+import { escapeJsonPointerToken, offsetToLineCol, pointerLocation } from "./jsoncLocation";
 
 const deprecatedRunners = ["Node", "Node6", "Node10", "Node16"];
-
-export interface StructuredValidationIssue {
-  file: string | null;
-  line: number | null;
-  col: number | null;
-  message: string;
-}
 
 export interface TaskJson {
   id: string;
@@ -82,59 +77,6 @@ export function validate(jsonFilePath: string, jsonMissingErrorMessage?: string,
   trace.debug("Json is valid.");
   validateRunner(taskJson, allMatchedPaths, jsonFilePath, pointerContext);
   return taskJson;
-}
-
-function createIssue(file: string, message: string, line: number | null = null, col: number | null = null): StructuredValidationIssue {
-  return { file, line, col, message };
-}
-
-function escapeJsonPointerToken(token: string): string {
-  return token.replace(/~/g, "~0").replace(/\//g, "~1");
-}
-
-function pointerLocation(pointerContext: any, pointerPath: string): { line: number | null; col: number | null } {
-  if (!pointerContext || !pointerContext.root || typeof pointerContext.sourceText !== "string") {
-    return { line: null, col: null };
-  }
-
-  const segments = pointerPath === ""
-    ? []
-    : pointerPath
-      .split("/")
-      .slice(1)
-      .map(token => token.replace(/~1/g, "/").replace(/~0/g, "~"))
-      .map(token => /^\d+$/.test(token) ? parseInt(token, 10) : token);
-
-  const node = jsonc.findNodeAtLocation(pointerContext.root, segments);
-  if (!node) {
-    return { line: null, col: null };
-  }
-
-  const locationNode = node.parent && node.parent.type === "property" ? node.parent : node;
-  return offsetToLineCol(pointerContext.sourceText, locationNode.offset);
-}
-
-function offsetToLineCol(text: string, offset: number): { line: number; col: number } {
-  let line = 1;
-  let col = 1;
-
-  for (let i = 0; i < offset && i < text.length; i++) {
-    const ch = text.charCodeAt(i);
-    if (ch === 13) {
-      if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
-        i++;
-      }
-      line++;
-      col = 1;
-    } else if (ch === 10) {
-      line++;
-      col = 1;
-    } else {
-      col++;
-    }
-  }
-
-  return { line, col };
 }
 
 /*
@@ -231,12 +173,15 @@ export function validateRunner(taskData: any, allMatchedPaths?: string[], taskPa
 
     locations.forEach(location => {
       const detail = `${messagePrefix} Deprecated runner '${location.runner}' found in '${location.executionType}'.`;
-      if (taskPath && location.line !== null && location.col !== null) {
-        console.warn(`${taskPath}(${location.line},${location.col}): warning: ${detail}`);
-      } else if (taskPath) {
-        console.warn(`${taskPath}(1,1): warning: ${detail}`);
+      if (taskPath) {
+        console.warn(
+          formatDiagnostic(
+            { file: taskPath, line: location.line ?? 1, col: location.col ?? 1, message: detail },
+            "warning",
+          ),
+        );
       } else {
-        console.warn(`warning: ${detail}`);
+        console.warn(formatDiagnostic({ file: null, line: null, col: null, message: detail }, "warning"));
       }
     });
   }
@@ -248,9 +193,9 @@ export function validateRunner(taskData: any, allMatchedPaths?: string[], taskPa
  * @param taskData the parsed json file
   * @return list of issues with the json file
  */
-export function validateTask(taskPath: string, taskData: any, pointerContext: any): StructuredValidationIssue[] {
+export function validateTask(taskPath: string, taskData: any, pointerContext: any): DiagnosticIssue[] {
   var vn = taskData.name || taskPath;
-  var issues: StructuredValidationIssue[] = [];
+  var issues: DiagnosticIssue[] = [];
 
   const rootLoc = pointerLocation(pointerContext, "");
   const idLoc = pointerLocation(pointerContext, "/id");
@@ -259,19 +204,19 @@ export function validateTask(taskPath: string, taskData: any, pointerContext: an
   const instanceNameFormatLoc = pointerLocation(pointerContext, "/instanceNameFormat");
 
   if (!taskData.id || !check.isUUID(taskData.id)) {
-    issues.push(createIssue(taskPath, "id is a required guid", idLoc.line ?? rootLoc.line, idLoc.col ?? rootLoc.col));
+    issues.push({ file: taskPath, line: idLoc.line ?? rootLoc.line, col: idLoc.col ?? rootLoc.col, message: "id is a required guid" });
   }
 
   if (!taskData.name || !check.matches(taskData.name, /^[A-Za-z0-9\-]+$/)) {
-    issues.push(createIssue(taskPath, "name is a required alphanumeric string", nameLoc.line ?? rootLoc.line, nameLoc.col ?? rootLoc.col));
+    issues.push({ file: taskPath, line: nameLoc.line ?? rootLoc.line, col: nameLoc.col ?? rootLoc.col, message: "name is a required alphanumeric string" });
   }
 
   if (!taskData.friendlyName || !check.isLength(taskData.friendlyName, 1, 40)) {
-    issues.push(createIssue(taskPath, "friendlyName is a required string <= 40 chars", friendlyNameLoc.line ?? rootLoc.line, friendlyNameLoc.col ?? rootLoc.col));
+    issues.push({ file: taskPath, line: friendlyNameLoc.line ?? rootLoc.line, col: friendlyNameLoc.col ?? rootLoc.col, message: "friendlyName is a required string <= 40 chars" });
   }
 
   if (!taskData.instanceNameFormat) {
-    issues.push(createIssue(taskPath, "instanceNameFormat is required", instanceNameFormatLoc.line ?? rootLoc.line, instanceNameFormatLoc.col ?? rootLoc.col));
+    issues.push({ file: taskPath, line: instanceNameFormatLoc.line ?? rootLoc.line, col: instanceNameFormatLoc.col ?? rootLoc.col, message: "instanceNameFormat is required" });
   }
 
   issues.push(...validateAllExecutionHandlers(taskPath, taskData, vn, pointerContext));
@@ -289,8 +234,8 @@ export function validateTask(taskPath: string, taskData: any, pointerContext: an
    * @param vn Name of the task or path
    * @returns Array of issues found for all handlers
    */
-function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: string, pointerContext: any): StructuredValidationIssue[] {
-  const issues: StructuredValidationIssue[] = [];
+function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: string, pointerContext: any): DiagnosticIssue[] {
+  const issues: DiagnosticIssue[] = [];
   const executionProperties = ['execution', 'prejobexecution', 'postjobexecution'];
   const supportedRunners = ["Node", "Node10", "Node16", "Node20_1", "Node24", "PowerShell", "PowerShell3", "Process"];
   executionProperties.forEach(executionType => {
@@ -314,13 +259,13 @@ function validateAllExecutionHandlers(taskPath: string, taskData: any, vn: strin
  * @param target Execution handler's target
  * @returns Array of issues found for this runner
  */
-function validateExecutionTarget(taskPath: string, vn: string, executionType: string, runner: string, target: string | undefined, pointerContext: any): StructuredValidationIssue[] {
-  const issues: StructuredValidationIssue[] = [];
+function validateExecutionTarget(taskPath: string, vn: string, executionType: string, runner: string, target: string | undefined, pointerContext: any): DiagnosticIssue[] {
+  const issues: DiagnosticIssue[] = [];
   const targetPointer = `/${escapeJsonPointerToken(executionType)}/${escapeJsonPointerToken(runner)}/target`;
   const targetLoc = pointerLocation(pointerContext, targetPointer);
 
   if (!target) {
-    issues.push(createIssue(taskPath, `${executionType}.${runner}.target is required`, targetLoc.line, targetLoc.col));
+    issues.push({ file: taskPath, line: targetLoc.line, col: targetLoc.col, message: `${executionType}.${runner}.target is required` });
   } else {
     const normalizedTarget = target.replace(/\$\(\s*currentdirectory\s*\)/i, ".");
 
@@ -331,7 +276,7 @@ function validateExecutionTarget(taskPath: string, vn: string, executionType: st
 
     // check if the target file exists
     if (!fs.existsSync(path.join(path.dirname(taskPath), normalizedTarget))) {
-      issues.push(createIssue(taskPath, `${executionType}.${runner}.target references file that does not exist: ${normalizedTarget}`, targetLoc.line, targetLoc.col));
+      issues.push({ file: taskPath, line: targetLoc.line, col: targetLoc.col, message: `${executionType}.${runner}.target references file that does not exist: ${normalizedTarget}` });
     }
   }
   return issues;

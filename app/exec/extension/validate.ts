@@ -3,6 +3,7 @@ import { TfCommand } from "../../lib/tfcommand";
 import colors = require("colors");
 import extBase = require("./default");
 import trace = require("../../lib/trace");
+import { formatDiagnostic } from "../../lib/diagnostics";
 
 export function getCommand(args: string[]): TfCommand<extBase.ExtensionArguments, ValidationResult> {
 	return new ExtensionValidate(args);
@@ -19,19 +20,6 @@ export interface ValidationResult {
 	source: "manifest";
 	status: "success" | "error";
 	issues: ValidationIssue[];
-}
-
-function formatIssueForEditor(issue: ValidationIssue): string {
-	if (issue.file && issue.line !== null && issue.col !== null) {
-		return `${issue.file}(${issue.line},${issue.col}): error: ${issue.message}`;
-	}
-	if (issue.file && issue.line !== null) {
-		return `${issue.file}(${issue.line}): error: ${issue.message}`;
-	}
-	if (issue.file) {
-		return `${issue.file}: error: ${issue.message}`;
-	}
-	return `error: ${issue.message}`;
 }
 
 export class ExtensionValidate extends extBase.ExtensionBase<ValidationResult> {
@@ -118,7 +106,7 @@ export class ExtensionValidate extends extBase.ExtensionBase<ValidationResult> {
 			trace.info(" - Source: %s", data.source);
 			trace.info(" - Validation: %s", colors.red("failed"));
 			data.issues.forEach(issue => {
-				trace.info(formatIssueForEditor(issue));
+				trace.info(formatDiagnostic(issue, "error"));
 			});
 		}
 	}

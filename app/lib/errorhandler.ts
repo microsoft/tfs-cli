@@ -1,4 +1,5 @@
 import trace = require("./trace");
+import { formatDiagnostic, normalizeIssue } from "./diagnostics";
 
 function shouldEmitJsonError(): boolean {
 	const argv = process.argv || [];
@@ -21,30 +22,7 @@ function toStructuredIssues(err: any): any[] {
 	if (!err || !Array.isArray(err.validationIssues)) {
 		return null;
 	}
-	return err.validationIssues.map(issue => ({
-		file: issue && issue.file !== undefined ? issue.file : null,
-		line: issue && issue.line !== undefined ? issue.line : null,
-		col: issue && issue.col !== undefined ? issue.col : null,
-		message: issue && issue.message ? issue.message : String(issue),
-	}));
-}
-
-function formatIssueForEditor(issue: any): string {
-	const file = issue && issue.file ? String(issue.file) : null;
-	const line = issue && typeof issue.line === "number" ? issue.line : null;
-	const col = issue && typeof issue.col === "number" ? issue.col : null;
-	const message = issue && issue.message ? String(issue.message) : String(issue);
-
-	if (file && line !== null && col !== null) {
-		return `${file}(${line},${col}): error: ${message}`;
-	}
-	if (file && line !== null) {
-		return `${file}(${line}): error: ${message}`;
-	}
-	if (file) {
-		return `${file}: error: ${message}`;
-	}
-	return `error: ${message}`;
+	return err.validationIssues.map(issue => normalizeIssue(issue));
 }
 
 /**
@@ -154,7 +132,7 @@ export function errLog(arg: any): void {
 	const issues = toStructuredIssues(arg);
 	if (issues && issues.length > 0) {
 		issues.forEach(issue => {
-			console.error(formatIssueForEditor(issue));
+			console.error(formatDiagnostic(issue, "error"));
 		});
 		process.exit(-1);
 		return;

@@ -10,33 +10,11 @@ import * as jsonc from "jsonc-parser";
 import args = require("../../lib/arguments");
 import https = require("https");
 import trace = require("../../lib/trace");
+import { offsetToLineCol } from "../../lib/jsoncLocation";
 
 import { readFile } from "fs";
 import { promisify } from "util";
 import { GalleryApi } from "azure-devops-node-api/GalleryApi";
-
-function offsetToLineCol(text: string, offset: number): { line: number; col: number } {
-	let line = 1;
-	let col = 1;
-
-	for (let i = 0; i < offset && i < text.length; i++) {
-		const ch = text.charCodeAt(i);
-		if (ch === 13) {
-			if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
-				i++;
-			}
-			line++;
-			col = 1;
-		} else if (ch === 10) {
-			line++;
-			col = 1;
-		} else {
-			col++;
-		}
-	}
-
-	return { line, col };
-}
 
 export function getCommand(args: string[]): TfCommand<ExtensionArguments, void> {
 	return new ExtensionBase<void>(args);

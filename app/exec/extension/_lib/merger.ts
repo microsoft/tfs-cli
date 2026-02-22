@@ -21,6 +21,8 @@ import loc = require("./loc");
 import path = require("path");
 import trace = require("../../../lib/trace");
 import version = require("../../../lib/dynamicVersion");
+import { formatDiagnostic, normalizeIssue } from "../../../lib/diagnostics";
+import { offsetToLineCol, pointerLocation } from "../../../lib/jsoncLocation";
 
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
@@ -48,56 +50,6 @@ export class Merger {
 	 */
 	constructor(private settings: MergeSettings) {
 		this.manifestBuilders = [];
-	}
-
-	private getPointerLocation(pointerMap: any, pointerPath: string): { line: number | null; col: number | null } {
-		if (!pointerMap || !pointerMap.root || typeof pointerMap.sourceText !== "string") {
-			return { line: null, col: null };
-		}
-
-		const segments = pointerPath === ""
-			? []
-			: pointerPath
-				.split("/")
-				.slice(1)
-				.map(token => token.replace(/~1/g, "/").replace(/~0/g, "~"))
-				.map(token => /^\d+$/.test(token) ? parseInt(token, 10) : token);
-
-		const node = jsonc.findNodeAtLocation(pointerMap.root, segments);
-		if (!node) {
-			return { line: null, col: null };
-		}
-
-		const locationNode = node.parent && node.parent.type === "property" ? node.parent : node;
-		const location = this.offsetToLineCol(pointerMap.sourceText, locationNode.offset);
-
-		return {
-			line: location.line,
-			col: location.col,
-		};
-	}
-
-	private offsetToLineCol(text: string, offset: number): { line: number; col: number } {
-		let line = 1;
-		let col = 1;
-
-		for (let i = 0; i < offset && i < text.length; i++) {
-			const ch = text.charCodeAt(i);
-			if (ch === 13) {
-				if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
-					i++;
-				}
-				line++;
-				col = 1;
-			} else if (ch === 10) {
-				line++;
-				col = 1;
-			} else {
-				col++;
-			}
-		}
-
-		return { line, col };
 	}
 
 	private parseManifestText(jsonData: string): { data: any; pointers: any } {
@@ -220,7 +172,7 @@ export class Merger {
 								let line: number | null = null;
 								let col: number | null = null;
 								if (Array.isArray(parseErrors) && parseErrors.length > 0 && typeof parseErrors[0].offset === "number") {
-									const loc = this.offsetToLineCol(jsonData, parseErrors[0].offset);
+									const loc = offsetToLineCol(jsonData, parseErrors[0].offset);
 									line = loc.line;
 									col = loc.col;
 								}
@@ -253,7 +205,7 @@ export class Merger {
 			partials.forEach(partial => {
 				if (_.isArray(partial["targets"])) {
 					partial["targets"].forEach((target: any, targetIndex: number) => {
-						const idLoc = this.getPointerLocation(partial.__pointerMap, `/targets/${targetIndex}/id`);
+						const idLoc = pointerLocation(partial.__pointerMap, `/targets/${targetIndex}/id`);
 						const targetWithSource: any = _.assign({}, target, {
 							__origin: partial.__origin || null,
 							__line: idLoc.line,
@@ -264,11 +216,11 @@ export class Merger {
 				}
 				if (_.isArray(partial["contributions"])) {
 					partial["contributions"].forEach((contribution: any, contributionIndex: number) => {
-						const nameLoc = this.getPointerLocation(
+						const nameLoc = pointerLocation(
 							partial.__pointerMap,
 							`/contributions/${contributionIndex}/properties/name`,
 						);
-						const contributionLoc = this.getPointerLocation(
+						const contributionLoc = pointerLocation(
 							partial.__pointerMap,
 							`/contributions/${contributionIndex}`,
 						);
@@ -528,26 +480,11 @@ export class Merger {
 
 	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
 		const warnings: Array<{ file: string | null; line: number | null; col: number | null; message: string }> = [];
-		const formatIssueForEditor = (
-			issue: { file: string | null; line: number | null; col: number | null; message: string },
-			severity: "warning" | "error" = "warning",
-		): string => {
-			if (issue.file && issue.line !== null && issue.col !== null) {
-				return `${issue.file}(${issue.line},${issue.col}): ${severity}: ${issue.message}`;
-			}
-			if (issue.file && issue.line !== null) {
-				return `${issue.file}(${issue.line}): ${severity}: ${issue.message}`;
-			}
-			if (issue.file) {
-				return `${issue.file}: ${severity}: ${issue.message}`;
-			}
-			return `${severity}: ${issue.message}`;
-		};
 
 		const addWarning = (message: string, file: string | null = null, line: number | null = null, col: number | null = null) => {
 			const warning = { file, line, col, message };
 			warnings.push(warning);
-			console.warn(formatIssueForEditor(warning, "warning"));
+			console.warn(formatDiagnostic(warning, "warning"));
 		};
 
 		try {
@@ -640,6 +577,9 @@ export class Merger {
 
 		} catch (err) {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
+			const emitWarning = (issue: { file: string | null; line: number | null; col: number | null; message: string }) => {
+				console.warn(formatDiagnostic(issue, "warning"));
+			};
 			if (this.settings.warningsAsErrors) {
 				if (err && err instanceof Error) {
 					throw err;
@@ -648,52 +588,26 @@ export class Merger {
 			}
 			const structuredIssues = err && Array.isArray((<any>err).validationIssues) ? (<any>err).validationIssues : null;
 			if (structuredIssues && structuredIssues.length > 0) {
-				const warningByFile: { [file: string]: boolean } = {};
-				structuredIssues.forEach(issue => {
-					const fileKey = issue && issue.file ? String(issue.file) : "";
-					if (!warningByFile[fileKey]) {
-						warningByFile[fileKey] = true;
-						console.warn(
-							formatIssueForEditor(
-								{
-									file: issue && issue.file !== undefined ? issue.file : null,
-									line: 1,
-									col: 1,
-									message: warningMessage.trim(),
-								},
-								"warning",
-							),
-						);
+				const normalizedIssues = structuredIssues.map(issue => normalizeIssue(issue));
+				const warnedFiles: { [file: string]: boolean } = {};
+				normalizedIssues.forEach(issue => {
+					const fileKey = issue.file ? String(issue.file) : "";
+					if (!warnedFiles[fileKey]) {
+						warnedFiles[fileKey] = true;
+						emitWarning({ file: issue.file, line: 1, col: 1, message: warningMessage.trim() });
 					}
-				});
-				structuredIssues.forEach(issue => {
-					console.warn(
-						formatIssueForEditor(
-							{
-								file: issue && issue.file !== undefined ? issue.file : null,
-								line: issue && issue.line !== undefined ? issue.line : null,
-								col: issue && issue.col !== undefined ? issue.col : null,
-								message: issue && issue.message ? issue.message : String(issue),
-							},
-							"warning",
-						),
-					);
+					emitWarning(issue);
 				});
 			} else {
-				console.warn(
-					formatIssueForEditor(
-						{
-							file: null,
-							line: null,
-							col: null,
-							message:
-								err && err instanceof Error
-									? `${warningMessage}${err.message}`
-									: `Error occurred while validating build task contributions. ${warningMessage}`,
-						},
-						"warning",
-					),
-				);
+				emitWarning({
+					file: null,
+					line: null,
+					col: null,
+					message:
+						err && err instanceof Error
+							? `${warningMessage}${err.message}`
+							: `Error occurred while validating build task contributions. ${warningMessage}`,
+				});
 			}
 		}
 	}
