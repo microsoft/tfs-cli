@@ -190,11 +190,15 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without build ID');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
 
-                    // Verify specific error message format
-                    assert(errorOutput.includes('error: Error: Missing required value for argument \'buildId\''), 'Should show specific buildId requirement error');
-                    done();
+                        // Verify specific error message format
+                        assert(errorOutput.includes('error: Error: Missing required value for argument \'buildId\''), 'Should show specific buildId requirement error');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
@@ -256,11 +260,15 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without definition');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
 
-                    // Verify specific error message format
-                    assert(errorOutput.includes('error: Error: No definition found with name null'), 'Should show specific definition requirement error');
-                    done();
+                        // Verify specific error message format
+                        assert(errorOutput.includes('error: Error: No definition found with name null'), 'Should show specific definition requirement error');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
@@ -296,10 +304,14 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without authentication');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    // Check for specific error message about missing token
-                    assert(errorOutput.includes("error: Error: Missing required value for argument 'token'."), 'Should show missing token error');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        // Check for specific error message about missing token
+                        assert(errorOutput.includes("error: Error: Missing required value for argument 'token'."), 'Should show missing token error');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
@@ -339,10 +351,14 @@ describe('Build Commands - Server Integration Tests', function() {
                     } catch (e) {
                         // Ignore cleanup errors
                     }
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    // Should fail with specific error message
-                    assert(errorOutput.includes('error: Error: no task.json in specified directory'), 'Should indicate task.json is missing');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        // Should fail with specific error message
+                        assert(errorOutput.includes('error: Error: no task.json in specified directory'), 'Should indicate task.json is missing');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
 
@@ -374,13 +390,16 @@ describe('Build Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    // Should fail with specific error messages for invalid fields
-                    assert(errorOutput.includes('error: Error: Invalid task json:'), 'Should indicate invalid task json');
-                    assert(errorOutput.includes('id is a required guid'), 'Should indicate missing id');
-                    assert(errorOutput.includes('name is a required alphanumeric string'), 'Should indicate missing name');
-                    assert(errorOutput.includes('friendlyName is a required string <= 40 chars'), 'Should indicate missing friendlyName');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        // Should fail with specific error messages for invalid fields
+                        assert(errorOutput.includes('id is a required guid'), 'Should indicate missing id');
+                        assert(errorOutput.includes('name is a required alphanumeric string'), 'Should indicate missing name');
+                        assert(errorOutput.includes('friendlyName is a required string <= 40 chars'), 'Should indicate missing friendlyName');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
 
@@ -392,9 +411,13 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without task path');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('error: Error: You must specify either --task-path or --task-zip-path.'), 'Should indicate task path is required');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        assert(errorOutput.includes('error: Error: You must specify either --task-path or --task-zip-path.'), 'Should indicate task path is required');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
@@ -424,9 +447,13 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without task ID');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes("error: Error: Missing required value for argument 'taskId'."), 'Should indicate task ID is required');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        assert(errorOutput.includes("error: Error: Missing required value for argument 'taskId'."), 'Should indicate task ID is required');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
 
@@ -438,9 +465,13 @@ describe('Build Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes('error: Error: No task found with provided ID: invalid-task-id'), 'Should indicate no task found for invalid ID');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        assert(errorOutput.includes('error: Error: No task found with provided ID: invalid-task-id'), 'Should indicate no task found for invalid ID');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
@@ -563,9 +594,13 @@ describe('Build Commands - Server Integration Tests', function() {
                     assert.fail('Should have failed without project');
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes("error: Error: Missing required value for argument 'project'."), 'Should indicate project is required');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        assert(errorOutput.includes("error: Error: Missing required value for argument 'project'."), 'Should indicate project is required');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
 
@@ -577,9 +612,13 @@ describe('Build Commands - Server Integration Tests', function() {
                     done();
                 })
                 .catch((error) => {
-                    const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes("error: Error: Unsupported auth type. Currently, 'pat' and 'basic' auth are supported."), 'Should indicate unsupported auth type');
-                    done();
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+                        assert(errorOutput.includes("error: Error: Unsupported auth type. Currently, 'pat' and 'basic' auth are supported."), 'Should indicate unsupported auth type');
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
                 });
         });
     });
