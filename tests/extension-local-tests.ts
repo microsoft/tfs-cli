@@ -76,13 +76,14 @@ describe('Extension Commands - Local Tests', function() {
     });
 
     describe('Command Help and Hierarchy', function() {
-        
+
         it('should display extension command group help', function(done) {
             execAsyncWithLogging(`node "${tfxPath}" extension --help`, 'extension --help')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     assert(cleanOutput.includes('Available commands and command groups in tfx / extension'), 'Should show extension command hierarchy');
                     assert(cleanOutput.includes('create:'), 'Should list create command');
+                    assert(cleanOutput.includes('validate:'), 'Should list validate command');
                     assert(cleanOutput.includes('publish:'), 'Should list publish command');
                     assert(cleanOutput.includes('show:'), 'Should list show command');
                     assert(cleanOutput.includes('install:'), 'Should list install command');
@@ -122,6 +123,19 @@ describe('Extension Commands - Local Tests', function() {
                     assert(cleanOutput.includes('Publish a Visual Studio Marketplace Extension'), 'Should show publish command description');
                     assert(cleanOutput.includes('--token'), 'Should show token argument');
                     assert(cleanOutput.includes('--vsix'), 'Should show vsix argument');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should display validate command help', function(done) {
+            execAsyncWithLogging(`node "${tfxPath}" extension validate --help`, 'extension validate --help')
+                .then(({ stdout }) => {
+                    const cleanOutput = stripColors(stdout);
+                    assert(cleanOutput.includes('Validate an extension from manifests without packaging or publishing'), 'Should show validate command description');
+                    assert(!cleanOutput.includes('--vsix'), 'Should not show vsix argument');
+                    assert(cleanOutput.includes('--warnings-as-errors'), 'Should show warnings-as-errors argument');
+                    assert(cleanOutput.includes('--manifest-js') || cleanOutput.includes('--manifests'), 'Should show manifest arguments');
                     done();
                 })
                 .catch(done);
@@ -176,13 +190,13 @@ describe('Extension Commands - Local Tests', function() {
         it('should create extension from basic sample', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'test-extension.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create basic sample')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     assert(cleanOutput.includes('Completed operation: create extension'), 'Should indicate successful creation');
                     assert(fs.existsSync(outputPath), 'Should create .vsix file');
-                    
+
                     const stats = fs.statSync(outputPath);
                     assert(stats.size > 0, 'Created .vsix file should not be empty');
                     done();
@@ -195,7 +209,7 @@ describe('Extension Commands - Local Tests', function() {
             if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir);
             }
-            
+
             const outputPath = path.join(__dirname, 'temp-extension-create.vsix');
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${tempDir}" --output-path "${outputPath}" --no-prompt`, 'extension create missing manifest')
                 .then(() => {
@@ -204,7 +218,7 @@ describe('Extension Commands - Local Tests', function() {
                 .catch((error) => {
                     const cleanOutput = stripColors(error.stderr || error.stdout || error.message);
                     assert(cleanOutput.includes('ENOENT') || cleanOutput.includes('vss-extension.json') || cleanOutput.includes('manifest') || cleanOutput.includes('no manifests found'), 'Should mention missing manifest file');
-                    
+
                     // Cleanup
                     try {
                         if (fs.existsSync(outputPath)) {
@@ -218,16 +232,214 @@ describe('Extension Commands - Local Tests', function() {
         });
     });
 
+    describe('Extension Validation - Basic Operations', function() {
+        it('should validate extension from manifest inputs without creating a vsix', function(done) {
+            const basicExtensionPath = path.join(samplesPath, 'basic-extension');
+            const outputPath = path.join(basicExtensionPath, 'validate-manifest-should-not-exist.vsix');
+
+            execAsyncWithLogging(`node "${tfxPath}" extension validate --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension validate from manifest')
+                .then(({ stdout }) => {
+                    const cleanOutput = stripColors(stdout);
+                    assert(cleanOutput.includes('Completed operation: validate extension'), 'Should indicate validate operation completed');
+                    assert(cleanOutput.includes('Validation: success'), 'Should indicate validation success');
+                    assert(!fs.existsSync(outputPath), 'Validate should not create a .vsix file');
+                    done();
+                })
+                .catch(done)
+                .finally(() => {
+                    try {
+                        if (fs.existsSync(outputPath)) {
+                            fs.unlinkSync(outputPath);
+                        }
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                });
+        });
+
+        it('should reject --vsix for validate command', function(done) {
+            const basicExtensionPath = path.join(samplesPath, 'basic-extension');
+            const vsixPath = path.join(basicExtensionPath, 'validate-input.vsix');
+
+            execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${vsixPath}"`, 'extension create for validate-vsix')
+                .then(() => {
+                    return execAsyncWithLogging(`node "${tfxPath}" extension validate --vsix "${vsixPath}"`, 'extension validate --vsix');
+                })
+                .then(() => {
+                    done(new Error('Validate should fail when --vsix is provided'));
+                })
+                .catch((error) => {
+                    const cleanOutput = stripColors(error.stderr || error.stdout || error.message);
+                    assert(cleanOutput.includes('--vsix') && cleanOutput.includes('not supported'), 'Should indicate that --vsix is not supported');
+                    done();
+                })
+                .finally(() => {
+                    try {
+                        if (fs.existsSync(vsixPath)) {
+                            fs.unlinkSync(vsixPath);
+                        }
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                });
+        });
+
+        it('should treat task.json warnings as errors when --warnings-as-errors is set', function(done) {
+            const invalidTaskExtensionPath = path.join(samplesPath, 'invalid-task-extension');
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension validate --root "${invalidTaskExtensionPath}" --warnings-as-errors --no-prompt`,
+                'extension validate --warnings-as-errors',
+            )
+                .then(({ stdout }) => {
+                    const cleanOutput = stripColors(stdout);
+                    assert(cleanOutput.includes('Validation: failed'), 'Should fail when warnings are treated as errors');
+                    assert(cleanOutput.includes('id is a required guid'), 'Should surface task.json validation details as errors');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should output structured diagnostics in json mode', function(done) {
+            const invalidTaskExtensionPath = path.join(samplesPath, 'invalid-task-extension');
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension validate --root "${invalidTaskExtensionPath}" --json --warnings-as-errors --no-prompt`,
+                'extension validate --json --warnings-as-errors',
+            )
+                .then(({ stdout }) => {
+                    const result = JSON.parse(stdout);
+                    assert(result && result.status === 'error', 'Should return error status in json mode');
+                    assert(Array.isArray(result.issues) && result.issues.length > 0, 'Should include issues');
+
+                    const firstIssue = result.issues[0];
+                    assert(Object.prototype.hasOwnProperty.call(firstIssue, 'file'), 'Issue should include file');
+                    assert(Object.prototype.hasOwnProperty.call(firstIssue, 'line'), 'Issue should include line');
+                    assert(Object.prototype.hasOwnProperty.call(firstIssue, 'col'), 'Issue should include col');
+                    assert(Object.prototype.hasOwnProperty.call(firstIssue, 'message'), 'Issue should include message');
+
+                    const markerIssue = result.issues.find(issue => issue.message === 'Invalid task json:' || issue.message === 'task.json');
+                    assert(!markerIssue, 'Should not include marker-only issues in structured output');
+
+					const idIssue = result.issues.find(issue => issue.message.indexOf('id is a required guid') >= 0);
+					assert(idIssue, 'Should include id validation issue');
+					assert(idIssue.line && idIssue.line > 0, 'Issue should include line when available');
+					assert(idIssue.col && idIssue.col > 0, 'Issue should include col when available');
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should include manifest file location for invalid target diagnostics', function(done) {
+            const invalidExtensionPath = path.join(samplesPath, 'invalid-extension');
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension validate --root "${invalidExtensionPath}" --json --no-prompt`,
+                'extension validate invalid target json',
+            )
+                .then(({ stdout }) => {
+                    const result = JSON.parse(stdout);
+                    assert(result && result.status === 'error', 'Should return error status in json mode');
+                    const targetIssue = result.issues.find(issue => issue.message.indexOf('not a recognized target') >= 0);
+                    assert(targetIssue, 'Should include invalid target issue');
+                    assert(targetIssue.file && targetIssue.file.endsWith('vss-extension.json'), 'Issue should include manifest file');
+                    assert(targetIssue.line && targetIssue.line > 0, 'Issue should include line when available');
+                    assert(targetIssue.col && targetIssue.col > 0, 'Issue should include col when available');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should report missing task name when name is omitted', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions/missing-name-task-extension');
+            const taskDir = path.join(tempRoot, 'MissingNameTask');
+            const manifestPath = path.join(tempRoot, 'vss-extension.json');
+            const taskJsonPath = path.join(taskDir, 'task.json');
+            const taskTargetPath = path.join(taskDir, 'index.js');
+
+            try {
+                if (!fs.existsSync(path.dirname(tempRoot))) {
+                    fs.mkdirSync(path.dirname(tempRoot));
+                }
+                if (!fs.existsSync(tempRoot)) {
+                    fs.mkdirSync(tempRoot);
+                }
+                if (!fs.existsSync(taskDir)) {
+                    fs.mkdirSync(taskDir);
+                }
+
+                const manifest = {
+                    manifestVersion: 1,
+                    id: 'missing-name-task-extension',
+                    publisher: 'fabrikam',
+                    version: '1.0.0',
+                    name: 'Missing Name Task Extension',
+                    targets: [{ id: 'Microsoft.VisualStudio.Services' }],
+                    contributions: [
+                        {
+                            id: 'missing-name-task-contribution',
+                            type: 'ms.vss-distributed-task.task',
+                            targets: ['ms.vss-distributed-task.tasks'],
+                            properties: {
+                                name: 'MissingNameTask',
+                            },
+                        },
+                    ],
+                };
+
+                const taskJson = {
+                    id: '11111111-1111-1111-1111-111111111111',
+                    friendlyName: 'Sample Friendly Name',
+                    instanceNameFormat: 'Do work',
+                    helpMarkDown: 'Help',
+                    category: 'Utility',
+                    author: 'Microsoft',
+                    version: { Major: 1, Minor: 0, Patch: 0 },
+                    inputs: [],
+                    execution: {
+                        Node20_1: {
+                            target: 'index.js',
+                        },
+                    },
+                };
+
+                fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson, null, 2));
+                fs.writeFileSync(taskTargetPath, 'console.log("ok");');
+            } catch (setupError) {
+                done(setupError);
+                return;
+            }
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension validate --root "${tempRoot}" --json --warnings-as-errors --no-prompt`,
+                'extension validate missing task name',
+            )
+                .then(({ stdout }) => {
+                    const result = JSON.parse(stdout);
+                    assert(result && result.status === 'error', 'Should return error status in json mode');
+                    assert(Array.isArray(result.issues) && result.issues.length > 0, 'Should include issues');
+
+                    const nameIssue = result.issues.find(issue => issue.message.indexOf('name is a required alphanumeric string') >= 0);
+                    assert(nameIssue, 'Should include missing name validation issue');
+                    assert(nameIssue.file && nameIssue.file.endsWith('task.json'), 'Issue should point to task.json file');
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
     describe('Extension Creation - Advanced Features', function() {
 
         it('should handle --override parameter', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'override-test.vsix');
             const overrideFilePath = path.join(basicExtensionPath, 'test-overrides.json');
-            
+
             // Create temporary overrides file
             fs.writeFileSync(overrideFilePath, JSON.stringify({ version: "2.0.0" }, null, 2));
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --overrides-file "${overrideFilePath}"`, 'extension create with overrides')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -256,7 +468,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle --rev-version parameter', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'rev-version-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --rev-version`, 'extension create --rev-version')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -270,7 +482,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle --bypass-validation parameter', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'bypass-validation-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --bypass-validation`, 'extension create --bypass-validation')
                 .then(({ stdout }) => {
                     // With bypass validation, it might still fail due to other issues, but validation should be skipped
@@ -289,7 +501,7 @@ describe('Extension Commands - Local Tests', function() {
     });
 
     describe('Extension Global Arguments', function() {
-        
+
         it('should handle --no-color argument', function(done) {
             execAsyncWithLogging(`node "${tfxPath}" extension --help --no-color`, 'extension --help --no-color')
                 .then(({ stdout }) => {
@@ -305,7 +517,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle --trace-level argument', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'trace-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --trace-level debug`, 'extension create --trace-level debug')
                 .then(({ stdout, stderr }) => {
                     const cleanOutput = stripColors(stdout + stderr);
@@ -330,15 +542,15 @@ describe('Extension Commands - Local Tests', function() {
     });
 
     describe('Extension File Path Handling', function() {
-        
+
         it('should handle relative paths', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'relative-test.vsix');
-            
+
             // Change to the extension directory and use relative paths
             const oldCwd = process.cwd();
             process.chdir(basicExtensionPath);
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root . --output-path relative-test.vsix`, 'extension create relative path')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -356,7 +568,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle absolute paths', function(done) {
             const basicExtensionPath = path.resolve(samplesPath, 'basic-extension');
             const outputPath = path.resolve(basicExtensionPath, 'absolute-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create absolute path')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -369,11 +581,11 @@ describe('Extension Commands - Local Tests', function() {
     });
 
     describe('Extension Manifest Variations', function() {
-        
+
         it('should handle manifest-globs parameter', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'manifest-globs-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --manifest-globs "vss-extension.json"`, 'extension create --manifest-globs')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -657,13 +869,13 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(complexExtensionPath, 'complex-extension.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${complexExtensionPath}" --output-path "${outputPath}"`, 'extension create complex')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
                     assert(cleanOutput.includes('Completed operation: create extension'), 'Should create complex extension');
                     assert(fs.existsSync(outputPath), 'Should create .vsix file for complex extension');
-                    
+
                     const stats = fs.statSync(outputPath);
                     assert(stats.size > 1000, 'Complex extension should be reasonably sized');
                     done();
@@ -674,7 +886,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should override publisher in manifest', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'publisher-override.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --publisher "test-publisher"`, 'extension create --publisher')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -688,7 +900,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should override extension-id in manifest', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'extension-id-override.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --extension-id "test-extension-id"`, 'extension create --extension-id')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -702,7 +914,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should support JSON output format for create command', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'json-output-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --json`, 'extension create --json')
                 .then(({ stdout }) => {
                     // With --json flag, output might be JSON formatted
@@ -712,6 +924,81 @@ describe('Extension Commands - Local Tests', function() {
                     done();
                 })
                 .catch(done);
+        });
+
+        it('should output structured JSON errors for create command failures', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions/create-json-error');
+            const partialsDir = path.join(tempRoot, 'partials');
+            const manifestMainPath = path.join(tempRoot, 'vss-extension.json');
+            const manifestBadPath = path.join(partialsDir, 'bad-target.json');
+
+            try {
+                if (!fs.existsSync(path.dirname(tempRoot))) {
+                    fs.mkdirSync(path.dirname(tempRoot));
+                }
+                if (!fs.existsSync(tempRoot)) {
+                    fs.mkdirSync(tempRoot);
+                }
+                if (!fs.existsSync(partialsDir)) {
+                    fs.mkdirSync(partialsDir);
+                }
+
+                fs.writeFileSync(
+                    manifestMainPath,
+                    JSON.stringify(
+                        {
+                            manifestVersion: 1,
+                            id: 'create-json-error-extension',
+                            publisher: 'fabrikam',
+                            version: '1.0.0',
+                            name: 'Create JSON Error Extension',
+                            targets: [{ id: 'Microsoft.VisualStudio.Services' }],
+                        },
+                        null,
+                        2,
+                    ),
+                );
+                fs.writeFileSync(
+                    manifestBadPath,
+                    JSON.stringify(
+                        {
+                            targets: [{ id: 'Invalid.Target' }],
+                        },
+                        null,
+                        2,
+                    ),
+                );
+            } catch (setupError) {
+                done(setupError);
+                return;
+            }
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension create --root "${tempRoot}" --manifest-globs vss-extension.json partials/*.json --output-path "${path.join(tempRoot, 'out.vsix')}" --json --no-prompt`,
+                'extension create --json failure',
+            )
+                .then(() => {
+                    done(new Error('Create should fail for invalid target'));
+                })
+                .catch((error) => {
+                    const jsonText = error.stdout || error.stderr || error.message;
+                    let payload: any;
+                    try {
+                        payload = JSON.parse(jsonText);
+                    } catch (parseError) {
+                        done(new Error('Expected JSON error output from create --json'));
+                        return;
+                    }
+
+                    assert(payload.status === 'error', 'Should emit error status');
+                    assert(Array.isArray(payload.issues) && payload.issues.length > 0, 'Should include structured issues');
+                    const targetIssue = payload.issues.find(issue => issue.message.indexOf('not a recognized target') >= 0);
+                    assert(targetIssue, 'Should include invalid target issue');
+                    assert(targetIssue.file && targetIssue.file.endsWith('bad-target.json'), 'Issue should point to offending manifest');
+                    assert(targetIssue.line && targetIssue.line > 0, 'Issue should include line');
+                    assert(targetIssue.col && targetIssue.col > 0, 'Issue should include col');
+                    done();
+                });
         });
     });
 
@@ -768,7 +1055,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle extension with missing files referenced in manifest', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'missing-files-test.vsix');
-            
+
             // This should still create the extension but might show warnings
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create missing files in manifest')
                 .then(({ stdout }) => {
@@ -797,7 +1084,7 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(taskExtensionPath, 'valid-task-extension.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${taskExtensionPath}" --output-path "${outputPath}"`, 'extension create task extension')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -817,7 +1104,7 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(taskExtensionPath, 'validated-task.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${taskExtensionPath}" --output-path "${outputPath}"`, 'extension create validated task')
                 .then(({ stdout }) => {
                     // Should validate task.json files without errors
@@ -837,7 +1124,7 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(taskExtensionPath, 'deprecated-runner.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${taskExtensionPath}" --output-path "${outputPath}"`, 'extension create deprecated runner')
                 .then(({ stdout }) => {
                     // Should still create extension despite warnings
@@ -856,7 +1143,7 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(taskExtensionPath, 'versioned-tasks.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${taskExtensionPath}" --output-path "${outputPath}"`, 'extension create versioned tasks')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -870,7 +1157,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should warn about invalid task.json but still create extension', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'invalid-task-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create invalid task')
                 .then(({ stdout }) => {
                     // Should create extension despite task validation warnings
@@ -883,7 +1170,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should warn about missing task.json file', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'missing-task-json.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create missing task json')
                 .then(({ stdout }) => {
                     // Should create extension despite missing task files
@@ -896,7 +1183,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should warn about missing execution target file', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'missing-execution-file.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create missing execution file')
                 .then(({ stdout }) => {
                     // Should create extension despite warnings about missing execution files
@@ -909,7 +1196,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should warn about invalid task name format', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'invalid-task-name.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create invalid task name')
                 .then(({ stdout }) => {
                     // Should create extension despite task name validation warnings
@@ -922,7 +1209,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should warn about friendly name length', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'long-name-extension.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}" --no-prompt`, 'extension create long name')
                 .then(({ stdout, stderr }) => {
                     // Should create extension despite friendly name warnings
@@ -941,7 +1228,7 @@ describe('Extension Commands - Local Tests', function() {
             }
 
             const outputPath = path.join(taskExtensionPath, 'contributions-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${taskExtensionPath}" --output-path "${outputPath}"`, 'extension create contributions test')
                 .then(({ stdout }) => {
                     // Should validate task directory structure
@@ -954,7 +1241,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should handle extensions without task contributions', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'no-tasks-extension.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create no tasks')
                 .then(({ stdout }) => {
                     const cleanOutput = stripColors(stdout);
@@ -968,7 +1255,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should validate required task fields', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'task-fields-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create task fields')
                 .then(({ stdout }) => {
                     // Should validate task field requirements
@@ -981,7 +1268,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should validate task inputs structure', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'task-inputs-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create task inputs')
                 .then(({ stdout }) => {
                     // Should validate task inputs structure
@@ -994,7 +1281,7 @@ describe('Extension Commands - Local Tests', function() {
         it('should validate execution targets exist', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'execution-targets-test.vsix');
-            
+
             execAsyncWithLogging(`node "${tfxPath}" extension create --root "${basicExtensionPath}" --output-path "${outputPath}"`, 'extension create execution targets')
                 .then(({ stdout }) => {
                     // Should validate execution target file existence

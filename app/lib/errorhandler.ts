@@ -1,4 +1,29 @@
 import trace = require("./trace");
+import { formatDiagnostic, normalizeIssue } from "./diagnostics";
+
+function shouldEmitJsonError(): boolean {
+	const argv = process.argv || [];
+	for (let i = 0; i < argv.length; i++) {
+		const arg = argv[i];
+		if (arg === "--json") {
+			return true;
+		}
+		if (arg === "--output" && i + 1 < argv.length && argv[i + 1].toLowerCase() === "json") {
+			return true;
+		}
+		if (arg.indexOf("--output=") === 0 && arg.substring("--output=".length).toLowerCase() === "json") {
+			return true;
+		}
+	}
+	return false;
+}
+
+function toStructuredIssues(err: any): any[] {
+	if (!err || !Array.isArray(err.validationIssues)) {
+		return null;
+	}
+	return err.validationIssues.map(issue => normalizeIssue(issue));
+}
 
 /**
  * Formats any error type into a readable string message.
@@ -7,22 +32,22 @@ import trace = require("./trace");
 function formatError(err: any): string {
 	// Handle AggregateError (from Promise.all/Promise.any failures)
 	if (err && err.name === "AggregateError" && Array.isArray(err.errors)) {
-		const messages = err.errors.map((e: any, index: number) => 
+		const messages = err.errors.map((e: any, index: number) =>
 			`  [${index + 1}] ${formatError(e)}`
 		);
 		return `Multiple errors occurred:\n${messages.join("\n")}`;
 	}
-	
+
 	// Handle plain strings
 	if (typeof err === "string") {
 		return err;
 	}
-	
+
 	// Handle Error instances - use toString() to preserve "Error: message" format
 	if (err instanceof Error) {
 		return err.toString();
 	}
-	
+
 	// Handle objects with a custom toString method (not the default Object.prototype.toString)
 	if (err !== null && typeof err === "object" && typeof err.toString === "function" && err.toString !== Object.prototype.toString) {
 		const result = err.toString();
@@ -31,12 +56,12 @@ function formatError(err: any): string {
 			return result;
 		}
 	}
-	
+
 	// Handle objects with a message property (error-like objects)
 	if (typeof err?.message === "string") {
 		return err.message;
 	}
-	
+
 	// Handle plain objects - try JSON serialization
 	if (typeof err === "object" && err !== null) {
 		try {
@@ -45,7 +70,7 @@ function formatError(err: any): string {
 			return String(err);
 		}
 	}
-	
+
 	// Fallback for any other type
 	return String(err);
 }
@@ -91,6 +116,27 @@ export function httpErr(obj): any {
 
 export function errLog(arg: any): void {
 	trace.debug(arg?.stack);
+	if (shouldEmitJsonError()) {
+		const payload: any = {
+			status: "error",
+			message: formatError(arg),
+		};
+		const issues = toStructuredIssues(arg);
+		if (issues) {
+			payload.issues = issues;
+		}
+		console.log(JSON.stringify(payload, null, 4));
+		process.exit(-1);
+		return;
+	}
+	const issues = toStructuredIssues(arg);
+	if (issues && issues.length > 0) {
+		issues.forEach(issue => {
+			console.error(formatDiagnostic(issue, "error"));
+		});
+		process.exit(-1);
+		return;
+	}
 	trace.error(formatError(arg));
 	process.exit(-1);
 }

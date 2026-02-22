@@ -6,9 +6,11 @@ import { GalleryBase, CoreExtInfo, PublisherManager, PackagePublisher } from "./
 import * as path from "path";
 import _ = require("lodash");
 import jju = require("jju");
+import * as jsonc from "jsonc-parser";
 import args = require("../../lib/arguments");
 import https = require("https");
 import trace = require("../../lib/trace");
+import { offsetToLineCol } from "../../lib/jsoncLocation";
 
 import { readFile } from "fs";
 import { promisify } from "util";
@@ -50,6 +52,7 @@ export interface ExtensionArguments extends CoreArguments {
 	unshareWith: args.ArrayArgument;
 	version: args.StringArgument;
 	vsix: args.ReadableFilePathsArgument;
+	warningsAsErrors: args.BooleanArgument;
 	zipUri: args.StringArgument;
 }
 
@@ -133,7 +136,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			"shareWith",
 			"Share with",
 			"List of Azure DevOps organization(s) with which to share the extension (space separated).",
-			args.ArrayArgument, 
+			args.ArrayArgument,
 			null,
 		);
 		this.registerCommandArgument(
@@ -151,6 +154,13 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 		);
 		this.registerCommandArgument("bypassScopeCheck", "Bypass scope check", null, args.BooleanArgument, "false");
 		this.registerCommandArgument("bypassValidation", "Bypass local validation", null, args.BooleanArgument, "false");
+		this.registerCommandArgument(
+			"warningsAsErrors",
+			"Warnings as errors",
+			"Treat task.json validation warnings as errors.",
+			args.BooleanArgument,
+			"false",
+		);
 		this.registerCommandArgument(
 			"locRoot",
 			"Localization root",
@@ -196,6 +206,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 			this.commandArgs.overridesFile.val(),
 			this.commandArgs.revVersion.val(),
 			this.commandArgs.bypassValidation.val(),
+			this.commandArgs.warningsAsErrors.val(),
 			this.commandArgs.publisher.val(true),
 			this.commandArgs.extensionId.val(true),
 			this.commandArgs.json5.val(true),
@@ -211,6 +222,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				overridesFile,
 				revVersion,
 				bypassValidation,
+				warningsAsErrors,
 				publisher,
 				extensionId,
 				json5,
@@ -236,9 +248,48 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 				let mergedOverrides = {};
 				let contentJSON = {};
 				try {
-					contentJSON = json5 ? jju.parse(content) : JSON.parse(content);
+					try {
+						const parseErrors: jsonc.ParseError[] = [];
+						const rootNode = jsonc.parseTree(content, parseErrors, {
+							allowTrailingComma: !!json5,
+							disallowComments: !json5,
+						});
+						if (parseErrors.length > 0 || !rootNode) {
+							const parseErr: any = new Error("Invalid JSON/JSONC content.");
+							parseErr.parseErrors = parseErrors;
+							throw parseErr;
+						}
+						contentJSON = jsonc.getNodeValue(rootNode);
+						contentJSON["__pointerMap"] = {
+							sourceText: content,
+							root: rootNode,
+						};
+					} catch (strictErr) {
+						if (json5) {
+							contentJSON = jju.parse(content);
+						} else {
+							throw strictErr;
+						}
+					}
 				} catch (e) {
-					throw new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
+					let line: number | null = null;
+					let col: number | null = null;
+					const parseErrors = e && (<any>e).parseErrors;
+					if (Array.isArray(parseErrors) && parseErrors.length > 0 && typeof parseErrors[0].offset === "number") {
+						const loc = offsetToLineCol(content, parseErrors[0].offset);
+						line = loc.line;
+						col = loc.col;
+					}
+					const parseErr: any = new Error("Could not parse contents of " + overridesFile[0] + " as JSON. \n");
+					parseErr.validationIssues = [
+						{
+							file: overridesFile && overridesFile.length > 0 ? overridesFile[0] : null,
+							line: line,
+							col: col,
+							message: "Could not parse JSON.",
+						},
+					];
+					throw parseErr;
 				}
 				contentJSON["__origin"] = overridesFile ? overridesFile[0] : path.join(root[0], "_override.json");
 				_.merge(mergedOverrides, contentJSON, override);
@@ -251,6 +302,7 @@ export class ExtensionBase<T> extends TfCommand<ExtensionArguments, T> {
 					manifestGlobs: manifestGlob,
 					overrides: mergedOverrides,
 					bypassValidation: bypassValidation,
+					warningsAsErrors: warningsAsErrors,
 					revVersion: revVersion,
 					json5: json5,
 				};

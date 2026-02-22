@@ -16,10 +16,13 @@ import fs = require("fs");
 import { glob } from "glob";
 import jju = require("jju");
 import jsonInPlace = require("json-in-place");
+import * as jsonc from "jsonc-parser";
 import loc = require("./loc");
 import path = require("path");
 import trace = require("../../../lib/trace");
 import version = require("../../../lib/dynamicVersion");
+import { formatDiagnostic, normalizeIssue } from "../../../lib/diagnostics";
+import { offsetToLineCol, pointerLocation } from "../../../lib/jsoncLocation";
 
 import { promisify } from "util";
 import { readdir, readFile, writeFile, lstat } from "fs";
@@ -47,6 +50,34 @@ export class Merger {
 	 */
 	constructor(private settings: MergeSettings) {
 		this.manifestBuilders = [];
+	}
+
+	private parseManifestText(jsonData: string): { data: any; pointers: any } {
+		try {
+			const parseErrors: jsonc.ParseError[] = [];
+			const rootNode = jsonc.parseTree(jsonData, parseErrors, {
+				allowTrailingComma: !!this.settings.json5,
+				disallowComments: !this.settings.json5,
+			});
+			if (parseErrors.length > 0 || !rootNode) {
+				const parseErr: any = new Error("Invalid JSON/JSONC content.");
+				parseErr.parseErrors = parseErrors;
+				throw parseErr;
+			}
+			return {
+				data: jsonc.getNodeValue(rootNode),
+				pointers: {
+					sourceText: jsonData,
+					root: rootNode,
+				},
+			};
+		} catch (strictErr) {
+			if (this.settings.json5) {
+				const data = jju.parse(jsonData);
+				return { data, pointers: null };
+			}
+			throw strictErr;
+		}
 	}
 
 	private async gatherManifests(): Promise<string[]> {
@@ -128,12 +159,32 @@ export class Merger {
 					promisify(readFile)(file, "utf8").then(data => {
 						const jsonData = data.replace(/^\uFEFF/, "");
 						try {
-							const result = this.settings.json5 ? jju.parse(jsonData) : JSON.parse(jsonData);
+							const parsed = this.parseManifestText(jsonData);
+							let result: any = parsed.data;
+							result.__pointerMap = parsed.pointers;
 							result.__origin = file; // save the origin in order to resolve relative paths later.
 							return result;
 						} catch (err) {
 							trace.error("Error parsing the JSON in %s: ", file);
 							trace.debug(jsonData, null);
+							const parseErrors = err && (<any>err).parseErrors;
+							if (!err || !Array.isArray((<any>err).validationIssues)) {
+								let line: number | null = null;
+								let col: number | null = null;
+								if (Array.isArray(parseErrors) && parseErrors.length > 0 && typeof parseErrors[0].offset === "number") {
+									const loc = offsetToLineCol(jsonData, parseErrors[0].offset);
+									line = loc.line;
+									col = loc.col;
+								}
+								(<any>err).validationIssues = [
+									{
+										file: file,
+										line: line,
+										col: col,
+										message: "Could not parse JSON.",
+									},
+								];
+							}
 							throw err;
 						}
 					}),
@@ -153,10 +204,34 @@ export class Merger {
 			let allContributions: any[] = [];
 			partials.forEach(partial => {
 				if (_.isArray(partial["targets"])) {
-					targets = targets.concat(partial["targets"]);
+					partial["targets"].forEach((target: any, targetIndex: number) => {
+						const idLoc = pointerLocation(partial.__pointerMap, `/targets/${targetIndex}/id`);
+						const targetWithSource: any = _.assign({}, target, {
+							__origin: partial.__origin || null,
+							__line: idLoc.line,
+							__col: idLoc.col,
+						});
+						targets.push(<TargetDeclaration>targetWithSource);
+					});
 				}
 				if (_.isArray(partial["contributions"])) {
-					allContributions = allContributions.concat(partial["contributions"]);
+					partial["contributions"].forEach((contribution: any, contributionIndex: number) => {
+						const nameLoc = pointerLocation(
+							partial.__pointerMap,
+							`/contributions/${contributionIndex}/properties/name`,
+						);
+						const contributionLoc = pointerLocation(
+							partial.__pointerMap,
+							`/contributions/${contributionIndex}`,
+						);
+						allContributions.push(
+							_.assign({}, contribution, {
+								__origin: partial.__origin || null,
+								__line: nameLoc.line !== null ? nameLoc.line : contributionLoc.line,
+								__col: nameLoc.col !== null ? nameLoc.col : contributionLoc.col,
+							}),
+						);
+					});
 				}
 			});
 			this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
@@ -281,10 +356,17 @@ export class Merger {
 						if (validationResult.length === 0 || this.settings.bypassValidation) {
 							return components;
 						} else {
-							throw new Error(
+							const validationErr: any = new Error(
 								"There were errors with your extension. Address the following and re-run the tool.\n" +
 									validationResult,
 							);
+							validationErr.validationIssues = validationResult.map(message => ({
+								file: null,
+								line: null,
+								col: null,
+								message: message,
+							}));
+							throw validationErr;
 						}
 					});
 				});
@@ -397,6 +479,14 @@ export class Merger {
 	}
 
 	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
+		const warnings: Array<{ file: string | null; line: number | null; col: number | null; message: string }> = [];
+
+		const addWarning = (message: string, file: string | null = null, line: number | null = null, col: number | null = null) => {
+			const warning = { file, line, col, message };
+			warnings.push(warning);
+			console.warn(formatDiagnostic(warning, "warning"));
+		};
+
 		try {
 			// Filter contributions to only build tasks
 			const buildTaskContributions = contributions.filter(contrib =>
@@ -440,22 +530,27 @@ export class Merger {
 							}
 						}
 					} catch (err) {
-						trace.warn(`Error reading task directory ${absoluteTaskPath}: ${err}`);
+						addWarning(`Error reading task directory ${absoluteTaskPath}: ${err}`, absoluteTaskPath, 1, 1);
 					}
 				}
 
 				// Validate task.json files for this contribution with backwards compatibility checking
 				if (contributionTaskJsonPaths.length > 0) {
 					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
-					
+
 					for (const taskJsonPath of contributionTaskJsonPaths) {
-						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
+						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths, this.settings.json5);
 					}
-					
+
 					// Also collect for global tracking if needed
 					allTaskJsonPaths.push(...contributionTaskJsonPaths);
 				} else {
-					trace.warn(`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`);
+					addWarning(
+						`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`,
+						contrib && contrib.__origin !== undefined ? contrib.__origin : null,
+						contrib && contrib.__line !== undefined ? contrib.__line : null,
+						contrib && contrib.__col !== undefined ? contrib.__col : null,
+					);
 				}
 			}
 
@@ -466,11 +561,54 @@ export class Merger {
 
 			trace.debug(`Successfully validated ${allTaskJsonPaths.length} task.json files across ${buildTaskContributions.length} build task contributions`);
 
+			if (this.settings.warningsAsErrors && warnings.length > 0) {
+				const warningsAsErrorsErr: any = new Error(
+					"Task.json validation produced warnings. Re-run without --warnings-as-errors to treat them as warnings only.\n" +
+						warnings.map(w => w.message).join("\n"),
+				);
+				warningsAsErrorsErr.validationIssues = warnings.map(warning => ({
+					file: warning.file,
+					line: warning.line,
+					col: warning.col,
+					message: warning.message,
+				}));
+				throw warningsAsErrorsErr;
+			}
+
 		} catch (err) {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
-			trace.warn(err && err instanceof Error
-				? warningMessage + err.message
-				: `Error occurred while validating build task contributions. ${warningMessage}`);
+			const emitWarning = (issue: { file: string | null; line: number | null; col: number | null; message: string }) => {
+				console.warn(formatDiagnostic(issue, "warning"));
+			};
+			if (this.settings.warningsAsErrors) {
+				if (err && err instanceof Error) {
+					throw err;
+				}
+				throw new Error("Error occurred while validating build task contributions.");
+			}
+			const structuredIssues = err && Array.isArray((<any>err).validationIssues) ? (<any>err).validationIssues : null;
+			if (structuredIssues && structuredIssues.length > 0) {
+				const normalizedIssues = structuredIssues.map(issue => normalizeIssue(issue));
+				const warnedFiles: { [file: string]: boolean } = {};
+				normalizedIssues.forEach(issue => {
+					const fileKey = issue.file ? String(issue.file) : "";
+					if (!warnedFiles[fileKey]) {
+						warnedFiles[fileKey] = true;
+						emitWarning({ file: issue.file, line: 1, col: 1, message: warningMessage.trim() });
+					}
+					emitWarning(issue);
+				});
+			} else {
+				emitWarning({
+					file: null,
+					line: null,
+					col: null,
+					message:
+						err && err instanceof Error
+							? `${warningMessage}${err.message}`
+							: `Error occurred while validating build task contributions. ${warningMessage}`,
+				});
+			}
 		}
 	}
 }
