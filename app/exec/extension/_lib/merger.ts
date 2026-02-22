@@ -16,6 +16,7 @@ import fs = require("fs");
 import { glob } from "glob";
 import jju = require("jju");
 import jsonInPlace = require("json-in-place");
+import * as jsonc from "jsonc-parser";
 import loc = require("./loc");
 import path = require("path");
 import trace = require("../../../lib/trace");
@@ -47,6 +48,84 @@ export class Merger {
 	 */
 	constructor(private settings: MergeSettings) {
 		this.manifestBuilders = [];
+	}
+
+	private getPointerLocation(pointerMap: any, pointerPath: string): { line: number | null; col: number | null } {
+		if (!pointerMap || !pointerMap.root || typeof pointerMap.sourceText !== "string") {
+			return { line: null, col: null };
+		}
+
+		const segments = pointerPath === ""
+			? []
+			: pointerPath
+				.split("/")
+				.slice(1)
+				.map(token => token.replace(/~1/g, "/").replace(/~0/g, "~"))
+				.map(token => /^\d+$/.test(token) ? parseInt(token, 10) : token);
+
+		const node = jsonc.findNodeAtLocation(pointerMap.root, segments);
+		if (!node) {
+			return { line: null, col: null };
+		}
+
+		const locationNode = node.parent && node.parent.type === "property" ? node.parent : node;
+		const location = this.offsetToLineCol(pointerMap.sourceText, locationNode.offset);
+
+		return {
+			line: location.line,
+			col: location.col,
+		};
+	}
+
+	private offsetToLineCol(text: string, offset: number): { line: number; col: number } {
+		let line = 1;
+		let col = 1;
+
+		for (let i = 0; i < offset && i < text.length; i++) {
+			const ch = text.charCodeAt(i);
+			if (ch === 13) {
+				if (i + 1 < text.length && text.charCodeAt(i + 1) === 10) {
+					i++;
+				}
+				line++;
+				col = 1;
+			} else if (ch === 10) {
+				line++;
+				col = 1;
+			} else {
+				col++;
+			}
+		}
+
+		return { line, col };
+	}
+
+	private parseManifestText(jsonData: string): { data: any; pointers: any } {
+		try {
+			const parseErrors: jsonc.ParseError[] = [];
+			const rootNode = jsonc.parseTree(jsonData, parseErrors, {
+				allowTrailingComma: !!this.settings.json5,
+				disallowComments: !this.settings.json5,
+			});
+			if (parseErrors.length > 0 || !rootNode) {
+				const parseErr: any = new Error("Invalid JSON/JSONC content.");
+				parseErr.parseErrors = parseErrors;
+				throw parseErr;
+			}
+			return {
+				data: jsonc.getNodeValue(rootNode),
+				pointers: {
+					sourceText: jsonData,
+					root: rootNode,
+				},
+			};
+		} catch (strictErr) {
+			if (this.settings.json5) {
+				const data = jju.parse(jsonData);
+				return { data, pointers: null };
+			}
+			throw strictErr;
+		}
 	}
 
 	private async gatherManifests(): Promise<string[]> {
@@ -128,12 +207,32 @@ export class Merger {
 					promisify(readFile)(file, "utf8").then(data => {
 						const jsonData = data.replace(/^\uFEFF/, "");
 						try {
-							const result = this.settings.json5 ? jju.parse(jsonData) : JSON.parse(jsonData);
+							const parsed = this.parseManifestText(jsonData);
+							let result: any = parsed.data;
+							result.__pointerMap = parsed.pointers;
 							result.__origin = file; // save the origin in order to resolve relative paths later.
 							return result;
 						} catch (err) {
 							trace.error("Error parsing the JSON in %s: ", file);
 							trace.debug(jsonData, null);
+							const parseErrors = err && (<any>err).parseErrors;
+							if (!err || !Array.isArray((<any>err).validationIssues)) {
+								let line: number | null = null;
+								let col: number | null = null;
+								if (Array.isArray(parseErrors) && parseErrors.length > 0 && typeof parseErrors[0].offset === "number") {
+									const loc = this.offsetToLineCol(jsonData, parseErrors[0].offset);
+									line = loc.line;
+									col = loc.col;
+								}
+								(<any>err).validationIssues = [
+									{
+										file: file,
+										line: line,
+										col: col,
+										message: "Could not parse JSON.",
+									},
+								];
+							}
 							throw err;
 						}
 					}),
@@ -153,10 +252,34 @@ export class Merger {
 			let allContributions: any[] = [];
 			partials.forEach(partial => {
 				if (_.isArray(partial["targets"])) {
-					targets = targets.concat(partial["targets"]);
+					partial["targets"].forEach((target: any, targetIndex: number) => {
+						const idLoc = this.getPointerLocation(partial.__pointerMap, `/targets/${targetIndex}/id`);
+						const targetWithSource: any = _.assign({}, target, {
+							__origin: partial.__origin || null,
+							__line: idLoc.line,
+							__col: idLoc.col,
+						});
+						targets.push(<TargetDeclaration>targetWithSource);
+					});
 				}
 				if (_.isArray(partial["contributions"])) {
-					allContributions = allContributions.concat(partial["contributions"]);
+					partial["contributions"].forEach((contribution: any, contributionIndex: number) => {
+						const nameLoc = this.getPointerLocation(
+							partial.__pointerMap,
+							`/contributions/${contributionIndex}/properties/name`,
+						);
+						const contributionLoc = this.getPointerLocation(
+							partial.__pointerMap,
+							`/contributions/${contributionIndex}`,
+						);
+						allContributions.push(
+							_.assign({}, contribution, {
+								__origin: partial.__origin || null,
+								__line: nameLoc.line !== null ? nameLoc.line : contributionLoc.line,
+								__col: nameLoc.col !== null ? nameLoc.col : contributionLoc.col,
+							}),
+						);
+					});
 				}
 			});
 			this.extensionComposer = ComposerFactory.GetComposer(this.settings, targets);
@@ -404,10 +527,27 @@ export class Merger {
 	}
 
 	private async validateBuildTaskContributions(contributions: any[]): Promise<void> {
-		const warnings: string[] = [];
-		const addWarning = (message: string) => {
-			warnings.push(message);
-			trace.warn(message);
+		const warnings: Array<{ file: string | null; line: number | null; col: number | null; message: string }> = [];
+		const formatIssueForEditor = (
+			issue: { file: string | null; line: number | null; col: number | null; message: string },
+			severity: "warning" | "error" = "warning",
+		): string => {
+			if (issue.file && issue.line !== null && issue.col !== null) {
+				return `${issue.file}(${issue.line},${issue.col}): ${severity}: ${issue.message}`;
+			}
+			if (issue.file && issue.line !== null) {
+				return `${issue.file}(${issue.line}): ${severity}: ${issue.message}`;
+			}
+			if (issue.file) {
+				return `${issue.file}: ${severity}: ${issue.message}`;
+			}
+			return `${severity}: ${issue.message}`;
+		};
+
+		const addWarning = (message: string, file: string | null = null, line: number | null = null, col: number | null = null) => {
+			const warning = { file, line, col, message };
+			warnings.push(warning);
+			console.warn(formatIssueForEditor(warning, "warning"));
 		};
 
 		try {
@@ -453,7 +593,7 @@ export class Merger {
 							}
 						}
 					} catch (err) {
-						addWarning(`Error reading task directory ${absoluteTaskPath}: ${err}`);
+						addWarning(`Error reading task directory ${absoluteTaskPath}: ${err}`, absoluteTaskPath, 1, 1);
 					}
 				}
 
@@ -462,7 +602,7 @@ export class Merger {
 					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
 
 					for (const taskJsonPath of contributionTaskJsonPaths) {
-						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
+						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths, this.settings.json5);
 					}
 
 					// Also collect for global tracking if needed
@@ -470,6 +610,9 @@ export class Merger {
 				} else {
 					addWarning(
 						`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`,
+						contrib && contrib.__origin !== undefined ? contrib.__origin : null,
+						contrib && contrib.__line !== undefined ? contrib.__line : null,
+						contrib && contrib.__col !== undefined ? contrib.__col : null,
 					);
 				}
 			}
@@ -484,13 +627,13 @@ export class Merger {
 			if (this.settings.warningsAsErrors && warnings.length > 0) {
 				const warningsAsErrorsErr: any = new Error(
 					"Task.json validation produced warnings. Re-run without --warnings-as-errors to treat them as warnings only.\n" +
-						warnings.join("\n"),
+						warnings.map(w => w.message).join("\n"),
 				);
-				warningsAsErrorsErr.validationIssues = warnings.map(message => ({
-					file: null,
-					line: null,
-					col: null,
-					message: message,
+				warningsAsErrorsErr.validationIssues = warnings.map(warning => ({
+					file: warning.file,
+					line: warning.line,
+					col: warning.col,
+					message: warning.message,
 				}));
 				throw warningsAsErrorsErr;
 			}
@@ -503,11 +646,55 @@ export class Merger {
 				}
 				throw new Error("Error occurred while validating build task contributions.");
 			}
-			trace.warn(
-				err && err instanceof Error
-					? warningMessage + err.message
-					: `Error occurred while validating build task contributions. ${warningMessage}`,
-			);
+			const structuredIssues = err && Array.isArray((<any>err).validationIssues) ? (<any>err).validationIssues : null;
+			if (structuredIssues && structuredIssues.length > 0) {
+				const warningByFile: { [file: string]: boolean } = {};
+				structuredIssues.forEach(issue => {
+					const fileKey = issue && issue.file ? String(issue.file) : "";
+					if (!warningByFile[fileKey]) {
+						warningByFile[fileKey] = true;
+						console.warn(
+							formatIssueForEditor(
+								{
+									file: issue && issue.file !== undefined ? issue.file : null,
+									line: 1,
+									col: 1,
+									message: warningMessage.trim(),
+								},
+								"warning",
+							),
+						);
+					}
+				});
+				structuredIssues.forEach(issue => {
+					console.warn(
+						formatIssueForEditor(
+							{
+								file: issue && issue.file !== undefined ? issue.file : null,
+								line: issue && issue.line !== undefined ? issue.line : null,
+								col: issue && issue.col !== undefined ? issue.col : null,
+								message: issue && issue.message ? issue.message : String(issue),
+							},
+							"warning",
+						),
+					);
+				});
+			} else {
+				console.warn(
+					formatIssueForEditor(
+						{
+							file: null,
+							line: null,
+							col: null,
+							message:
+								err && err instanceof Error
+									? `${warningMessage}${err.message}`
+									: `Error occurred while validating build task contributions. ${warningMessage}`,
+						},
+						"warning",
+					),
+				);
+			}
 		}
 	}
 }

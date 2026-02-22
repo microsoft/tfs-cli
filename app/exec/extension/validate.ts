@@ -21,6 +21,19 @@ export interface ValidationResult {
 	issues: ValidationIssue[];
 }
 
+function formatIssueForEditor(issue: ValidationIssue): string {
+	if (issue.file && issue.line !== null && issue.col !== null) {
+		return `${issue.file}(${issue.line},${issue.col}): error: ${issue.message}`;
+	}
+	if (issue.file && issue.line !== null) {
+		return `${issue.file}(${issue.line}): error: ${issue.message}`;
+	}
+	if (issue.file) {
+		return `${issue.file}: error: ${issue.message}`;
+	}
+	return `error: ${issue.message}`;
+}
+
 export class ExtensionValidate extends extBase.ExtensionBase<ValidationResult> {
 	protected description =
 		"Validate an extension from manifests without packaging or publishing.";
@@ -104,9 +117,8 @@ export class ExtensionValidate extends extBase.ExtensionBase<ValidationResult> {
 			trace.info(colors.red("\n=== Completed operation: validate extension ==="));
 			trace.info(" - Source: %s", data.source);
 			trace.info(" - Validation: %s", colors.red("failed"));
-			trace.info(" - Issues (%s):", data.issues.length.toString());
 			data.issues.forEach(issue => {
-				trace.info("   - %s", issue.message);
+				trace.info(formatIssueForEditor(issue));
 			});
 		}
 	}

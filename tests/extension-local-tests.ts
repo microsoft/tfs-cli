@@ -331,6 +331,26 @@ describe('Extension Commands - Local Tests', function() {
                 .catch(done);
         });
 
+        it('should include manifest file location for invalid target diagnostics', function(done) {
+            const invalidExtensionPath = path.join(samplesPath, 'invalid-extension');
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension validate --root "${invalidExtensionPath}" --json --no-prompt`,
+                'extension validate invalid target json',
+            )
+                .then(({ stdout }) => {
+                    const result = JSON.parse(stdout);
+                    assert(result && result.status === 'error', 'Should return error status in json mode');
+                    const targetIssue = result.issues.find(issue => issue.message.indexOf('not a recognized target') >= 0);
+                    assert(targetIssue, 'Should include invalid target issue');
+                    assert(targetIssue.file && targetIssue.file.endsWith('vss-extension.json'), 'Issue should include manifest file');
+                    assert(targetIssue.line && targetIssue.line > 0, 'Issue should include line when available');
+                    assert(targetIssue.col && targetIssue.col > 0, 'Issue should include col when available');
+                    done();
+                })
+                .catch(done);
+        });
+
         it('should report missing task name when name is omitted', function(done) {
             const tempRoot = path.join(__dirname, '../temp-extensions/missing-name-task-extension');
             const taskDir = path.join(tempRoot, 'MissingNameTask');
@@ -904,6 +924,81 @@ describe('Extension Commands - Local Tests', function() {
                     done();
                 })
                 .catch(done);
+        });
+
+        it('should output structured JSON errors for create command failures', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions/create-json-error');
+            const partialsDir = path.join(tempRoot, 'partials');
+            const manifestMainPath = path.join(tempRoot, 'vss-extension.json');
+            const manifestBadPath = path.join(partialsDir, 'bad-target.json');
+
+            try {
+                if (!fs.existsSync(path.dirname(tempRoot))) {
+                    fs.mkdirSync(path.dirname(tempRoot));
+                }
+                if (!fs.existsSync(tempRoot)) {
+                    fs.mkdirSync(tempRoot);
+                }
+                if (!fs.existsSync(partialsDir)) {
+                    fs.mkdirSync(partialsDir);
+                }
+
+                fs.writeFileSync(
+                    manifestMainPath,
+                    JSON.stringify(
+                        {
+                            manifestVersion: 1,
+                            id: 'create-json-error-extension',
+                            publisher: 'fabrikam',
+                            version: '1.0.0',
+                            name: 'Create JSON Error Extension',
+                            targets: [{ id: 'Microsoft.VisualStudio.Services' }],
+                        },
+                        null,
+                        2,
+                    ),
+                );
+                fs.writeFileSync(
+                    manifestBadPath,
+                    JSON.stringify(
+                        {
+                            targets: [{ id: 'Invalid.Target' }],
+                        },
+                        null,
+                        2,
+                    ),
+                );
+            } catch (setupError) {
+                done(setupError);
+                return;
+            }
+
+            execAsyncWithLogging(
+                `node "${tfxPath}" extension create --root "${tempRoot}" --manifest-globs vss-extension.json partials/*.json --output-path "${path.join(tempRoot, 'out.vsix')}" --json --no-prompt`,
+                'extension create --json failure',
+            )
+                .then(() => {
+                    done(new Error('Create should fail for invalid target'));
+                })
+                .catch((error) => {
+                    const jsonText = error.stdout || error.stderr || error.message;
+                    let payload: any;
+                    try {
+                        payload = JSON.parse(jsonText);
+                    } catch (parseError) {
+                        done(new Error('Expected JSON error output from create --json'));
+                        return;
+                    }
+
+                    assert(payload.status === 'error', 'Should emit error status');
+                    assert(Array.isArray(payload.issues) && payload.issues.length > 0, 'Should include structured issues');
+                    const targetIssue = payload.issues.find(issue => issue.message.indexOf('not a recognized target') >= 0);
+                    assert(targetIssue, 'Should include invalid target issue');
+                    assert(targetIssue.file && targetIssue.file.endsWith('bad-target.json'), 'Issue should point to offending manifest');
+                    assert(targetIssue.line && targetIssue.line > 0, 'Issue should include line');
+                    assert(targetIssue.col && targetIssue.col > 0, 'Issue should include col');
+                    done();
+                });
         });
     });
 

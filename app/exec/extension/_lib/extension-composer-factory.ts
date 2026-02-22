@@ -38,12 +38,13 @@ export class ComposerFactory {
 							"'" +
 							target.id +
 							"' is not a recognized target. Valid targets are 'Microsoft.VisualStudio.Services', 'Microsoft.VisualStudio.Services.Integration', 'Microsoft.VisualStudio.Offer'";
+						const targetWithSource = <any>target;
 						const err: any = new Error(message);
 						err.validationIssues = [
 							{
-								file: null,
-								line: null,
-								col: null,
+								file: targetWithSource.__origin || null,
+								line: targetWithSource.__line || null,
+								col: targetWithSource.__col || null,
 								message: message,
 							},
 						];
