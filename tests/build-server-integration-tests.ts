@@ -578,7 +578,7 @@ describe('Build Commands - Server Integration Tests', function() {
                 })
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
-                    assert(errorOutput.includes("error: Error: Unsupported auth type. Currently, 'pat' and 'basic' auth are supported."), 'Should indicate unsupported auth type');
+					assert(errorOutput.includes("error: Error: Unsupported auth type. Currently, 'pat', 'basic', and 'entra' auth are supported."), 'Should indicate unsupported auth type');
                     done();
                 });
         });

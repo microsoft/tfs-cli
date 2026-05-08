@@ -1,9 +1,9 @@
-import { BasicCredentialHandler } from "azure-devops-node-api/handlers/basiccreds";
 import { DiskCache } from "../lib/diskcache";
 import { getCredentialStore } from "../lib/credstore";
+import { getEntraAccessToken } from "../lib/entra";
 import { repeatStr } from "../lib/common";
 import { TfsConnection } from "../lib/connection";
-import { WebApi, getBasicHandler } from "azure-devops-node-api/WebApi";
+import { WebApi, getBasicHandler, getBearerHandler } from "azure-devops-node-api/WebApi";
 import { EOL as eol } from "os";
 import _ = require("lodash");
 import args = require("./arguments");
@@ -17,7 +17,7 @@ import fsUtils = require("./fsUtils");
 import { promisify } from "util";
 import trace = require("./trace");
 import version = require("./version");
-import { IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
+import { IRequestHandler, IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
 const clipboardyWrite = (data: string) => import('clipboardy').then(clipboardy => clipboardy.default.writeSync(data));
 
 export interface CoreArguments {
@@ -298,7 +298,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		this.registerCommandArgument(
 			["authType"],
 			"Authentication Method",
-			"Method of authentication ('pat' or 'basic').",
+			"Method of authentication ('pat', 'basic', or 'entra').",
 			args.StringArgument,
 			"pat",
 		);
@@ -314,7 +314,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 			"Password to use for basic authentication.",
 			args.SilentStringArgument,
 		);
-		this.registerCommandArgument(["token", "-t"], "Personal access token", null, args.SilentStringArgument);
+		this.registerCommandArgument(["token", "-t"], "Personal access token", "Personal access token to use for PAT authentication.", args.SilentStringArgument);
 		this.registerCommandArgument(
 			["save"],
 			"Save settings",
@@ -403,63 +403,98 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 	 * If token is passed in, use that.
 	 * Else, check the authType - if it is "pat", prompt for a token
 	 * If it is "basic", prompt for username and password.
+	 * If it is "entra", resolve a Microsoft Entra bearer token from the environment or Azure CLI.
 	 */
-	protected getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<BasicCredentialHandler> {
+	private async getEntraHandler(): Promise<IRequestHandler> {
+		const accessToken = await getEntraAccessToken();
+		return getBearerHandler(accessToken);
+	}
+
+	private async getStoredCredentialHandler(credString: string): Promise<IRequestHandler> {
+		if (!credString || credString.length <= 4) {
+			throw new Error("Could not get credentials from credential store.");
+		}
+
+		if (credString.substr(0, 3) === "pat") {
+			return getBasicHandler("OAuth", credString.substr(4));
+		} else if (credString.substr(0, 5) === "basic") {
+			const rest = credString.substr(6);
+			const unpwDividerIndex = rest.indexOf(":");
+			const username = rest.substr(0, unpwDividerIndex);
+			const password = rest.substr(unpwDividerIndex + 1);
+			if (username && password) {
+				return getBasicHandler(username, password);
+			}
+		} else if (credString === "entra" || credString.substr(0, 5) === "entra") {
+			return this.getEntraHandler();
+		}
+
+		throw new Error("Could not get credentials from credential store.");
+	}
+
+	private async getConfiguredCredentialHandler(
+		authType: string,
+		token?: string,
+		username?: string,
+		password?: string,
+	): Promise<IRequestHandler> {
+		const normalizedAuthType = (authType || "pat").toLowerCase();
+
+		if (normalizedAuthType === "entra") {
+			if (token || username || password) {
+				throw new Error(
+					"Auth type 'entra' uses a Microsoft Entra token from Azure CLI or the TFX_ENTRA_TOKEN/AZURE_DEVOPS_ENTRA_TOKEN environment variables. Do not pass --token, --username, or --password.",
+				);
+			}
+
+			return this.getEntraHandler();
+		}
+
+		if (username && password) {
+			return getBasicHandler(username, password);
+		}
+
+		if (token) {
+			return getBasicHandler("OAuth", token);
+		}
+
+		if (normalizedAuthType === "pat") {
+			const patToken = await this.commandArgs.token.val();
+			return getBasicHandler("OAuth", patToken);
+		} else if (normalizedAuthType === "basic") {
+			const basicUsername = await this.commandArgs.username.val();
+			const basicPassword = await this.commandArgs.password.val();
+			return getBasicHandler(basicUsername, basicPassword);
+		}
+
+		throw new Error("Unsupported auth type. Currently, 'pat', 'basic', and 'entra' auth are supported.");
+	}
+
+	protected async getCredentials(serviceUrl: string, useCredStore: boolean = true): Promise<IRequestHandler> {
 		return Promise.all([
 			this.commandArgs.authType.val(),
 			this.commandArgs.token.val(true),
 			this.commandArgs.username.val(true),
 			this.commandArgs.password.val(true),
-		]).then(values => {
+		]).then(async values => {
 			const [authType, token, username, password] = values;
-			if (username && password) {
-				return getBasicHandler(username, password);
-			} else {
-				if (token) {
-					return getBasicHandler("OAuth", token);
-				} else {
-					let getCredentialPromise;
-					if (useCredStore) {
-						getCredentialPromise = getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
-					} else {
-						getCredentialPromise = Promise.reject("not using cred store.");
-					}
-					return getCredentialPromise
-						.then((credString: string) => {
-							if (credString.length <= 6) {
-								throw "Could not get credentials from credential store.";
-							}
-							if (credString.substr(0, 3) === "pat") {
-								return getBasicHandler("OAuth", credString.substr(4));
-							} else if (credString.substr(0, 5) === "basic") {
-								let rest = credString.substr(6);
-								let unpwDividerIndex = rest.indexOf(":");
-								let username = rest.substr(0, unpwDividerIndex);
-								let password = rest.substr(unpwDividerIndex + 1);
-								if (username && password) {
-									return getBasicHandler(username, password);
-								} else {
-									throw "Could not get credentials from credential store.";
-								}
-							}
-						})
-						.catch(() => {
-							if (authType.toLowerCase() === "pat") {
-								return this.commandArgs.token.val().then(token => {
-									return getBasicHandler("OAuth", token);
-								});
-							} else if (authType.toLowerCase() === "basic") {
-								return this.commandArgs.username.val().then(username => {
-									return this.commandArgs.password.val().then(password => {
-										return getBasicHandler(username, password);
-									});
-								});
-							} else {
-								throw new Error("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported.");
-							}
-						});
+			const normalizedAuthType = (authType || "pat").toLowerCase();
+			const explicitEntraAuth = normalizedAuthType === "entra" && !this.commandArgs.authType.hasDefaultValue;
+
+			if (explicitEntraAuth || (username && password) || token) {
+				return this.getConfiguredCredentialHandler(authType, token, username, password);
+			}
+
+			if (useCredStore) {
+				try {
+					const credString = await getCredentialStore("tfx").getCredential(serviceUrl, "allusers");
+					return await this.getStoredCredentialHandler(credString);
+				} catch (err) {
+					trace.debug("Could not load credentials from credential store.");
 				}
 			}
+
+			return this.getConfiguredCredentialHandler(authType, token, username, password);
 		});
 	}
 
