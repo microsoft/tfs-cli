@@ -13,6 +13,7 @@ declare function after(fn: Function): void;
 
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../build-samples');
+const nodePath = process.execPath;
 
 describe('Build Commands - Server Integration Tests', function() {
     let mockServer: MockDevOpsServer;
@@ -579,6 +580,28 @@ describe('Build Commands - Server Integration Tests', function() {
                 .catch((error) => {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
 					assert(errorOutput.includes("error: Error: Unsupported auth type. Currently, 'pat', 'basic', and 'entra' auth are supported."), 'Should indicate unsupported auth type');
+                    done();
+                });
+        });
+
+        it('should throw a friendly error when entra auth is used without Azure CLI installed', function(done) {
+            const command = `"${nodePath}" "${tfxPath}" build list --service-url "${serverUrl}" --project "${testProject}" --auth-type entra --no-prompt`;
+            const env: any = { ...process.env, PATH: '' };
+            delete env.TFX_ENTRA_TOKEN;
+
+            execAsyncWithLogging(command, 'build list with missing Azure CLI for Microsoft Entra authentication', { env })
+                .then(() => {
+                    assert.fail('Should have failed when Azure CLI is unavailable');
+                })
+                .catch((error) => {
+                    const errorOutput = stripColors(error.stderr || error.stdout || '');
+
+                    assert(errorOutput.includes('Azure CLI (az) is required for Microsoft Entra authentication.'),
+                        `Expected missing Azure CLI error but got: "${errorOutput}"`);
+                    assert(errorOutput.includes('Install Azure CLI'),
+                        `Expected Azure CLI installation guidance but got: "${errorOutput}"`);
+                    assert(error.code !== 0, 'Should exit with non-zero code');
+
                     done();
                 });
         });

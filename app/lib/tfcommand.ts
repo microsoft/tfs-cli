@@ -443,7 +443,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 		if (normalizedAuthType === "entra") {
 			if (token || username || password) {
 				throw new Error(
-					"Auth type 'entra' uses a Microsoft Entra token from Azure CLI or the TFX_ENTRA_TOKEN/AZURE_DEVOPS_ENTRA_TOKEN environment variables. Do not pass --token, --username, or --password.",
+					"Auth type 'entra' uses a Microsoft Entra token from Azure CLI or the TFX_ENTRA_TOKEN environment variable. Do not pass --token, --username, or --password.",
 				);
 			}
 

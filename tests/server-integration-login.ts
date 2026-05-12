@@ -120,7 +120,6 @@ describe('Server Integration Tests - Login and Authentication', function() {
             const command = `"${nodePath}" "${tfxPath}" login --service-url "${serverUrl}" --auth-type entra --no-prompt`;
             const env: any = { ...process.env, PATH: '' };
             delete env.TFX_ENTRA_TOKEN;
-            delete env.AZURE_DEVOPS_ENTRA_TOKEN;
 
             execAsyncWithLogging(command, 'login with missing Azure CLI for Microsoft Entra authentication', { env })
                 .then(() => {

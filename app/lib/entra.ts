@@ -6,7 +6,7 @@ const execAsync = promisify(exec);
 
 const AZURE_DEVOPS_SCOPE = "https://app.vssps.visualstudio.com/.default";
 const AZURE_DEVOPS_RESOURCE = "499b84ac-1321-427f-aa17-267ca6975798";
-const ENTRA_TOKEN_ENV_VARS = ["TFX_ENTRA_TOKEN", "AZURE_DEVOPS_ENTRA_TOKEN"];
+const ENTRA_TOKEN_ENV_VAR = "TFX_ENTRA_TOKEN";
 
 function isAzureCliMissing(err: any): boolean {
 	const errorText = [err && err.stderr, err && err.message]
@@ -31,17 +31,15 @@ function isAzureCliMissing(err: any): boolean {
 
 function getAzureCliMissingError(): Error {
 	return new Error(
-		"Azure CLI (az) is required for Microsoft Entra authentication. Install Azure CLI and run 'az login' (or 'az login --service-principal' / 'az login --identity'), or set TFX_ENTRA_TOKEN or AZURE_DEVOPS_ENTRA_TOKEN.",
+		"Azure CLI (az) is required for Microsoft Entra authentication. Install Azure CLI and run 'az login' (or 'az login --service-principal' / 'az login --identity'), or set TFX_ENTRA_TOKEN.",
 	);
 }
 
 function getEntraTokenFromEnvironment(): string {
-	for (const envVar of ENTRA_TOKEN_ENV_VARS) {
-		const token = process.env[envVar];
-		if (token && token.trim()) {
-			trace.debug(`Using Microsoft Entra token from ${envVar}.`);
-			return token.trim();
-		}
+	const token = process.env[ENTRA_TOKEN_ENV_VAR];
+	if (token && token.trim()) {
+		trace.debug(`Using Microsoft Entra token from ${ENTRA_TOKEN_ENV_VAR}.`);
+		return token.trim();
 	}
 
 	return null;
@@ -98,7 +96,7 @@ export async function getEntraAccessToken(): Promise<string> {
 				.filter((message, index, messages) => messages.indexOf(message) === index);
 
 			let message =
-				"Unable to acquire a Microsoft Entra access token. Run 'az login' (or 'az login --service-principal' / 'az login --identity') first, or set TFX_ENTRA_TOKEN or AZURE_DEVOPS_ENTRA_TOKEN.";
+				"Unable to acquire a Microsoft Entra access token. Run 'az login' (or 'az login --service-principal' / 'az login --identity') first, or set TFX_ENTRA_TOKEN.";
 
 			if (details.length > 0) {
 				message += " Azure CLI output: " + details.join(" ");
