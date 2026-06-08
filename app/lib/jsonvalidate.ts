@@ -7,6 +7,7 @@ const deprecatedRunners = ["Node", "Node6", "Node10", "Node16"];
 
 export interface TaskJson {
   id: string;
+  name: string;
 }
 
 /*
