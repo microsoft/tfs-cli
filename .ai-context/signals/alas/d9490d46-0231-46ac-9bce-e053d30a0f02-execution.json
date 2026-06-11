@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "signal_type": "execution",
+  "timestamp": "2026-06-11T10:05:00Z",
+  "run_id": "d9490d46-0231-46ac-9bce-e053d30a0f02",
+  "agent_name": "s360-breeze-orchestrator",
+  "invoked_skills": ["dependabot:dependency-update-orchestrator"],
+  "kpi": {
+    "id": "ES5.2",
+    "name": "1ES Open Source Vulnerabilities",
+    "program": "SFI"
+  },
+  "skill_used": "dependabot:dependency-update-orchestrator",
+  "mode": "interactive",
+  "dev_feedback": {
+    "asked": true,
+    "question_id": "human_feedback_v1",
+    "question_scope": "session",
+    "prompt_variant": "result",
+    "rating": 1,
+    "rating_scale": "1-5",
+    "freetext_routed": "alas",
+    "arm": "dedicated_skill"
+  },
+  "self_assessment": {
+    "accuracy": 2,
+    "completeness": 2,
+    "tsg_alignment": 3,
+    "developer_experience": 2,
+    "confidence": 2
+  },
+  "patterns": {
+    "what_worked": "Ecosystem detection (npm) was correct, build and test validation passed with 203/203 tests, npm audit reached 0 vulnerabilities",
+    "what_was_hard": "Agent used broad npm audit fix approach instead of targeting the specific vulnerable package (minimatch). This caused 4+ unrelated packages to be updated including a major version bump of mocha (v10 to v11) which risks breaking changes. Developer only wanted minimatch fixed.",
+    "improvisation": "Agent applied blanket npm audit remediation rather than surgically fixing the reported vulnerability. This over-remediated beyond the developers intent.",
+    "recurring_pattern": "Dependency update agents tend to fix all audit findings rather than scoping to the specific reported vulnerability. Major version bumps without developer consent is a recurring friction point.",
+    "skill_gap": "The Dependabot agent needs a mode to target a specific package/vulnerability rather than fixing all audit findings. Should also flag major version bumps for explicit developer approval before applying.",
+    "tsg_gap": null,
+    "environment_blockers": "GitHub EMU restrictions prevented PR creation on microsoft/tfs-cli"
+  },
+  "outcome": {
+    "changes_proposed": "Updated 4 direct dependencies (tmp, uuid, lodash, mocha) and added 8 npm overrides for transitive dependencies. Developer only wanted minimatch vulnerability fixed.",
+    "changes_applied": true,
+    "developer_accepted": false,
+    "developer_modified": false,
+    "escalation_needed": false,
+    "escape_hatch_used": null,
+    "turns_taken": 3,
+    "pr_url": null,
+    "full_journey": "Developer asked for ES5.2 help in [repo]. Orchestrator matched ES5.2 to Dependabot agent via fast path. Branch sfi/ES5.2/d9490d46 created. Agent scanned [repo], detected npm ecosystem, ran npm audit, and applied broad fix covering 12 vulnerabilities across 4 direct deps and 8 overrides. Build and 203 tests passed. However developer feedback indicates the target was specifically minimatch, and the agent over-remediated by bumping unrelated packages including a major version change (mocha v10 to v11). PR creation was blocked by GitHub EMU restrictions. Developer rated session 1/5 due to scope creep beyond intended fix."
+  }
+}
