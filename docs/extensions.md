@@ -106,11 +106,22 @@ In addition to all of the `extension create` options, the following options are 
 tfx extension publish --publisher mypublisher --manifest-js myextension.config.js --env mode=development --share-with myaccount
 ```
 
+### Authentication
+
+When you run the `publish` command, you need to authenticate to the Marketplace. There are multiple ways to provide your Personal Access Token (PAT):
+
+1. **Command-line argument**: `--token your-pat-token` (not recommended for security reasons)
+2. **Stdin**: `--token-from-stdin` - Read token from stdin (recommended for CI/CD, see [Token from stdin](token-from-stdin.md))
+3. **Environment variable**: Set `AZURE_DEVOPS_TOKEN=your-pat-token`
+4. **Stored credentials**: Run `tfx login` once to store credentials
+5. **Interactive prompt**: If no credentials are provided, you will be prompted
+
+For more information about obtaining a Personal Access Token, see [Publish from the command line](https://docs.microsoft.com/azure/devops/extend/publish/command-line?view=vsts).
+
 ### Tips
 
 1. By default, `publish` first packages the extension using the same mechanism as `tfx extension create`. All options available for `create` are available for `publish`.
 2. If an Extension with the same ID already exists publisher, the command will attempt to update the extension.
-3. When you run the `publish` command, you will be prompted for a Personal Access Token to authenticate to the Marketplace. For more information about obtaining a Personal Access Token, see [Publish from the command line](https://docs.microsoft.com/azure/devops/extend/publish/command-line?view=vsts).
 
 
 

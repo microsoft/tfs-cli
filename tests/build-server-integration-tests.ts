@@ -4,6 +4,7 @@ import { createMockServer, MockDevOpsServer } from './mock-server';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DebugLogger, execAsyncWithLogging } from './test-utils/debug-exec';
+import { enforceAzureTokenIsolation } from './test-utils/env';
 
 // Basic test framework functions to avoid TypeScript errors
 declare function describe(name: string, fn: Function): void;
@@ -13,6 +14,8 @@ declare function after(fn: Function): void;
 
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../build-samples');
+
+enforceAzureTokenIsolation();
 
 describe('Build Commands - Server Integration Tests', function() {
     let mockServer: MockDevOpsServer;
