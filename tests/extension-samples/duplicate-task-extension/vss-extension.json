@@ -1,0 +1,38 @@
+{
+    "manifestVersion": 1,
+    "id": "duplicate-task-extension",
+    "name": "Duplicate Task Extension",
+    "version": "1.0.0",
+    "publisher": "test-publisher",
+    "description": "An extension where two contributions point to task.json files that share the same id and name, triggering a duplicate-task warning",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "my-task-v0",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "TaskV0"
+            }
+        },
+        {
+            "id": "my-task-v1",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "TaskV1"
+            }
+        }
+    ]
+}

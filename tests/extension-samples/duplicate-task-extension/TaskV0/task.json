@@ -1,0 +1,30 @@
+{
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "MySharedTask",
+    "friendlyName": "My Shared Task V0",
+    "description": "Version 0 of a task that shares its id and name with another contribution",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Test Publisher",
+    "version": {
+        "Major": 0,
+        "Minor": 1,
+        "Patch": 0
+    },
+    "instanceNameFormat": "My Shared Task $(message)",
+    "inputs": [
+        {
+            "name": "message",
+            "type": "string",
+            "label": "Message",
+            "defaultValue": "Hello",
+            "required": true,
+            "helpMarkDown": "The message to display"
+        }
+    ],
+    "execution": {
+        "Node20_1": {
+            "target": "index.js"
+        }
+    }
+}
