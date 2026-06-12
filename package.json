@@ -37,7 +37,8 @@
   "overrides": {
     "archiver-utils": {
       "glob": "^10.5.0"
-    }
+    },
+    "minimatch": "^10.2.3"
   },
   "dependencies": {
     "app-root-path": "1.0.0",

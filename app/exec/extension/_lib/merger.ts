@@ -410,7 +410,13 @@ export class Merger {
 				return;
 			}
 
-			const allTaskJsonPaths: string[] = [];
+			interface ContributionTaskData {
+				contributionId: string;
+				taskJsonPath: string;
+				id: string;
+				name: string;
+			}
+			const allContributionTaskData: ContributionTaskData[] = [];
 
 			// For each build task contribution, look for task.json files and validate them
 			for (const contrib of buildTaskContributions) {
@@ -447,24 +453,45 @@ export class Merger {
 				// Validate task.json files for this contribution with backwards compatibility checking
 				if (contributionTaskJsonPaths.length > 0) {
 					trace.debug(`Validating ${contributionTaskJsonPaths.length} task.json files for contribution ${contrib.id || taskPath}`);
-					
+
 					for (const taskJsonPath of contributionTaskJsonPaths) {
-						validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
+						const taskData = validate(taskJsonPath, "no task.json in specified directory", contributionTaskJsonPaths);
+						allContributionTaskData.push({
+							contributionId: contrib.id || taskPath,
+							taskJsonPath,
+							id: taskData.id,
+							name: taskData.name,
+						});
 					}
-					
-					// Also collect for global tracking if needed
-					allTaskJsonPaths.push(...contributionTaskJsonPaths);
 				} else {
 					trace.warn(`Build task contribution '${contrib.id || taskPath}' does not have a task.json file. Expected task.json in ${absoluteTaskPath} or its subdirectories.`);
 				}
 			}
 
-			if (allTaskJsonPaths.length === 0) {
+			if (allContributionTaskData.length === 0) {
 				trace.debug("No task.json files found in build task contributions");
 				return;
 			}
 
-			trace.debug(`Successfully validated ${allTaskJsonPaths.length} task.json files across ${buildTaskContributions.length} build task contributions`);
+			// Detect duplicate task id/name across different contributions.
+			// When two contributions reference task.json files with the same id and name,
+			// Azure DevOps silently ignores the second contribution during installation.
+			for (let i = 0; i < allContributionTaskData.length; i++) {
+				for (let j = i + 1; j < allContributionTaskData.length; j++) {
+					const a = allContributionTaskData[i];
+					const b = allContributionTaskData[j];
+					if (a.contributionId !== b.contributionId && a.id === b.id && a.name === b.name) {
+						trace.warn(
+							`Contributions '${a.contributionId}' (${a.taskJsonPath}) and '${b.contributionId}' (${b.taskJsonPath}) ` +
+							`both declare a task with id '${a.id}' and name '${a.name}'. ` +
+							`Azure DevOps will silently ignore the second contribution during installation. ` +
+							`Each contribution must reference a task.json with a unique id and name combination.`
+						);
+					}
+				}
+			}
+
+			trace.debug(`Successfully validated ${allContributionTaskData.length} task.json files across ${buildTaskContributions.length} build task contributions`);
 
 		} catch (err) {
 			const warningMessage = "Please, make sure the task.json file is correct. In the future, this warning will be treated as an error.\n";
