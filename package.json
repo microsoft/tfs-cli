@@ -36,9 +36,18 @@
   },
   "overrides": {
     "archiver-utils": {
-      "glob": "^10.5.0"
+      "glob": {
+        ".": "^10.5.0",
+        "minimatch": "^9.0.9"
+      }
     },
-    "minimatch": "^10.2.3"
+    "mocha": {
+      "minimatch": "^5.1.9",
+      "glob": { "minimatch": "^5.1.9" }
+    },
+    "readdir-glob": { "minimatch": "^5.1.9" },
+    "rimraf": { "glob": { "minimatch": "^3.1.5" } },
+    "glob": { "minimatch": "^10.2.5" }
   },
   "dependencies": {
     "app-root-path": "1.0.0",
