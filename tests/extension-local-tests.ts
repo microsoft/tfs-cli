@@ -765,6 +765,126 @@ describe('Extension Commands - Local Tests', function() {
 
     describe('Extension Creation - Validation Edge Cases', function() {
 
+        // Regression tests for issue #402:
+        // When a metadata file is declared in both content.* and files[],
+        // the VSIX manifest currently loses the required content asset type.
+        const assertVsixManifestHasAsset = (vsixPath: string, assetType: string, assetPath: string) => {
+            const zip = new AdmZip(vsixPath);
+            const vsixManifestEntry = zip.getEntry('extension.vsixmanifest') || zip.getEntry('extension/extension.vsixmanifest');
+            assert(vsixManifestEntry, 'VSIX must contain extension.vsixmanifest');
+
+            const vsixManifestXml = vsixManifestEntry.getData().toString('utf8');
+            const expectedAssetRegex = new RegExp(`Type="${assetType}"[^>]*Path="${assetPath}"|Path="${assetPath}"[^>]*Type="${assetType}"`);
+
+            assert(
+                expectedAssetRegex.test(vsixManifestXml),
+                `Expected extension.vsixmanifest to contain asset Type="${assetType}" with Path="${assetPath}".`,
+            );
+        };
+
+        const createIssue402Fixture = (
+            fixtureRoot: string,
+            contentKey: 'details' | 'license' | 'security',
+            assetFileName: string,
+        ) => {
+            if (!fs.existsSync(fixtureRoot)) {
+                const parentDir = path.dirname(fixtureRoot);
+                if (!fs.existsSync(parentDir)) {
+                    fs.mkdirSync(parentDir);
+                }
+                fs.mkdirSync(fixtureRoot);
+            }
+
+            const manifest = {
+                manifestVersion: 1,
+                id: `issue-402-${contentKey}`,
+                name: `Issue 402 ${contentKey} fixture`,
+                version: '1.0.0',
+                publisher: 'test-publisher',
+                description: 'Fixture for issue #402 metadata asset regression tests',
+                categories: ['Azure Boards'],
+                targets: [{ id: 'Microsoft.VisualStudio.Services' }],
+                content: {
+                    [contentKey]: {
+                        path: assetFileName,
+                    },
+                },
+                contributions: [
+                    {
+                        id: `issue-402-${contentKey}-hub`,
+                        type: 'ms.vss-web.hub',
+                        targets: ['ms.vss-work-web.work-hub-group'],
+                        properties: {
+                            name: 'Issue 402 Hub',
+                            uri: 'index.html',
+                        },
+                    },
+                ],
+                files: [
+                    {
+                        path: assetFileName,
+                        addressable: false,
+                    },
+                    {
+                        path: 'index.html',
+                        addressable: true,
+                    },
+                ],
+            };
+
+            fs.writeFileSync(path.join(fixtureRoot, 'vss-extension.json'), JSON.stringify(manifest, null, 2));
+            fs.writeFileSync(path.join(fixtureRoot, assetFileName), `# ${contentKey} asset\n`);
+            fs.writeFileSync(path.join(fixtureRoot, 'index.html'), '<html><body>Issue 402 fixture</body></html>');
+        };
+
+        it('should include Content.Details asset when overview.md is also present in files[] (issue #402)', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions');
+            const fixtureRoot = path.join(tempRoot, 'issue-402-overview');
+            const outputPath = path.join(fixtureRoot, 'issue-402-overview.vsix');
+
+            createIssue402Fixture(fixtureRoot, 'details', 'overview.md');
+
+            execAsyncWithLogging(`node "${tfxPath}" extension create --root "${fixtureRoot}" --output-path "${outputPath}"`, 'issue #402 overview reproduction')
+                .then(() => {
+                    assert(fs.existsSync(outputPath), 'Should create .vsix file for issue #402 overview fixture');
+                    assertVsixManifestHasAsset(outputPath, 'Microsoft.VisualStudio.Services.Content.Details', 'overview.md');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should include Content.License asset when license.md is also present in files[] (issue #402)', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions');
+            const fixtureRoot = path.join(tempRoot, 'issue-402-license');
+            const outputPath = path.join(fixtureRoot, 'issue-402-license.vsix');
+
+            createIssue402Fixture(fixtureRoot, 'license', 'license.md');
+
+            execAsyncWithLogging(`node "${tfxPath}" extension create --root "${fixtureRoot}" --output-path "${outputPath}"`, 'issue #402 license reproduction')
+                .then(() => {
+                    assert(fs.existsSync(outputPath), 'Should create .vsix file for issue #402 license fixture');
+                    assertVsixManifestHasAsset(outputPath, 'Microsoft.VisualStudio.Services.Content.License', 'license.md');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('should include Content.Security asset when security.md is also present in files[] (issue #402)', function(done) {
+            const tempRoot = path.join(__dirname, '../temp-extensions');
+            const fixtureRoot = path.join(tempRoot, 'issue-402-security');
+            const outputPath = path.join(fixtureRoot, 'issue-402-security.vsix');
+
+            createIssue402Fixture(fixtureRoot, 'security', 'security.md');
+
+            execAsyncWithLogging(`node "${tfxPath}" extension create --root "${fixtureRoot}" --output-path "${outputPath}"`, 'issue #402 security reproduction')
+                .then(() => {
+                    assert(fs.existsSync(outputPath), 'Should create .vsix file for issue #402 security fixture');
+                    assertVsixManifestHasAsset(outputPath, 'Microsoft.VisualStudio.Services.Content.Security', 'security.md');
+                    done();
+                })
+                .catch(done);
+        });
+
         it('should handle extension with missing files referenced in manifest', function(done) {
             const basicExtensionPath = path.join(samplesPath, 'basic-extension');
             const outputPath = path.join(basicExtensionPath, 'missing-files-test.vsix');
