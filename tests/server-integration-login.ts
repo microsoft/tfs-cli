@@ -13,6 +13,8 @@ declare function before(fn: Function): void;
 declare function after(fn: Function): void;
 
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
+const testProject = 'TestProject';
+const nodePath = process.execPath;
 
 describe('Server Integration Tests - Login and Authentication', function() {
     let mockServer: MockDevOpsServer;
@@ -93,6 +95,53 @@ describe('Server Integration Tests - Login and Authentication', function() {
                 });
         });
 
+        it('should successfully login with Microsoft Entra authentication', function(done) {
+            const command = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type entra --no-prompt`;
+            const env = { ...process.env, TFX_ENTRA_TOKEN: 'test-entra-token' };
+
+            execAsyncWithLogging(command, 'login with Microsoft Entra authentication', { env })
+                .then(({ stdout, stderr }) => {
+                    const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
+
+                    assert(cleanOutput.includes('Logged in successfully'),
+                        `Expected "Logged in successfully" but got output: "${cleanOutput}"`);
+                    assert(cleanError.length === 0 || !cleanError.includes('error'),
+                        `Expected no errors but got: "${cleanError}"`);
+
+                    done();
+                })
+                .catch((error) => {
+                    done(error);
+                });
+        });
+
+        it('should show a friendly error when Azure CLI is not installed for Microsoft Entra authentication', function(done) {
+            const command = `"${nodePath}" "${tfxPath}" login --service-url "${serverUrl}" --auth-type entra --no-prompt`;
+            const env: any = { ...process.env, PATH: '' };
+            delete env.TFX_ENTRA_TOKEN;
+
+            execAsyncWithLogging(command, 'login with missing Azure CLI for Microsoft Entra authentication', { env })
+                .then(() => {
+                    assert.fail('Should have failed when Azure CLI is unavailable');
+                })
+                .catch((error) => {
+                    try {
+                        const errorOutput = stripColors(error.stderr || error.stdout || '');
+
+                        assert(errorOutput.includes('Azure CLI (az) is required for Microsoft Entra authentication.'),
+                            `Expected missing Azure CLI error but got: "${errorOutput}"`);
+                        assert(errorOutput.includes('Install Azure CLI'),
+                            `Expected Azure CLI installation guidance but got: "${errorOutput}"`);
+                        assert(error.code !== 0, 'Should exit with non-zero code');
+
+                        done();
+                    } catch (assertionError) {
+                        done(assertionError);
+                    }
+                });
+        });
+
         it('should require service URL parameter', function(done) {
             const command = `node "${tfxPath}" login --auth-type basic --username testuser --password testpass --no-prompt`;
             
@@ -155,7 +204,7 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     const errorOutput = stripColors(error.stderr || error.stdout || '');
                     
                     // Should fail with specific unsupported auth type error
-                    assert(errorOutput.includes("Unsupported auth type. Currently, 'pat' and 'basic' auth are supported."), 
+					assert(errorOutput.includes("Unsupported auth type. Currently, 'pat', 'basic', and 'entra' auth are supported."), 
                            `Expected specific auth type error but got: "${errorOutput}"`);
                     
                     // Should have non-zero exit code
@@ -226,6 +275,31 @@ describe('Server Integration Tests - Login and Authentication', function() {
                     assert(cleanError.length === 0 || !cleanError.includes('error'), 
                            `Expected no errors but got: "${cleanError}"`);
                     
+                    done();
+                })
+                .catch((error) => {
+                    done(error);
+                });
+        });
+
+        it('should reuse cached Microsoft Entra authentication for subsequent commands', function(done) {
+            const resetCommand = `node "${tfxPath}" reset --no-prompt`;
+            const loginCommand = `node "${tfxPath}" login --service-url "${serverUrl}" --auth-type entra --no-prompt`;
+            const buildListCommand = `node "${tfxPath}" build list --project "${testProject}" --no-prompt`;
+            const env = { ...process.env, TFX_ENTRA_TOKEN: 'cached-entra-token' };
+
+            execAsyncWithLogging(resetCommand, 'reset before Microsoft Entra cache test', { env })
+                .then(() => execAsyncWithLogging(loginCommand, 'cache Microsoft Entra authentication', { env }))
+                .then(() => execAsyncWithLogging(buildListCommand, 'build list with cached Microsoft Entra authentication', { env }))
+                .then(({ stdout, stderr }) => {
+                    const cleanOutput = stripColors(stdout);
+                    const cleanError = stripColors(stderr || '');
+
+                    assert(cleanOutput.includes('id              : 1'), 'Should use cached Microsoft Entra auth for build list');
+                    assert(cleanOutput.includes('definition name : Sample Build Definition'), 'Should return build data after cached Microsoft Entra auth');
+                    assert(cleanError.length === 0 || !cleanError.includes('error'),
+                        `Expected no errors but got: "${cleanError}"`);
+
                     done();
                 })
                 .catch((error) => {

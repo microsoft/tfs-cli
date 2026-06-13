@@ -61,7 +61,7 @@ export function httpErr(obj): any {
 	}
 	let statusCode: number = errorAsObj.statusCode;
 	if (statusCode === 401) {
-		throw "Received response 401 (Not Authorized). Check that your personal access token is correct and hasn't expired.";
+		throw "Received response 401 (Not Authorized). Check that your credentials are correct and that any access token hasn't expired.";
 	}
 	if (statusCode === 403) {
 		throw "Received response 403 (Forbidden). Check that you have access to this resource. Message from server: " +

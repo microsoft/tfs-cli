@@ -18,8 +18,36 @@ export interface LoginResult {
  * Facilitates a "log in" to a service by caching credentials.
  */
 export class Login extends TfCommand<CoreArguments, LoginResult> {
-	protected description = "Login and cache credentials using a PAT or basic auth.";
+	protected description = "Login and cache credentials using a PAT, basic auth, or Microsoft Entra auth.";
 	protected serverCommand = true;
+
+	private async getCredentialCacheValue(authHandler: any): Promise<string> {
+		const [authType, token, username, password] = await Promise.all([
+			this.commandArgs.authType.val(),
+			this.commandArgs.token.val(true),
+			this.commandArgs.username.val(true),
+			this.commandArgs.password.val(true),
+		]);
+		const normalizedAuthType = (authType || "pat").toLowerCase();
+
+		if (username && password) {
+			return "basic:" + username + ":" + password;
+		}
+
+		if (token) {
+			return "pat:" + token;
+		}
+
+		if (normalizedAuthType === "entra") {
+			return "entra";
+		}
+
+		if (normalizedAuthType === "basic") {
+			return "basic:" + authHandler.username + ":" + authHandler.password;
+		}
+
+		return "pat:" + authHandler.password;
+	}
 
 	public async exec(): Promise<LoginResult> {
 		trace.debug("Login.exec");
@@ -36,12 +64,7 @@ export class Login extends TfCommand<CoreArguments, LoginResult> {
 				const connectionData = await locationsApi.getConnectionData();
 				let tfxCredStore = getCredentialStore("tfx");
 				let tfxCache = new DiskCache("tfx");
-				let credString;
-				if (authHandler.username === "OAuth") {
-					credString = "pat:" + authHandler.password;
-				} else {
-					credString = "basic:" + authHandler.username + ":" + authHandler.password;
-				}
+				const credString = await this.getCredentialCacheValue(authHandler);
 				await tfxCredStore.storeCredential(collectionUrl, "allusers", credString);
 				await tfxCache.setItem("cache", "connection", collectionUrl);
 				await tfxCache.setItem("cache", "skipCertValidation", skipCertValidation.toString());

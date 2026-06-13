@@ -88,8 +88,8 @@ export class MockDevOpsServer {
         const authHeader = req.headers.authorization;
         if (!authHeader) return false;
         
-        // Simple basic auth check - looking for "Basic " prefix
-        return authHeader.startsWith('Basic ');
+        // Accept both Basic and Bearer auth to cover PAT/basic and Microsoft Entra flows.
+        return authHeader.startsWith('Basic ') || authHeader.startsWith('Bearer ');
     }
 
     // Public API methods
