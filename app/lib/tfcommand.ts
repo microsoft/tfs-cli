@@ -18,7 +18,7 @@ import { promisify } from "util";
 import trace = require("./trace");
 import version = require("./version");
 import { IRequestOptions } from "azure-devops-node-api/interfaces/common/VsoBaseInterfaces";
-const clipboardyWrite = (data: string) => import('clipboardy').then(clipboardy => clipboardy.default.writeSync(data));
+const clipboardWrite = (data: string) => import('tinyclip').then(mod => mod.writeText(data));
 
 export interface CoreArguments {
 	[key: string]: args.Argument<any>;
@@ -733,7 +733,7 @@ export abstract class TfCommand<TArguments extends CoreArguments, TResult> {
 				case "clip":
 				case "clipboard":
 					let clipboardText = this.getClipboardOutput(data);
-					return clipboardyWrite(clipboardText);
+					return clipboardWrite(clipboardText);
 				default:
 					return fsUtils.canWriteTo(path.resolve(outputDestination)).then(canWrite => {
 						if (canWrite) {
