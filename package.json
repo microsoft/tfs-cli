@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.23.2",
+  "version": "0.24.0",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -35,10 +35,7 @@
     "test:extension-consolidated": "npm run test:extension-local && npm run test:extension-server-integration"
   },
   "overrides": {
-    "archiver-utils": {
-      "glob": "^10.5.0"
-    },
-    "minimatch": "^10.2.3"
+    "minimatch": "^10.2.5"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
