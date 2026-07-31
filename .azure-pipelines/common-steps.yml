@@ -16,11 +16,15 @@ steps:
 
   - script: npm i -g npm@8.19.4 --force
     displayName: Use npm version 8.19.4
+    env:
+      NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
 
   - bash: |
       npm ci
       npm run build
     displayName: Build TFX CLI
+    env:
+      NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
 
   - bash: |
       export DEBUG_CLI_OUTPUT="$DEBUG_CLI_OUTPUT"
@@ -28,6 +32,8 @@ steps:
       export TFX_TRACE="$TFX_TRACE"
       npm run test:ci
     displayName: Run Tests
+    env:
+      NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
 
   - task: PublishTestResults@2
     displayName: Publish Test Results
@@ -43,3 +49,5 @@ steps:
       npm pack
       cp *.tgz '$(Build.ArtifactStagingDirectory)'
     displayName: Run npm-pack and copy to ArtifactStagingDirectory
+    env:
+      NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
