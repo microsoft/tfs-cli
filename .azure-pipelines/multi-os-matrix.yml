@@ -49,10 +49,16 @@ stages:
             workingFile: .npmrc
         - script: npm i -g npm@latest --force
           displayName: Use latest npm version
+          env:
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
         - script: npm ci
           displayName: npm ci
+          env:
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
         - script: npm run build
           displayName: Build TFX CLI
+          env:
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
         - script: |
             export DEBUG_CLI_OUTPUT="$DEBUG_CLI_OUTPUT"
             export DEBUG_MOCKSERVER_OUTPUT="$DEBUG_MOCKSERVER_OUTPUT"
@@ -63,6 +69,7 @@ stages:
           env:
             DEBUG_CLI_OUTPUT: $(DEBUG_CLI_OUTPUT)
             DEBUG_MOCKSERVER_OUTPUT: $(DEBUG_MOCKSERVER_OUTPUT)
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
             TFX_TRACE: $(TFX_TRACE)
         - script: |
             set DEBUG_CLI_OUTPUT=%DEBUG_CLI_OUTPUT%
@@ -74,6 +81,7 @@ stages:
           env:
             DEBUG_CLI_OUTPUT: $(DEBUG_CLI_OUTPUT)
             DEBUG_MOCKSERVER_OUTPUT: $(DEBUG_MOCKSERVER_OUTPUT)
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
             TFX_TRACE: $(TFX_TRACE)
         - task: PublishTestResults@2
           displayName: Publish Test Results
