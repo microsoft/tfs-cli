@@ -9,7 +9,6 @@ trigger:
 - master
 
 variables:
-- group: npm-tokens
 # Debug/verbose output variables for CLI and mock server
 - name: DEBUG_CLI_OUTPUT
   value: 'false'
@@ -43,13 +42,6 @@ extends:
     - stage: stage
       jobs:
       - job: job
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            displayName: 'Publish tfx-cli package to pipeline artifacts'
-            targetPath: '$(Build.ArtifactStagingDirectory)'
-            artifactType: 'pipeline'
-            artifactName: 'tfx-cli-package'
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
 
