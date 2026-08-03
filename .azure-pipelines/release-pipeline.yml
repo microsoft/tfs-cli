@@ -1,109 +1,108 @@
-# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
-# This pipeline will be extended to the OneESPT template
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+parameters:
+- name: dryRun
+  displayName: Build and validate without publishing
+  type: boolean
+  default: false
 
 trigger: none
+pr: none
 
 variables:
-- group: npm-tokens
+- group: esrp-npm-release
+
 resources:
   repositories:
-  - repository: 1esPipelines
+  - repository: 1ESPipelineTemplates
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+
 extends:
-  template: v1/1ES.Official.PipelineTemplate.yml@1esPipelines
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     settings:
       skipBuildTagsForGitHubPullRequests: true
-
-    pool:
-      name: 1ES-ABTT-Shared-Pool
-      image: abtt-windows-2025
-      os: windows
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2025
+        os: windows
     stages:
-    - stage: Build
-      displayName: Build the tfx-cli npm package
+    - stage: BuildAndPack
+      displayName: Build, test, and pack
       jobs:
-      - job: build
+      - job: pack
+        pool:
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-ubuntu-2404
+          os: linux
         templateContext:
           outputs:
           - output: pipelineArtifact
-            displayName: 'Publish tfx-cli package to pipeline artifacts'
-            targetPath: '$(Build.ArtifactStagingDirectory)'
-            artifactType: 'pipeline'
-            artifactName: 'tfx-cli-package'
+            targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
+            artifactName: npm-packages
         steps:
         - template: /.azure-pipelines/common-steps.yml@self
-        - ${{ if in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual') }}:
-          # Validate and publish packages
-          # The npm cli will replace ${NPM_TOKEN} with the contents of the NPM_TOKEN environment variable.
-          - bash: |
-              echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
-
-              npm publish --ignore-scripts --tag prerelease
-              exit_status=$?
-              if [ $exit_status -eq 1 ]; then
-                  echo "##vso[task.logissue type=warning]Publishing TFX CLI was unsuccessful"
-                  echo "##vso[task.complete result=SucceededWithIssues;]"
+        - bash: |
+            set -e
+            mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+            npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+          displayName: Pack tfx-cli
+          env:
+            NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
+        - bash: |
+            count=$(ls -1 "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz 2>/dev/null | wc -l)
+            echo "Found $count .tgz file(s)."
+            if [ "$count" -eq 0 ]; then
+              echo "ERROR: npm pack produced no .tgz"
+              exit 1
+            fi
+          displayName: Verify npm package exists
+        - bash: |
+            set -e
+            for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz; do
+              if tar -tzf "$tgz" | grep -E '(^|/)_manifest/'; then
+                echo "ERROR: $tgz contains an SBOM _manifest/ folder"
+                exit 1
               fi
+            done
+          displayName: Verify package excludes SBOM manifest
 
-              rm .npmrc
-            displayName: Publish TFX CLI to npm
-            condition: eq(variables['Build.SourceBranchName'], 'master')
-
-        # Install node 20 for CodeQL 3000
-        - task: NodeTool@0
-          displayName: Use node 20
-          inputs:
-            versionSpec: "20.x"
-    - stage: Release
-      displayName: Release to Latest
-      trigger: manual
-      jobs:
-        - job: Release
-          displayName: Release to Latest
+    - ${{ if eq(parameters.dryRun, false) }}:
+      - stage: PublishToNpmViaESRP
+        displayName: Publish to npm via ESRP
+        dependsOn: BuildAndPack
+        jobs:
+        - job: esrp
+          pool:
+            name: 1ES-ABTT-Shared-Pool
+            image: abtt-windows-2025
+            os: windows
+          templateContext:
+            type: releaseJob
+            isProduction: true
+            inputs:
+            - input: pipelineArtifact
+              artifactName: npm-packages
+              targetPath: $(Pipeline.Workspace)/npm-packages
           steps:
-            - checkout: self
-              clean: true
-          
-            - task: NodeTool@0
-              displayName: Use node 20
-              inputs:
-                versionSpec: "20.x"
-            - script: npm i -g npm@8.19.4 --force
-              displayName: Use npm version 8.19.4
-            
-            - bash: |
-                echo '//registry.npmjs.org/:_authToken=$(npm-automation.token)' > .npmrc
-                # Run the npm command and capture the output
-                output=$(npm pkg get name version)
-                echo "${output}"
-
-                # Extract the name and version values using shell parameter expansion
-                name=$(echo "$output" | grep -o '"name":\s*"[^"]*"' | sed 's/"name":\s*"\([^"]*\)"/\1/')
-                version=$(echo "$output" | grep -o '"version":\s*"[^"]*"' | sed 's/"version":\s*"\([^"]*\)"/\1/')
-
-                # Save them in a variable in the format name@version
-                result="${name}@${version}"
-
-                # Combine them in the format name@version
-                echo "${result}"
-
-                npm dist-tag add "$result" latest
-                exit_status=$?
-                if [ $exit_status -eq 1 ]; then
-                  echo "##vso[task.logissue type=error]Upgrading TFX CLI to latest was unsuccessful"
-                  echo "##vso[task.complete result=Failed;]"
-                  exit 1
-                fi
-
-                npm dist-tag remove "$result" prerelease
-                exit_status=$?
-                if [ $exit_status -eq 1 ]; then
-                    echo "##vso[task.logissue type=error]Removing prerelease for TFX CLI was unsuccessful"
-                    echo "##vso[task.complete result=SucceededWithIssues;]"
-                fi
-                rm .npmrc
-              displayName: Publish TFX CLI to npm
-              
+          - task: EsrpRelease@12
+            displayName: Publish package(s) to npm via ESRP
+            inputs:
+              connectedservicename: '$(EsrpServiceConnection)'
+              usemanagedidentity: true
+              keyvaultname: '$(EsrpKeyVault)'
+              signcertname: '$(EsrpSignCert)'
+              clientid: '$(EsrpClientId)'
+              intent: 'PackageDistribution'
+              contenttype: 'npm'
+              contentsource: 'Folder'
+              folderlocation: '$(Pipeline.Workspace)/npm-packages/packages'
+              waitforreleasecompletion: true
+              owners: '$(EsrpOwners)'
+              approvers: '$(EsrpApprovers)'
+              serviceendpointurl: '$(EsrpServiceEndpointUrl)'
+              mainpublisher: '$(EsrpMainPublisher)'
+              domaintenantid: '$(EsrpDomainTenantId)'

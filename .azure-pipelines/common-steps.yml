@@ -43,11 +43,3 @@ steps:
       testResultsFiles: 'test-results.xml'
       failTaskOnFailedTests: true
       testRunTitle: 'TFX CLI Tests'
-
-  # Generate a pipeline artifact so we can publish the package manually if there are issues with automation
-  - bash: |
-      npm pack
-      cp *.tgz '$(Build.ArtifactStagingDirectory)'
-    displayName: Run npm-pack and copy to ArtifactStagingDirectory
-    env:
-      NPM_CONFIG_USERCONFIG: $(Build.SourcesDirectory)/.npmrc
