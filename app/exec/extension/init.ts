@@ -84,6 +84,71 @@ export interface InitResult {
 	path: string;
 }
 
+export function resolveArchiveEntryPath(initPath: string, archiveEntryName: string): string {
+	const extractionRoot = path.resolve(initPath);
+	const normalizedEntryName = archiveEntryName.replace(/\\/g, "/");
+	const firstSeparator = normalizedEntryName.indexOf("/");
+	const relativeEntryName =
+		firstSeparator >= 0 ? normalizedEntryName.substring(firstSeparator + 1) : normalizedEntryName;
+	const destinationPath = path.resolve(extractionRoot, relativeEntryName);
+	const relativeDestination = path.relative(extractionRoot, destinationPath);
+
+	if (
+		relativeDestination === ".." ||
+		relativeDestination.startsWith(`..${path.sep}`) ||
+		path.isAbsolute(relativeDestination)
+	) {
+		throw new Error(`Archive entry resolves outside the destination: ${archiveEntryName}`);
+	}
+
+	return destinationPath;
+}
+
+async function ensureArchiveDestinationIsUnlinked(initPath: string, destinationPath: string): Promise<void> {
+	const extractionRoot = path.resolve(initPath);
+	const relativeDestination = path.relative(extractionRoot, destinationPath);
+	let currentPath = extractionRoot;
+
+	for (const pathPart of relativeDestination.split(path.sep)) {
+		currentPath = path.join(currentPath, pathPart);
+		let stats: fs.Stats;
+		try {
+			stats = await promisify(fs.lstat)(currentPath);
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+				return;
+			}
+			throw error;
+		}
+
+		if (stats.isSymbolicLink()) {
+			throw new Error(`Archive entry resolves through a linked path: ${currentPath}`);
+		}
+	}
+}
+
+export async function extractArchive(data: Buffer, initPath: string): Promise<void> {
+	const zip = await jszip.loadAsync(data);
+
+	for (const fileName of Object.keys(zip.files)) {
+		const zipEntry = zip.files[fileName];
+		if (zipEntry.dir) {
+			continue;
+		}
+
+		const archiveEntryName = zipEntry.unsafeOriginalName || fileName;
+		const fullPath = resolveArchiveEntryPath(initPath, archiveEntryName);
+		trace.debug("Save file " + archiveEntryName);
+		const buffer = await zipEntry.async("nodebuffer");
+		await ensureArchiveDestinationIsUnlinked(initPath, fullPath);
+		trace.debug("Writing buffer for " + archiveEntryName);
+		trace.debug("Creating folder if it doesn't exist: " + path.dirname(fullPath));
+		await mkdirp(path.dirname(fullPath));
+		await ensureArchiveDestinationIsUnlinked(initPath, fullPath);
+		await promisify(fs.writeFile)(fullPath, buffer);
+	}
+}
+
 export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 	protected description = "Initialize a directory for development of a new Azure DevOps extension.";
 	protected serverCommand = false;
@@ -226,38 +291,8 @@ export class ExtensionInit extends extBase.ExtensionBase<InitResult> {
 
 			// Crack open the zip file.
 			try {
-				await new Promise<void>((resolve, reject) => {
-					fs.readFile(downloadedZipPath, async (err, data) => {
-						if (err) {
-							reject(err);
-						} else {
-							await jszip.loadAsync(data).then(async zip => {
-								// Write each file in the zip to the file system in the same directory as the zip file.
-								for (const fileName of Object.keys(zip.files)) {
-									trace.debug("Save file " + fileName);
-									await zip.files[fileName].async("nodebuffer").then(async buffer => {
-										trace.debug("Writing buffer for " + fileName);
-										const noLeadingFolderFileName = fileName.substr(fileName.indexOf("/"));
-										const fullPath = path.join(initPath, noLeadingFolderFileName);
-										if (fullPath.endsWith("\\") || fullPath.endsWith("/")) {
-											// don't need to "write" the folders since they are handled by createFolderIfNotExists().
-											return;
-										}
-										trace.debug("Creating folder if it doesn't exist: " + path.dirname(fullPath));
-										await this.createFolderIfNotExists(path.dirname(fullPath));
-										fs.writeFile(fullPath, buffer, err => {
-											if (err) {
-												console.log("err: " + err);
-												reject(err);
-											}
-										});
-									});
-								}
-							});
-							resolve();
-						}
-					});
-				});
+				const data = await promisify(fs.readFile)(downloadedZipPath);
+				await extractArchive(data, initPath);
 			} catch (e) {
 				await this.deleteFolderContents(initPath);
 				throw new Error(`Error unzipping ${downloadedZipPath}: ${e}`);
