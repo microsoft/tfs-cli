@@ -2,6 +2,7 @@ import assert = require('assert');
 import { stripColors } from 'colors';
 import path = require('path');
 import fs = require('fs');
+import os = require('os');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const AdmZip = require('adm-zip');
 import { execAsyncWithLogging } from './test-utils/debug-exec';
@@ -14,6 +15,22 @@ declare function after(fn: Function): void;
 
 const tfxPath = path.resolve(__dirname, '../../_build/tfx-cli.js');
 const samplesPath = path.resolve(__dirname, '../extension-samples');
+
+function removeDirectoryRecursive(folderPath: string): void {
+    if (!fs.existsSync(folderPath)) {
+        return;
+    }
+
+    fs.readdirSync(folderPath).forEach(file => {
+        const fullPath = path.join(folderPath, file);
+        if (fs.lstatSync(fullPath).isDirectory()) {
+            removeDirectoryRecursive(fullPath);
+        } else {
+            fs.unlinkSync(fullPath);
+        }
+    });
+    fs.rmdirSync(folderPath);
+}
 
 describe('Extension Commands - Local Tests', function() {
     this.timeout(30000);
@@ -1002,6 +1019,211 @@ describe('Extension Commands - Local Tests', function() {
                     done();
                 })
                 .catch(done);
+        });
+
+        it('should parse a BOM-prefixed task.json file', function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-task-json-'));
+            const taskJsonPath = path.join(tempPath, 'task.json');
+            const targetPath = path.join(tempPath, 'index.js');
+            const taskJson = {
+                id: 'a1b2c3d4-1234-4567-89ab-123456789012',
+                name: 'BomTask',
+                friendlyName: 'BOM task',
+                instanceNameFormat: 'Run BOM task',
+                version: { Major: 1 },
+                execution: { Node20_1: { target: 'index.js' } },
+            };
+
+            try {
+                fs.writeFileSync(targetPath, '');
+                fs.writeFileSync(taskJsonPath, '\uFEFF' + JSON.stringify(taskJson));
+                const validate = require(path.resolve(__dirname, '../../_build/lib/jsonvalidate')).validate;
+
+                assert.strictEqual(validate(taskJsonPath).id, taskJson.id);
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
+        });
+
+        it('should reject a task.json directory without loading its index.js', function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-task-json-'));
+            const taskJsonPath = path.join(tempPath, 'task.json');
+            const markerPath = path.join(tempPath, 'loaded.txt');
+
+            try {
+                fs.mkdirSync(taskJsonPath);
+                fs.writeFileSync(
+                    path.join(taskJsonPath, 'index.js'),
+                    `require('fs').writeFileSync(${JSON.stringify(markerPath)}, 'loaded'); module.exports = {};\n`
+                );
+                const validate = require(path.resolve(__dirname, '../../_build/lib/jsonvalidate')).validate;
+
+                assert.throws(() => validate(taskJsonPath), /Invalid task json/);
+                assert.strictEqual(fs.existsSync(markerPath), false, 'Directory module should not be loaded');
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
+        });
+
+        it('should not load task.json directories during runner compatibility checks', function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-task-json-'));
+            const taskJsonPath = path.join(tempPath, 'task.json');
+            const alternateTaskJsonPath = path.join(tempPath, 'v2', 'task.json');
+            const markerPath = path.join(tempPath, 'loaded.txt');
+            const taskJson = {
+                id: 'a1b2c3d4-1234-4567-89ab-123456789012',
+                name: 'VersionedTask',
+                friendlyName: 'Versioned task',
+                instanceNameFormat: 'Run versioned task',
+                version: { Major: 1 },
+                execution: { Node16: { target: 'index.js' } },
+            };
+
+            try {
+                fs.writeFileSync(path.join(tempPath, 'index.js'), '');
+                fs.writeFileSync(taskJsonPath, JSON.stringify(taskJson));
+                fs.mkdirSync(path.dirname(alternateTaskJsonPath));
+                fs.mkdirSync(alternateTaskJsonPath);
+                fs.writeFileSync(
+                    path.join(alternateTaskJsonPath, 'index.js'),
+                    `require('fs').writeFileSync(${JSON.stringify(markerPath)}, 'loaded'); module.exports = ${JSON.stringify({
+                        ...taskJson,
+                        version: { Major: 2 },
+                        execution: { Node20_1: { target: 'index.js' } },
+                    })};\n`
+                );
+                const validate = require(path.resolve(__dirname, '../../_build/lib/jsonvalidate')).validate;
+
+                validate(taskJsonPath, undefined, [taskJsonPath, alternateTaskJsonPath]);
+                assert.strictEqual(fs.existsSync(markerPath), false, 'Compatibility check should only parse files');
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
+        });
+    });
+
+    describe('Extension Initialization - Archive Paths', function() {
+        it('should resolve nested archive entries within the destination', function() {
+            const initModule = require(path.resolve(
+                __dirname,
+                '../../_build/exec/extension/init'
+            ));
+            const destination = path.resolve(os.tmpdir(), 'tfx-extension-init');
+
+            assert.strictEqual(
+                initModule.resolveArchiveEntryPath(destination, 'sample\\src\\nested\\file.txt'),
+                path.join(destination, 'src', 'nested', 'file.txt')
+            );
+        });
+
+        it('should reject archive entries that resolve outside the destination', function() {
+            const initModule = require(path.resolve(
+                __dirname,
+                '../../_build/exec/extension/init'
+            ));
+            const destination = path.resolve(os.tmpdir(), 'tfx-extension-init');
+            const entries = [
+                'sample/../../outside.txt',
+                'sample/..\\..\\outside.txt',
+                'sample\\..\\..\\outside.txt',
+            ];
+
+            entries.forEach(entry => {
+                assert.throws(
+                    () => initModule.resolveArchiveEntryPath(destination, entry),
+                    /outside the destination/
+                );
+            });
+        });
+
+        it('should extract nested files before completing', async function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-extension-init-'));
+            const destination = path.join(tempPath, 'destination');
+            const expectedFile = path.join(destination, 'src', 'nested', 'file.txt');
+            const JSZip = require('jszip');
+            const archive = new JSZip();
+            archive.file('sample/src/nested/file.txt', 'expected contents');
+            const archiveData = await archive.generateAsync({ type: 'nodebuffer' });
+            const extractArchive = require(path.resolve(
+                __dirname,
+                '../../_build/exec/extension/init'
+            )).extractArchive;
+
+            try {
+                await extractArchive(archiveData, destination);
+                assert.strictEqual(fs.readFileSync(expectedFile, 'utf8'), 'expected contents');
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
+        });
+
+        it('should reject unsafe archive names before writing files', async function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-extension-init-'));
+            const destination = path.join(tempPath, 'destination');
+            const outsidePath = path.join(tempPath, 'outside.txt');
+            const JSZip = require('jszip');
+            const unsafeNames = ['sample/../outside.txt', 'sample\\..\\outside.txt'];
+            const extractArchive = require(path.resolve(
+                __dirname,
+                '../../_build/exec/extension/init'
+            )).extractArchive;
+
+            try {
+                fs.mkdirSync(destination);
+                for (const unsafeName of unsafeNames) {
+                    const archive = new JSZip();
+                    archive.file(unsafeName, 'unexpected contents');
+                    const archiveData = await archive.generateAsync({ type: 'nodebuffer' });
+                    let rejected = false;
+
+                    try {
+                        await extractArchive(archiveData, destination);
+                    } catch (error) {
+                        rejected = true;
+                        assert(String(error).includes('outside the destination'));
+                    }
+
+                    assert.strictEqual(rejected, true, `Archive entry should be rejected: ${unsafeName}`);
+                    assert.strictEqual(fs.existsSync(outsidePath), false, 'No file should be written outside the destination');
+                }
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
+        });
+
+        it('should reject linked destination paths before writing files', async function() {
+            const tempPath = fs.mkdtempSync(path.join(os.tmpdir(), 'tfx-extension-init-'));
+            const destination = path.join(tempPath, 'destination');
+            const outsidePath = path.join(tempPath, 'outside');
+            const linkedPath = path.join(destination, 'linked');
+            const outsideFile = path.join(outsidePath, 'file.txt');
+            const JSZip = require('jszip');
+            const archive = new JSZip();
+            archive.file('sample/linked/file.txt', 'unexpected contents');
+            const archiveData = await archive.generateAsync({ type: 'nodebuffer' });
+            const extractArchive = require(path.resolve(
+                __dirname,
+                '../../_build/exec/extension/init'
+            )).extractArchive;
+
+            try {
+                fs.mkdirSync(destination);
+                fs.mkdirSync(outsidePath);
+                fs.symlinkSync(outsidePath, linkedPath, process.platform === 'win32' ? 'junction' : 'dir');
+
+                let rejected = false;
+                try {
+                    await extractArchive(archiveData, destination);
+                } catch (error) {
+                    rejected = true;
+                    assert(String(error).includes('linked path'));
+                }
+
+                assert.strictEqual(rejected, true, 'Linked destination should be rejected');
+                assert.strictEqual(fs.existsSync(outsideFile), false, 'No file should be written through the link');
+            } finally {
+                removeDirectoryRecursive(tempPath);
+            }
         });
     });
 
