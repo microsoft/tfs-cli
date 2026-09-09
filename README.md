@@ -57,7 +57,7 @@ To avoid providing credentials with every command, you can login once. Currently
 
 #### Personal access token
 
-Start by [creating a Personal Access Token](http://roadtoalm.com/2015/07/22/using-personal-access-tokens-to-access-visual-studio-online) and paste it into the login command.
+Start by [creating a Personal Access Token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows#create-a-pat) and paste it into the login command.
 
 ```bash
 ~$ tfx login
