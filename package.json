@@ -1,6 +1,6 @@
 {
   "name": "tfx-cli",
-  "version": "0.24.1",
+  "version": "0.24.2",
   "description": "CLI for Azure DevOps Services and Team Foundation Server",
   "repository": {
     "type": "git",
@@ -37,7 +37,7 @@
   "overrides": {
     "minimatch": "^10.2.6",
     "serialize-javascript": "7.0.5",
-    "js-yaml": "^4.3.1"
+    "js-yaml": "^4.3.2"
   },
   "dependencies": {
     "app-root-path": "1.0.0",
