@@ -47,11 +47,11 @@ tfx <command> --help
 
 ### Login
 
-To avoid providing credentials with every command, you can login once. Currently supported credential types: _Personal Access Tokens_ and _basic authentication credentials_.
+To avoid providing credentials with every command, you can login once. Currently supported credential types: _Personal Access Tokens_, _basic authentication credentials_, and _Microsoft Entra_ bearer tokens.
 
 > NTLM support is under consideration
 >
-> Warning! Using this feature will store your login credentials on disk in plain text.
+> Warning! Using this feature will store your login credentials on disk in plain text for PAT and basic auth. Microsoft Entra login stores only the cached auth strategy.
 >
 > To skip certificate validation connecting to on-prem _Azure DevOps Server_ use the `--skip-cert-validation` parameter.
 
@@ -76,6 +76,19 @@ Examples of valid URLs are:
 #### Basic auth
 
 You can also use basic authentication by passing the `--auth-type basic` parameter (see [Configuring Basic Auth](docs/configureBasicAuth.md) for details).
+
+#### Microsoft Entra
+
+For Azure DevOps Services, you can cache a Microsoft Entra-backed login by signing in with Azure CLI first and then using `--auth-type entra`.
+
+```bash
+az login
+tfx login --service-url https://dev.azure.com/yourorg --auth-type entra
+```
+
+For automation scenarios, the same flow works after `az login --service-principal ...` or `az login --identity`.
+
+If you already have a bearer token, set `TFX_ENTRA_TOKEN` or `AZURE_DEVOPS_ENTRA_TOKEN` before running `tfx login --auth-type entra`.
 
 ### Settings cache
 

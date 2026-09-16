@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { exec, ExecOptions } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
@@ -7,6 +7,19 @@ const execAsync = promisify(exec);
  * Enhanced debug logging utility for test commands
  */
 export class DebugLogger {
+    private static stripNodeWarnings(content?: string): string {
+        if (!content) {
+            return '';
+        }
+
+        return content
+            .split(/\r?\n/)
+            .filter(line => line.trim() !== '')
+            .filter(line => !/^\(node:\d+\) \[DEP\d+\] DeprecationWarning:/.test(line))
+            .filter(line => !line.includes('(Use `node --trace-deprecation'))
+            .join('\n');
+    }
+
     private static isEnabled(): boolean {
         return process.env.DEBUG_CLI_OUTPUT === 'true';
     }
@@ -60,16 +73,24 @@ export class DebugLogger {
      * @param description Optional description for the command
      * @returns Promise with stdout and stderr
      */
-    static async execWithLogging(command: string, description?: string): Promise<{ stdout: string; stderr: string }> {
+    static async execWithLogging(command: string, description?: string, options?: ExecOptions): Promise<{ stdout: string; stderr: string }> {
         const logTitle = description ? `${description}` : 'COMMAND EXECUTION';
         
         this.logSection(logTitle, `Command: ${command}`);
         
         try {
-            const result = await execAsync(command);
-            this.logResult(true, result.stdout, result.stderr);
-            return result;
+            const result = await execAsync(command, { ...(options || {}), encoding: 'utf8' } as any) as unknown as {
+                stdout: string;
+                stderr: string;
+            };
+            const sanitizedResult = {
+                stdout: result.stdout,
+                stderr: this.stripNodeWarnings(result.stderr),
+            };
+            this.logResult(true, sanitizedResult.stdout, sanitizedResult.stderr);
+            return sanitizedResult;
         } catch (error: any) {
+            error.stderr = this.stripNodeWarnings(error.stderr);
             this.logResult(false, error.stdout, error.stderr);
             throw error;
         }
@@ -109,6 +130,6 @@ export class DebugLogger {
 /**
  * Convenience function for backward compatibility
  */
-export async function execAsyncWithLogging(command: string, description?: string): Promise<{ stdout: string; stderr: string }> {
-    return DebugLogger.execWithLogging(command, description);
+export async function execAsyncWithLogging(command: string, description?: string, options?: ExecOptions): Promise<{ stdout: string; stderr: string }> {
+    return DebugLogger.execWithLogging(command, description, options);
 }

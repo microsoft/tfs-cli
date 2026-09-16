@@ -212,7 +212,7 @@ describe('Error Handler Tests', function() {
 
             assert.throws(
                 () => errHandler.httpErr(httpError),
-                /401.*Not Authorized.*personal access token/,
+                /401.*Not Authorized.*credentials.*access token/,
                 'should throw descriptive 401 error'
             );
         });
@@ -414,7 +414,7 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
 
     it('should exit with code -1 when HTTP error occurs during share/unshare', function() {
         // Simulate HTTP 401 error that gets thrown by httpErr
-        errHandler.errLog('Received response 401 (Not Authorized). Check that your personal access token is correct and hasn\'t expired.');
+        errHandler.errLog('Received response 401 (Not Authorized). Check that your credentials are correct and that any access token hasn\'t expired.');
 
         assert(exitCalled, 'process.exit should have been called');
         assert.strictEqual(exitCode, -1, 'exit code should be -1 for HTTP errors');

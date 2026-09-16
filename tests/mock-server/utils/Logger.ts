@@ -36,7 +36,7 @@ export class Logger {
             return `Basic ${Logger.obscureToken(token)}`;
         }
 
-        // Handle Bearer token (PAT)
+        // Handle Bearer authentication
         if (auth.startsWith('Bearer ')) {
             const token = auth.substring(7);
             return `Bearer ${Logger.obscureToken(token)}`;
