@@ -11,20 +11,14 @@ export class TfsConnection {
 	private collectionUrl: string;
 
 	constructor(private serviceUrl: string) {
-		// Parse URL, but handle failures gracefully to mimic url.parse() behavior
 		try {
 			this.parsedUrl = new URL(this.serviceUrl);
 		} catch (error) {
-			// Mimic url.parse() behavior for invalid URLs
-			// url.parse() would return an object with null/empty values instead of throwing
-			this.parsedUrl = {
-				protocol: this.serviceUrl && this.serviceUrl.includes('://') ? this.serviceUrl.split('://')[0] + ':' : '',
-				host: null,
-				hostname: null,
-				pathname: this.serviceUrl && !this.serviceUrl.includes('://') ? this.serviceUrl : '',
-				search: '',
-				hash: ''
-			} as any;
+			if (error.code === "ERR_INVALID_URL") {
+				throw new Error("Please enter a fully-qualified URL.")
+			} else {
+				throw error;
+			}
 		}
 
 		var splitPath: string[] = this.parsedUrl.pathname.split("/").slice(1);

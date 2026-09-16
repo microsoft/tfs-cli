@@ -13,12 +13,7 @@ export class RequestParser {
             const method = req.method || 'GET';
             const pathname = parsedUrl.pathname || '';
             
-            // Parse query parameters using forEach (guaranteed to be available)
-            const query: { [key: string]: string } = {};
-            parsedUrl.searchParams.forEach((value, key) => {
-                query[key] = value;
-            });
-            
+            const query = Object.fromEntries(parsedUrl.searchParams.entries());
             const contentType = req.headers['content-type'] || '';
 
             if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {

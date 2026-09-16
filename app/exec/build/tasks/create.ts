@@ -5,7 +5,7 @@ import path = require("path");
 import shell = require("shelljs");
 import tasksBase = require("./default");
 import trace = require("../../../lib/trace");
-import { v1 as uuidv1 } from "uuid";
+import uuid = require("uuid");
 
 export interface TaskCreateResult {
 	taskPath: string;
@@ -81,7 +81,7 @@ export class TaskCreate extends tasksBase.BuildTaskBase<TaskCreateResult> {
 
 			trace.debug("creating definition");
 			let def: any = {};
-			def.id = uuidv1();
+			def.id = uuid.v1();
 			trace.debug("id: " + def.id);
 			def.name = taskName;
 			trace.debug("name: " + def.name);
