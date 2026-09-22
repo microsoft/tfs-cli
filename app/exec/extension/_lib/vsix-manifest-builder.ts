@@ -563,7 +563,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 
 			// The vsixmanifest will be responsible for generating the [Content_Types].xml file
 			// Obviously this is kind of strange, but hey ho.
-			return this.genContentTypesXml(builders).then(result => {
+			return this.genContentTypesXml(builders, files).then(result => {
 				this.addFile({
 					path: null,
 					content: result,
@@ -585,7 +585,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 	 * This xml contains a <Default> entry for each different file extension
 	 * found in the package, mapping it to the appropriate MIME type.
 	 */
-	private genContentTypesXml(builders: ManifestBuilder[]): Promise<string> {
+	private genContentTypesXml(builders: ManifestBuilder[], packageFiles: PackageFiles): Promise<string> {
 		let typeMap = VsixManifestBuilder.CONTENT_TYPE_MAP;
 		trace.debug("Generating [Content_Types].xml");
 		let contentTypes: any = {
@@ -605,31 +605,31 @@ export class VsixManifestBuilder extends ManifestBuilder {
 			let contentTypePromises: Promise<any>[] = [];
 			let extensionlessFiles = [];
 			let uniqueExtensions = _.uniq<string>(
-				Object.keys(this.files).map(f => {
-					let extName = path.extname(f) || path.extname(this.files[f].partName);
+				Object.keys(packageFiles).map(f => {
+					let extName = path.extname(f) || path.extname(packageFiles[f].partName);
 					const filename = path.basename(f);
 
 					// Look in the best guess table. Or, default to text/plain if the file starts with a "."
 					const bestGuess =
 						VsixManifestBuilder.BEST_GUESS_CONTENT_TYPES[filename.toUpperCase()] ||
 						(filename[0] === "." ? "text/plain" : null);
-					if (!extName && !this.files[f].contentType && this.files[f].addressable && !bestGuess) {
+					if (!extName && !packageFiles[f].contentType && packageFiles[f].addressable && !bestGuess) {
 						trace.warn(
 							"File %s does not have an extension, and its content-type is not declared. Defaulting to application/octet-stream.",
 							path.resolve(f),
 						);
-						this.files[f].contentType = "application/octet-stream";
+						packageFiles[f].contentType = "application/octet-stream";
 					} else if (bestGuess) {
-						this.files[f].contentType = bestGuess;
+						packageFiles[f].contentType = bestGuess;
 					}
-					if (this.files[f].contentType) {
+					if (packageFiles[f].contentType) {
 						// If there is an override for this file, ignore its extension
 						return "";
 					}
 
 					// Later, we will show warnings for extensions with unknown content types if there
 					// was at least one file with this extension that was addressable.
-					if (!showWarningForExtensionMap[extName] && this.files[f].addressable) {
+					if (!showWarningForExtensionMap[extName] && packageFiles[f].addressable) {
 						showWarningForExtensionMap[extName] = true;
 					}
 					return extName.toLowerCase();
@@ -699,9 +699,9 @@ export class VsixManifestBuilder extends ManifestBuilder {
 
 			let contentTypePromises: Promise<any>[] = [];
 			let extTypeCounter: { [ext: string]: { [type: string]: string[] } } = {};
-			Object.keys(this.files)
+			Object.keys(packageFiles)
 				.filter(fileName => {
-					return !this.files[fileName].contentType;
+					return !packageFiles[fileName].contentType;
 				})
 				.forEach(fileName => {
 					let extension = path.extname(fileName).toLowerCase();
@@ -721,10 +721,10 @@ export class VsixManifestBuilder extends ManifestBuilder {
 						let child = childProcess.exec('file --mime-type "' + fileName + '"', (err, stdout, stderr) => {
 							try {
 								if (err) {
-									if (this.files[fileName].addressable) {
+									if (packageFiles[fileName].addressable) {
 										reject(err);
 									} else {
-										this.files[fileName].contentType = "application/octet-stream";
+										packageFiles[fileName].contentType = "application/octet-stream";
 									}
 								} else {
 									if (typeof stdout === "string") {
@@ -741,25 +741,25 @@ export class VsixManifestBuilder extends ManifestBuilder {
 												}
 												hitCounters[magicMime].push(fileName);
 											} else {
-												if (!this.files[fileName].contentType) {
-													this.files[fileName].contentType = magicMime;
+												if (!packageFiles[fileName].contentType) {
+													packageFiles[fileName].contentType = magicMime;
 												}
 											}
 										} else {
 											if (stderr) {
-												if (this.files[fileName].addressable) {
+												if (packageFiles[fileName].addressable) {
 													reject(stderr);
 												} else {
-													this.files[fileName].contentType = "application/octet-stream";
+													packageFiles[fileName].contentType = "application/octet-stream";
 												}
 											} else {
-												if (this.files[fileName].addressable) {
+												if (packageFiles[fileName].addressable) {
 													trace.warn(
 														"Could not determine content type for %s. Defaulting to application/octet-stream. To override this, add a contentType property to this file entry in the manifest.",
 														fileName,
 													);
 												}
-												this.files[fileName].contentType = "application/octet-stream";
+												packageFiles[fileName].contentType = "application/octet-stream";
 											}
 										}
 									}
@@ -781,7 +781,7 @@ export class VsixManifestBuilder extends ManifestBuilder {
 							return;
 						}
 						hitCounts[type].forEach(fileName => {
-							this.files[fileName].contentType = type;
+							packageFiles[fileName].contentType = type;
 						});
 					});
 					contentTypes.Types.Default.push({
@@ -795,25 +795,25 @@ export class VsixManifestBuilder extends ManifestBuilder {
 		}
 		return contentTypePromise.then(() => {
 			let seenPartNames = new Set();
-			Object.keys(this.files).forEach(filePath => {
-				if (this.files[filePath].contentType) {
-					let partName = "/" + toZipItemName(this.files[filePath].partName);
+			Object.keys(packageFiles).forEach(filePath => {
+				if (packageFiles[filePath].contentType) {
+					let partName = "/" + toZipItemName(packageFiles[filePath].partName);
 					if (!seenPartNames.has(partName)) {
 						contentTypes.Types.Override.push({
 							$: {
-								ContentType: this.files[filePath].contentType,
+								ContentType: packageFiles[filePath].contentType,
 								PartName: partName,
 							},
 						});
 						seenPartNames.add(partName);
 					}
-					if ((this.files[filePath] as any)._additionalPackagePaths) {
-						for (const additionalPath of (this.files[filePath] as any)._additionalPackagePaths) {							
+					if ((packageFiles[filePath] as any)._additionalPackagePaths) {
+						for (const additionalPath of (packageFiles[filePath] as any)._additionalPackagePaths) {							
 							let additionalPartName =  "/" + toZipItemName(additionalPath);
 							if (!seenPartNames.has(additionalPartName)) {
 								contentTypes.Types.Override.push({
 									$: {
-										ContentType: this.files[filePath].contentType,
+										ContentType: packageFiles[filePath].contentType,
 										PartName: additionalPartName,
 									},
 								});
