@@ -263,8 +263,13 @@ export abstract class ManifestBuilder {
 		}
 
 		if (this.packageFiles[file.path]) {
-			if (_.isArray(this.packageFiles[file.path].assetType) && file.assetType) {
-				file.assetType = (<string[]>this.packageFiles[file.path].assetType).concat(<string[]>file.assetType);
+			if (file.assetType) {
+				const existingAssetType = this.packageFiles[file.path].assetType;
+				const existingAssetTypes = existingAssetType
+					? (_.isArray(existingAssetType) ? <string[]>existingAssetType : [<string>existingAssetType])
+					: [];
+				const incomingAssetTypes = _.isArray(file.assetType) ? <string[]>file.assetType : [<string>file.assetType];
+				file.assetType = _.uniq(existingAssetTypes.concat(incomingAssetTypes));
 				this.packageFiles[file.path].assetType = file.assetType;
 			}
 		}
