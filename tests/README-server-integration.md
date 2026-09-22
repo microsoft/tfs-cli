@@ -7,7 +7,7 @@ This directory contains integration tests for TFS CLI commands that connect to A
 The server integration tests are designed to:
 
 1. **Test server connectivity**: Verify that commands properly attempt to connect to servers
-2. **Test authentication flows**: Validate basic auth, PAT, and credential caching
+2. **Test authentication flows**: Validate basic auth, PAT, Microsoft Entra auth, and credential caching
 3. **Test API interactions**: Ensure commands make appropriate API calls
 4. **Test error handling**: Verify proper error messages and connection failure handling
 5. **Test command-line argument validation**: Ensure required parameters are properly validated
@@ -22,13 +22,13 @@ The `MockDevOpsServer` class is integrated into the test suite (`tests/mock-serv
 - **Work Item APIs**: Create, read, update work items and execute queries  
 - **Extension APIs**: Publish, show, share, install extensions
 - **Task Agent APIs**: Upload, list, delete build tasks
-- **Authentication**: Basic auth and PAT validation
+- **Authentication**: Basic auth, PAT, and bearer/Entra validation
 - **Connection Data**: Mock connection endpoints
 
 ### Features
 
 - Configurable host and port
-- Authentication simulation (basic auth and PAT)
+- Authentication simulation (basic auth, PAT, and bearer/Entra)
 - CORS headers for browser testing
 - JSON response formatting
 - Proper HTTP status codes
