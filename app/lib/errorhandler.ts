@@ -92,5 +92,11 @@ export function httpErr(obj): any {
 export function errLog(arg: any): void {
 	trace.debug(arg?.stack);
 	trace.error(formatError(arg));
-	process.exit(-1);
+	// Use process.exitCode instead of process.exit(): process.exit() can
+	// terminate the process before previously buffered stdout/stderr writes
+	// (e.g. from console.error) have actually been flushed to a
+	// piped/redirected stream, truncating or losing the error message.
+	// Setting exitCode lets Node exit naturally once the event loop drains,
+	// which is what the successful command path already does today.
+	process.exitCode = -1;
 }
