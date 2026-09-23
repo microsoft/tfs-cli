@@ -23,7 +23,9 @@ describe('Error Handler Tests', function() {
     // We'll capture what trace.error outputs
     let capturedErrors: string[] = [];
     let capturedDebug: string[] = [];
-    let originalExitCode: number | undefined;
+    let originalProcessExit: typeof process.exit;
+    let exitCalled: boolean = false;
+    let exitCode: number | undefined;
 
     // Store original modules
     let errHandler: any;
@@ -39,6 +41,8 @@ describe('Error Handler Tests', function() {
         // Reset capture arrays
         capturedErrors = [];
         capturedDebug = [];
+        exitCalled = false;
+        exitCode = undefined;
 
         // Mock trace.error to capture output
         trace.error = function(msg: any, ...args: any[]) {
@@ -58,15 +62,17 @@ describe('Error Handler Tests', function() {
             }
         };
 
-        // Preserve/reset process.exitCode so errLog's effect can be observed
-        // without actually exiting the test runner.
-        originalExitCode = process.exitCode;
-        process.exitCode = undefined;
+        // Mock process.exit to prevent test from exiting
+        originalProcessExit = process.exit;
+        (process as any).exit = function(code?: number) {
+            exitCalled = true;
+            exitCode = code;
+        };
     });
 
     afterEach(function() {
-        // Restore process.exitCode
-        process.exitCode = originalExitCode;
+        // Restore process.exit
+        process.exit = originalProcessExit;
     });
 
     describe('errLog with AggregateError', function() {
@@ -80,7 +86,8 @@ describe('Error Handler Tests', function() {
 
             errHandler.errLog(aggregateError);
 
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
+            assert.strictEqual(exitCode, -1, 'exit code should be -1');
             assert(capturedErrors.length > 0, 'should have captured error output');
             
             const errorOutput = capturedErrors.join('\n');
@@ -102,7 +109,7 @@ describe('Error Handler Tests', function() {
 
             errHandler.errLog(aggregateError);
 
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
             
             const errorOutput = capturedErrors.join('\n');
             assert(errorOutput.includes('Multiple errors occurred'), 'should indicate multiple errors');
@@ -155,7 +162,7 @@ describe('Error Handler Tests', function() {
             errHandler.errLog(aggregateError);
 
             // With empty errors array, it should fall through to toString()
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
             // Empty errors array means formatAggregateError returns the header but no items
             const errorOutput = capturedErrors.join('\n');
             assert(errorOutput.includes('Multiple errors occurred') || errorOutput.includes('AggregateError'), 
@@ -168,7 +175,7 @@ describe('Error Handler Tests', function() {
         it('should handle plain string errors', function() {
             errHandler.errLog('Simple error message');
 
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
             assert(capturedErrors.includes('Simple error message'), 'should output the string directly');
         });
 
@@ -177,7 +184,7 @@ describe('Error Handler Tests', function() {
 
             errHandler.errLog(error);
 
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
             const errorOutput = capturedErrors.join('\n');
             assert(errorOutput.includes('Standard error message'), 'should include error message');
         });
@@ -189,7 +196,7 @@ describe('Error Handler Tests', function() {
 
             errHandler.errLog(errorObj);
 
-            assert.strictEqual(process.exitCode, -1, 'exit code should be -1');
+            assert(exitCalled, 'process.exit should have been called');
             const errorOutput = capturedErrors.join('\n');
             assert(errorOutput.includes('Custom toString output'), 'should use toString method');
         });
@@ -317,7 +324,9 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
     this.timeout(10000);
 
     let capturedErrors: string[] = [];
-    let originalExitCode: number | undefined;
+    let originalProcessExit: typeof process.exit;
+    let exitCalled: boolean = false;
+    let exitCode: number | undefined;
     let errHandler: any;
     let trace: any;
 
@@ -328,6 +337,8 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
 
     beforeEach(function() {
         capturedErrors = [];
+        exitCalled = false;
+        exitCode = undefined;
 
         trace.error = function(msg: any) {
             if (typeof msg === 'string') {
@@ -338,12 +349,15 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
         };
         trace.debug = function() {};
 
-        originalExitCode = process.exitCode;
-        process.exitCode = undefined;
+        originalProcessExit = process.exit;
+        (process as any).exit = function(code?: number) {
+            exitCalled = true;
+            exitCode = code;
+        };
     });
 
     afterEach(function() {
-        process.exitCode = originalExitCode;
+        process.exit = originalProcessExit;
     });
 
     it('should exit with code -1 when share operation fails with AggregateError', function() {
@@ -358,7 +372,8 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
 
         errHandler.errLog(aggregateError);
 
-        assert.strictEqual(process.exitCode, -1, 'exit code should be -1 for share failures');
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for share failures');
         
         const errorOutput = capturedErrors.join('\n');
         assert(errorOutput.includes('Multiple errors occurred'), 'should show formatted error');
@@ -378,7 +393,8 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
 
         errHandler.errLog(aggregateError);
 
-        assert.strictEqual(process.exitCode, -1, 'exit code should be -1 for unshare failures');
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for unshare failures');
         
         const errorOutput = capturedErrors.join('\n');
         assert(errorOutput.includes('Multiple errors occurred'), 'should show formatted error');
@@ -392,14 +408,16 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
 
         errHandler.errLog(error);
 
-        assert.strictEqual(process.exitCode, -1, 'exit code should be -1 for single share failure');
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for single share failure');
     });
 
     it('should exit with code -1 when HTTP error occurs during share/unshare', function() {
         // Simulate HTTP 401 error that gets thrown by httpErr
         errHandler.errLog('Received response 401 (Not Authorized). Check that your personal access token is correct and hasn\'t expired.');
 
-        assert.strictEqual(process.exitCode, -1, 'exit code should be -1 for HTTP errors');
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for HTTP errors');
         
         const errorOutput = capturedErrors.join('\n');
         assert(errorOutput.includes('401'), 'should include 401 status');
@@ -409,7 +427,8 @@ describe('Share/Unshare error scenarios - Exit code verification', function() {
         // Simulate HTTP 403 error
         errHandler.errLog('Received response 403 (Forbidden). Check that you have access to this resource.');
 
-        assert.strictEqual(process.exitCode, -1, 'exit code should be -1 for 403 errors');
+        assert(exitCalled, 'process.exit should have been called');
+        assert.strictEqual(exitCode, -1, 'exit code should be -1 for 403 errors');
         
         const errorOutput = capturedErrors.join('\n');
         assert(errorOutput.includes('403'), 'should include 403 status');

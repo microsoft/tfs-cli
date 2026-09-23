@@ -89,14 +89,38 @@ export function httpErr(obj): any {
 	}
 }
 
+/**
+ * Exits the process with the given code, but only after any pending writes
+ * to stdout/stderr have been flushed. Calling process.exit() immediately
+ * after writing to a piped/redirected stream can terminate the process
+ * before the (asynchronous) write completes, truncating or losing output.
+ * This drains any pending writes first, then exits explicitly, preserving
+ * the existing behavior of always calling process.exit() on error.
+ */
+function flushAndExit(code: number): void {
+	const streams = [process.stdout, process.stderr];
+	let pending = 0;
+	let exited = false;
+	const tryExit = () => {
+		if (pending <= 0 && !exited) {
+			exited = true;
+			process.exit(code);
+		}
+	};
+	streams.forEach((stream) => {
+		if (stream && (stream as any).writableLength > 0) {
+			pending++;
+			stream.write("", () => {
+				pending--;
+				tryExit();
+			});
+		}
+	});
+	tryExit();
+}
+
 export function errLog(arg: any): void {
 	trace.debug(arg?.stack);
 	trace.error(formatError(arg));
-	// Use process.exitCode instead of process.exit(): process.exit() can
-	// terminate the process before previously buffered stdout/stderr writes
-	// (e.g. from console.error) have actually been flushed to a
-	// piped/redirected stream, truncating or losing the error message.
-	// Setting exitCode lets Node exit naturally once the event loop drains,
-	// which is what the successful command path already does today.
-	process.exitCode = -1;
+	flushAndExit(-1);
 }
