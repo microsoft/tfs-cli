@@ -98,7 +98,7 @@ In addition to all of the `extension create` options, the following options are 
 
 * `--vsix`: Path to an existing VSIX (to publish or query for).
 * `--share-with`: List of accounts (VSTS) with which to share the extension.
-* `--nowait-validation`: Use this paramater if you or the pipeline don’t want to wait for the CLI tool to complete. The extension is published and available in the Marketplace only after completion successful validation.
+* `--no-wait-validation`: Use this parameter if you or the pipeline don’t want to wait for the CLI tool to complete. The extension is published and available in the Marketplace only after completion successful validation.
 
 ### Example
 
